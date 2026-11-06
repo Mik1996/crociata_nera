@@ -19,6 +19,7 @@ import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 interface HistoryRow {
   id: string;
@@ -71,6 +72,7 @@ function rowFromWar(w: War): HistoryRow {
     LoadState,
     KpiCard,
     ResultBadge,
+    ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

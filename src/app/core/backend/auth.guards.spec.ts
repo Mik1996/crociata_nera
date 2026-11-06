@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, provideRouter, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
-import { authGuard, guestGuard, safeReturnUrl } from './auth.guards';
+import { authGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
 import { AuthService } from './auth.service';
 
 const signedIn = {
@@ -37,14 +37,22 @@ describe('auth guards', () => {
     TestBed.inject(AuthService).restoreSession();
     const result = run(guestGuard);
     httpMock.expectOne('/api/v1/auth/refresh').flush(signedIn);
-    expect(String(await result)).toBe('/dashboard');
+    expect(String(await result)).toBe('/');
   });
 
-  it('lets guests reach sign-in and sends them there from protected pages', async () => {
+  it('lets guests reach sign-in and sends them to the welcome page from protected pages', async () => {
     setup();
     expect(await run(guestGuard)).toBe(true);
-    expect(String(await run(authGuard, '/wars'))).toBe('/sign-in?returnUrl=%2Fwars');
-    expect(String(await run(authGuard, '/'))).toBe('/sign-in');
+    expect(String(await run(authGuard, '/wars'))).toBe('/?returnUrl=%2Fwars');
+    expect(String(await run(authGuard, '/'))).toBe('/');
+  });
+
+  it('keeps return URLs only for real pages', () => {
+    setup();
+    expect(returnUrlParams('/wars/1')).toEqual({ returnUrl: '/wars/1' });
+    for (const none of ['/', '', '/sign-in', '/sign-up?x=1', '/?returnUrl=%2Fwars', null]) {
+      expect(returnUrlParams(none)).toEqual({});
+    }
   });
 
   it('lets signed-in users through', async () => {
@@ -58,14 +66,14 @@ describe('auth guards', () => {
   it('keeps every page open with mock data (no backend)', async () => {
     setup(true);
     expect(await run(authGuard, '/wars')).toBe(true);
-    expect(String(await run(guestGuard))).toBe('/dashboard');
+    expect(String(await run(guestGuard))).toBe('/');
   });
 
   it('accepts only in-app return URLs', () => {
     setup();
     expect(safeReturnUrl('/wars/1')).toBe('/wars/1');
     for (const bad of ['//evil.example', 'https://evil.example', '/\\evil', '', null, undefined]) {
-      expect(safeReturnUrl(bad)).toBe('/dashboard');
+      expect(safeReturnUrl(bad)).toBe('/');
     }
   });
 });

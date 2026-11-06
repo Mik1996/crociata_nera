@@ -16,11 +16,11 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, map, of } from 'rxjs';
+import { catchError, filter, map, of } from 'rxjs';
 import { CocApiService } from '../core/api/coc-api';
-import { signInRedirect } from '../core/backend/auth.guards';
+import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
@@ -85,14 +85,34 @@ export class Shell {
   protected readonly showNav = computed(() => this.useMock || this.auth.isAuthenticated());
   protected readonly navOpen = signal(false);
 
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  /** The welcome page uses the full width of the content area (the other pages are capped). */
+  protected readonly wideContent = computed(() => this.currentUrl().split(/[?#]/)[0] === '/');
+
+  /**
+   * "Sign in" keeps the page to come back to: the `returnUrl` set by the guard on the welcome
+   * page, or the current page itself.
+   */
+  protected readonly signInParams = computed(() => {
+    const url = this.currentUrl();
+    return returnUrlParams(this.router.parseUrl(url).queryParams['returnUrl'] ?? url.split('#')[0]);
+  });
+
   constructor() {
-    // Signed out (button, expired or revoked session): leave the protected page for sign-in,
-    // remembering where the user was.
+    // Signed out (button, expired or revoked session): leave the protected page for the welcome
+    // page, remembering where the user was.
     let wasSignedIn = false;
     effect(() => {
       const signedIn = this.auth.isAuthenticated();
       if (wasSignedIn && !signedIn && !this.useMock) {
-        untracked(() => void this.router.navigateByUrl(signInRedirect(this.router, this.router.url)));
+        untracked(() => void this.router.navigateByUrl(guestRedirect(this.router, this.router.url)));
       }
       wasSignedIn = signedIn;
     });
@@ -103,6 +123,7 @@ export class Shell {
   }
 
   protected readonly menu: MenuItem[] = [
+    { path: '/', label: 'nav.welcome', icon: 'fort' },
     { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
     { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
     { path: '/wars', label: 'nav.history', icon: 'history_edu' },

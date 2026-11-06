@@ -1,21 +1,25 @@
 import { z } from 'zod';
-import { MessageKey } from '@/lib/http/message-key';
 
 /**
- * Payload of `POST /api/v1/wars`: the `currentwar` JSON of the Clash of Clans API,
- * as the frontend receives it. Unknown fields are dropped.
+ * Schemas of the Clash of Clans API responses read by the war sync, and of the
+ * war list query. Unknown fields are dropped.
  */
 const tag = z.string().regex(/^#[0-9A-Z]{3,15}$/i).transform((t) => t.toUpperCase());
 const count = z.number().int().min(0);
 const percentage = z.number().min(0).max(100);
+
 /** API date format: `20261105T120000.000Z`. */
-const cocDate = z
+export const cocDate = z
   .string()
   .regex(/^\d{8}T\d{6}(\.\d{3})?Z$/)
   .transform((value) => {
     const [, y, mo, d, h, mi, s] = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/.exec(value)!;
     return new Date(Date.UTC(+y!, +mo! - 1, +d!, +h!, +mi!, +s!));
   });
+
+const badgeUrls = z
+  .object({ small: z.url().optional(), medium: z.url().optional(), large: z.url().optional() })
+  .optional();
 
 const attackSchema = z.object({
   attackerTag: tag,
@@ -40,29 +44,54 @@ const sideSchema = z.object({
   tag,
   name: z.string().max(64),
   clanLevel: z.number().int().min(0),
-  badgeUrls: z.object({ small: z.url().optional(), medium: z.url().optional(), large: z.url().optional() }).optional(),
+  badgeUrls,
   attacks: count.default(0),
   stars: count,
   destructionPercentage: percentage,
+  expEarned: count.optional(),
   members: z.array(memberSchema).max(100).default([]),
 });
 
-export const saveWarSchema = z.object(
-  {
-    state: z.enum(['preparation', 'inWar', 'warEnded'], { error: MessageKey.WAR_IS_NOT_SAVABLE }),
-    teamSize: z.number().int().min(1).max(100),
-    attacksPerMember: z.number().int().min(1).max(4).default(2),
-    battleModifier: z.enum(['none', 'hardMode']).default('none'),
-    preparationStartTime: cocDate,
-    startTime: cocDate,
-    endTime: cocDate,
-    clan: sideSchema,
-    opponent: sideSchema,
-  },
-  { error: MessageKey.WAR_IS_NOT_SAVABLE },
-);
+/** `GET /clans/{tag}/currentwar` when the clan is in a war (preparation, battle day or ended). */
+export const cocWarSchema = z.object({
+  state: z.enum(['preparation', 'inWar', 'warEnded']),
+  teamSize: z.number().int().min(1).max(100),
+  attacksPerMember: z.number().int().min(1).max(4).default(2),
+  battleModifier: z.enum(['none', 'hardMode']).catch('none').default('none'),
+  preparationStartTime: cocDate,
+  startTime: cocDate,
+  endTime: cocDate,
+  clan: sideSchema,
+  opponent: sideSchema,
+});
 
-export type SaveWarInput = z.output<typeof saveWarSchema>;
+export type CocWar = z.output<typeof cocWarSchema>;
+
+/** Entry of `GET /clans/{tag}/warlog` (Clan War League entries have no opponent tag: skipped). */
+const warLogSideSchema = z.object({
+  tag: tag.optional(),
+  name: z.string().optional(),
+  attacks: count.optional(),
+  stars: count,
+  destructionPercentage: percentage,
+  expEarned: count.optional(),
+});
+
+export const cocWarLogSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        result: z.enum(['win', 'lose', 'tie']).nullable().optional(),
+        endTime: cocDate,
+        teamSize: count,
+        clan: warLogSideSchema,
+        opponent: warLogSideSchema,
+      }),
+    )
+    .catch([]),
+});
+
+export type CocWarLogEntry = z.output<typeof cocWarLogSchema>['items'][number];
 
 export const listWarsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

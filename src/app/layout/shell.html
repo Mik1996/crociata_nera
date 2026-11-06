@@ -14,7 +14,7 @@
     </button>
   }
 
-  <a routerLink="/dashboard" class="brand" [attr.aria-label]="'app.goToDashboard' | translate: { name: clanName }">
+  <a routerLink="/" class="brand" [attr.aria-label]="'app.goToHome' | translate: { name: clanName }">
     @if (badgeUrl(); as url) {
       @if (!badgeFailed()) {
         <img class="brand__badge" [src]="url" alt="" width="44" height="44" (error)="badgeFailed.set(true)" />
@@ -124,7 +124,13 @@
         </button>
       </mat-menu>
     } @else {
-      <a mat-button class="picker account" routerLink="/sign-in" [attr.aria-label]="'auth.account.signIn' | translate">
+      <a
+        mat-button
+        class="picker account"
+        routerLink="/sign-in"
+        [queryParams]="signInParams()"
+        [attr.aria-label]="'auth.account.signIn' | translate"
+      >
         <span class="material-icons account__icon" aria-hidden="true">login</span>
         <span class="account__name">{{ 'auth.account.signIn' | translate }}</span>
       </a>
@@ -151,6 +157,7 @@
               mat-list-item
               [routerLink]="item.path"
               routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
               #rla="routerLinkActive"
               [activated]="rla.isActive"
               [attr.aria-current]="rla.isActive ? 'page' : null"
@@ -170,7 +177,7 @@
   }
 
   <mat-sidenav-content>
-    <main id="content" #content tabindex="-1" class="content">
+    <main id="content" #content tabindex="-1" class="content" [class.content--wide]="wideContent()">
       <router-outlet />
       @if (!showNav()) {
         <!-- The side navigation (with this notice) is hidden while signed out. -->

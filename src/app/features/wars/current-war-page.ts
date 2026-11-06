@@ -11,6 +11,7 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { WarParticipantsTable } from './components/war-participants-table';
 import { WarSummary } from './components/war-summary';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 @Component({
   selector: 'app-current-war-page',
@@ -24,6 +25,7 @@ import { WarSummary } from './components/war-summary';
     KpiCard,
     WarSummary,
     WarParticipantsTable,
+    ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

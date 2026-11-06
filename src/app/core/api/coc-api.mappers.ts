@@ -79,9 +79,25 @@ export function mapClan(raw: CocClan): Clan {
     warTies: raw.warTies ?? 0,
     warWinStreak: raw.warWinStreak ?? 0,
     isWarLogPublic: raw.isWarLogPublic ?? false,
-    warLeague: raw.warLeague && raw.warLeague.name !== 'Unranked' ? raw.warLeague.name : undefined,
+    warLeague: raw.warLeague && raw.warLeague.name !== 'Unranked' ? { id: raw.warLeague.id, name: raw.warLeague.name } : undefined,
+    capitalLeague: rankedLeague(raw.capitalLeague),
+    capitalHallLevel: raw.clanCapital?.capitalHallLevel ?? 0,
+    clanPoints: raw.clanPoints ?? 0,
+    capitalPoints: raw.clanCapitalPoints ?? 0,
+    location: raw.location?.name,
+    countryCode: raw.location?.isCountry ? raw.location.countryCode : undefined,
+    chatLanguage: raw.chatLanguage?.name,
+    labels: (raw.labels ?? []).map((l) => ({ name: l.name, iconUrl: l.iconUrls?.medium ?? l.iconUrls?.small })),
+    type: raw.type,
+    requiredTownHall: raw.requiredTownhallLevel,
+    requiredTrophies: raw.requiredTrophies,
     members: (raw.memberList ?? []).map(mapClanMember),
   };
+}
+
+/** League name, or `undefined` when the clan is not ranked. */
+function rankedLeague(league: { name: string } | undefined): string | undefined {
+  return league && league.name !== 'Unranked' ? league.name : undefined;
 }
 
 function mapAttack(raw: CocWarAttack): Attack {

@@ -1,7 +1,10 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { AuthService } from '../../../core/backend/auth.service';
 import { participantRows } from '../../../core/utils/war-stats';
-import { sampleWar } from '../../../testing/fixtures';
+import { provideCocApiTest, sampleWar } from '../../../testing/fixtures';
 import { WarParticipantsTable } from './war-participants-table';
 
 describe('WarParticipantsTable', () => {
@@ -22,7 +25,9 @@ describe('WarParticipantsTable', () => {
     );
 
   beforeEach(async () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: true })],
+    });
     fixture = TestBed.createComponent(WarParticipantsTable);
     fixture.componentRef.setInput('rows', participantRows(sampleWar()));
     fixture.componentRef.setInput('inProgress', true);
@@ -65,5 +70,24 @@ describe('WarParticipantsTable', () => {
     await fixture.whenStable();
     expect(visibleNames()).toEqual([]);
     expect(fixture.nativeElement.textContent).toContain('Nessun partecipante corrisponde');
+  });
+
+  it('highlights the row of the signed-in player, with a "You" badge', async () => {
+    expect((fixture.nativeElement as HTMLElement).querySelector('tr.cn-row-me')).toBeNull();
+
+    TestBed.inject(AuthService).restoreSession();
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/v1/auth/refresh')
+      .flush({
+        result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'b', playerTag: '#b' } },
+        messages: [],
+        status: { code: 200, name: 'HTTP_STATUS.OK' },
+      });
+    await fixture.whenStable();
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tr.cn-row-me');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].querySelector('.cn-link-cell')!.textContent!.trim()).toBe('Player #B');
+    expect(rows[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
   });
 });

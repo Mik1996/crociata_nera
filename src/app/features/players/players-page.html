@@ -1,6 +1,6 @@
 <app-page-header [title]="'nav.players' | translate" [subtitle]="'players.subtitle' | translate: { n: statsWindow }" />
 
-<div class="page__scroll">
+<div appScrollFade class="page__scroll">
   <app-load-state
     [loading]="resource.isLoading()"
     [error]="resource.error()"
@@ -53,6 +53,9 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.name' | translate">{{ 'common.player' | translate }}</th>
             <td mat-cell *matCellDef="let m">
               <a class="cn-link-cell" [routerLink]="['/players', m.tag]" (click)="$event.stopPropagation()">{{ m.name }}</a>
+              @if (m.tag === myTag()) {
+                <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+              }
               <div class="cn-muted tag">{{ m.tag }}</div>
             </td>
           </ng-container>
@@ -110,7 +113,7 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let m; columns: columns" class="cn-row-link" (click)="open(m)"></tr>
+          <tr mat-row *matRowDef="let m; columns: columns" class="cn-row-link" [class.cn-row-me]="m.tag === myTag()" (click)="open(m)"></tr>
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell no-results" [attr.colspan]="columns.length">{{ 'players.noResults' | translate }}</td>
           </tr>

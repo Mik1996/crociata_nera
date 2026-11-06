@@ -3,7 +3,8 @@
 API applicativa in **Next.js 16**: usa solo i route handler dell'App Router, senza pagine. Si occupa di:
 
 - autenticazione degli utenti;
-- salvataggio automatico delle guerre su **MongoDB**.
+- **sincronizzazione automatica delle guerre**: un'attività pianificata legge l'API di Clash of Clans e salva ogni
+  guerra, con tutti i dati disponibili, nella collezione `Wars` di **MongoDB**.
 
 Il frontend Angular continua a leggere i dati di Clash of Clans dal proxy in `../server`. Questo backend non lo sostituisce.
 
@@ -36,7 +37,11 @@ npm run dev                    # http://localhost:3001
 | `ACCESS_TOKEN_EXPIRES_IN` | durata dell'access token | `15m` |
 | `REFRESH_TOKEN_EXPIRES_IN` | durata della sessione (refresh token) | `30d` |
 | `FRONTEND_URL` | origini ammesse per CORS e per il controllo dell'origine, separate da virgola | `http://localhost:4200` |
-| `CLAN_TAG` | se impostato, accetta solo le guerre di questo clan | — |
+| `CLAN_TAG` | clan di cui leggere e salvare le guerre, con `#` | **obbligatorio** per la sincronizzazione |
+| `COC_API_TOKEN` | chiave dell'API di Clash of Clans, legata all'IP pubblico del server (vedi sotto) | **obbligatoria** per la sincronizzazione |
+| `WAR_SYNC_INTERVAL_MINUTES` | minuti tra due letture della guerra corrente; `0` spegne lo scheduler interno | `10` |
+| `CRON_SECRET` | se impostato (almeno 32 caratteri), attiva `POST /api/v1/cron/war-sync` per scheduler esterni | — |
+| `COC_API_BASE_URL` | URL dell'API ufficiale (si cambia solo nei test) | `https://api.clashofclans.com/v1` |
 
 La configurazione viene controllata alla prima richiesta, così `next build` funziona anche senza segreti.
 
@@ -102,14 +107,14 @@ I messaggi sono chiavi (`SUCCESS.*` / `ERROR.*`), non testo: il frontend le trad
 
 | Metodo | Rotta | Accesso | Descrizione |
 | --- | --- | --- | --- |
-| GET | `/api/v1/health` | pubblica | stato del servizio e del database (503 se MongoDB non risponde) |
+| GET | `/api/v1/health` | pubblica | stato del servizio, del database (503 se MongoDB non risponde) e della sincronizzazione |
+| POST | `/api/v1/cron/war-sync` | `Bearer CRON_SECRET` | esegue una sincronizzazione (attiva solo con `CRON_SECRET`) |
 | POST | `/api/v1/auth/sign-up` | pubblica | `{ email, username, password, repeatPassword, playerTag? }`: crea l'account e fa login |
 | POST | `/api/v1/auth/sign-in` | pubblica | `{ identifier, password }`: `identifier` è l'email o lo username |
 | POST | `/api/v1/auth/refresh` | cookie | nuovo access token; il refresh token viene sostituito |
 | POST | `/api/v1/auth/sign-out` | cookie | chiude la sessione e cancella il cookie; si può ripetere senza effetti |
 | GET | `/api/v1/auth/me` | Bearer | utente corrente |
-| POST | `/api/v1/wars` | Bearer | salva il JSON `currentwar` di Clash of Clans (201 creata, 200 aggiornata o invariata) |
-| GET | `/api/v1/wars?page&limit&state` | Bearer | guerre salvate, dalla più recente, senza membri |
+| GET | `/api/v1/wars?page&limit&state` | Bearer | riepilogo delle guerre salvate, dalla più recente, senza membri |
 | GET | `/api/v1/wars/{warKey}` | Bearer | dettaglio con membri e attacchi |
 
 Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpiresAt }`.
@@ -127,12 +132,75 @@ Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpire
 
 Verifica dell'email e recupero della password non ci sono ancora. Il campo `emailVerified` è già pronto per aggiungerli.
 
-## Salvataggio delle guerre
+## Sincronizzazione delle guerre
 
-Il frontend (`src/app/core/backend/war-sync.service.ts`) manda in automatico al backend ogni guerra che riceve dal proxy: guerra in corso e archivio.
+### Dove incollare la chiave API
 
-- **Quando:** solo se c'è un utente con login e solo se la guerra è cambiata. Le guerre terminate già salvate vengono ricordate nel browser e non si rimandano.
-- **Chiave:** `warKey` = `YYYYMMDDTHHMMSS-TAGAVVERSARIO`, la stessa usata dall'archivio del proxy e dal frontend.
-- **Nessun duplicato:** rimandare la stessa guerra la aggiorna invece di crearne una nuova.
-- **Nessun passo indietro:** una guerra `warEnded` non torna a `inWar`. In quel caso la risposta è `SUCCESS.WAR_UNCHANGED`.
-- **Dati salvati:** stato, date, esito calcolato, i due clan con membri e attacchi, `firstSavedBy`/`lastSavedBy`.
+1. Scopri l'IP pubblico della macchina su cui gira il backend: in locale `curl -s https://api.ipify.org`; in
+   produzione l'IP del server o della VM.
+2. Su [developer.clashofclans.com](https://developer.clashofclans.com) vai in **My Account → Create New Key**: scegli
+   un nome e una descrizione e inserisci quell'IP in **Allowed IP Addresses**.
+3. Copia la chiave (il token lungo che inizia con `eyJ…`) e incollala in **`backend/.env.local`**:
+
+   ```
+   COC_API_TOKEN=eyJ0eXAiOiJKV1Qi...
+   CLAN_TAG=#2J8JVVCLC
+   ```
+
+4. Riavvia il backend (`npm run backend`). Nel terminale deve comparire
+   `[war-sync] reading the current war of #2J8JVVCLC every 10 min` seguito dall'esito della prima lettura.
+
+`.env.local` è escluso da git. In produzione la chiave va nei secret della piattaforma, mai nel codice. Se il backend
+gira sulla stessa macchina del proxy (`server/`), puoi usare la stessa chiave del proxy, perché è legata allo stesso IP.
+Se l'IP cambia (per esempio una connessione di casa con IP dinamico), l'API risponde `accessDenied.invalidIp`: crea una
+chiave per il nuovo IP.
+
+### Come funziona
+
+`src/instrumentation.ts` avvia lo scheduler (`src/lib/scheduler/war-sync-scheduler.ts`) quando parte il server. A ogni
+giro `syncWars` (`src/modules/wars/war-sync.service.ts`) esegue tre passi.
+
+1. **Legge la guerra in corso** (`GET /clans/{tag}/currentwar`) e la salva, sia in preparazione sia in battaglia sia
+   terminata. Salva tutti i dati disponibili: formato, date, modificatore, i due clan con livello, stemma, stelle,
+   distruzione e attacchi, e ogni membro con municipio, posizione, attacchi fatti (bersaglio, stelle, distruzione,
+   ordine, durata), attacchi subiti e miglior attacco subito.
+2. **Chiude le guerre di cui non ha visto la fine.** Dopo la fine, l'API mostra `warEnded` solo finché il clan non
+   avvia una nuova ricerca. Se nel frattempo è già partita un'altra guerra, quella precedente viene chiusa usando
+   l'ultima lettura del giorno di battaglia (`finalizedFrom: "lastSnapshot"`).
+3. **La completa con il registro guerre** (`GET /clans/{tag}/warlog`): stelle e distruzione finali ufficiali, esito ed
+   esperienza guadagnata dal clan (`warLogMatched: true`). Se il registro è privato, la guerra resta com'è.
+
+**Ritmo:** legge ogni `WAR_SYNC_INTERVAL_MINUTES`, e in più un minuto dopo l'orario di fine della guerra in corso,
+per prendere lo stato finale completo (`finalizedFrom: "currentWar"`).
+
+**Garanzie:**
+- ogni passo si può ripetere senza effetti: la guerra si aggiorna invece di duplicarsi e non torna mai a uno stato
+  precedente;
+- gli errori dell'API (chiave scaduta, IP non autorizzato, manutenzione) non fermano il server: finiscono nel log e in
+  `GET /api/v1/health` → `warSync.lastError`.
+
+Le giornate della Clan War League non compaiono in `currentwar` e non vengono salvate.
+
+### Dove gira lo scheduler
+
+Lo scheduler interno richiede un server Node sempre acceso (`npm start`, Docker, una VM). Su piattaforme serverless
+(per esempio Vercel) imposta `WAR_SYNC_INTERVAL_MINUTES=0` e `CRON_SECRET`, poi fai chiamare ogni 10 minuti:
+
+```bash
+curl -X POST https://il-tuo-backend/api/v1/cron/war-sync -H "Authorization: Bearer $CRON_SECRET"
+```
+
+La chiave API deve comunque autorizzare l'IP da cui escono le richieste del backend: su serverless gli IP in uscita
+cambiano, quindi serve un IP statico.
+
+### Riepilogo per il frontend
+
+`GET /api/v1/wars?state=warEnded&page=1&limit=20` (con access token) restituisce
+`{ items, total, page, limit }`. Ogni elemento contiene:
+- `warKey`, `state`, `result`, `teamSize`, `attacksPerMember`, `battleModifier`;
+- le date (`preparationStartTime`, `startTime`, `endTime`, `endedAt`);
+- `finalizedFrom`, `warLogMatched`, `lastSyncedAt`;
+- `clan` e `opponent`, ciascuno con `tag`, `name`, `clanLevel`, `badgeUrl`, `stars`, `destructionPercentage`,
+  `attacks` ed `expEarned`.
+
+`GET /api/v1/wars/{warKey}` aggiunge i membri con tutti gli attacchi.

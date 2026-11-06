@@ -18,13 +18,13 @@ describe('app routes', () => {
   });
 
   it.each(['/dashboard', '/current-war', '/wars', '/wars/123', '/players', '/players/%23ABC', '/statistics', '/missing'])(
-    'sends signed-out users from %s to sign-in',
+    'sends signed-out users from %s to the welcome page, remembering the page',
     async (url) => {
       const harness = await RouterTestingHarness.create();
       await harness.navigateByUrl(url);
       const router = TestBed.inject(Router);
-      expect(router.url.split('?')[0]).toBe('/sign-in');
-      expect(router.parseUrl(router.url).queryParams['returnUrl']).toBe(url === '/dashboard' ? undefined : url);
+      expect(router.url.split('?')[0]).toBe('/');
+      expect(router.parseUrl(router.url).queryParams['returnUrl']).toBe(url);
     },
   );
 
@@ -34,10 +34,17 @@ describe('app routes', () => {
     expect(TestBed.inject(Router).url).toBe('/sign-up');
   });
 
-  it('sends the root and the dashboard (home) to sign-in without a return URL', async () => {
+  it('shows the welcome page to signed-out users', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
-    expect(TestBed.inject(Router).url).toBe('/sign-in');
+    expect(TestBed.inject(Router).url).toBe('/');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-welcome-page');
+  });
+
+  it('opens the sign-in page while signed out', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/sign-in?returnUrl=%2Fwars');
+    expect(TestBed.inject(Router).url).toBe('/sign-in?returnUrl=%2Fwars');
   });
 
   it('waits for the session restore before deciding', async () => {

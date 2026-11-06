@@ -12,7 +12,7 @@
   </button>
 </app-page-header>
 
-<div class="page__scroll">
+<div appScrollFade class="page__scroll">
   <app-load-state
     [loading]="resource.isLoading()"
     [error]="resource.error()"

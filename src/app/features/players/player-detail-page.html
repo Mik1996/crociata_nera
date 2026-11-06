@@ -18,7 +18,7 @@
     <mat-tab-group class="player-tabs" mat-stretch-tabs="false" animationDuration="200ms">
       <!-- Profile -->
       <mat-tab [label]="'player.tabProfile' | translate">
-        <div class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabProfile' | translate">
+        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabProfile' | translate">
           <ul class="stat-grid" [attr.aria-label]="'player.tabProfile' | translate">
             <li class="stat">
               <img [src]="icons.star" alt="" width="40" height="40" />
@@ -119,7 +119,7 @@
 
       <!-- Army -->
       <mat-tab [label]="'player.tabArmy' | translate">
-        <div class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabArmy' | translate">
+        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabArmy' | translate">
           @for (section of army(); track section.title) {
             <section class="game-section">
               <h2>
@@ -140,7 +140,7 @@
 
       <!-- Achievements -->
       <mat-tab [label]="'player.tabAchievements' | translate">
-        <div class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabAchievements' | translate">
+        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabAchievements' | translate">
           <p class="cn-muted achievements-summary">
             {{ 'player.achievementsDone' | translate: { done: achievementsDone(), total: p.achievements.length } }}
           </p>
@@ -177,7 +177,7 @@
 
       <!-- Wars -->
       <mat-tab [label]="'player.tabWars' | translate">
-        <div class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabWars' | translate">
+        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabWars' | translate">
           <app-load-state
             [loading]="statsResource.isLoading()"
             [error]="statsResource.error()"

@@ -1,39 +1,44 @@
-import { Types } from 'mongoose';
 import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { WAR_STATE_RANK, WarDocument, WarModel } from './war.model';
-import { ListWarsQuery, SaveWarInput } from './wars.schemas';
+import { CocWar, ListWarsQuery } from './wars.schemas';
 
 export type SaveOutcome = 'created' | 'updated' | 'unchanged';
+export type WarResult = 'win' | 'lose' | 'tie';
 
-/** Compact view used in lists and as the response of a save. */
+/** Compact view used in the war list (no members). */
 export interface WarSummary {
   warKey: string;
   clanTag: string;
   state: string;
-  result: string | null;
+  result: WarResult | null;
   teamSize: number;
   attacksPerMember: number;
+  battleModifier: string;
   preparationStartTime: string;
   startTime: string;
   endTime: string;
+  endedAt: string | null;
+  finalizedFrom: string | null;
+  warLogMatched: boolean;
   clan: SideSummary;
   opponent: SideSummary;
-  updatedAt: string;
+  lastSyncedAt: string;
 }
 
 interface SideSummary {
   tag: string;
   name: string;
+  clanLevel: number;
   badgeUrl: string | null;
   stars: number;
   destructionPercentage: number;
   attacks: number;
+  expEarned: number | null;
 }
 
 export interface WarDetail extends Omit<WarSummary, 'clan' | 'opponent'> {
-  battleModifier: string;
   clan: WarDocument['clan'];
   opponent: WarDocument['opponent'];
   createdAt: string;
@@ -52,9 +57,11 @@ export function buildWarKey(preparationStartTime: Date, opponentTag: string): st
   return `${date}-${opponentTag.replace('#', '')}`;
 }
 
-export function warResult(war: SaveWarInput): 'win' | 'lose' | 'tie' | null {
-  if (war.state !== 'warEnded') return null;
-  const { clan, opponent } = war;
+/** Winner by stars, then by destruction (the game's rule). */
+export function computeResult(
+  clan: { stars: number; destructionPercentage: number },
+  opponent: { stars: number; destructionPercentage: number },
+): WarResult {
   if (clan.stars !== opponent.stars) return clan.stars > opponent.stars ? 'win' : 'lose';
   if (clan.destructionPercentage !== opponent.destructionPercentage) {
     return clan.destructionPercentage > opponent.destructionPercentage ? 'win' : 'lose';
@@ -63,49 +70,47 @@ export function warResult(war: SaveWarInput): 'win' | 'lose' | 'tie' | null {
 }
 
 /**
- * Creates or updates a war (idempotent upsert keyed by `warKey`). The frontend sends wars
- * automatically, so the same war arrives many times: a snapshot is applied only if its
- * state is not older than the stored one (an ended war is never overwritten by `inWar`).
+ * Creates or updates a war from a `currentwar` snapshot (idempotent, keyed by `warKey`).
+ * A snapshot is applied only if its state is not older than the stored one.
  */
-export async function saveWar(input: SaveWarInput, userId: string): Promise<{ outcome: SaveOutcome; war: WarSummary }> {
-  const allowedClan = env().CLAN_TAG;
-  if (allowedClan && input.clan.tag !== allowedClan) throwException(422, MessageKey.WAR_CLAN_NOT_ALLOWED);
-
-  const warKey = buildWarKey(input.preparationStartTime, input.opponent.tag);
-  const stateRank = WAR_STATE_RANK[input.state];
-  const savedBy = new Types.ObjectId(userId);
+export async function upsertWarSnapshot(
+  war: CocWar,
+  now = new Date(),
+): Promise<{ outcome: SaveOutcome; war: WarDocument }> {
+  const warKey = buildWarKey(war.preparationStartTime, war.opponent.tag);
+  const stateRank = WAR_STATE_RANK[war.state];
+  const ended = war.state === 'warEnded';
 
   try {
     const response = await WarModel.findOneAndUpdate(
       { warKey, stateRank: { $lte: stateRank } },
       {
         $set: {
-          clanTag: input.clan.tag,
-          state: input.state,
+          clanTag: war.clan.tag,
+          state: war.state,
           stateRank,
-          teamSize: input.teamSize,
-          attacksPerMember: input.attacksPerMember,
-          battleModifier: input.battleModifier,
-          preparationStartTime: input.preparationStartTime,
-          startTime: input.startTime,
-          endTime: input.endTime,
-          result: warResult(input),
-          clan: toSide(input.clan),
-          opponent: toSide(input.opponent),
-          lastSavedBy: savedBy,
+          teamSize: war.teamSize,
+          attacksPerMember: war.attacksPerMember,
+          battleModifier: war.battleModifier,
+          preparationStartTime: war.preparationStartTime,
+          startTime: war.startTime,
+          endTime: war.endTime,
+          result: ended ? computeResult(war.clan, war.opponent) : null,
+          clan: toSide(war.clan),
+          opponent: toSide(war.opponent),
+          lastSyncedAt: now,
+          ...(ended ? { finalizedFrom: 'currentWar', endedAt: war.endTime } : {}),
         },
-        $setOnInsert: { firstSavedBy: savedBy },
       },
       { upsert: true, new: true, runValidators: true, includeResultMetadata: true },
     );
-    const war = response.value!;
-    return { outcome: response.lastErrorObject?.updatedExisting ? 'updated' : 'created', war: toSummary(war) };
+    return { outcome: response.lastErrorObject?.updatedExisting ? 'updated' : 'created', war: response.value! };
   } catch (error) {
-    // The filter did not match because the stored war is in a later state; the upsert
-    // then hit the unique `warKey` index. Keep the stored war.
+    // Stored war already in a later state: the filter did not match and the upsert hit the
+    // unique `warKey` index. Keep the stored war.
     if ((error as { code?: number })?.code === 11000) {
       const existing = await WarModel.findOne({ warKey });
-      if (existing) return { outcome: 'unchanged', war: toSummary(existing) };
+      if (existing) return { outcome: 'unchanged', war: existing };
     }
     throw error;
   }
@@ -132,16 +137,11 @@ export async function getWar(warKey: string): Promise<WarDetail> {
   const war = await WarModel.findOne({ warKey });
   if (!war) throwException(404, MessageKey.WAR_NOT_FOUND);
   const { clan: _c, opponent: _o, ...summary } = toSummary(war);
-  return {
-    ...summary,
-    battleModifier: war.battleModifier ?? 'none',
-    clan: war.toObject().clan,
-    opponent: war.toObject().opponent,
-    createdAt: war.createdAt.toISOString(),
-  };
+  const plain = war.toObject();
+  return { ...summary, clan: plain.clan, opponent: plain.opponent, createdAt: war.createdAt.toISOString() };
 }
 
-function toSide(side: SaveWarInput['clan']) {
+function toSide(side: CocWar['clan']) {
   return {
     tag: side.tag,
     name: side.name,
@@ -150,6 +150,7 @@ function toSide(side: SaveWarInput['clan']) {
     attacks: side.attacks,
     stars: side.stars,
     destructionPercentage: side.destructionPercentage,
+    expEarned: side.expEarned ?? null,
     members: side.members.map((member) => ({
       ...member,
       attacks: member.attacks ?? [],
@@ -158,27 +159,33 @@ function toSide(side: SaveWarInput['clan']) {
   };
 }
 
-function toSummary(war: WarDocument): WarSummary {
+export function toSummary(war: WarDocument): WarSummary {
   const side = (s: WarDocument['clan']): SideSummary => ({
     tag: s.tag,
     name: s.name,
+    clanLevel: s.clanLevel,
     badgeUrl: s.badgeUrl ?? null,
     stars: s.stars,
     destructionPercentage: s.destructionPercentage,
     attacks: s.attacks ?? 0,
+    expEarned: s.expEarned ?? null,
   });
   return {
     warKey: war.warKey,
     clanTag: war.clanTag,
     state: war.state,
-    result: war.result ?? null,
+    result: (war.result as WarResult | null) ?? null,
     teamSize: war.teamSize,
     attacksPerMember: war.attacksPerMember,
+    battleModifier: war.battleModifier ?? 'none',
     preparationStartTime: war.preparationStartTime.toISOString(),
     startTime: war.startTime.toISOString(),
     endTime: war.endTime.toISOString(),
+    endedAt: war.endedAt?.toISOString() ?? null,
+    finalizedFrom: war.finalizedFrom ?? null,
+    warLogMatched: war.warLogMatched ?? false,
     clan: side(war.clan),
     opponent: side(war.opponent),
-    updatedAt: war.updatedAt.toISOString(),
+    lastSyncedAt: war.lastSyncedAt.toISOString(),
   };
 }

@@ -178,6 +178,40 @@ Le statistiche dei giocatori considerano solo le guerre **terminate** e **con de
 (vedi [Da dove arriva lo storico](#da-dove-arriva-lo-storico)). I grafici di andamento del clan usano invece
 i totali, quindi includono anche le guerre con solo riepilogo.
 
+## Aree scorrevoli e riga del giocatore
+
+- **Indicatore di scorrimento:** la direttiva `appScrollFade` (`src/app/shared/directives/scroll-fade.ts`) aggiunge in
+  cima e in fondo alle aree scorrevoli una leggera fascia sfocata, visibile solo se in quella direzione c'è altro
+  contenuto. Vale per le pagine e per le schede del giocatore. Si aggiorna quando si scorre, quando cambiano le
+  dimensioni e quando arrivano i dati. Gli stili `.cn-scroll-fade` sono in `styles.scss`.
+- **La tua riga:** se l'account ha un `playerTag` uguale al tag di un giocatore restituito dall'API, la sua riga è verde
+  e accanto al nome compare il badge "Tu". Succede nelle tabelle Giocatori, Statistiche e partecipanti alla guerra. Il
+  tag viene da `AuthService.playerTag`.
+
+## Pagina di benvenuto
+
+La home (`/`) presenta il clan come un banner del gioco, con i dati di `GET /clans/{tag}`. È pubblica: è la pagina che
+vede chi non ha ancora fatto login.
+
+- **Nome del clan** in testa: lettere in metallo grigio scuro con bordo argento, riflesso in movimento e fiamme che
+  salgono dalle lettere.
+- **Stemma** (`badgeUrls.large`) al centro, con raggi rotanti, bagliore e braci che salgono; sullo sfondo la Capitale
+  del clan.
+- **Cifre e etichette:** membri, guerre vinte, serie di vittorie, punti clan ed etichette con le icone ufficiali.
+- **Capitale del clan:** immagine del Capital Hall del livello del clan, Capital League con lo stemma, punti Capitale.
+- **Lega delle guerre tra clan:** coppa della lega con la divisione, vittorie, pareggi, sconfitte e percentuale di
+  vittorie.
+- **Descrizione del clan** in fondo, su una pergamena.
+
+Le immagini vengono dal Supercell Fan Kit e sono in `public/game/`:
+- `capital-halls/` (livelli 1–10);
+- `leagues/` (stemmi delle leghe, usati per la Capital League);
+- `war-leagues/` (coppe della Clan War League, `master-1` = Master League I);
+- `misc/clan-capital-bg.webp` e `misc/capital-trophy.webp`.
+
+La scelta dell'immagine dal nome della lega è in `src/app/core/game/clan-assets.ts`. Le animazioni si fermano con
+`prefers-reduced-motion`.
+
 ## Scheda giocatore
 
 Cliccando un giocatore si apre la sua scheda, ispirata al profilo del gioco. I dati arrivano da
@@ -269,7 +303,8 @@ Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
 `backend/` è un progetto Next.js separato, con il suo `package.json`. Gestisce:
 
 - l'autenticazione: sign-up, sign-in, refresh, sign-out e `me`;
-- il **salvataggio automatico delle guerre** su MongoDB.
+- il **salvataggio automatico delle guerre** su MongoDB: un'attività pianificata del backend legge da sola l'API di
+  Clash of Clans, senza browser né proxy.
 
 Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si aggiunge, non sostituisce niente.
 
@@ -277,8 +312,8 @@ Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si
   l'app lo usa per ripristinare la sessione.
 - **Header:** `authInterceptor` aggiunge `Authorization: Bearer` solo alle chiamate verso `backendBaseUrl`. Se la
   risposta è 401, rinnova il token una volta e ripete la richiesta.
-- **Salvataggio:** `HttpCocApiService` passa a `WarSyncService` ogni guerra che riceve (guerra corrente e archivio).
-  Il servizio la invia a `POST /api/v1/wars` solo se c'è un utente con login e la guerra è cambiata.
+- **Guerre salvate:** le scrive solo il backend, con la sua chiave API. Il frontend può leggerne il riepilogo con
+  `GET /api/v1/wars` (vedi [backend/README.md](backend/README.md#sincronizzazione-delle-guerre)).
 
 - **Pagine:** `/sign-in` (email o username + password) e `/sign-up` (email, username, password, conferma, tag
   giocatore facoltativo), nello stile del sito: pannello con banner dorato e pulsante verde.
@@ -287,14 +322,16 @@ Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si
     interessato oppure in un avviso.
   - Dopo l'accesso si torna alla pagina indicata da `?returnUrl=`, solo se è un percorso interno del sito.
   - `guestGuard` porta alla dashboard chi ha già fatto login.
-- **Accesso riservato:** tutte le pagine tranne `/sign-in` e `/sign-up` stanno in un gruppo di rotte protetto da
-  `authGuard`. Chi non ha fatto login viene mandato all'accesso e, dopo, torna alla pagina che aveva chiesto.
-  - Vale anche per il 404 e per i link diretti.
-  - La guardia aspetta che all'avvio venga ripristinata la sessione dal cookie, così chi ha già fatto login non
-    viene rimandato all'accesso.
-  - Senza login l'header mostra solo tema, lingua e "Accedi"; la navigazione laterale è nascosta e l'avviso della
-    Fan Content Policy appare sotto il pannello.
-  - Se la sessione finisce (logout, scadenza o revoca), si torna subito alla pagina di accesso.
+- **Accesso riservato:** sono pubbliche solo la pagina di benvenuto (`/`), `/sign-in` e `/sign-up`. Tutte le altre
+  pagine stanno in un gruppo di rotte protetto da `authGuard`.
+  - Chi non ha fatto login e apre una pagina riservata torna alla pagina di benvenuto, che si ricorda la pagina chiesta
+    (`/?returnUrl=/statistics`). "Accedi" nell'header passa quell'indirizzo alla pagina di accesso e, dopo il login,
+    si torna lì. Vale anche per il 404 e per i link diretti.
+  - La guardia aspetta che all'avvio venga ripristinata la sessione dal cookie, così chi ha già fatto login non viene
+    rimandato indietro.
+  - Senza login l'header mostra solo tema, lingua e "Accedi"; la navigazione laterale è nascosta e l'avviso della Fan
+    Content Policy appare in fondo alla pagina.
+  - Se la sessione finisce (logout, scadenza o revoca), si torna alla pagina di benvenuto.
   - Con i dati mock (`start:mock`) non c'è backend: tutte le pagine restano aperte e quelle di accesso non si
     raggiungono.
 - **Header:** a destra c'è il pulsante "Accedi" oppure il menu dell'utente (iniziale, nome, email, "Esci"). Con i
@@ -420,10 +457,10 @@ I test unitari coprono:
 - pagine di accesso e registrazione (`sign-in-page.spec.ts`, `sign-up-page.spec.ts`): errori di validazione tradotti,
   normalizzazione del tag, errori del backend sotto i campi o in un avviso, backend irraggiungibile, ritorno solo a
   pagine interne; guard (`auth.guards.spec.ts`) e rotte protette (`app.routes.spec.ts`: ogni pagina rimanda
-  all'accesso senza login, attesa del ripristino della sessione, modalità mock);
-- salvataggio automatico (`war-sync.service.spec.ts`): niente invii senza login, invio delle guerre in attesa dopo il
-  login, nuovo invio solo se la guerra cambia, nuovo tentativo dopo un errore, guerre terminate ricordate;
+  alla pagina di benvenuto senza login ricordando la pagina chiesta, attesa del ripristino della sessione, modalità
+  mock);
 - backend (`backend/test`): registrazione, login, rotazione e riuso dei refresh token, sign-out, controllo
-  dell'origine, limiti di frequenza, salvataggio idempotente delle guerre senza passi indietro di stato;
+  dell'origine, limiti di frequenza; sincronizzazione delle guerre con l'API simulata (stato finale, guerra chiusa
+  dall'ultima lettura, registro guerre privato, errori dell'API, rotta cron) e lettura del riepilogo;
 - componenti: shell e header (badge del clan, menu lingue), `LoadState` (errori tradotti), tabella partecipanti (filtri ed evidenza di chi non ha attaccato),
   pagina guerra corrente (dati, assenza guerra, errore).

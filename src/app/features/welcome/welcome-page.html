@@ -1,0 +1,169 @@
+<div appScrollFade class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'nav.welcome' | translate">
+  <app-load-state
+    [loading]="clan.isLoading() && !data()"
+    [error]="clan.error()"
+    [empty]="false"
+    (retry)="clan.reload()"
+  >
+    @if (data(); as c) {
+      <!-- Hero: flaming metallic name over the Clan Capital sky, badge as the centrepiece -->
+      <section class="hero" aria-labelledby="clan-name">
+        <div class="hero__sky" aria-hidden="true"></div>
+        <div class="hero__embers" aria-hidden="true">
+          @for (e of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track e) {
+            <span class="ember" [style.--i]="e"></span>
+          }
+        </div>
+
+        <!-- Two copies of the name in the same grid cell: they always wrap the same way -->
+        <h1 id="clan-name" class="clan-name">
+          <span class="clan-name__fire" aria-hidden="true">{{ c.name }}</span>
+          <span class="clan-name__metal">{{ c.name }}</span>
+        </h1>
+        <p class="hero__meta">
+          <span>{{ c.tag }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ 'welcome.clanLevel' | translate: { n: c.level } }}</span>
+          @if (c.location) {
+            <span aria-hidden="true">·</span>
+            <span class="hero__location"><mat-icon aria-hidden="true">public</mat-icon>{{ c.location }}</span>
+          }
+        </p>
+
+        <div class="badge-stage">
+          <div class="badge-stage__rays" aria-hidden="true"></div>
+          <div class="badge-stage__glow" aria-hidden="true"></div>
+          @if (c.badgeUrl && !badgeFailed()) {
+            <img
+              class="badge-stage__badge"
+              [src]="c.badgeUrl"
+              [alt]="'welcome.badgeAlt' | translate: { name: c.name }"
+              width="512"
+              height="512"
+              (error)="badgeFailed.set(true)"
+            />
+          } @else {
+            <svg class="badge-stage__badge" viewBox="0 0 64 72" role="img" [attr.aria-label]="'welcome.badgeAlt' | translate: { name: c.name }">
+              <path d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z" fill="#141416" stroke="#d9a93f" stroke-width="3" />
+              <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" fill="#7a1414" />
+              <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" fill="#f0c96a" />
+            </svg>
+          }
+        </div>
+
+        <ul class="hero__stats" [attr.aria-label]="'welcome.statsLabel' | translate">
+          <li>
+            <span class="hero__stat-value cn-num">{{ c.members.length }}<small>/50</small></span>
+            <span class="hero__stat-label">{{ 'welcome.members' | translate }}</span>
+          </li>
+          <li>
+            <span class="hero__stat-value cn-num">{{ c.warWins | localNumber }}</span>
+            <span class="hero__stat-label">{{ 'welcome.warWins' | translate }}</span>
+          </li>
+          <li>
+            <span class="hero__stat-value cn-num">{{ c.warWinStreak | localNumber }}</span>
+            <span class="hero__stat-label">{{ 'welcome.winStreak' | translate }}</span>
+          </li>
+          <li>
+            <span class="hero__stat-value cn-num">{{ c.clanPoints | localNumber }}</span>
+            <span class="hero__stat-label">{{ 'welcome.clanPoints' | translate }}</span>
+          </li>
+        </ul>
+
+        @if (c.labels.length) {
+          <ul class="hero__labels" [attr.aria-label]="'welcome.labels' | translate">
+            @for (label of c.labels; track label.name) {
+              <li class="label-chip">
+                @if (label.iconUrl) {
+                  <img [src]="label.iconUrl" alt="" width="24" height="24" />
+                }
+                {{ label.name }}
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Clan Capital and Clan War League -->
+      <div class="pillars">
+        <section class="pillar cn-card" aria-labelledby="capital-title">
+          <h2 id="capital-title" class="pillar__title">{{ 'welcome.capital.title' | translate }}</h2>
+          <div class="pillar__body">
+            <figure class="pillar__hero">
+              @if (capitalHall(); as image) {
+                <img class="pillar__image pillar__image--hall" [src]="image" alt="" width="320" height="320" />
+                <figcaption>
+                  <span class="pillar__caption">{{ 'welcome.capital.hall' | translate }}</span>
+                  <span class="level-ribbon">{{ 'welcome.capital.hallLevel' | translate: { n: c.capitalHallLevel } }}</span>
+                </figcaption>
+              } @else {
+                <figcaption class="cn-muted">{{ 'welcome.capital.none' | translate }}</figcaption>
+              }
+            </figure>
+            <dl class="pillar__facts">
+              <div class="fact fact--league">
+                <dt>{{ 'welcome.capital.league' | translate }}</dt>
+                <dd>
+                  @if (capitalLeagueIcon(); as icon) {
+                    <img [src]="icon" alt="" width="56" height="56" />
+                  }
+                  <span>{{ c.capitalLeague ?? ('welcome.unranked' | translate) }}</span>
+                </dd>
+              </div>
+              <div class="fact">
+                <dt>{{ 'welcome.capital.points' | translate }}</dt>
+                <dd>
+                  <img src="game/misc/capital-trophy.webp" alt="" width="32" height="32" />
+                  <span class="cn-num">{{ c.capitalPoints | localNumber }}</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="pillar cn-card" aria-labelledby="war-league-title">
+          <h2 id="war-league-title" class="pillar__title">{{ 'welcome.warLeague.title' | translate }}</h2>
+          <div class="pillar__body">
+            <figure class="pillar__hero">
+              @if (warLeagueIcon(); as icon) {
+                <img class="pillar__image pillar__image--trophy" [src]="icon" alt="" width="192" height="192" />
+              } @else {
+                <img class="pillar__image pillar__image--trophy" src="game/misc/clan-war.webp" alt="" width="96" height="96" />
+              }
+              <figcaption>
+                <span class="level-ribbon level-ribbon--gold">{{ c.warLeague?.name ?? ('welcome.unranked' | translate) }}</span>
+              </figcaption>
+            </figure>
+            <dl class="pillar__facts pillar__facts--record">
+              <div class="fact fact--win">
+                <dt>{{ 'welcome.warLeague.wins' | translate }}</dt>
+                <dd class="cn-num">{{ c.warWins | localNumber }}</dd>
+              </div>
+              <div class="fact">
+                <dt>{{ 'welcome.warLeague.ties' | translate }}</dt>
+                <dd class="cn-num">{{ c.warTies | localNumber }}</dd>
+              </div>
+              <div class="fact fact--loss">
+                <dt>{{ 'welcome.warLeague.losses' | translate }}</dt>
+                <dd class="cn-num">{{ c.warLosses | localNumber }}</dd>
+              </div>
+              @if (winRate(); as rate) {
+                <div class="fact">
+                  <dt>{{ 'welcome.warLeague.winRate' | translate }}</dt>
+                  <dd class="cn-num">{{ rate * 100 | localNumber: '1.0-0' }}%</dd>
+                </div>
+              }
+            </dl>
+          </div>
+        </section>
+      </div>
+
+      <!-- Clan description, as a parchment scroll -->
+      @if (c.description) {
+        <section class="creed" [attr.aria-label]="'welcome.creed' | translate">
+          <p class="creed__text">{{ c.description }}</p>
+        </section>
+      }
+    }
+  </app-load-state>
+</div>

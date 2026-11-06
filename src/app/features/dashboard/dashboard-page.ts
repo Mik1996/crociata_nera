@@ -25,6 +25,7 @@ import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { WarSummary } from '../wars/components/war-summary';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 /** Number of wars shown in the trend charts. */
 const CHART_WARS = 15;
@@ -44,6 +45,7 @@ const RANKING_SIZE = 5;
     LoadState,
     KpiCard,
     WarSummary,
+    ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

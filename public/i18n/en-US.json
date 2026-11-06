@@ -6,13 +6,13 @@
   "app": {
     "skipToContent": "Skip to main content",
     "toggleNavigation": "Open or close the navigation menu",
-    "goToDashboard": "{{name}} – go to the dashboard",
     "brandSubtitle": "Clan {{tag}}",
     "demoData": "Demo data",
     "demoDataTitle": "The data shown is simulated",
     "mainNavigation": "Main navigation",
     "motto": "Deus vult · No attack wasted",
-    "fanContent": "This material is unofficial and is not endorsed by Supercell. For more information see <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Supercell's Fan Content Policy</a>."
+    "fanContent": "This material is unofficial and is not endorsed by Supercell. For more information see <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Supercell's Fan Content Policy</a>.",
+    "goToHome": "{{name}} – go to the home page"
   },
   "language": {
     "change": "Change language (current: {{name}})",
@@ -34,7 +34,8 @@
     "statistics": "Statistics",
     "notFound": "Page not found",
     "signIn": "Sign in",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "welcome": "Welcome"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -63,7 +64,8 @@
     "perAttack": "per attack",
     "threeStarAttacks": "3-star attacks",
     "participation": "Participation",
-    "battleSummary": "Battle summary"
+    "battleSummary": "Battle summary",
+    "you": "You"
   },
   "sort": {
     "position": "Sort by position",
@@ -392,10 +394,7 @@
     "USER_CREATED": "Account created",
     "SIGNED_IN": "Signed in",
     "SIGNED_OUT": "Signed out",
-    "TOKEN_REFRESHED": "Session renewed",
-    "WAR_CREATED": "War saved",
-    "WAR_UPDATED": "War updated",
-    "WAR_UNCHANGED": "War already up to date"
+    "TOKEN_REFRESHED": "Session renewed"
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -421,11 +420,37 @@
     "PASSWORDS_DO_NOT_MATCH": "The passwords don't match.",
     "PLAYER_TAG_IS_NOT_VALID": "Invalid tag: # followed by 3–15 letters or digits.",
     "WAR_NOT_FOUND": "War not found.",
-    "WAR_IS_NOT_SAVABLE": "This war cannot be saved.",
-    "WAR_CLAN_NOT_ALLOWED": "The war belongs to another clan.",
+    "WAR_SYNC_FAILED": "Reading the war from Clash of Clans failed.",
     "NOT_FOUND": "Resource not found.",
     "TOO_MANY_REQUESTS": "Too many attempts: try again in a few minutes.",
     "SERVICE_UNAVAILABLE": "Service temporarily unavailable.",
     "UNHANDLED_ERROR": "An unexpected error occurred."
+  },
+  "welcome": {
+    "clanLevel": "Level {{n}}",
+    "badgeAlt": "{{name}} clan badge",
+    "statsLabel": "The clan in numbers",
+    "members": "Members",
+    "warWins": "Wars won",
+    "winStreak": "Win streak",
+    "clanPoints": "Clan points",
+    "labels": "Clan labels",
+    "unranked": "Unranked",
+    "creed": "Our creed",
+    "capital": {
+      "title": "Clan Capital",
+      "hall": "Capital Hall",
+      "hallLevel": "Level {{n}}",
+      "none": "No Clan Capital yet",
+      "league": "Capital League",
+      "points": "Capital points"
+    },
+    "warLeague": {
+      "title": "Clan War League",
+      "wins": "Wins",
+      "ties": "Ties",
+      "losses": "Losses",
+      "winRate": "Win rate"
+    }
   }
 }

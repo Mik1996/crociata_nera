@@ -5,7 +5,6 @@ export enum ApiName {
   REFRESH = 'refresh',
   SIGN_OUT = 'sign-out',
   ME = 'me',
-  WARS_SAVE = 'wars-save',
   WARS_READ = 'wars-read',
 }
 
@@ -23,7 +22,5 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.REFRESH]: { limit: 60, windowMs: 15 * MINUTE },
   [ApiName.SIGN_OUT]: { limit: 30, windowMs: 15 * MINUTE },
   [ApiName.ME]: { limit: 120, windowMs: MINUTE },
-  // The frontend saves wars automatically and only when they change.
-  [ApiName.WARS_SAVE]: { limit: 60, windowMs: MINUTE },
   [ApiName.WARS_READ]: { limit: 120, windowMs: MINUTE },
 };

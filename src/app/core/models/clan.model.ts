@@ -26,7 +26,34 @@ export interface Clan {
   warWinStreak: number;
   /** When false the API exposes neither the war log nor the current war. */
   isWarLogPublic: boolean;
-  /** Clan war league (e.g. "Crystal League I"), if any. */
-  warLeague?: string;
+  /** Clan War League (e.g. `{ id: 48000015, name: 'Master League I' }`), if ranked. */
+  warLeague?: ClanLeague;
+  /** Clan Capital league (e.g. "Legend League"), if any. */
+  capitalLeague?: string;
+  /** Level of the Capital Hall (0 = no capital yet). */
+  capitalHallLevel: number;
+  clanPoints: number;
+  capitalPoints: number;
+  /** Country or region (e.g. "Italy"). */
+  location?: string;
+  /** ISO country code, for the flag (e.g. "IT"). */
+  countryCode?: string;
+  chatLanguage?: string;
+  /** Clan labels ("Clan Wars", "Friendly"…) with their official icons. */
+  labels: ClanLabel[];
+  type?: 'open' | 'inviteOnly' | 'closed';
+  requiredTownHall?: number;
+  requiredTrophies?: number;
   members: ClanMember[];
+}
+
+/** League as returned by the API (`warLeague`): numeric id and English name. */
+export interface ClanLeague {
+  id: number;
+  name: string;
+}
+
+export interface ClanLabel {
+  name: string;
+  iconUrl?: string;
 }

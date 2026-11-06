@@ -427,10 +427,81 @@ h2 {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    // Room for card shadows and focus rings, which the scroll container would otherwise clip.
-    margin: 0 -0.5rem;
-    padding: 0.25rem 0.5rem 0.75rem;
+    // No padding: the scroll hints (`appScrollFade`) must reach the edges of the area.
   }
+}
+
+/*
+ * Scroll hint (directive `appScrollFade`): sticky blurred bands at the top/bottom edge of a
+ * scrollable area, shown only when there is more content in that direction. They overlay the
+ * content (negative margins: no layout shift) and never catch clicks.
+ */
+.cn-scroll-fade {
+  --cn-fade-size: 30px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: sticky;
+    z-index: 3;
+    display: block;
+    height: var(--cn-fade-size);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  &::before {
+    top: 0;
+    margin-bottom: calc(-1 * var(--cn-fade-size));
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--cn-bg) 70%, transparent), transparent);
+    mask-image: linear-gradient(to bottom, #000 35%, transparent);
+  }
+
+  &::after {
+    bottom: 0;
+    margin-top: calc(-1 * var(--cn-fade-size));
+    background: linear-gradient(to top, color-mix(in srgb, var(--cn-bg) 70%, transparent), transparent);
+    mask-image: linear-gradient(to top, #000 35%, transparent);
+  }
+
+  &.cn-scroll-fade--top::before,
+  &.cn-scroll-fade--bottom::after {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cn-scroll-fade::before,
+  .cn-scroll-fade::after {
+    transition: none;
+  }
+}
+
+/*
+ * Row of the signed-in user's player (tag linked to the account): green tint and bar, plus a
+ * "You" badge next to the name so it is not conveyed by colour alone. Higher specificity than
+ * component row states (e.g. "no attacks"), which it replaces.
+ */
+// Solid tint: a gradient on a table row is painted again in every cell (visible bands).
+table tr.cn-row-me.mat-mdc-row {
+  background: color-mix(in srgb, var(--cn-win) 20%, transparent);
+  box-shadow: inset 4px 0 0 var(--cn-win);
+}
+
+.cn-me-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--cn-win);
+  color: var(--cn-bg);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.03em;
+  vertical-align: middle;
 }
 
 .cn-section {

@@ -31,7 +31,7 @@ describe('coc-api mappers', () => {
     expect(clan.warWins).toBe(3);
     expect(clan.warLosses).toBe(0);
     expect(clan.isWarLogPublic).toBe(true);
-    expect(clan.warLeague).toBe('Crystal League I');
+    expect(clan.warLeague).toEqual({ id: 48000012, name: 'Crystal League I' });
     expect(clan.members.map((m) => m.role)).toEqual(['leader', 'elder']);
     expect(clan.members[0].townHall).toBe(16);
   });
@@ -40,6 +40,36 @@ describe('coc-api mappers', () => {
     const clan = mapClan({ tag: '#X', name: 'X', clanLevel: 1, warLeague: { id: 48000000, name: 'Unranked' } });
     expect(clan.warLeague).toBeUndefined();
     expect(clan.isWarLogPublic).toBe(false);
+  });
+
+  it('mapClan maps Clan Capital, leagues, location and labels', () => {
+    const clan = mapClan({
+      tag: '#2J8JVVCLC',
+      name: 'Crociata Nera',
+      clanLevel: 16,
+      clanPoints: 140174,
+      clanCapitalPoints: 5365,
+      capitalLeague: { id: 85000022, name: 'Legend League' },
+      warLeague: { id: 48000015, name: 'Master League I' },
+      clanCapital: { capitalHallLevel: 10 },
+      location: { id: 32000120, name: 'Italy', isCountry: true, countryCode: 'IT' },
+      chatLanguage: { id: 75000004, name: 'Italiano', languageCode: 'IT' },
+      labels: [{ id: 56000000, name: 'Clan Wars', iconUrls: { small: 's.png', medium: 'm.png' } }],
+      requiredTownhallLevel: 17,
+    });
+    expect(clan).toMatchObject({
+      capitalHallLevel: 10,
+      capitalLeague: 'Legend League',
+      warLeague: { id: 48000015, name: 'Master League I' },
+      clanPoints: 140174,
+      capitalPoints: 5365,
+      location: 'Italy',
+      countryCode: 'IT',
+      chatLanguage: 'Italiano',
+      labels: [{ name: 'Clan Wars', iconUrl: 'm.png' }],
+      requiredTownHall: 17,
+    });
+    expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 })).toMatchObject({ capitalHallLevel: 0, labels: [] });
   });
 
   it('mapWar returns null when the clan is not at war', () => {

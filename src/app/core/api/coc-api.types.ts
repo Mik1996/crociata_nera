@@ -48,6 +48,15 @@ export interface CocClan {
   warLosses?: number;
   isWarLogPublic?: boolean;
   warLeague?: { id: number; name: string };
+  capitalLeague?: { id: number; name: string };
+  clanCapital?: { capitalHallLevel?: number };
+  clanCapitalPoints?: number;
+  clanBuilderBasePoints?: number;
+  location?: { id: number; name: string; isCountry?: boolean; countryCode?: string };
+  chatLanguage?: { id: number; name: string; languageCode?: string };
+  labels?: { id: number; name: string; iconUrls?: { small?: string; medium?: string } }[];
+  requiredTownhallLevel?: number;
+  requiredTrophies?: number;
   members?: number;
   memberList?: CocClanMember[];
 }

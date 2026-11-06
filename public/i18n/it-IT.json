@@ -6,13 +6,13 @@
   "app": {
     "skipToContent": "Vai al contenuto principale",
     "toggleNavigation": "Apri o chiudi il menu di navigazione",
-    "goToDashboard": "{{name}} – vai alla dashboard",
     "brandSubtitle": "Clan {{tag}}",
     "demoData": "Dati demo",
     "demoDataTitle": "I dati mostrati sono simulati",
     "mainNavigation": "Navigazione principale",
     "motto": "Deus vult · Nessun attacco sprecato",
-    "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Fan Content Policy di Supercell</a>."
+    "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Fan Content Policy di Supercell</a>.",
+    "goToHome": "{{name}} – vai alla pagina iniziale"
   },
   "language": {
     "change": "Cambia lingua (attuale: {{name}})",
@@ -34,7 +34,8 @@
     "statistics": "Statistiche",
     "notFound": "Pagina non trovata",
     "signIn": "Accedi",
-    "signUp": "Registrati"
+    "signUp": "Registrati",
+    "welcome": "Benvenuto"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -63,7 +64,8 @@
     "perAttack": "per attacco",
     "threeStarAttacks": "Attacchi a 3 stelle",
     "participation": "Partecipazione",
-    "battleSummary": "Riepilogo dello scontro"
+    "battleSummary": "Riepilogo dello scontro",
+    "you": "Tu"
   },
   "sort": {
     "position": "Ordina per posizione",
@@ -392,10 +394,7 @@
     "USER_CREATED": "Account creato",
     "SIGNED_IN": "Accesso effettuato",
     "SIGNED_OUT": "Disconnessione effettuata",
-    "TOKEN_REFRESHED": "Sessione rinnovata",
-    "WAR_CREATED": "Guerra salvata",
-    "WAR_UPDATED": "Guerra aggiornata",
-    "WAR_UNCHANGED": "Guerra già aggiornata"
+    "TOKEN_REFRESHED": "Sessione rinnovata"
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -421,11 +420,37 @@
     "PASSWORDS_DO_NOT_MATCH": "Le password non coincidono.",
     "PLAYER_TAG_IS_NOT_VALID": "Tag non valido: # seguito da 3–15 lettere o numeri.",
     "WAR_NOT_FOUND": "Guerra non trovata.",
-    "WAR_IS_NOT_SAVABLE": "Questa guerra non può essere salvata.",
-    "WAR_CLAN_NOT_ALLOWED": "La guerra appartiene a un altro clan.",
+    "WAR_SYNC_FAILED": "Lettura della guerra da Clash of Clans non riuscita.",
     "NOT_FOUND": "Risorsa non trovata.",
     "TOO_MANY_REQUESTS": "Troppi tentativi: riprova tra qualche minuto.",
     "SERVICE_UNAVAILABLE": "Servizio momentaneamente non disponibile.",
     "UNHANDLED_ERROR": "Si è verificato un errore imprevisto."
+  },
+  "welcome": {
+    "clanLevel": "Livello {{n}}",
+    "badgeAlt": "Stemma del clan {{name}}",
+    "statsLabel": "Il clan in cifre",
+    "members": "Membri",
+    "warWins": "Guerre vinte",
+    "winStreak": "Serie di vittorie",
+    "clanPoints": "Punti clan",
+    "labels": "Etichette del clan",
+    "unranked": "Non classificato",
+    "creed": "Il nostro credo",
+    "capital": {
+      "title": "Capitale del clan",
+      "hall": "Municipio della Capitale",
+      "hallLevel": "Livello {{n}}",
+      "none": "Capitale non ancora fondata",
+      "league": "Lega della Capitale",
+      "points": "Punti Capitale"
+    },
+    "warLeague": {
+      "title": "Lega delle guerre tra clan",
+      "wins": "Vittorie",
+      "ties": "Pareggi",
+      "losses": "Sconfitte",
+      "winRate": "% di vittorie"
+    }
   }
 }

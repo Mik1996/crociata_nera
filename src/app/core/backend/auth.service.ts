@@ -24,6 +24,8 @@ export class AuthService {
   readonly user = computed<BackendUser | null>(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
+  /** Clash of Clans tag linked to the signed-in account (e.g. `#ABC123`), if any. */
+  readonly playerTag = computed(() => this.session()?.user.playerTag?.toUpperCase() ?? null);
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
     return this.post('sign-up', request);

@@ -21,10 +21,25 @@ const envSchema = z.object({
         .map((origin) => origin.trim().replace(/\/$/, ''))
         .filter(Boolean),
     ),
+  /** Clan whose wars are synchronised (required by the war sync). */
   CLAN_TAG: z
     .string()
     .optional()
     .transform((value) => value?.trim().toUpperCase() || undefined),
+  /** Clash of Clans API key (developer.clashofclans.com), bound to the server's public IP. */
+  COC_API_TOKEN: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  COC_API_BASE_URL: z.url().default('https://api.clashofclans.com/v1'),
+  /** Minutes between two reads of the current war; `0` disables the built-in scheduler. */
+  WAR_SYNC_INTERVAL_MINUTES: z.coerce.number().int().min(0).max(1440).default(10),
+  /** Secret for `POST /api/v1/cron/war-sync` (external schedulers); unset = endpoint disabled. */
+  CRON_SECRET: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined)
+    .refine((value) => value === undefined || value.length >= 32, 'CRON_SECRET must be at least 32 characters'),
 });
 
 export type Env = z.infer<typeof envSchema>;

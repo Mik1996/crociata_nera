@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,6 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../../../core/backend/auth.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { matchesText, sortRows, SortState } from '../../../core/utils/sort';
 import { ParticipantRow } from '../../../core/utils/war-stats';
@@ -44,6 +45,9 @@ export class WarParticipantsTable {
   readonly attacksPerMember = input(2);
   /** War still in progress: changes the message shown for players who have not attacked. */
   readonly inProgress = input(false);
+
+  /** Tag of the signed-in user's player: their row is highlighted. */
+  protected readonly myTag = inject(AuthService).playerTag;
 
   protected readonly columns = ['mapPosition', 'name', 'townHall', 'attacks', 'stars', 'averageDestruction', 'targets'];
 

@@ -34,14 +34,24 @@ const sideSchema = new Schema(
     attacks: { type: Number, default: 0 },
     stars: { type: Number, required: true },
     destructionPercentage: { type: Number, required: true },
+    /** Clan XP earned (from the war log, once the war has ended). */
+    expEarned: { type: Number, default: null },
     members: { type: [memberSchema], default: [] },
   },
   { _id: false },
 );
 
-/** Order of war states: a save never moves a war back to an earlier state. */
+/** Order of war states: a sync never moves a war back to an earlier state. */
 export const WAR_STATE_RANK = { preparation: 0, inWar: 1, warEnded: 2 } as const;
 export type WarState = keyof typeof WAR_STATE_RANK;
+
+/**
+ * How the final state of an ended war was obtained:
+ * - `currentWar`: read from `currentwar` while it showed `warEnded` (complete data);
+ * - `lastSnapshot`: the `warEnded` state was never seen (a new war started first), so the
+ *   last battle-day snapshot was closed, then corrected with the war log when available.
+ */
+export const FINALIZED_FROM = ['currentWar', 'lastSnapshot'] as const;
 
 const warSchema = new Schema(
   {
@@ -60,13 +70,18 @@ const warSchema = new Schema(
     result: { type: String, enum: ['win', 'lose', 'tie', null], default: null },
     clan: { type: sideSchema, required: true },
     opponent: { type: sideSchema, required: true },
-    firstSavedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    lastSavedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    finalizedFrom: { type: String, enum: [...FINALIZED_FROM, null], default: null },
+    endedAt: { type: Date, default: null },
+    /** `true` once final stars, destruction, result and XP were checked against the war log. */
+    warLogMatched: { type: Boolean, default: false },
+    /** Last time the war was read from the Clash of Clans API. */
+    lastSyncedAt: { type: Date, required: true },
   },
   { collection: 'Wars', timestamps: true, versionKey: false },
 );
 
 warSchema.index({ clanTag: 1, preparationStartTime: -1 });
+warSchema.index({ state: 1, endTime: 1 });
 
 export type War = InferSchemaType<typeof warSchema>;
 export type WarDocument = HydratedDocument<War>;

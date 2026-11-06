@@ -57,6 +57,9 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.name' | translate">{{ 'common.player' | translate }}</th>
       <td mat-cell *matCellDef="let r">
         <a class="cn-link-cell" [routerLink]="['/players', r.tag]">{{ r.name }}</a>
+        @if (r.tag === myTag()) {
+          <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+        }
         @if (!r.hasAttacked) {
           <span class="attack-status attack-status--none">
             <mat-icon aria-hidden="true">{{ inProgress() ? 'hourglass_empty' : 'block' }}</mat-icon>
@@ -114,7 +117,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!r.hasAttacked"></tr>
+    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!r.hasAttacked" [class.cn-row-me]="r.tag === myTag()"></tr>
     <tr class="mat-row" *matNoDataRow>
       <td class="mat-cell no-results" [attr.colspan]="columns.length">
         {{ 'participants.noResults' | translate }}

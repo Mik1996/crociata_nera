@@ -15,6 +15,7 @@ import { LevelBadge } from '../../shared/game/level-badge';
 import { UnitTile } from '../../shared/game/unit-tile';
 import { PlayerBanner } from './components/player-banner';
 import { PlayerWarStats } from './components/player-war-stats';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 interface ArmySection {
   /** Translation key of the section title. */
@@ -37,6 +38,7 @@ interface ArmySection {
     LevelBadge,
     PlayerBanner,
     PlayerWarStats,
+    ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

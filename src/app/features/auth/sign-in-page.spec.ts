@@ -74,7 +74,7 @@ describe('SignInPage', () => {
     submit(el);
     httpMock.expectOne('/api/v1/auth/sign-in').flush(session);
     await fixture.whenStable();
-    expect(navigate).toHaveBeenCalledWith('/dashboard');
+    expect(navigate).toHaveBeenCalledWith('/');
   });
 
   it('shows the backend error in an alert', async () => {

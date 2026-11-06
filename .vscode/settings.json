@@ -1,5 +1,7 @@
 {
   "conventionalCommits.scopes": [
-    "account-profile"
+    "account-profile",
+    "backend",
+    "welcome-page"
   ]
 }

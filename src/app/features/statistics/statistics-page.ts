@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, of } from 'rxjs';
+import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { HistoryPlayerStats } from '../../core/models';
@@ -24,6 +25,7 @@ import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 /** Ranking row: stats + rank + current clan membership. */
 export interface RankingRow extends HistoryPlayerStats {
@@ -54,6 +56,7 @@ const MAX_STARS_PER_WAR = 6;
     LoadState,
     KpiCard,
     ResultBadge,
+    ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -64,6 +67,8 @@ export class StatisticsPage {
   private readonly history = inject(HistoryService);
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);
+  /** Tag of the signed-in user's player: their row is highlighted. */
+  protected readonly myTag = inject(AuthService).playerTag;
 
   protected readonly allPeriods = ALL_PERIODS;
   protected readonly maxStars = MAX_STARS_PER_WAR;
