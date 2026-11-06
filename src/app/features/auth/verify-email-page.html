@@ -1,0 +1,35 @@
+<app-auth-panel [heading]="'auth.verify.title' | translate">
+  @if (!token()) {
+    <div class="auth-form__alert" role="alert">
+      <mat-icon aria-hidden="true">link_off</mat-icon>
+      <p>{{ 'ERROR.INVALID_OR_EXPIRED_VERIFY_TOKEN' | translate }}</p>
+    </div>
+  } @else if (verification.isLoading()) {
+    <div class="auth-form__status" role="status">
+      <mat-progress-spinner diameter="28" mode="indeterminate" aria-hidden="true" />
+      <p>{{ 'auth.verify.verifying' | translate }}</p>
+    </div>
+  } @else if (verification.error()) {
+    <div class="auth-form__alert" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <div>
+        @for (message of errorKeys(); track message.key) {
+          <p>{{ message.key | translate: message.params }}</p>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="auth-form__success" role="status">
+      <mat-icon aria-hidden="true">verified</mat-icon>
+      <p>{{ 'auth.verify.done' | translate }}</p>
+    </div>
+  }
+
+  <p authFooter>
+    @if (isAuthenticated()) {
+      <a routerLink="/profile">{{ 'auth.account.profile' | translate }}</a>
+    } @else {
+      <a routerLink="/sign-in">{{ 'auth.backToSignIn' | translate }}</a>
+    }
+  </p>
+</app-auth-panel>

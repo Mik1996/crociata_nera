@@ -35,7 +35,12 @@
     "notFound": "Page not found",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "forgotPassword": "Forgot password",
+    "resetPassword": "Reset password",
+    "verifyEmail": "Confirm email",
+    "profile": "My profile",
+    "admin": "Administration"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -355,7 +360,9 @@
       "username": "Username",
       "password": "Password",
       "repeatPassword": "Repeat password",
-      "playerTag": "Player tag (optional)"
+      "playerTag": "Player tag (optional)",
+      "currentPassword": "Current password",
+      "newPassword": "New password"
     },
     "hints": {
       "username": "3–24 characters: letters, digits and . - _",
@@ -369,7 +376,8 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "noAccount": "Don't have an account?",
-      "toSignUp": "Sign up"
+      "toSignUp": "Sign up",
+      "forgot": "Forgot your password?"
     },
     "signUp": {
       "title": "Sign up",
@@ -384,17 +392,48 @@
       "menu": "{{name}}'s account",
       "menuLabel": "Account menu",
       "signedInAs": "Signed in as",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "profile": "My profile",
+      "admin": "Administration"
     },
     "errors": {
       "backendUnreachable": "Unable to reach the server. Please try again shortly."
+    },
+    "backToSignIn": "Back to sign in",
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email: we will send you a link to choose a new one",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sent": "If {{email}} is registered, you will shortly receive an email with the link (valid for 1 hour). Check your spam folder too."
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Choose the new password for your account",
+      "submit": "Save password",
+      "submitting": "Saving…",
+      "done": "Password updated. For your security you have been signed out of every device: sign in with the new password.",
+      "missingToken": "The link is incomplete: open it again from the email or request a new one.",
+      "newLink": "Request a new link"
+    },
+    "verify": {
+      "title": "Confirm email",
+      "verifying": "Confirming…",
+      "done": "Email confirmed, thank you!"
     }
   },
   "SUCCESS": {
     "USER_CREATED": "Account created",
     "SIGNED_IN": "Signed in",
     "SIGNED_OUT": "Signed out",
-    "TOKEN_REFRESHED": "Session renewed"
+    "TOKEN_REFRESHED": "Session renewed",
+    "PROFILE_UPDATED": "Profile updated",
+    "PASSWORD_UPDATED": "Password updated",
+    "RESET_EMAIL_SENT": "If the email is registered, you will receive the link",
+    "PASSWORD_RESET": "Password reset",
+    "EMAIL_VERIFIED": "Email confirmed",
+    "VERIFICATION_EMAIL_SENT": "Confirmation email sent: check your inbox (and spam).",
+    "USER_UPDATED": "{{name}} updated"
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -424,7 +463,17 @@
     "NOT_FOUND": "Resource not found.",
     "TOO_MANY_REQUESTS": "Too many attempts: try again in a few minutes.",
     "SERVICE_UNAVAILABLE": "Service temporarily unavailable.",
-    "UNHANDLED_ERROR": "An unexpected error occurred."
+    "UNHANDLED_ERROR": "An unexpected error occurred.",
+    "INCORRECT_PASSWORD": "The current password is not correct.",
+    "INVALID_OR_EXPIRED_RESET_TOKEN": "The link is invalid or has expired: request a new one.",
+    "INVALID_OR_EXPIRED_VERIFY_TOKEN": "The confirmation link is invalid or has expired.",
+    "EMAIL_ALREADY_VERIFIED": "The email is already confirmed.",
+    "EMAIL_NOT_CONFIGURED": "Sending emails is not enabled yet: contact an administrator.",
+    "CANNOT_REMOVE_OWN_ADMIN": "You cannot remove the administrator role from yourself.",
+    "TOKEN_SHOULD_NOT_BE_EMPTY": "The link is incomplete.",
+    "ROLES_ARE_NOT_VALID": "Invalid roles.",
+    "PERIOD_IS_NOT_VALID": "Invalid period.",
+    "HISTORY_NOT_FOUND": "No wars recorded in the period."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -451,6 +500,53 @@
       "ties": "Ties",
       "losses": "Losses",
       "winRate": "Win rate"
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your account, the link to Clash of Clans and your password",
+    "save": "Save",
+    "account": {
+      "title": "Account",
+      "memberSince": "Member since {{date}}",
+      "verified": "Verified",
+      "notVerified": "Not confirmed",
+      "roles": "Roles",
+      "verifyHint": "Confirm your email so you can recover your password if you forget it.",
+      "resend": "Send the confirmation email again"
+    },
+    "roles": {
+      "USER": "Member",
+      "ADMIN": "Administrator"
+    },
+    "player": {
+      "title": "Clash of Clans player",
+      "hint": "Link your tag: your row will be highlighted in green in the tables.",
+      "linkedTo": "Linked to {{name}} ({{role}})",
+      "notInClan": "This tag is not among the current clan members.",
+      "clearHint": "Leave empty to unlink"
+    },
+    "password": {
+      "title": "Change password",
+      "hint": "Your other devices will be signed out; this one stays signed in.",
+      "submit": "Change password"
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "subtitle": "Registered users: {{n}}",
+    "search": "Search by name, email or tag",
+    "searchButton": "Search",
+    "empty": "No users found",
+    "tagLabel": "Player tag of {{name}}",
+    "saveTag": "Save tag",
+    "adminToggle": "Administrator: {{name}}",
+    "columns": {
+      "user": "User",
+      "playerTag": "Player tag",
+      "admin": "Admin",
+      "verified": "Email",
+      "createdAt": "Registered"
     }
   }
 }

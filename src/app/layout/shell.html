@@ -118,6 +118,16 @@
           <span class="account-menu__label">{{ 'auth.account.signedInAs' | translate }}</span>
           <span class="account-menu__email">{{ user.email }}</span>
         </div>
+        <a mat-menu-item routerLink="/profile">
+          <span class="material-icons" aria-hidden="true">manage_accounts</span>
+          <span>{{ 'auth.account.profile' | translate }}</span>
+        </a>
+        @if (auth.isAdmin()) {
+          <a mat-menu-item routerLink="/admin">
+            <span class="material-icons" aria-hidden="true">admin_panel_settings</span>
+            <span>{{ 'auth.account.admin' | translate }}</span>
+          </a>
+        }
         <button mat-menu-item type="button" (click)="signOut()">
           <span class="material-icons" aria-hidden="true">logout</span>
           <span>{{ 'auth.account.signOut' | translate }}</span>

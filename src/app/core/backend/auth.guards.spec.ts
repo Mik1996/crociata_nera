@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, provideRouter, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
-import { authGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
+import { adminGuard, authGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
 import { AuthService } from './auth.service';
 
 const signedIn = {
@@ -50,7 +50,7 @@ describe('auth guards', () => {
   it('keeps return URLs only for real pages', () => {
     setup();
     expect(returnUrlParams('/wars/1')).toEqual({ returnUrl: '/wars/1' });
-    for (const none of ['/', '', '/sign-in', '/sign-up?x=1', '/?returnUrl=%2Fwars', null]) {
+    for (const none of ['/', '', '/sign-in', '/sign-up?x=1', '/?returnUrl=%2Fwars', '/reset-password?token=x', '/verify-email?token=y', null]) {
       expect(returnUrlParams(none)).toEqual({});
     }
   });
@@ -75,5 +75,18 @@ describe('auth guards', () => {
     for (const bad of ['//evil.example', 'https://evil.example', '/\\evil', '', null, undefined]) {
       expect(safeReturnUrl(bad)).toBe('/');
     }
+  });
+
+  it('opens administration pages to admins only', async () => {
+    setup();
+    TestBed.inject(AuthService).restoreSession();
+    const pending = run(adminGuard);
+    httpMock.expectOne('/api/v1/auth/refresh').flush(signedIn);
+    expect(String(await pending)).toBe('/');
+
+    TestBed.inject(AuthService).restoreSession();
+    const admin = run(adminGuard);
+    httpMock.expectOne('/api/v1/auth/refresh').flush({ ...signedIn, result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } } });
+    expect(await admin).toBe(true);
   });
 });

@@ -42,6 +42,12 @@ npm run dev                    # http://localhost:3001
 | `WAR_SYNC_INTERVAL_MINUTES` | minuti tra due letture della guerra corrente; `0` spegne lo scheduler interno | `10` |
 | `CRON_SECRET` | se impostato (almeno 32 caratteri), attiva `POST /api/v1/cron/war-sync` per scheduler esterni | — |
 | `COC_API_BASE_URL` | URL dell'API ufficiale (si cambia solo nei test) | `https://api.clashofclans.com/v1` |
+| `ADMIN_EMAILS` | email che ricevono il ruolo ADMIN alla registrazione o all'accesso, separate da virgola | — |
+| `APP_URL` | URL pubblico usato nei link delle email | il primo `FRONTEND_URL` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | server SMTP per le email di reset e conferma (qualsiasi provider, per esempio Brevo) | — |
+
+Senza SMTP tutto funziona, ma le email non partono. In sviluppo il loro testo, con il link, viene stampato nella
+console del backend.
 
 La configurazione viene controllata alla prima richiesta, così `next build` funziona anche senza segreti.
 
@@ -114,6 +120,16 @@ I messaggi sono chiavi (`SUCCESS.*` / `ERROR.*`), non testo: il frontend le trad
 | POST | `/api/v1/auth/refresh` | cookie | nuovo access token; il refresh token viene sostituito |
 | POST | `/api/v1/auth/sign-out` | cookie | chiude la sessione e cancella il cookie; si può ripetere senza effetti |
 | GET | `/api/v1/auth/me` | Bearer | utente corrente |
+| PATCH | `/api/v1/auth/me` | Bearer | `{ playerTag }`: collega il tag giocatore, oppure lo scollega con `null` o `''` |
+| POST | `/api/v1/auth/change-password` | Bearer + cookie | `{ currentPassword, password, repeatPassword }`: chiude le altre sessioni |
+| POST | `/api/v1/auth/forgot-password` | pubblica | `{ email, language? }`: manda per email un link di reset valido 1 ora; la risposta è la stessa anche se l'email non è registrata |
+| POST | `/api/v1/auth/reset-password` | pubblica | `{ token, password, repeatPassword }`: imposta la nuova password e chiude tutte le sessioni |
+| POST | `/api/v1/auth/verify-email` | pubblica | `{ token }`: conferma l'email (il link vale 24 ore e viene inviato alla registrazione) |
+| POST | `/api/v1/auth/verify-email/resend` | Bearer | `{ language? }`: rimanda l'email di conferma |
+| GET | `/api/v1/admin/users?page&limit&search` | ADMIN | utenti registrati |
+| PATCH | `/api/v1/admin/users/{id}` | ADMIN | `{ roles?, playerTag? }`: un admin non può togliersi il ruolo da solo; se i ruoli cambiano, le sessioni dell'utente vengono chiuse |
+| GET | `/api/v1/wars/archive?limit=60` | Bearer | guerre salvate complete, nel formato `currentwar` dell'API di Clash of Clans: è la fonte dello storico nel frontend |
+| GET | `/api/v1/history` · `/api/v1/history/{YYYY-MM\|all}` | Bearer | mesi registrati e classifiche, calcolati da MongoDB con lo stesso formato del proxy |
 | GET | `/api/v1/wars?page&limit&state` | Bearer | riepilogo delle guerre salvate, dalla più recente, senza membri |
 | GET | `/api/v1/wars/{warKey}` | Bearer | dettaglio con membri e attacchi |
 
@@ -130,7 +146,12 @@ Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpire
 - **Protezione CSRF:** sulle rotte che usano il cookie, oltre a `SameSite=Strict`, si rifiuta un `Origin` non presente in `FRONTEND_URL`.
 - **Limiti di frequenza:** per IP e per rotta (`lib/http/api-name.ts`). Sono tenuti in memoria, quindi con più istanze serve uno store condiviso come Redis. L'IP si legge da `X-Forwarded-For`: in produzione il backend deve stare dietro un reverse proxy che sovrascrive quell'header.
 
-Verifica dell'email e recupero della password non ci sono ancora. Il campo `emailVerified` è già pronto per aggiungerli.
+**Account**
+- **Verifica dell'email:** link valido 24 ore, inviato alla registrazione.
+- **Recupero della password:** link valido 1 ora; dopo il reset tutte le sessioni vengono chiuse.
+- **Cambio password:** chiude le altre sessioni e lascia attiva quella corrente.
+- **Token monouso:** nel database c'è solo il loro hash SHA-256, con la scadenza.
+- **Amministratori:** il primo si crea con `ADMIN_EMAILS`, gli altri dalla pagina di amministrazione.
 
 ## Sincronizzazione delle guerre
 

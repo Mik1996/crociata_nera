@@ -2,7 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { catchError, finalize, map, Observable, of, shareReplay, take, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { AuthResult, BackendUser, BaseResult, SignInRequest, SignUpRequest } from './backend-api.types';
+import { LanguageService } from '../i18n/language.service';
+import {
+  AuthResult,
+  BackendUser,
+  BaseResult,
+  ChangePasswordRequest,
+  ResetPasswordRequest,
+  SignInRequest,
+  SignUpRequest,
+} from './backend-api.types';
 
 /**
  * Session with the application backend.
@@ -15,6 +24,7 @@ import { AuthResult, BackendUser, BaseResult, SignInRequest, SignUpRequest } fro
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${inject(APP_CONFIG).backendBaseUrl}/auth`;
+  private readonly language = inject(LanguageService);
 
   private readonly session = signal<AuthResult | null>(null);
   private refreshing$: Observable<string | null> | null = null;
@@ -26,9 +36,51 @@ export class AuthService {
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   /** Clash of Clans tag linked to the signed-in account (e.g. `#ABC123`), if any. */
   readonly playerTag = computed(() => this.session()?.user.playerTag?.toUpperCase() ?? null);
+  readonly isAdmin = computed(() => this.session()?.user.roles?.includes('ADMIN') ?? false);
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
-    return this.post('sign-up', request);
+    return this.post('sign-up', { ...request, language: this.language.current() });
+  }
+
+  /** Links (or unlinks, with `null`) the Clash of Clans player tag of the signed-in user. */
+  updateProfile(changes: { playerTag: string | null }): Observable<BackendUser> {
+    return this.http.patch<BaseResult<BackendUser>>(`${this.baseUrl}/me`, changes).pipe(
+      map((response) => response.result!),
+      tap((user) => this.patchUser(user)),
+    );
+  }
+
+  /** Other sessions are signed out by the backend; this one stays active. */
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http
+      .post<BaseResult<null>>(`${this.baseUrl}/change-password`, request, { withCredentials: true })
+      .pipe(map(() => undefined));
+  }
+
+  /** Emails a reset link (the backend answers the same way for unknown addresses). */
+  forgotPassword(email: string): Observable<void> {
+    return this.http
+      .post<BaseResult<null>>(`${this.baseUrl}/forgot-password`, { email, language: this.language.current() })
+      .pipe(map(() => undefined));
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<BaseResult<null>>(`${this.baseUrl}/reset-password`, request).pipe(map(() => undefined));
+  }
+
+  verifyEmail(token: string): Observable<BackendUser> {
+    return this.http.post<BaseResult<BackendUser>>(`${this.baseUrl}/verify-email`, { token }).pipe(
+      map((response) => response.result!),
+      tap((user) => {
+        if (this.session()?.user.id === user.id) this.patchUser(user);
+      }),
+    );
+  }
+
+  resendVerification(): Observable<void> {
+    return this.http
+      .post<BaseResult<null>>(`${this.baseUrl}/verify-email/resend`, { language: this.language.current() })
+      .pipe(map(() => undefined));
   }
 
   signIn(request: SignInRequest): Observable<BackendUser> {
@@ -78,6 +130,12 @@ export class AuthService {
       take(1),
       map(() => undefined),
     );
+  }
+
+  /** Replaces the user in the current session (after a profile change). */
+  private patchUser(user: BackendUser): void {
+    const session = this.session();
+    if (session) this.session.set({ ...session, user });
   }
 
   private post(path: 'sign-up' | 'sign-in', body: SignUpRequest | SignInRequest): Observable<BackendUser> {

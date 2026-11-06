@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { MessageKey } from '@/lib/http/message-key';
+import { MAIL_LANGUAGES, MailLanguage } from '@/lib/mail/templates';
 
 /** bcrypt only uses the first 72 bytes of a password. */
 const MAX_PASSWORD_BYTES = 72;
 
-const email = z
+export const email = z
   .string({ error: MessageKey.EMAIL_SHOULD_NOT_BE_EMPTY })
   .trim()
   .toLowerCase()
@@ -18,7 +19,7 @@ const username = z
   .regex(/^[A-Za-z0-9_.-]{3,24}$/, { error: MessageKey.USERNAME_IS_NOT_VALID });
 
 /** At least 8 characters with a letter and a digit. */
-const newPassword = z
+export const newPassword = z
   .string({ error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
   .min(1, { error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
   .refine((p) => new TextEncoder().encode(p).length <= MAX_PASSWORD_BYTES, {
@@ -28,27 +29,40 @@ const newPassword = z
     error: MessageKey.PASSWORD_IS_NOT_STRONG_ENOUGH,
   });
 
+const repeatPassword = z
+  .string({ error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY })
+  .min(1, { error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY });
+
+/** `#ABC123`, upper case. */
+export const playerTag = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^#[0-9A-Z]{3,15}$/, { error: MessageKey.PLAYER_TAG_IS_NOT_VALID });
+
+/** Language of the emails sent to the user (defaults to Italian). */
+const language = z
+  .enum(MAIL_LANGUAGES as [MailLanguage, ...MailLanguage[]])
+  .catch('it-IT')
+  .default('it-IT');
+
+const passwordsMatch = {
+  error: MessageKey.PASSWORDS_DO_NOT_MATCH,
+  path: ['repeatPassword'],
+  // Report the mismatch even when another field is invalid.
+  when: (payload: { value: unknown }) => typeof payload.value === 'object' && payload.value !== null,
+};
+
 export const signUpSchema = z
   .object({
     email,
     username,
     password: newPassword,
-    repeatPassword: z
-      .string({ error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY })
-      .min(1, { error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY }),
-    playerTag: z
-      .string()
-      .trim()
-      .toUpperCase()
-      .regex(/^#[0-9A-Z]{3,15}$/, { error: MessageKey.PLAYER_TAG_IS_NOT_VALID })
-      .optional(),
+    repeatPassword,
+    playerTag: playerTag.optional(),
+    language,
   })
-  .refine((data) => data.password === data.repeatPassword, {
-    error: MessageKey.PASSWORDS_DO_NOT_MATCH,
-    path: ['repeatPassword'],
-    // Report the mismatch even when another field is invalid.
-    when: (payload) => typeof payload.value === 'object' && payload.value !== null,
-  });
+  .refine((data) => data.password === data.repeatPassword, passwordsMatch);
 
 export const signInSchema = z.object({
   /** Email or username. */
@@ -63,5 +77,42 @@ export const signInSchema = z.object({
     .max(1024, { error: MessageKey.INVALID_CREDENTIALS }),
 });
 
+/** `PATCH /auth/me`: `playerTag: null` (or empty) unlinks the Clash of Clans account. */
+export const updateProfileSchema = z.object({
+  playerTag: z
+    .union([z.literal('').transform(() => null), z.null(), playerTag], { error: MessageKey.PLAYER_TAG_IS_NOT_VALID })
+    .optional(),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string({ error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+      .min(1, { error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+      .max(1024, { error: MessageKey.INCORRECT_PASSWORD }),
+    password: newPassword,
+    repeatPassword,
+  })
+  .refine((data) => data.password === data.repeatPassword, passwordsMatch);
+
+export const forgotPasswordSchema = z.object({ email, language });
+
+const token = z
+  .string({ error: MessageKey.TOKEN_SHOULD_NOT_BE_EMPTY })
+  .trim()
+  .min(1, { error: MessageKey.TOKEN_SHOULD_NOT_BE_EMPTY })
+  .max(128, { error: MessageKey.INVALID_OR_EXPIRED_RESET_TOKEN });
+
+export const resetPasswordSchema = z
+  .object({ token, password: newPassword, repeatPassword })
+  .refine((data) => data.password === data.repeatPassword, passwordsMatch);
+
+export const verifyEmailSchema = z.object({ token });
+
+export const resendVerificationSchema = z.object({ language });
+
 export type SignUpInput = z.output<typeof signUpSchema>;
+export type UpdateProfileInput = z.output<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.output<typeof changePasswordSchema>;
+export type ResetPasswordInput = z.output<typeof resetPasswordSchema>;
 export type SignInInput = z.output<typeof signInSchema>;

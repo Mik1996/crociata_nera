@@ -40,6 +40,40 @@ const envSchema = z.object({
     .optional()
     .transform((value) => value?.trim() || undefined)
     .refine((value) => value === undefined || value.length >= 32, 'CRON_SECRET must be at least 32 characters'),
+  /** Public URL of the site, used in email links (default: the first FRONTEND_URL). */
+  APP_URL: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim().replace(/\/$/, '') || undefined),
+  /** Emails that are given the ADMIN role when they sign up or sign in (comma-separated). */
+  ADMIN_EMAILS: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  // Outgoing email (password reset, email verification). Any SMTP provider: Brevo, Resend…
+  SMTP_HOST: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+  SMTP_USER: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  SMTP_PASS: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  /** Sender, e.g. `Crociata Nera <no-reply@crociatanera.it>`. */
+  MAIL_FROM: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
 });
 
 export type Env = z.infer<typeof envSchema>;

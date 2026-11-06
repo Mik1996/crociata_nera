@@ -6,6 +6,7 @@ import { MessageKey } from '@/lib/http/message-key';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { generateRefreshToken, hashRefreshToken, signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
+import { sendVerificationEmail } from './account.service';
 import { SignInInput, SignUpInput } from './auth.schemas';
 import { SessionModel } from './session.model';
 import { PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
@@ -68,6 +69,10 @@ export async function signUp(input: SignUpInput, client: ClientInfo): Promise<Au
     }
     throw error;
   }
+  // Confirmation email: best effort, the account works anyway.
+  await sendVerificationEmail(user, input.language).catch((error: unknown) =>
+    console.error('[auth] verification email failed:', (error as Error).message),
+  );
   return startSession(user, client);
 }
 
@@ -137,6 +142,7 @@ export async function getCurrentUser(userId: string): Promise<PublicUser> {
 }
 
 async function startSession(user: UserDocument, client: ClientInfo): Promise<AuthSession> {
+  await grantConfiguredAdmin(user);
   const refreshToken = generateRefreshToken();
   const refreshTokenExpiresAt = new Date(Date.now() + env().REFRESH_TOKEN_EXPIRES_IN * 1000);
   const session = await SessionModel.create({
@@ -156,6 +162,13 @@ async function startSession(user: UserDocument, client: ClientInfo): Promise<Aut
     refreshTokenExpiresAt,
     sessionId: session._id,
   };
+}
+
+/** Users listed in `ADMIN_EMAILS` get the ADMIN role (bootstrap of the first administrator). */
+async function grantConfiguredAdmin(user: UserDocument): Promise<void> {
+  if (!env().ADMIN_EMAILS.includes(user.email) || user.roles.includes(UserRole.ADMIN)) return;
+  user.roles.push(UserRole.ADMIN);
+  await UserModel.updateOne({ _id: user._id }, { $addToSet: { roles: UserRole.ADMIN } });
 }
 
 async function revokeAllSessions(userId: Types.ObjectId): Promise<void> {

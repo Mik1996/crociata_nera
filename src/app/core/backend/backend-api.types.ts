@@ -38,6 +38,32 @@ export interface SignUpRequest {
   password: string;
   repeatPassword: string;
   playerTag?: string;
+  /** Language of the confirmation email. */
+  language?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  password: string;
+  repeatPassword: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+  repeatPassword: string;
+}
+
+/** User as listed in the administration page. */
+export interface AdminUser extends BackendUser {
+  updatedAt: string;
+}
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface SignInRequest {

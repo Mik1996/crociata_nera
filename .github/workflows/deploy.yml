@@ -1,0 +1,83 @@
+# Tests every push and pull request; a push to master that passes the tests is published
+# on the VPS (https://crociatanera.it) by running deploy/deploy.sh over SSH.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   VPS_HOST         public IP of the VPS
+#   VPS_SSH_KEY      private key dedicated to GitHub Actions (on the server it may only run deploy.sh)
+#   VPS_KNOWN_HOSTS  output of `ssh-keyscan -t ed25519 <VPS_HOST>` (protects against fake servers)
+
+name: CI & Deploy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two deploys at the same time; a new push waits for the running one.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || 'deploy-production' }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Frontend — install
+        run: npm ci --no-audit --no-fund
+      - name: Frontend — unit tests
+        run: npx ng test --watch=false
+      - name: Frontend — production build
+        run: npx ng build --configuration production
+      - name: Proxy — tests
+        run: npm run test:server
+
+      - name: Backend — install
+        working-directory: backend
+        run: npm ci --no-audit --no-fund
+      - name: Backend — type check
+        working-directory: backend
+        run: npm run typecheck
+      - name: Backend — tests
+        working-directory: backend
+        run: npm test
+
+  deploy:
+    name: Deploy to crociatanera.it
+    needs: test
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Run deploy.sh on the VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The key is restricted on the server to `command="…/deploy.sh"`: no shell, no forwarding.
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 "root@$VPS_HOST"
+
+      - name: Health check
+        run: |
+          curl -fsS --retry 12 --retry-delay 10 --retry-all-errors https://crociatanera.it/api/v1/health
+          echo
+          curl -fsS -o /dev/null https://crociatanera.it/ && echo "Site OK"

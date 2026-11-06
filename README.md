@@ -362,6 +362,15 @@ Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si
 - **Header:** a destra c'è il pulsante "Accedi" oppure il menu dell'utente (iniziale, nome, email, "Esci"). Con i
   dati mock è nascosto.
 
+- **Account:**
+  - `/profile`: dati dell'account, conferma dell'email, collegamento del tag giocatore e cambio password;
+  - `/forgot-password`, `/reset-password` e `/verify-email`: pagine pubbliche raggiunte dai link delle email;
+  - `/admin`: elenco utenti, ruolo amministratore e tag giocatore; protetta da `adminGuard`.
+
+  Profilo e amministrazione si aprono dal menu account nell'header.
+- **Storico e statistiche:** arrivano dal backend (`/api/v1/wars/archive`, `/api/v1/history`), cioè dalle guerre
+  salvate su MongoDB. Se il backend non risponde, il frontend usa l'archivio del proxy.
+
 Rotte, modello dati e sicurezza sono descritti in [backend/README.md](backend/README.md).
 
 ## Dati reali dall'API di Clash of Clans
@@ -489,7 +498,38 @@ cp .env.example .env && nano .env      # compila COC_API_TOKEN, DATABASE_URL e J
 ./deploy.sh
 ```
 
-**Aggiornamenti:** dopo un push su `master`, basta `~/crociata_nera/deploy/deploy.sh`.
+**Aggiornamenti automatici:** il workflow `.github/workflows/deploy.yml` lancia i test a ogni push e pull request. Su
+`master`, se i test passano:
+- si collega alla VPS ed esegue `deploy.sh`;
+- poi controlla `https://crociatanera.it/api/v1/health`.
+
+La chiave SSH usata da GitHub Actions è dedicata e, sul server, può lanciare solo `deploy.sh` (`command="…"` in
+`authorized_keys`).
+
+I secret del repository sono:
+
+| Secret | Contenuto |
+| --- | --- |
+| `VPS_HOST` | IP della VPS |
+| `VPS_SSH_KEY` | la chiave privata dedicata |
+| `VPS_KNOWN_HOSTS` | l'output di `ssh-keyscan -t ed25519 <IP>` |
+
+Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS, oppure "Run workflow" nella scheda Actions.
+
+**Backup:**
+- `deploy/backup.sh` salva il database con `mongodump` e l'archivio del proxy in `/root/backups`, per 14 giorni. Sulla
+  VPS va pianificato con cron:
+  ```bash
+  ( crontab -l 2>/dev/null; echo "30 3 * * * /root/crociata_nera/deploy/backup.sh >> /var/log/crociata-backup.log 2>&1" ) | crontab -
+  ```
+- Ripristino del database:
+  ```bash
+  set -a; . ./.env; set +a
+  docker run --rm -i -e DATABASE_URL mongo:8 sh -c 'mongorestore --uri="$DATABASE_URL" --archive --gzip --drop' < /root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz
+  ```
+
+**Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e il proxy. Se
+qualcosa non risponde, GitHub manda un'email di "workflow fallito".
 
 **Comandi utili:**
 - `docker compose logs -f backend` (oppure `web` o `proxy`): mostra i log;

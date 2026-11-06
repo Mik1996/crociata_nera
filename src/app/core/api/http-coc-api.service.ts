@@ -4,6 +4,7 @@ import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from
 import { InterpolationParameters } from '@ngx-translate/core';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
+import { BaseResult } from '../backend/backend-api.types';
 import { TranslatableError } from '../i18n/translatable-error';
 import { Clan, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
 import { CocApiService } from './coc-api';
@@ -42,9 +43,16 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
  * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}` (clan members only)
  *
+ * War history and monthly statistics come first from the application backend
+ * (`{backend}/wars/archive`, `{backend}/history`), which saves every war in MongoDB; if the
+ * backend cannot answer, the proxy archive above is used instead.
+ *
  * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that
  * changes during a war (see {@link CACHE}).
  */
+/** Saved wars requested from the backend for the history (the war log covers older ones). */
+const ARCHIVE_LIMIT = 60;
+
 /** Cache duration per kind of data (the others use the 15-minute default). */
 const CACHE = {
   /** Attacks arrive continuously during the battle day. */
@@ -79,11 +87,20 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getWarHistory(): Observable<War[]> {
-    const archive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`, { context: CACHE.archive }).pipe(
-      map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)),
-      // The archive is optional: if missing, only the war log is used.
-      catchError(() => of<War[]>([])),
-    );
+    const proxyArchive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`, { context: CACHE.archive });
+    const archive$ = this.http
+      .get<BaseResult<CocWar[]>>(`${this.config.backendBaseUrl}/wars/archive`, {
+        params: { limit: ARCHIVE_LIMIT },
+        context: CACHE.archive,
+      })
+      .pipe(
+        map((response) => response.result ?? []),
+        // Backend unreachable: fall back to the proxy archive.
+        catchError(() => proxyArchive$),
+        map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)),
+        // The archive is optional: if missing, only the war log is used.
+        catchError(() => of<War[]>([])),
+      );
     const warLog$ = this.http.get<CocWarLog>(`${this.clanPath}/warlog`).pipe(
       map((log) => log.items.map(mapWarLogEntry).filter((w): w is War => w !== null)),
       catchError((err: HttpErrorResponse) => (isPrivateWarLog(err) ? of<War[]>([]) : toApiError(err))),
@@ -94,18 +111,26 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getHistoryMonths(): Observable<MonthSummary[]> {
-    return this.http
-      .get<MonthSummary[]>(`${this.config.apiBaseUrl}/history`)
-      .pipe(catchError(toApiError));
+    const proxy$ = this.http.get<MonthSummary[]>(`${this.config.apiBaseUrl}/history`).pipe(catchError(toApiError));
+    return this.http.get<BaseResult<MonthSummary[]>>(`${this.config.backendBaseUrl}/history`).pipe(
+      map((response) => response.result ?? []),
+      catchError(() => proxy$),
+    );
   }
 
   getHistoryPeriod(period: string): Observable<HistoryPeriod | null> {
-    return this.http
-      .get<HistoryPeriod>(`${this.config.apiBaseUrl}/history/${encodeURIComponent(period)}`)
+    const path = `/history/${encodeURIComponent(period)}`;
+    const proxy$ = this.http
+      .get<HistoryPeriod>(`${this.config.apiBaseUrl}${path}`)
       .pipe(
         // 404 = no wars recorded in the month.
         catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
       );
+    return this.http.get<BaseResult<HistoryPeriod>>(`${this.config.backendBaseUrl}${path}`).pipe(
+      map((response) => response.result),
+      // 404 from the backend = no wars in that month; any other failure: ask the proxy.
+      catchError((err: HttpErrorResponse) => (err.status === 404 && isBackendError(err) ? of(null) : proxy$)),
+    );
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {
@@ -127,6 +152,11 @@ export class HttpCocApiService extends CocApiService {
       ),
     );
   }
+}
+
+/** The backend answered with its envelope (as opposed to a proxy or network error). */
+function isBackendError(err: HttpErrorResponse): boolean {
+  return typeof err.error === 'object' && err.error !== null && 'status' in err.error && 'messages' in err.error;
 }
 
 function errorBody(err: HttpErrorResponse): CocClientError | undefined {

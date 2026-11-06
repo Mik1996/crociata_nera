@@ -108,19 +108,33 @@ describe('HttpCocApiService', () => {
     await expect(response).rejects.toThrow('maintenance');
   });
 
-  it('merges archive and war log, discarding CWL entries', async () => {
+  const ARCHIVE = '/api/v1/wars/archive?limit=60';
+  const ok = <T>(result: T) => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
+  const backendDown = { status: 503, statusText: 'Service Unavailable' };
+
+  it('builds the history from the wars saved by the backend, merged with the war log', async () => {
     const response = firstValueFrom(api.getWarHistory());
-    http.expectOne('/proxy/archive/wars').flush([snapshot]);
+    http.expectOne(ARCHIVE).flush(ok([snapshot]));
     http.expectOne(`${CLAN}/warlog`).flush(warLog);
     const history = await response;
     expect(history.map((w) => [w.opponent.tag, w.hasDetails])).toEqual([
       ['#OPP', true],
       ['#OLD', false],
     ]);
+    http.expectNone('/proxy/archive/wars');
   });
 
-  it('uses only the war log when the proxy archive is unavailable', async () => {
+  it('falls back to the proxy archive when the backend is unavailable', async () => {
     const response = firstValueFrom(api.getWarHistory());
+    http.expectOne(ARCHIVE).flush(null, backendDown);
+    http.expectOne('/proxy/archive/wars').flush([snapshot]);
+    http.expectOne(`${CLAN}/warlog`).flush(warLog);
+    expect((await response).some((w) => w.hasDetails)).toBe(true);
+  });
+
+  it('uses only the war log when no archive is available', async () => {
+    const response = firstValueFrom(api.getWarHistory());
+    http.expectOne(ARCHIVE).flush(null, backendDown);
     http.expectOne('/proxy/archive/wars').flush({}, { status: 404, statusText: 'Not Found' });
     http.expectOne(`${CLAN}/warlog`).flush(warLog);
     expect((await response).every((w) => !w.hasDetails)).toBe(true);
@@ -128,25 +142,40 @@ describe('HttpCocApiService', () => {
 
   it('uses only the archive when the war log is private', async () => {
     const response = firstValueFrom(api.getWarHistory());
-    http.expectOne('/proxy/archive/wars').flush([snapshot]);
+    http.expectOne(ARCHIVE).flush(ok([snapshot]));
     http.expectOne(`${CLAN}/warlog`).flush({ reason: 'accessDenied' }, { status: 403, statusText: 'Forbidden' });
     const history = await response;
     expect(history).toHaveLength(1);
     expect(history[0].hasDetails).toBe(true);
   });
 
-  it('reads the month list and period data from the proxy history', async () => {
+  it('reads months and periods from the backend history', async () => {
     const months = firstValueFrom(api.getHistoryMonths());
-    http.expectOne('/proxy/history').flush([{ month: '2026-11', updatedAt: 'x', wars: 2, victories: 2, draws: 0, defeats: 0 }]);
+    http.expectOne('/api/v1/history').flush(ok([{ month: '2026-11', updatedAt: 'x', wars: 2, victories: 2, draws: 0, defeats: 0 }]));
     expect((await months)[0].month).toBe('2026-11');
 
     const period = firstValueFrom(api.getHistoryPeriod('all'));
-    http.expectOne('/proxy/history/all').flush({ period: 'all', updatedAt: null, wars: [], players: [] });
+    http.expectOne('/api/v1/history/all').flush(ok({ period: 'all', updatedAt: null, wars: [], players: [] }));
     expect((await period)?.period).toBe('all');
   });
 
-  it('a month without wars (proxy 404) returns null', async () => {
+  it('a month without wars (backend 404) returns null without asking the proxy', async () => {
     const period = firstValueFrom(api.getHistoryPeriod('2026-01'));
+    http
+      .expectOne('/api/v1/history/2026-01')
+      .flush({ result: null, messages: [{ key: 'ERROR.HISTORY_NOT_FOUND' }], status: { code: 404, name: 'HTTP_STATUS.NOT_FOUND' } }, { status: 404, statusText: 'Not Found' });
+    expect(await period).toBeNull();
+    http.expectNone('/proxy/history/2026-01');
+  });
+
+  it('falls back to the proxy history when the backend is unavailable', async () => {
+    const months = firstValueFrom(api.getHistoryMonths());
+    http.expectOne('/api/v1/history').flush(null, backendDown);
+    http.expectOne('/proxy/history').flush([{ month: '2026-10', updatedAt: 'x', wars: 1, victories: 1, draws: 0, defeats: 0 }]);
+    expect((await months)[0].month).toBe('2026-10');
+
+    const period = firstValueFrom(api.getHistoryPeriod('2026-01'));
+    http.expectOne('/api/v1/history/2026-01').flush(null, backendDown);
     http.expectOne('/proxy/history/2026-01').flush({ reason: 'notFound' }, { status: 404, statusText: 'Not Found' });
     expect(await period).toBeNull();
   });

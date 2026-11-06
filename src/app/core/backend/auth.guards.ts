@@ -29,12 +29,23 @@ export const authGuard: CanActivateFn = (_route, state) => {
   return auth.whenReady().pipe(map(() => (auth.isAuthenticated() ? true : guestRedirect(router, state.url))));
 };
 
+/** Administration pages: signed-in users without the ADMIN role go back to the home page. */
+export const adminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (inject(APP_CONFIG).useMockApi) return router.parseUrl('/');
+  return auth.whenReady().pipe(map(() => (auth.isAdmin() ? true : router.parseUrl('/'))));
+};
+
 /** Pages that need no return URL: after sign-in the user lands on the home page anyway. */
 const HOME_URLS = new Set(['', '/']);
 
+/** Pages that make no sense to come back to after signing in (one-time links, auth forms). */
+const NO_RETURN_PREFIXES = ['/sign-', '/forgot-password', '/reset-password', '/verify-email', '/?'];
+
 /** Query params that carry a page to come back to (none for the home page and the auth pages). */
 export function returnUrlParams(returnUrl: string | null | undefined): { returnUrl?: string } {
-  return returnUrl && !HOME_URLS.has(returnUrl) && !returnUrl.startsWith('/sign-') && !returnUrl.startsWith('/?')
+  return returnUrl && !HOME_URLS.has(returnUrl) && !NO_RETURN_PREFIXES.some((p) => returnUrl.startsWith(p))
     ? { returnUrl }
     : {};
 }

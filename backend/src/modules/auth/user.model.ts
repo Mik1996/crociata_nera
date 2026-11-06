@@ -11,8 +11,12 @@ const userSchema = new Schema(
     roles: { type: [String], enum: Object.values(UserRole), default: [UserRole.USER] },
     /** Linked Clash of Clans account (optional, e.g. `#ABC123`). */
     playerTag: { type: String, default: null },
-    // Ready for email verification, added later without a migration.
     emailVerified: { type: Boolean, default: false },
+    // One-time tokens sent by email: only their SHA-256 is stored, with an expiry.
+    verifyEmailTokenHash: { type: String, default: null, select: false },
+    verifyEmailExpiresAt: { type: Date, default: null, select: false },
+    resetPasswordTokenHash: { type: String, default: null, select: false },
+    resetPasswordExpiresAt: { type: Date, default: null, select: false },
   },
   { collection: 'Users', timestamps: true, versionKey: false },
 );

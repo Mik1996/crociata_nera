@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/backend/auth.guards';
+import { adminGuard, authGuard, guestGuard } from './core/backend/auth.guards';
 
 /**
  * Route `title`s are translation keys, resolved by `PageTitleStrategy`.
@@ -26,6 +26,23 @@ export const routes: Routes = [
     title: 'nav.signUp',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/sign-up-page').then((m) => m.SignUpPage),
+  },
+  {
+    path: 'forgot-password',
+    title: 'nav.forgotPassword',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/forgot-password-page').then((m) => m.ForgotPasswordPage),
+  },
+  {
+    // Public: the link arrives by email, signed in or not.
+    path: 'reset-password',
+    title: 'nav.resetPassword',
+    loadComponent: () => import('./features/auth/reset-password-page').then((m) => m.ResetPasswordPage),
+  },
+  {
+    path: 'verify-email',
+    title: 'nav.verifyEmail',
+    loadComponent: () => import('./features/auth/verify-email-page').then((m) => m.VerifyEmailPage),
   },
   {
     path: '',
@@ -65,6 +82,17 @@ export const routes: Routes = [
         path: 'statistics',
         title: 'nav.statistics',
         loadComponent: () => import('./features/statistics/statistics-page').then((m) => m.StatisticsPage),
+      },
+      {
+        path: 'profile',
+        title: 'nav.profile',
+        loadComponent: () => import('./features/profile/profile-page').then((m) => m.ProfilePage),
+      },
+      {
+        path: 'admin',
+        title: 'nav.admin',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/admin/admin-page').then((m) => m.AdminPage),
       },
       {
         path: '**',

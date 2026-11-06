@@ -189,3 +189,52 @@ export function toSummary(war: WarDocument): WarSummary {
     lastSyncedAt: war.lastSyncedAt.toISOString(),
   };
 }
+
+/** `20261105T120000.000Z`: the date format of the Clash of Clans API. */
+function toCocDate(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, '');
+}
+
+/**
+ * Saved wars in the `currentwar` format of the Clash of Clans API (most recent first), so the
+ * frontend reuses its existing mapper. Replaces the proxy's file archive as history source.
+ */
+export async function listArchive(limit: number): Promise<unknown[]> {
+  const clanTag = env().CLAN_TAG;
+  const docs = await WarModel.find(clanTag ? { clanTag } : {})
+    .sort({ preparationStartTime: -1 })
+    .limit(limit);
+  const side = (s: WarDocument['clan']) => ({
+    tag: s.tag,
+    name: s.name,
+    clanLevel: s.clanLevel,
+    ...(s.badgeUrl ? { badgeUrls: { small: s.badgeUrl, medium: s.badgeUrl, large: s.badgeUrl } } : {}),
+    attacks: s.attacks ?? 0,
+    stars: s.stars,
+    destructionPercentage: s.destructionPercentage,
+    ...(s.expEarned != null ? { expEarned: s.expEarned } : {}),
+    members: s.members.map((m) => ({
+      tag: m.tag,
+      name: m.name,
+      townhallLevel: m.townhallLevel,
+      mapPosition: m.mapPosition,
+      opponentAttacks: m.opponentAttacks ?? 0,
+      attacks: m.attacks.map(({ duration, ...a }) => ({ ...a, ...(duration != null ? { duration } : {}) })),
+      ...(m.bestOpponentAttack ? { bestOpponentAttack: m.bestOpponentAttack } : {}),
+    })),
+  });
+  return docs.map((war) => {
+    const plain = war.toObject();
+    return {
+      state: war.state,
+      teamSize: war.teamSize,
+      attacksPerMember: war.attacksPerMember,
+      battleModifier: war.battleModifier ?? 'none',
+      preparationStartTime: toCocDate(war.preparationStartTime),
+      startTime: toCocDate(war.startTime),
+      endTime: toCocDate(war.endTime),
+      clan: side(plain.clan as WarDocument['clan']),
+      opponent: side(plain.opponent as WarDocument['opponent']),
+    };
+  });
+}

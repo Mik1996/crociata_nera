@@ -64,3 +64,45 @@
     letter-spacing: 0.02em;
   }
 }
+
+// Confirmation and progress messages (forgot/reset password, email verification).
+.auth-form__success,
+.auth-form__status {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  font-size: var(--cn-fs-sm);
+
+  p {
+    margin: 0;
+  }
+
+  mat-icon {
+    flex: none;
+  }
+}
+
+.auth-form__success {
+  border: 2px solid var(--cn-win);
+  background: color-mix(in srgb, var(--cn-win) 14%, transparent);
+  color: var(--cn-text);
+
+  mat-icon {
+    color: var(--cn-win);
+  }
+}
+
+.auth-form__status {
+  justify-content: center;
+  color: var(--cn-text-muted);
+}
+
+.auth-form__forgot {
+  align-self: flex-end;
+  margin: -0.3rem 0 0.2rem;
+  font-size: var(--cn-fs-sm);
+  color: var(--cn-gold-light);
+}

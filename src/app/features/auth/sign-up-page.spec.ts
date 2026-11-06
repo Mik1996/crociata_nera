@@ -59,6 +59,7 @@ describe('SignUpPage', () => {
       password: 'secret123',
       repeatPassword: 'secret123',
       playerTag: '#ABC123',
+      language: 'it-IT',
     });
     req.flush(
       {

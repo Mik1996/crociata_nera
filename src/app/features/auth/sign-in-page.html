@@ -45,6 +45,8 @@
       }
     </mat-form-field>
 
+    <a class="auth-form__forgot" routerLink="/forgot-password">{{ 'auth.signIn.forgot' | translate }}</a>
+
     <button mat-flat-button type="submit" class="auth-form__submit" [disabled]="submitting()">
       @if (submitting()) {
         <mat-progress-spinner diameter="20" mode="indeterminate" aria-hidden="true" />

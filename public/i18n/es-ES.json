@@ -35,7 +35,12 @@
     "notFound": "Página no encontrada",
     "signIn": "Iniciar sesión",
     "signUp": "Registrarse",
-    "welcome": "Bienvenida"
+    "welcome": "Bienvenida",
+    "forgotPassword": "Contraseña olvidada",
+    "resetPassword": "Restablecer contraseña",
+    "verifyEmail": "Confirmar email",
+    "profile": "Mi perfil",
+    "admin": "Administración"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -355,7 +360,9 @@
       "username": "Nombre de usuario",
       "password": "Contraseña",
       "repeatPassword": "Repite la contraseña",
-      "playerTag": "Tag de jugador (opcional)"
+      "playerTag": "Tag de jugador (opcional)",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña"
     },
     "hints": {
       "username": "3–24 caracteres: letras, números y . - _",
@@ -369,7 +376,8 @@
       "submit": "Entrar",
       "submitting": "Entrando…",
       "noAccount": "¿No tienes cuenta?",
-      "toSignUp": "Regístrate"
+      "toSignUp": "Regístrate",
+      "forgot": "¿Has olvidado la contraseña?"
     },
     "signUp": {
       "title": "Registrarse",
@@ -384,17 +392,48 @@
       "menu": "Cuenta de {{name}}",
       "menuLabel": "Menú de cuenta",
       "signedInAs": "Sesión iniciada como",
-      "signOut": "Cerrar sesión"
+      "signOut": "Cerrar sesión",
+      "profile": "Mi perfil",
+      "admin": "Administración"
     },
     "errors": {
       "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve."
+    },
+    "backToSignIn": "Volver al inicio de sesión",
+    "forgot": {
+      "title": "Contraseña olvidada",
+      "subtitle": "Introduce tu email: te enviaremos un enlace para elegir una nueva",
+      "submit": "Enviar el enlace",
+      "submitting": "Enviando…",
+      "sent": "Si {{email}} está registrado, recibirás en breve un email con el enlace (válido 1 hora). Revisa también la carpeta de spam."
+    },
+    "reset": {
+      "title": "Nueva contraseña",
+      "subtitle": "Elige la nueva contraseña de tu cuenta",
+      "submit": "Guardar la contraseña",
+      "submitting": "Guardando…",
+      "done": "Contraseña actualizada. Por seguridad se ha cerrado la sesión en todos los dispositivos: inicia sesión con la nueva contraseña.",
+      "missingToken": "El enlace no está completo: ábrelo de nuevo desde el email o solicita uno nuevo.",
+      "newLink": "Solicitar un nuevo enlace"
+    },
+    "verify": {
+      "title": "Confirmar email",
+      "verifying": "Confirmando…",
+      "done": "¡Email confirmado, gracias!"
     }
   },
   "SUCCESS": {
     "USER_CREATED": "Cuenta creada",
     "SIGNED_IN": "Sesión iniciada",
     "SIGNED_OUT": "Sesión cerrada",
-    "TOKEN_REFRESHED": "Sesión renovada"
+    "TOKEN_REFRESHED": "Sesión renovada",
+    "PROFILE_UPDATED": "Perfil actualizado",
+    "PASSWORD_UPDATED": "Contraseña actualizada",
+    "RESET_EMAIL_SENT": "Si el email está registrado, recibirás el enlace",
+    "PASSWORD_RESET": "Contraseña restablecida",
+    "EMAIL_VERIFIED": "Email confirmado",
+    "VERIFICATION_EMAIL_SENT": "Email de confirmación enviado: revisa tu correo (también el spam).",
+    "USER_UPDATED": "{{name}} actualizado"
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -424,7 +463,17 @@
     "NOT_FOUND": "Recurso no encontrado.",
     "TOO_MANY_REQUESTS": "Demasiados intentos: inténtalo de nuevo en unos minutos.",
     "SERVICE_UNAVAILABLE": "Servicio no disponible temporalmente.",
-    "UNHANDLED_ERROR": "Se ha producido un error inesperado."
+    "UNHANDLED_ERROR": "Se ha producido un error inesperado.",
+    "INCORRECT_PASSWORD": "La contraseña actual no es correcta.",
+    "INVALID_OR_EXPIRED_RESET_TOKEN": "El enlace no es válido o ha caducado: solicita uno nuevo.",
+    "INVALID_OR_EXPIRED_VERIFY_TOKEN": "El enlace de confirmación no es válido o ha caducado.",
+    "EMAIL_ALREADY_VERIFIED": "El email ya está confirmado.",
+    "EMAIL_NOT_CONFIGURED": "El envío de emails aún no está activo: contacta con un administrador.",
+    "CANNOT_REMOVE_OWN_ADMIN": "No puedes quitarte a ti mismo el rol de administrador.",
+    "TOKEN_SHOULD_NOT_BE_EMPTY": "El enlace no está completo.",
+    "ROLES_ARE_NOT_VALID": "Roles no válidos.",
+    "PERIOD_IS_NOT_VALID": "Periodo no válido.",
+    "HISTORY_NOT_FOUND": "No hay guerras registradas en el periodo."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -451,6 +500,53 @@
       "ties": "Empates",
       "losses": "Derrotas",
       "winRate": "% de victorias"
+    }
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "subtitle": "Tu cuenta, el enlace con Clash of Clans y la contraseña",
+    "save": "Guardar",
+    "account": {
+      "title": "Cuenta",
+      "memberSince": "Miembro desde el {{date}}",
+      "verified": "Verificado",
+      "notVerified": "Sin confirmar",
+      "roles": "Roles",
+      "verifyHint": "Confirma tu email para poder recuperar la contraseña si la olvidas.",
+      "resend": "Enviar de nuevo el email de confirmación"
+    },
+    "roles": {
+      "USER": "Miembro",
+      "ADMIN": "Administrador"
+    },
+    "player": {
+      "title": "Jugador de Clash of Clans",
+      "hint": "Vincula tu tag: tu fila se resaltará en verde en las tablas.",
+      "linkedTo": "Vinculado a {{name}} ({{role}})",
+      "notInClan": "Este tag no está entre los miembros actuales del clan.",
+      "clearHint": "Déjalo vacío para desvincular"
+    },
+    "password": {
+      "title": "Cambiar contraseña",
+      "hint": "Se cerrará la sesión en tus otros dispositivos; este sigue conectado.",
+      "submit": "Cambiar contraseña"
+    }
+  },
+  "admin": {
+    "title": "Administración",
+    "subtitle": "Usuarios registrados: {{n}}",
+    "search": "Buscar por nombre, email o tag",
+    "searchButton": "Buscar",
+    "empty": "No se han encontrado usuarios",
+    "tagLabel": "Tag de jugador de {{name}}",
+    "saveTag": "Guardar el tag",
+    "adminToggle": "Administrador: {{name}}",
+    "columns": {
+      "user": "Usuario",
+      "playerTag": "Tag de jugador",
+      "admin": "Admin",
+      "verified": "Email",
+      "createdAt": "Registrado"
     }
   }
 }

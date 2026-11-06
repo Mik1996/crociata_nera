@@ -1,0 +1,28 @@
+# Free uptime check: every 15 minutes GitHub calls the health endpoint of the site.
+# If the site, the database or the Clash of Clans proxy does not answer, the run fails and
+# GitHub sends an email (Settings → Notifications → Actions: "Send notifications for failed workflows").
+# Note: GitHub may delay scheduled runs by a few minutes, and pauses them after 60 days
+# without commits in the repository (re-enable from the Actions tab).
+
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Site and backend health
+        run: |
+          curl -fsS --retry 3 --retry-delay 20 --retry-all-errors -o /dev/null https://crociatanera.it/
+          curl -fsS --retry 3 --retry-delay 20 --retry-all-errors https://crociatanera.it/api/v1/health
+          echo
+      - name: Clash of Clans proxy
+        run: curl -fsS --retry 3 --retry-delay 20 --retry-all-errors -o /dev/null "https://crociatanera.it/api/coc/clans/%232J8JVVCLC"

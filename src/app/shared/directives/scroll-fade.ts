@@ -39,8 +39,10 @@ export class ScrollFade {
       zone.runOutsideAngular(() => {
         this.element.addEventListener('scroll', schedule, { passive: true });
 
-        const resize = new ResizeObserver(schedule);
+        // Not available in every environment (e.g. some test DOMs): scroll and mutations still work.
+        const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
         const observeChildren = () => {
+          if (!resize) return;
           resize.disconnect();
           resize.observe(this.element);
           for (const child of Array.from(this.element.children)) resize.observe(child);
@@ -57,7 +59,7 @@ export class ScrollFade {
 
         destroyRef.onDestroy(() => {
           this.element.removeEventListener('scroll', schedule);
-          resize.disconnect();
+          resize?.disconnect();
           mutations.disconnect();
           cancelAnimationFrame(this.frame);
         });

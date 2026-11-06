@@ -35,7 +35,12 @@
     "notFound": "Pagina non trovata",
     "signIn": "Accedi",
     "signUp": "Registrati",
-    "welcome": "Benvenuto"
+    "welcome": "Benvenuto",
+    "forgotPassword": "Password dimenticata",
+    "resetPassword": "Reimposta password",
+    "verifyEmail": "Conferma email",
+    "profile": "Il mio profilo",
+    "admin": "Amministrazione"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -355,7 +360,9 @@
       "username": "Username",
       "password": "Password",
       "repeatPassword": "Ripeti la password",
-      "playerTag": "Tag giocatore (facoltativo)"
+      "playerTag": "Tag giocatore (facoltativo)",
+      "currentPassword": "Password attuale",
+      "newPassword": "Nuova password"
     },
     "hints": {
       "username": "3–24 caratteri: lettere, numeri e . - _",
@@ -369,7 +376,8 @@
       "submit": "Accedi",
       "submitting": "Accesso in corso…",
       "noAccount": "Non hai un account?",
-      "toSignUp": "Registrati"
+      "toSignUp": "Registrati",
+      "forgot": "Password dimenticata?"
     },
     "signUp": {
       "title": "Registrati",
@@ -384,17 +392,48 @@
       "menu": "Account di {{name}}",
       "menuLabel": "Menu account",
       "signedInAs": "Accesso effettuato come",
-      "signOut": "Esci"
+      "signOut": "Esci",
+      "profile": "Il mio profilo",
+      "admin": "Amministrazione"
     },
     "errors": {
       "backendUnreachable": "Impossibile contattare il server. Riprova tra poco."
+    },
+    "backToSignIn": "Torna all'accesso",
+    "forgot": {
+      "title": "Password dimenticata",
+      "subtitle": "Inserisci la tua email: ti mandiamo un link per sceglierne una nuova",
+      "submit": "Invia il link",
+      "submitting": "Invio in corso…",
+      "sent": "Se {{email}} è registrata, riceverai a breve un'email con il link (valido 1 ora). Controlla anche lo spam."
+    },
+    "reset": {
+      "title": "Nuova password",
+      "subtitle": "Scegli la nuova password del tuo account",
+      "submit": "Salva la password",
+      "submitting": "Salvataggio…",
+      "done": "Password aggiornata. Per sicurezza sei stato disconnesso da tutti i dispositivi: accedi con la nuova password.",
+      "missingToken": "Il link non è completo: aprilo di nuovo dall'email oppure richiedine uno nuovo.",
+      "newLink": "Richiedi un nuovo link"
+    },
+    "verify": {
+      "title": "Conferma email",
+      "verifying": "Conferma in corso…",
+      "done": "Email confermata, grazie!"
     }
   },
   "SUCCESS": {
     "USER_CREATED": "Account creato",
     "SIGNED_IN": "Accesso effettuato",
     "SIGNED_OUT": "Disconnessione effettuata",
-    "TOKEN_REFRESHED": "Sessione rinnovata"
+    "TOKEN_REFRESHED": "Sessione rinnovata",
+    "PROFILE_UPDATED": "Profilo aggiornato",
+    "PASSWORD_UPDATED": "Password aggiornata",
+    "RESET_EMAIL_SENT": "Se l'email è registrata, riceverai il link",
+    "PASSWORD_RESET": "Password reimpostata",
+    "EMAIL_VERIFIED": "Email confermata",
+    "VERIFICATION_EMAIL_SENT": "Email di conferma inviata: controlla la posta (anche lo spam).",
+    "USER_UPDATED": "{{name}} aggiornato"
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -424,7 +463,17 @@
     "NOT_FOUND": "Risorsa non trovata.",
     "TOO_MANY_REQUESTS": "Troppi tentativi: riprova tra qualche minuto.",
     "SERVICE_UNAVAILABLE": "Servizio momentaneamente non disponibile.",
-    "UNHANDLED_ERROR": "Si è verificato un errore imprevisto."
+    "UNHANDLED_ERROR": "Si è verificato un errore imprevisto.",
+    "INCORRECT_PASSWORD": "La password attuale non è corretta.",
+    "INVALID_OR_EXPIRED_RESET_TOKEN": "Il link non è valido o è scaduto: richiedine uno nuovo.",
+    "INVALID_OR_EXPIRED_VERIFY_TOKEN": "Il link di conferma non è valido o è scaduto.",
+    "EMAIL_ALREADY_VERIFIED": "L'email è già confermata.",
+    "EMAIL_NOT_CONFIGURED": "L'invio delle email non è ancora attivo: contatta un amministratore.",
+    "CANNOT_REMOVE_OWN_ADMIN": "Non puoi togliere a te stesso il ruolo di amministratore.",
+    "TOKEN_SHOULD_NOT_BE_EMPTY": "Il link non è completo.",
+    "ROLES_ARE_NOT_VALID": "Ruoli non validi.",
+    "PERIOD_IS_NOT_VALID": "Periodo non valido.",
+    "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -451,6 +500,53 @@
       "ties": "Pareggi",
       "losses": "Sconfitte",
       "winRate": "% di vittorie"
+    }
+  },
+  "profile": {
+    "title": "Il mio profilo",
+    "subtitle": "Il tuo account, il collegamento a Clash of Clans e la password",
+    "save": "Salva",
+    "account": {
+      "title": "Account",
+      "memberSince": "Iscritto dal {{date}}",
+      "verified": "Verificata",
+      "notVerified": "Da confermare",
+      "roles": "Ruoli",
+      "verifyHint": "Conferma la tua email per poter recuperare la password se la dimentichi.",
+      "resend": "Invia di nuovo l'email di conferma"
+    },
+    "roles": {
+      "USER": "Membro",
+      "ADMIN": "Amministratore"
+    },
+    "player": {
+      "title": "Giocatore di Clash of Clans",
+      "hint": "Collega il tuo tag: la tua riga sarà evidenziata in verde nelle tabelle.",
+      "linkedTo": "Collegato a {{name}} ({{role}})",
+      "notInClan": "Questo tag non risulta tra i membri attuali del clan.",
+      "clearHint": "Lascia vuoto per scollegare"
+    },
+    "password": {
+      "title": "Cambia password",
+      "hint": "Gli altri dispositivi verranno disconnessi; questo resta collegato.",
+      "submit": "Cambia password"
+    }
+  },
+  "admin": {
+    "title": "Amministrazione",
+    "subtitle": "Utenti registrati: {{n}}",
+    "search": "Cerca per nome, email o tag",
+    "searchButton": "Cerca",
+    "empty": "Nessun utente trovato",
+    "tagLabel": "Tag giocatore di {{name}}",
+    "saveTag": "Salva il tag",
+    "adminToggle": "Amministratore: {{name}}",
+    "columns": {
+      "user": "Utente",
+      "playerTag": "Tag giocatore",
+      "admin": "Admin",
+      "verified": "Email",
+      "createdAt": "Registrato"
     }
   }
 }

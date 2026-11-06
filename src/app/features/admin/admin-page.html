@@ -1,0 +1,112 @@
+<app-page-header [title]="'admin.title' | translate" [subtitle]="'admin.subtitle' | translate: { n: total() }" />
+
+<div appScrollFade class="page__scroll">
+  <section class="cn-card cn-section">
+    <form class="cn-filters search" (ngSubmit)="search()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'admin.search' | translate }}</mat-label>
+        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+        <input matInput name="search" [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" />
+      </mat-form-field>
+      <button mat-flat-button type="submit">{{ 'admin.searchButton' | translate }}</button>
+    </form>
+
+    @if (feedback(); as f) {
+      <div class="feedback" [class.feedback--error]="f.kind === 'error'" [attr.role]="f.kind === 'error' ? 'alert' : 'status'">
+        @for (m of f.messages; track m.key) {
+          <p>{{ m.key | translate: m.params }}</p>
+        }
+      </div>
+    }
+
+    <app-load-state
+      [loading]="users.isLoading() && !users.hasValue()"
+      [error]="users.error()"
+      [empty]="!rows().length"
+      emptyIcon="group_off"
+      [emptyMessage]="'admin.empty' | translate"
+      (retry)="users.reload()"
+    >
+      <div class="cn-table-wrap">
+        <table mat-table [dataSource]="rows()">
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.user' | translate }}</th>
+            <td mat-cell *matCellDef="let u">
+              <span class="name">{{ u.username }}</span>
+              @if (u.id === myId()) {
+                <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+              }
+              <div class="cn-muted email">{{ u.email }}</div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="playerTag">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.playerTag' | translate }}</th>
+            <td mat-cell *matCellDef="let u">
+              <form class="tag-form" (ngSubmit)="saveTag(u)">
+                <input
+                  class="tag-input"
+                  [name]="'tag-' + u.id"
+                  [ngModel]="draft(u)"
+                  (ngModelChange)="setDraft(u, $event)"
+                  placeholder="#ABC123"
+                  autocomplete="off"
+                  spellcheck="false"
+                  [attr.aria-label]="'admin.tagLabel' | translate: { name: u.username }"
+                  [attr.aria-invalid]="!tagValid(u)"
+                />
+                @if (tagChanged(u)) {
+                  <button
+                    mat-icon-button
+                    type="submit"
+                    class="picker"
+                    [disabled]="!tagValid(u) || busy() === u.id"
+                    [matTooltip]="'admin.saveTag' | translate"
+                    [attr.aria-label]="'admin.saveTag' | translate"
+                  >
+                    <mat-icon aria-hidden="true">save</mat-icon>
+                  </button>
+                }
+              </form>
+              @if (!tagValid(u)) {
+                <div class="tag-error">{{ 'ERROR.PLAYER_TAG_IS_NOT_VALID' | translate }}</div>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="admin">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.admin' | translate }}</th>
+            <td mat-cell *matCellDef="let u">
+              <mat-slide-toggle
+                [checked]="u.roles.includes('ADMIN')"
+                [disabled]="busy() === u.id || u.id === myId()"
+                (change)="toggleAdmin(u, $event.checked)"
+                [attr.aria-label]="'admin.adminToggle' | translate: { name: u.username }"
+                [matTooltip]="u.id === myId() ? ('ERROR.CANNOT_REMOVE_OWN_ADMIN' | translate) : ''"
+              />
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="verified">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.verified' | translate }}</th>
+            <td mat-cell *matCellDef="let u">
+              @if (u.emailVerified) {
+                <mat-icon class="ok" [attr.aria-label]="'profile.account.verified' | translate">verified</mat-icon>
+              } @else {
+                <mat-icon class="cn-muted" [attr.aria-label]="'profile.account.notVerified' | translate">schedule</mat-icon>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.createdAt' | translate }}</th>
+            <td mat-cell *matCellDef="let u" class="cn-num">{{ u.createdAt | localDate }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let u; columns: columns"></tr>
+        </table>
+      </div>
+    </app-load-state>
+  </section>
+</div>
