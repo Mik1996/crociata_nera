@@ -253,7 +253,7 @@ h3 {
 h2 {
   font-size: var(--cn-fs-lg);
   color: var(--cn-gold-light);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.6rem;
 }
 
 // Clearly visible focus for keyboard navigation.
@@ -283,22 +283,61 @@ h2 {
   box-shadow: var(--cn-card-shadow);
 }
 
+/*
+ * Pages that fill the viewport (class "page--fill" on the page host): the content area becomes a
+ * column as tall as the space below the header, so the page itself does not scroll. The page header
+ * stays visible and only the ".page__scroll" container (or, on the player page, the active tab)
+ * scrolls. On very short screens normal page scrolling is kept.
+ */
+@media (min-height: 560px) {
+  .content:has(> .page--fill) {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100%;
+    padding-bottom: 0.75rem;
+  }
+
+  .page--fill {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+
+    > app-page-header {
+      flex: none;
+    }
+  }
+
+  .page__scroll {
+    // Positioned, so absolutely positioned descendants (e.g. .cn-visually-hidden) stay inside it.
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    // Room for card shadows and focus rings, which the scroll container would otherwise clip.
+    margin: 0 -0.5rem;
+    padding: 0.25rem 0.5rem 0.75rem;
+  }
+}
+
 .cn-section {
-  padding: 1.1rem 1.2rem;
-  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.9rem;
 }
 
 .cn-grid-kpi {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
 .cn-grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
-  gap: 1.25rem;
+  gap: 0.9rem;
 }
 
 .cn-chart {
@@ -318,7 +357,7 @@ h2 {
 .cn-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 1rem;
+  gap: 0 0.75rem;
   align-items: center;
 
   mat-form-field {

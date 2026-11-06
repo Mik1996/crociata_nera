@@ -86,7 +86,7 @@
                       @if (hero.icon) {
                         <img [src]="hero.icon" alt="" width="96" height="96" loading="lazy" />
                       }
-                      <span class="hero__level" aria-hidden="true">{{ hero.level }}</span>
+                      <app-level-badge class="hero__level" [level]="hero.level" [maxed]="hero.level >= hero.maxLevel" />
                     </div>
                     <div class="hero__body">
                       <h3 class="hero__name">{{ hero.name }}</h3>
@@ -124,11 +124,9 @@
             <section class="game-section">
               <h2>
                 {{ section.title | translate }}
-                @if (section.showMaxed) {
-                  <span class="section-count">{{
-                    'player.maxedCount' | translate: { maxed: maxedCount(section.units), total: section.units.length }
-                  }}</span>
-                }
+                <span class="section-count">{{
+                  'player.maxedCount' | translate: { maxed: maxedCount(section.units), total: section.units.length }
+                }}</span>
               </h2>
               <div class="unit-grid" role="list">
                 @for (unit of section.units; track unit.name) {

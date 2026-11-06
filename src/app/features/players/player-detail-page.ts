@@ -11,6 +11,7 @@ import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerUnit } from '../../core/models';
 import { PlayerService } from '../../core/services/player.service';
 import { LoadState } from '../../shared/components/load-state';
+import { LevelBadge } from '../../shared/game/level-badge';
 import { UnitTile } from '../../shared/game/unit-tile';
 import { PlayerBanner } from './components/player-banner';
 import { PlayerWarStats } from './components/player-war-stats';
@@ -19,8 +20,6 @@ interface ArmySection {
   /** Translation key of the section title. */
   title: string;
   units: (PlayerUnit & { active?: boolean })[];
-  /** Whether "x of y maxed" is meaningful (not for super troops, whose level follows the base troop). */
-  showMaxed: boolean;
 }
 
 /** Player page in the style of the game profile: banner plus Profile, Army, Achievements and Wars tabs. */
@@ -35,10 +34,12 @@ interface ArmySection {
     MatTabsModule,
     LoadState,
     UnitTile,
+    LevelBadge,
     PlayerBanner,
     PlayerWarStats,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page--fill' },
   templateUrl: './player-detail-page.html',
   styleUrl: './player-detail-page.scss',
 })
@@ -67,14 +68,14 @@ export class PlayerDetailPage {
     const p = this.profile();
     if (!p) return [];
     const sections: ArmySection[] = [
-      { title: 'player.troops', units: p.troops, showMaxed: true },
-      { title: 'player.superTroops', units: p.superTroops, showMaxed: false },
-      { title: 'player.siegeMachines', units: p.siegeMachines, showMaxed: true },
-      { title: 'player.pets', units: p.pets, showMaxed: true },
-      { title: 'player.spells', units: p.spells, showMaxed: true },
-      { title: 'player.heroEquipment', units: p.heroEquipment, showMaxed: true },
-      { title: 'player.builderHeroes', units: p.builderBaseHeroes, showMaxed: true },
-      { title: 'player.builderTroops', units: p.builderBaseTroops, showMaxed: true },
+      { title: 'player.troops', units: p.troops },
+      { title: 'player.superTroops', units: p.superTroops },
+      { title: 'player.siegeMachines', units: p.siegeMachines },
+      { title: 'player.pets', units: p.pets },
+      { title: 'player.spells', units: p.spells },
+      { title: 'player.heroEquipment', units: p.heroEquipment },
+      { title: 'player.builderHeroes', units: p.builderBaseHeroes },
+      { title: 'player.builderTroops', units: p.builderBaseTroops },
     ];
     return sections.filter((s) => s.units.length > 0);
   });

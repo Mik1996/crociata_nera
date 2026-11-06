@@ -7,7 +7,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 0.6rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   font-size: var(--cn-fs-md);
 }
 
@@ -66,8 +66,8 @@
 
 .side__data {
   display: flex;
-  gap: 1.25rem;
-  margin: 0.6rem 0 0;
+  gap: 1rem;
+  margin: 0.45rem 0 0;
 
   div {
     display: flex;

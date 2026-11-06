@@ -73,6 +73,7 @@ function rowFromWar(w: War): HistoryRow {
     ResultBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page--fill' },
   templateUrl: './war-history-page.html',
   styles: `
     .summary-only {

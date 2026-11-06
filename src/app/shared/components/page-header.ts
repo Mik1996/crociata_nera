@@ -19,9 +19,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       flex-wrap: wrap;
       align-items: flex-end;
       justify-content: space-between;
-      gap: 0.75rem 1rem;
-      margin-bottom: 1.25rem;
-      padding-bottom: 0.75rem;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.5rem;
       border-bottom: 1px solid var(--cn-border);
     }
     .title {
@@ -32,7 +32,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       color: var(--cn-gold-light);
     }
     .subtitle {
-      margin: 0.25rem 0 0;
+      margin: 0.15rem 0 0;
       color: var(--cn-text-muted);
     }
     .actions {

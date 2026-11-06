@@ -25,7 +25,7 @@ import {
   CocWarLogEntry,
   CocWarMember,
 } from './coc-api.types';
-import { isSuperTroop, PETS, SIEGE_MACHINES, townHallImage, unitIcon } from '../game/units';
+import { isSuperTroop, PETS, SIEGE_MACHINES, SUPER_TROOP_BASE, townHallImage, unitIcon } from '../game/units';
 
 const ROLES: Record<CocClanMember['role'], ClanRole> = {
   leader: 'leader',
@@ -263,6 +263,17 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
   const isSuper = (t: CocPlayerItem) => isSuperTroop(t.name);
   const heroes = raw.heroes ?? [];
   const legend = raw.legendStatistics;
+  const homeByName = new Map(home.map((t) => [t.name, t]));
+  /** A super troop takes the level of its base troop, as in the game. */
+  const superTroop = (t: CocPlayerItem) => {
+    const base = homeByName.get(SUPER_TROOP_BASE[t.name]);
+    return {
+      ...mapUnit(t),
+      level: base?.level ?? t.level,
+      maxLevel: base?.maxLevel ?? t.maxLevel,
+      active: !!t.superTroopIsActive,
+    };
+  };
 
   return {
     tag: raw.tag,
@@ -300,7 +311,7 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
       .filter((h) => h.village === 'home')
       .map((h): PlayerHero => ({ ...mapUnit(h), equipment: (h.equipment ?? []).map(mapUnit) })),
     troops: home.filter((t) => !isSuper(t) && !SIEGE_MACHINES.has(t.name) && !PETS.has(t.name)).map(mapUnit),
-    superTroops: home.filter(isSuper).map((t) => ({ ...mapUnit(t), active: !!t.superTroopIsActive })),
+    superTroops: home.filter(isSuper).map(superTroop),
     siegeMachines: home.filter((t) => SIEGE_MACHINES.has(t.name)).map(mapUnit),
     pets: home.filter((t) => PETS.has(t.name)).map(mapUnit),
     spells: (raw.spells ?? []).filter((s) => s.village === 'home').map(mapUnit),

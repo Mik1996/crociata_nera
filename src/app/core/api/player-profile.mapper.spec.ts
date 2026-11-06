@@ -60,6 +60,13 @@ describe('mapPlayerProfile', () => {
     expect(p.builderBaseHeroes.map((t) => t.name)).toEqual(['Battle Machine']);
   });
 
+  it('gives super troops the level of their base troop', () => {
+    const [superBarbarian, superArcher, sneakyGoblin] = p.superTroops;
+    expect([superBarbarian.level, superBarbarian.maxLevel]).toEqual([12, 12]); // Barbarian 12/12
+    expect([superArcher.level, superArcher.maxLevel]).toEqual([1, 1]); // no Archer in the data: keeps the API level
+    expect(sneakyGoblin.level).toBe(1);
+  });
+
   it('attaches game icons when available and keeps hero equipment', () => {
     expect(p.troops[0].icon).toBe('game/units/barbarian.webp');
     expect(p.troops[1].icon).toBeUndefined();

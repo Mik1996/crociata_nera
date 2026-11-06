@@ -46,6 +46,7 @@ const RANKING_SIZE = 5;
     WarSummary,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page--fill' },
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
 })

@@ -23,8 +23,8 @@ import { MatIconModule } from '@angular/material/icon';
     :host {
       display: flex;
       align-items: center;
-      gap: 0.9rem;
-      padding: 1rem 1.1rem;
+      gap: 0.75rem;
+      padding: 0.75rem 0.9rem;
       min-width: 0;
     }
     .kpi__icon {

@@ -56,6 +56,7 @@ const MAX_STARS_PER_WAR = 6;
     ResultBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page--fill' },
   templateUrl: './statistics-page.html',
   styleUrl: './statistics-page.scss',
 })

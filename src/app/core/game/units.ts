@@ -15,13 +15,35 @@ export const SIEGE_MACHINES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Super troops without the "Super" prefix. The API lists super troops among the troops and only
- * sometimes adds `superTroopIsActive`, so they are recognised by name.
+ * Base troop of each super troop. In the game a super troop has the level of its base troop,
+ * while the API reports a fixed level (usually 1).
  */
-const SUPER_TROOPS_WITHOUT_PREFIX: ReadonlySet<string> = new Set(['Sneaky Goblin', 'Rocket Balloon', 'Inferno Dragon', 'Ice Hound']);
+export const SUPER_TROOP_BASE: Readonly<Record<string, string>> = {
+  'Super Barbarian': 'Barbarian',
+  'Super Archer': 'Archer',
+  'Super Giant': 'Giant',
+  'Sneaky Goblin': 'Goblin',
+  'Super Wall Breaker': 'Wall Breaker',
+  'Rocket Balloon': 'Balloon',
+  'Super Wizard': 'Wizard',
+  'Super Dragon': 'Dragon',
+  'Inferno Dragon': 'Baby Dragon',
+  'Super Minion': 'Minion',
+  'Super Valkyrie': 'Valkyrie',
+  'Super Witch': 'Witch',
+  'Ice Hound': 'Lava Hound',
+  'Super Bowler': 'Bowler',
+  'Super Miner': 'Miner',
+  'Super Hog Rider': 'Hog Rider',
+  'Super Yeti': 'Yeti',
+};
 
+/**
+ * The API lists super troops among the troops and only sometimes adds `superTroopIsActive`,
+ * so they are recognised by name (future ones are caught by the "Super " prefix).
+ */
 export function isSuperTroop(name: string): boolean {
-  return name.startsWith('Super ') || SUPER_TROOPS_WITHOUT_PREFIX.has(name);
+  return name in SUPER_TROOP_BASE || name.startsWith('Super ');
 }
 
 /** Hero pets: the API lists them among the troops. */

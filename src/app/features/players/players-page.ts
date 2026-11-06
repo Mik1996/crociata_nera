@@ -37,6 +37,7 @@ const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2,
     LoadState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page--fill' },
   templateUrl: './players-page.html',
   styleUrl: './players-page.scss',
 })
