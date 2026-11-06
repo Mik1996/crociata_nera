@@ -14,7 +14,7 @@
         <mat-icon aria-hidden="true">info</mat-icon>
         <p>
           <strong>{{ 'players.noticeTitle' | translate }}</strong>
-          <span [innerHTML]="'players.noticeText' | translate"></span>
+          <span>{{ 'players.noticeText' | translate }}</span>
         </p>
       </section>
     }
@@ -56,7 +56,19 @@
               @if (m.tag === myTag()) {
                 <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
               }
-              <div class="cn-muted tag">{{ m.tag }}</div>
+              <div class="name-meta">
+                <span class="cn-muted tag">{{ m.tag }}</span>
+                @if (commendations().get(m.tag); as items) {
+                  <ul class="medals" [attr.aria-label]="'commendations.short' | translate">
+                    @for (c of items; track c.type) {
+                      @let name = ('commendations.' + c.type + '.' + c.tier | translate) + ' (' + ('commendations.tiers.' + c.tier | translate) + ')';
+                      <li [matTooltip]="name" [attr.aria-label]="name">
+                        <app-commendation-medal [emblem]="emblemOf(c)" />
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
             </td>
           </ng-container>
 

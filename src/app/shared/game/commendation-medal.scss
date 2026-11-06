@@ -1,0 +1,12 @@
+:host {
+  display: inline-block;
+  width: 60px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.45));
+}
+
+img {
+  display: block;
+  width: 100%;
+  height: auto;
+}

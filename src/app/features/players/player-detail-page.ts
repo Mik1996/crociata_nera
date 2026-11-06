@@ -9,6 +9,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerUnit } from '../../core/models';
+import { CommendationService } from '../../core/services/commendation.service';
 import { PlayerService } from '../../core/services/player.service';
 import { LoadState } from '../../shared/components/load-state';
 import { LevelBadge } from '../../shared/game/level-badge';
@@ -47,6 +48,7 @@ interface ArmySection {
 })
 export class PlayerDetailPage {
   private readonly players = inject(PlayerService);
+  private readonly commendationService = inject(CommendationService);
 
   /** Route parameter `:tag` (bound automatically by the router, already decoded). */
   readonly tag = input.required<string>();
@@ -62,8 +64,17 @@ export class PlayerDetailPage {
     stream: ({ params }) => this.players.getPlayerStats(params),
   });
 
+  protected readonly commendationsResource = rxResource({
+    params: () => this.tag(),
+    stream: ({ params }) => this.commendationService.forPlayer(params),
+  });
+
   protected readonly profile = computed(() => (this.profileResource.hasValue() ? this.profileResource.value() : null));
   protected readonly stats = computed(() => (this.statsResource.hasValue() ? this.statsResource.value() : null));
+  /** Commendations are a bonus: while loading or on error the banner simply shows none. */
+  protected readonly commendations = computed(() =>
+    this.commendationsResource.hasValue() ? this.commendationsResource.value() : null,
+  );
 
   /** Army grouped like the game's army overview; empty groups are hidden. */
   protected readonly army = computed<ArmySection[]>(() => {

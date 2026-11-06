@@ -7,18 +7,22 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { ClanRole, PlayerStats } from '../../core/models';
+import { CommendationService } from '../../core/services/commendation.service';
 import { PlayerService } from '../../core/services/player.service';
+import { emblemOf } from '../../core/utils/commendations';
 import { matchesText, sortRows, SortState } from '../../core/utils/sort';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { CLAN_ROLES, roleKey } from '../../shared/labels';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { CommendationMedal } from '../../shared/game/commendation-medal';
 
 const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2, member: 3 };
 
@@ -35,9 +39,11 @@ const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2,
     MatInputModule,
     MatSelectModule,
     MatIconModule,
+    MatTooltipModule,
     PageHeader,
     LoadState,
     ScrollFade,
+    CommendationMedal,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -47,13 +53,20 @@ const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2,
 export class PlayersPage {
   private readonly players = inject(PlayerService);
   private readonly router = inject(Router);
+  private readonly commendationService = inject(CommendationService);
   protected readonly statsWindow = inject(APP_CONFIG).statsWindow;
   /** Tag of the signed-in user's player: their row is highlighted. */
   protected readonly myTag = inject(AuthService).playerTag;
 
   protected readonly resource = rxResource({ stream: () => this.players.getMembersStats() });
+  /** Monthly commendations shown next to the names (a bonus: none while loading or on error). */
+  private readonly commendationsResource = rxResource({ stream: () => this.commendationService.forClan() });
+  protected readonly commendations = computed(() =>
+    this.commendationsResource.hasValue() ? this.commendationsResource.value().byTag : new Map(),
+  );
   protected readonly roles = CLAN_ROLES;
   protected readonly roleKey = roleKey;
+  protected readonly emblemOf = emblemOf;
   protected readonly columns = [
     'name',
     'role',

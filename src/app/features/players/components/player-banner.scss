@@ -130,6 +130,63 @@
   }
 }
 
+.banner__commendations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.banner__commendations-title {
+  font-size: var(--cn-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cn-game-panel-muted);
+}
+
+.banner__medals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.banner__medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 5.25rem;
+  max-width: 7.5rem;
+  border-radius: 8px;
+  cursor: default;
+  transition: transform 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-game-gold);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.banner__medal-name {
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xs);
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: var(--cn-game-text-outline);
+}
+
 .banner__league-icon {
   width: clamp(64px, 8vw, 88px);
   height: auto;

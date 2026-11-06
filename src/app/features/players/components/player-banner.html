@@ -56,6 +56,24 @@
         }
       </ul>
     }
+
+    @if (medals().length) {
+      <div class="banner__commendations">
+        <span class="banner__commendations-title">
+          {{ 'commendations.title' | translate: { month: commendationMonth() } }}
+        </span>
+        <ul class="banner__medals" [attr.aria-label]="'commendations.title' | translate: { month: commendationMonth() }">
+          @for (m of medals(); track m.type) {
+            @let name = ('commendations.' + m.type + '.' + m.tier | translate) + ' (' + ('commendations.tiers.' + m.tier | translate) + ')';
+            @let description = 'commendations.' + m.type + '.description' | translate: { n: (m.threshold | localNumber) };
+            <li class="banner__medal" tabindex="0" [attr.aria-label]="name + ': ' + description" [matTooltip]="name + ' — ' + description">
+              <app-commendation-medal [emblem]="m.emblem" />
+              <span class="banner__medal-name" aria-hidden="true">{{ 'commendations.' + m.type + '.' + m.tier | translate }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </div>
 
   <div class="banner__league">

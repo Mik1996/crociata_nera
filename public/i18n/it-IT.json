@@ -112,14 +112,14 @@
     "unexpectedError": "Si è verificato un errore imprevisto."
   },
   "errors": {
-    "invalidIp": "La chiave API non autorizza l’indirizzo IP del server proxy. Crea una nuova chiave su developer.clashofclans.com con l’IP corretto. {{detail}}",
-    "accessDenied": "Accesso negato dall’API: token non valido o scaduto.",
-    "apiUnreachable": "Il proxy non riesce a contattare api.clashofclans.com.",
-    "proxyUnreachable": "Proxy non raggiungibile. Avvia il backend con “npm run server”.",
+    "invalidIp": "I dati di Clash of Clans non sono al momento disponibili. Riprova tra poco.",
+    "accessDenied": "I dati di Clash of Clans non sono al momento disponibili. Riprova tra poco.",
+    "apiUnreachable": "Impossibile contattare Clash of Clans. Riprova tra poco.",
+    "proxyUnreachable": "Servizio momentaneamente non disponibile. Riprova tra poco.",
     "notFound": "Clan o risorsa non trovati.",
-    "tooManyRequests": "Troppe richieste all’API: riprova tra qualche istante.",
-    "maintenance": "API di Clash of Clans in manutenzione.",
-    "server": "Errore del server ({{status}})."
+    "tooManyRequests": "Troppe richieste: riprova tra qualche istante.",
+    "maintenance": "Clash of Clans è in manutenzione. Riprova più tardi.",
+    "server": "Si è verificato un errore ({{status}}). Riprova tra poco."
   },
   "result": {
     "victory": "Vittoria",
@@ -158,7 +158,7 @@
     "rankingTitle": "Classifica performer",
     "allPlayers": "Tutti i giocatori",
     "rankingNote": "Ordinata per <strong>rendimento</strong>: stelle ottenute per attacco disponibile (gli attacchi non usati pesano come 0 stelle). Minimo 3 guerre disputate.",
-    "rankingEmpty": "Dati insufficienti per la classifica: servono almeno 3 guerre archiviate dal proxy con il dettaglio degli attacchi.",
+    "rankingEmpty": "Dati insufficienti per la classifica: servono almeno 3 guerre registrate con il dettaglio degli attacchi.",
     "best": "I migliori",
     "worst": "Da migliorare",
     "playerInfo": "TH {{th}} · {{used}}/{{available}} attacchi",
@@ -218,7 +218,7 @@
     "back": "Torna allo storico",
     "notFound": "Guerra non trovata. Potrebbe essere stata rimossa dall'archivio.",
     "noticeTitle": "Dettaglio dei partecipanti non disponibile",
-    "noticeText": "Questa guerra proviene dal registro guerre dell'API ufficiale, che fornisce solo il riepilogo (stelle, distruzione, risultato). Gli attacchi individuali sono disponibili solo per le guerre archiviate dal proxy mentre erano in corso.",
+    "noticeText": "Per questa guerra è disponibile solo il riepilogo (stelle, distruzione, risultato): gli attacchi dei singoli giocatori non sono stati registrati.",
     "participationHint": "hanno attaccato almeno una volta",
     "performance": "Performance individuali"
   },
@@ -246,7 +246,7 @@
     "subtitle": "Membri del clan e statistiche sulle ultime {{n}} guerre concluse",
     "empty": "Nessun membro trovato nel clan.",
     "noticeTitle": "Statistiche individuali non ancora disponibili.",
-    "noticeText": "L'API di Clash of Clans fornisce gli attacchi dei singoli giocatori solo per la guerra in corso: le statistiche si accumulano man mano che il proxy archivia le guerre. Lascia attivo <code>npm run server</code> durante la prossima guerra.",
+    "noticeText": "Le statistiche dei singoli giocatori si accumulano guerra dopo guerra: saranno disponibili al termine della prossima guerra.",
     "members": "Membri ({{n}})",
     "filter": "Filtra membri",
     "search": "Cerca membro",
@@ -322,7 +322,7 @@
     "allMonths": "Tutti i mesi",
     "warsOne": "{{n}} guerra",
     "warsOther": "{{n}} guerre",
-    "historyEmpty": "Lo storico è ancora vuoto: il proxy aggiunge automaticamente ogni guerra quando termina. Lascia attivo npm run server durante le guerre.",
+    "historyEmpty": "Lo storico è ancora vuoto: ogni guerra viene aggiunta automaticamente quando termina.",
     "periodEmpty": "Nessuna guerra registrata in questo periodo.",
     "record": "{{wins}} V · {{draws}} P · {{losses}} S",
     "averagePerWar": "Media stelle per guerra",
@@ -547,6 +547,51 @@
       "admin": "Admin",
       "verified": "Email",
       "createdAt": "Registrato"
+    }
+  },
+  "commendations": {
+    "title": "Encomi di {{month}}",
+    "short": "Encomi del mese scorso",
+    "tiers": {
+      "gold": "Oro",
+      "silver": "Argento",
+      "bronze": "Bronzo"
+    },
+    "champion": {
+      "bronze": "Valoroso",
+      "silver": "Condottiero",
+      "gold": "Signore della Guerra",
+      "description": "{{n}}° posto nella classifica del mese per media stelle a guerra (almeno 3 guerre)."
+    },
+    "perfect": {
+      "bronze": "Mano Ferma",
+      "silver": "Spada Implacabile",
+      "gold": "Lama Infallibile",
+      "description": "Media di almeno {{n}} stelle per attacco nel mese (almeno 4 attacchi)."
+    },
+    "giantSlayer": {
+      "bronze": "Temerario",
+      "silver": "Cacciatore di Giganti",
+      "gold": "Flagello dei Titani",
+      "description": "Almeno {{n}} attacchi a 3 stelle nel mese contro Municipi più alti del proprio."
+    },
+    "wall": {
+      "bronze": "Scudo Saldo",
+      "silver": "Bastione d'Acciaio",
+      "gold": "Muro Invalicabile",
+      "description": "In difesa, al massimo {{n}} stelle concesse in media per guerra (almeno 3 guerre)."
+    },
+    "tireless": {
+      "bronze": "Soldato Fedele",
+      "silver": "Veterano Instancabile",
+      "gold": "Braccio Indomito",
+      "description": "Nessun attacco saltato in almeno {{n}} guerre del mese."
+    },
+    "present": {
+      "bronze": "Presente all'Appello",
+      "silver": "Pilastro del Clan",
+      "gold": "Sempre in Prima Linea",
+      "description": "Ha attaccato in almeno il {{n}}% delle guerre del mese."
     }
   }
 }

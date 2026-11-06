@@ -65,6 +65,11 @@ Inoltre:
 npm run start:mock
 ```
 
+Apri http://localhost:4200: tutte le pagine sono accessibili senza login. I dati simulano circa un
+anno di guerre (120, circa 10 al mese con la pausa della Lega a inizio mese), con giocatori che
+entrano ed escono dal clan, migliorano il Municipio e cambiano rendimento nel tempo
+(`src/app/core/mock/mock-data.ts`). I dati sono sempre gli stessi a ogni avvio.
+
 ### Altri comandi
 
 ```bash
@@ -232,7 +237,10 @@ Le immagini vengono dal Supercell Fan Kit e sono in `public/game/`:
 - `capital-halls/` (livelli 1–10);
 - `leagues/` (stemmi delle leghe, usati per la Capital League);
 - `war-leagues/` (coppe della Clan War League, `master-1` = Master League I);
-- `misc/clan-capital-bg.webp` e `misc/capital-trophy.webp`.
+- `misc/capital-trophy.webp`.
+
+Lo sfondo della welcome page (i cavalieri neri) è un'immagine del clan, non del Fan Kit:
+`public/images/welcome-crusaders.webp`.
 
 La scelta dell'immagine dal nome della lega è in `src/app/core/game/clan-assets.ts`. Le animazioni si fermano con
 `prefers-reduced-motion`.

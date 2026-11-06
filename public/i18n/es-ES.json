@@ -112,14 +112,14 @@
     "unexpectedError": "Se ha producido un error inesperado."
   },
   "errors": {
-    "invalidIp": "La clave de la API no autoriza la dirección IP del servidor proxy. Crea una nueva clave en developer.clashofclans.com con la IP correcta. {{detail}}",
-    "accessDenied": "Acceso denegado por la API: token no válido o caducado.",
-    "apiUnreachable": "El proxy no consigue contactar con api.clashofclans.com.",
-    "proxyUnreachable": "Proxy no disponible. Inicia el backend con “npm run server”.",
+    "invalidIp": "Los datos de Clash of Clans no están disponibles en este momento. Inténtalo de nuevo en breve.",
+    "accessDenied": "Los datos de Clash of Clans no están disponibles en este momento. Inténtalo de nuevo en breve.",
+    "apiUnreachable": "No se puede contactar con Clash of Clans. Inténtalo de nuevo en breve.",
+    "proxyUnreachable": "Servicio no disponible temporalmente. Inténtalo de nuevo en breve.",
     "notFound": "Clan o recurso no encontrado.",
-    "tooManyRequests": "Demasiadas solicitudes a la API: inténtalo de nuevo en unos instantes.",
-    "maintenance": "La API de Clash of Clans está en mantenimiento.",
-    "server": "Error del servidor ({{status}})."
+    "tooManyRequests": "Demasiadas solicitudes: inténtalo de nuevo en unos instantes.",
+    "maintenance": "Clash of Clans está en mantenimiento. Inténtalo más tarde.",
+    "server": "Se ha producido un error ({{status}}). Inténtalo de nuevo en breve."
   },
   "result": {
     "victory": "Victoria",
@@ -158,7 +158,7 @@
     "rankingTitle": "Clasificación de rendimiento",
     "allPlayers": "Todos los jugadores",
     "rankingNote": "Ordenada por <strong>rendimiento</strong>: estrellas obtenidas por ataque disponible (los ataques no usados cuentan como 0 estrellas). Mínimo 3 guerras jugadas.",
-    "rankingEmpty": "Datos insuficientes para la clasificación: se necesitan al menos 3 guerras archivadas por el proxy con el detalle de los ataques.",
+    "rankingEmpty": "Datos insuficientes para la clasificación: se necesitan al menos 3 guerras registradas con el detalle de los ataques.",
     "best": "Los mejores",
     "worst": "A mejorar",
     "playerInfo": "TH {{th}} · {{used}}/{{available}} ataques",
@@ -218,7 +218,7 @@
     "back": "Volver al historial",
     "notFound": "Guerra no encontrada. Puede que se haya eliminado del archivo.",
     "noticeTitle": "Detalle de los participantes no disponible",
-    "noticeText": "Esta guerra procede del registro de guerras de la API oficial, que solo ofrece el resumen (estrellas, destrucción, resultado). Los ataques individuales solo están disponibles para las guerras archivadas por el proxy mientras estaban en curso.",
+    "noticeText": "Para esta guerra solo está disponible el resumen (estrellas, destrucción, resultado): los ataques de cada jugador no se registraron.",
     "participationHint": "atacaron al menos una vez",
     "performance": "Rendimiento individual"
   },
@@ -246,7 +246,7 @@
     "subtitle": "Miembros del clan y estadísticas de las últimas {{n}} guerras terminadas",
     "empty": "No se ha encontrado ningún miembro en el clan.",
     "noticeTitle": "Estadísticas individuales todavía no disponibles.",
-    "noticeText": "La API de Clash of Clans solo ofrece los ataques de cada jugador para la guerra en curso: las estadísticas se acumulan a medida que el proxy archiva las guerras. Mantén <code>npm run server</code> en ejecución durante la próxima guerra.",
+    "noticeText": "Las estadísticas de cada jugador se acumulan guerra tras guerra: estarán disponibles cuando termine la próxima guerra.",
     "members": "Miembros ({{n}})",
     "filter": "Filtrar miembros",
     "search": "Buscar miembro",
@@ -322,7 +322,7 @@
     "allMonths": "Todos los meses",
     "warsOne": "{{n}} guerra",
     "warsOther": "{{n}} guerras",
-    "historyEmpty": "El historial todavía está vacío: el proxy añade automáticamente cada guerra cuando termina. Mantén npm run server en ejecución durante las guerras.",
+    "historyEmpty": "El historial todavía está vacío: cada guerra se añade automáticamente cuando termina.",
     "periodEmpty": "No hay guerras registradas en este periodo.",
     "record": "{{wins}} V · {{draws}} E · {{losses}} D",
     "averagePerWar": "Media de estrellas por guerra",
@@ -547,6 +547,51 @@
       "admin": "Admin",
       "verified": "Email",
       "createdAt": "Registrado"
+    }
+  },
+  "commendations": {
+    "title": "Distinciones de {{month}}",
+    "short": "Distinciones del mes pasado",
+    "tiers": {
+      "gold": "Oro",
+      "silver": "Plata",
+      "bronze": "Bronce"
+    },
+    "champion": {
+      "bronze": "Valeroso",
+      "silver": "Caudillo",
+      "gold": "Señor de la Guerra",
+      "description": "Puesto {{n}} en la clasificación del mes por media de estrellas por guerra (al menos 3 guerras)."
+    },
+    "perfect": {
+      "bronze": "Mano Firme",
+      "silver": "Espada Implacable",
+      "gold": "Hoja Infalible",
+      "description": "Media de al menos {{n}} estrellas por ataque en el mes (al menos 4 ataques)."
+    },
+    "giantSlayer": {
+      "bronze": "Temerario",
+      "silver": "Cazador de Gigantes",
+      "gold": "Azote de Titanes",
+      "description": "Al menos {{n}} ataques de 3 estrellas en el mes contra Ayuntamientos superiores."
+    },
+    "wall": {
+      "bronze": "Escudo Firme",
+      "silver": "Bastión de Acero",
+      "gold": "Muro Infranqueable",
+      "description": "En defensa, como máximo {{n}} estrellas concedidas de media por guerra (al menos 3 guerras)."
+    },
+    "tireless": {
+      "bronze": "Soldado Fiel",
+      "silver": "Veterano Incansable",
+      "gold": "Brazo Indómito",
+      "description": "Ningún ataque perdido en al menos {{n}} guerras del mes."
+    },
+    "present": {
+      "bronze": "Presente en la Llamada",
+      "silver": "Pilar del Clan",
+      "gold": "Siempre en Primera Línea",
+      "description": "Atacó en al menos el {{n}}% de las guerras del mes."
     }
   }
 }

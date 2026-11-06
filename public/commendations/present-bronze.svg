@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 76" width="64" height="76">
+  <!-- Commendation medal: Always on the Front Line (bronze) -->
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd2a1"/>
+      <stop offset="0.55" stop-color="#c77a3a"/>
+      <stop offset="1" stop-color="#5e2f0d"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd2a1"/>
+      <stop offset="1" stop-color="#c77a3a"/>
+    </linearGradient>
+  </defs>
+  <!-- Ribbon tails -->
+  <path d="M18 44 L12 72 L20 67 L25 74 L30 50 Z" fill="#2e9d4f" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M46 44 L52 72 L44 67 L39 74 L34 50 Z" fill="#2e9d4f" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Medallion -->
+  <circle cx="32" cy="30" r="27" fill="url(#metal)" stroke="#0b1220" stroke-width="2.5"/>
+  <circle cx="32" cy="30" r="21.5" fill="url(#inner)" stroke="#5e2f0d" stroke-width="1.5"/>
+  <!-- Emblem -->
+  <g>
+    <path d="M21 30.5 L28.5 38 L43.5 22.5" fill="none" stroke="#5e2f0d" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

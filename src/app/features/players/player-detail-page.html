@@ -13,7 +13,7 @@
   (retry)="profileResource.reload()"
 >
   @if (profile(); as p) {
-    <app-player-banner [profile]="p" />
+    <app-player-banner [profile]="p" [commendations]="commendations()" />
 
     <mat-tab-group class="player-tabs" mat-stretch-tabs="false" animationDuration="200ms">
       <!-- Profile -->

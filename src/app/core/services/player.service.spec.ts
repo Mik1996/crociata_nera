@@ -30,9 +30,9 @@ describe('PlayerService', () => {
   });
 
   it('excludes wars known only from the war log (without details)', async () => {
-    // The mock has 24 ended wars, the 4 oldest of which have no details.
-    const stats = await firstValueFrom(create(100).getMembersStats());
-    expect(stats.every((s) => s.warsTotal === 20)).toBe(true);
+    // The mock has 120 ended wars, the 4 oldest of which have no details.
+    const stats = await firstValueFrom(create(500).getMembersStats());
+    expect(stats.every((s) => s.warsTotal === 116)).toBe(true);
   });
 
   it('returns a player profile or null when the tag does not exist', async () => {

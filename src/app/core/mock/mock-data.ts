@@ -3,7 +3,8 @@ import { warResult } from '../utils/war-stats';
 import { Random } from './random';
 
 /**
- * Realistic mock data generator for development.
+ * Realistic mock data generator for development: about one year of wars, with players who
+ * join and leave, upgrade their Town Hall and improve (or lose interest) over time.
  * Names are made up and tags are randomly generated: no real data.
  */
 
@@ -11,6 +12,8 @@ export interface MockDataset {
   clan: Clan;
   /** All wars, from the most recent (possibly in progress) to the oldest. */
   wars: War[];
+  /** Players who took part in past wars and have since left the clan. */
+  formerMembers: { tag: string; name: string }[];
 }
 
 export interface MockOptions {
@@ -19,35 +22,89 @@ export interface MockOptions {
   /** Reference date used to place wars in time. */
   now?: Date;
   seed?: number;
+  /** Ended wars to generate (default 120: about one year, with the monthly league breaks). */
   pastWars?: number;
   /** When true the most recent war is still in progress. */
   includeCurrentWar?: boolean;
 }
 
+/** A player's state in a given war. */
 interface PlayerProfile {
   tag: string;
   name: string;
   townHall: number;
-  /** Attack skill (0-1). */
+  /** Attack skill (0-1, up to 1.6 for exceptional players). */
   skill: number;
   /** Probability of using each available attack. */
   reliability: number;
   /** Probability of signing up for a war. */
   attendance: number;
+  /** Legendary player: always in the line-up, only 3-stars against stronger bases, unbeatable on defence. */
+  legend?: boolean;
+}
+
+/** [value at the start of the timeline (or when joining), value at the end (or when leaving)]. */
+type Trend = [from: number, to: number];
+
+/** How a player evolves over the whole timeline (positions are fractions from 0 = oldest war to 1 = today). */
+interface PlayerTimeline {
+  tag: string;
+  name: string;
+  joinsAt: number;
+  /** `null` = still in the clan. */
+  leavesAt: number | null;
+  townHall: Trend;
+  skill: Trend;
+  reliability: Trend;
+  attendance: Trend;
+  legend?: boolean;
 }
 
 interface AttackEvent extends Omit<Attack, 'order'> {
   instant: number;
 }
 
+/**
+ * Current members, by role: leader, 3 co-leaders, 8 elders, then members.
+ * The last {@link NEWCOMERS} joined during the year.
+ */
 const MEMBER_NAMES = [
   'Templare Nero', 'Lord Baldovino', 'Excalibur', 'Ser Goffredo', 'DarkPaladin',
   'Mjolnir', 'Valkyria87', 'Barbaro Pigro', 'Il Conte', "Fra' Tuck",
-  'Corvo Rosso', 'Ragnar', 'Draghetta', 'Spartaco', 'Guardiano',
-  'Lady Morgana', 'Tancredi', 'Re Artù', 'Elfa Scura', 'Bombarolo',
-  'PEKKA Furiosa', 'Golem di Ferro', 'Mago Merlino', 'Cavaliere Oscuro', 'Ascia di Guerra',
-  'Sentinella', 'Arciere Nero', 'Leone di Sicilia', 'Vichingo_Mike', 'Stendardo',
+  'Corvo Rosso', 'Ragnar', 'Spartaco', 'Guardiano', 'Lady Morgana',
+  'Tancredi', 'Re Artù', 'Elfa Scura', 'Bombarolo', 'PEKKA Furiosa',
+  'Golem di Ferro', 'Mago Merlino',
+  'Draghetta', 'Cavaliere Oscuro', 'Ascia di Guerra', 'Sentinella',
+  'Arciere Nero', 'Leone di Sicilia', 'Vichingo_Mike', 'Stendardo',
 ];
+const NEWCOMERS = 8;
+
+/** Players who left the clan during the year: they only appear in past wars. */
+const FORMER_NAMES = [
+  'Saladino', 'Rinaldo', 'Hellfire', 'Gattuso', 'NotteBuia', 'Orso Bruno',
+  'Brancaleone', 'Lupo Grigio', 'Zeus_ITA', 'Ombra', 'Falco', 'Sir Lancillotto',
+];
+
+/**
+ * Recognizable characters, so the long-term statistics have something to show.
+ * Overrides the randomly generated trends of the named player.
+ */
+const PERSONAS: Record<string, Partial<PlayerTimeline>> = {
+  // The leader is a legend: earns every commendation, gold tier, each month.
+  'Templare Nero': { townHall: [15, 15], skill: [1.6, 1.6], reliability: [1, 1], attendance: [1, 1], legend: true },
+  // Always there; in the last months every attack is a 3-star ("Perfect" commendation).
+  Excalibur: { townHall: [17, 17], skill: [1.2, 1.6], reliability: [0.99, 1], attendance: [0.97, 0.8] },
+  // Lower Town Hall but great skill: 3 stars against stronger bases ("Giant Hunter", silver).
+  Ragnar: { townHall: [13, 13], skill: [1.3, 1.6], reliability: [1, 1], attendance: [1, 1] },
+  // Strong but often forgets the second attack.
+  'Barbaro Pigro': { townHall: [16, 17], skill: [0.7, 0.75], reliability: [0.5, 0.45], attendance: [0.8, 0.8] },
+  // Veteran slowly losing interest.
+  'Il Conte': { townHall: [16, 16], skill: [0.85, 0.55], reliability: [0.98, 0.65], attendance: [0.95, 0.35] },
+  // Newcomer who grows fast: Town Hall and skill climb month after month.
+  Draghetta: { joinsAt: 0.3, townHall: [11, 16], skill: [0.2, 0.85], reliability: [0.9, 1], attendance: [1, 1] },
+  // Left after a few months of decline.
+  Saladino: { joinsAt: 0, leavesAt: 0.45, townHall: [17, 17], skill: [0.9, 0.6], reliability: [1, 0.6], attendance: [1, 0.5] },
+};
 
 const OPPONENT_NAMES = [
   'Legione Oscura', 'I Predoni del Nord', 'Dragon Slayers', 'Fenice Rossa', 'Brotherhood ITA',
@@ -63,8 +120,10 @@ const SUFFIXES = ['Hog', 'Wizard', 'Golem', 'Archer', 'Dragon', 'Miner', 'Witch'
 const TAG_CHARS = '0289PYLQGRJCUV';
 const HOUR = 3_600_000;
 const TEAM_SIZES = [15, 20, 15, 25, 15, 10, 20, 15];
-/** Number of oldest wars generated without participant details. */
+/** Number of oldest wars generated without participant details (before archiving started). */
 const SUMMARY_ONLY_WARS = 4;
+/** The monthly Clan War League takes the first days of each month: no regular wars then. */
+const LEAGUE_DAYS = 8;
 
 function generateTag(rnd: Random): string {
   let tag = '#';
@@ -120,7 +179,13 @@ function simulateAttacks(
         continue;
       }
       let index: number;
-      if (n === 0) {
+      if (attacker.legend) {
+        // Goes for the strongest bases: a higher Town Hall not yet at 3 stars.
+        const stronger = defenders
+          .map((d, i) => ({ d, i }))
+          .filter(({ d }) => d.townHall > attacker.townHall && (best.get(d.tag) ?? 0) < 3);
+        index = stronger.length > 0 ? stronger[stronger.length - 1].i : 0;
+      } else if (n === 0) {
         index = clamp(position + rnd.int(-2, 2), 0, defenders.length - 1);
       } else {
         // Second attack: clean-up on the highest target not yet at 3 stars.
@@ -130,7 +195,15 @@ function simulateAttacks(
         index = candidates.length > 0 ? candidates[0] : rnd.int(0, defenders.length - 1);
       }
       const defender = defenders[index];
-      const { stars, destruction } = attackOutcome(rnd, attacker, defender);
+      let { stars, destruction } = attackOutcome(rnd, attacker, defender);
+      if (attacker.legend) {
+        stars = 3;
+        destruction = 100;
+      } else if (defender.legend && stars > 0) {
+        // Legendary base: nobody gets a star.
+        stars = 0;
+        destruction = Math.min(destruction, 45);
+      }
       best.set(defender.tag, Math.max(best.get(defender.tag) ?? 0, stars));
       events.push({
         attackerTag: attacker.tag,
@@ -197,53 +270,151 @@ function strength(p: PlayerProfile): number {
   return p.townHall * 10 + p.skill * 6;
 }
 
+function lerp([from, to]: Trend, t: number): number {
+  return from + (to - from) * t;
+}
+
+/** Random trends for every player that ever was in the clan, current and former. */
+function buildTimelines(rnd: Random): PlayerTimeline[] {
+  const current = MEMBER_NAMES.map((name, i): PlayerTimeline => {
+    const isNewcomer = i >= MEMBER_NAMES.length - NEWCOMERS;
+    if (isNewcomer) {
+      // Joined during the year with a lower Town Hall, improving quickly.
+      const finalTh = rnd.int(12, 16);
+      const skill = rnd.range(0.2, 0.4);
+      return {
+        tag: generateTag(rnd),
+        name,
+        joinsAt: rnd.range(0.25, 0.92),
+        leavesAt: null,
+        townHall: [Math.max(9, finalTh - rnd.int(1, 3)), finalTh],
+        skill: [skill, skill + rnd.range(0.2, 0.4)],
+        reliability: [rnd.range(0.75, 0.95), rnd.range(0.85, 1)],
+        attendance: [rnd.range(0.8, 1), rnd.range(0.75, 1)],
+      };
+    }
+    const finalTh = clamp(17 - Math.floor(i / 6) + rnd.int(-1, 1), 12, 17);
+    const skill = rnd.range(0.35, 0.95);
+    const reliability = rnd.chance(0.15) ? rnd.range(0.5, 0.7) : rnd.range(0.85, 1);
+    const attendance = rnd.chance(0.2) ? rnd.range(0.4, 0.6) : rnd.range(0.75, 1);
+    return {
+      tag: generateTag(rnd),
+      name,
+      joinsAt: 0,
+      leavesAt: null,
+      townHall: [Math.max(10, finalTh - rnd.int(0, 2)), finalTh],
+      skill: [Math.max(0.2, skill - rnd.range(0, 0.15)), skill],
+      reliability: [reliability, clamp(reliability + rnd.range(-0.1, 0.05), 0.4, 1)],
+      attendance: [attendance, clamp(attendance + rnd.range(-0.15, 0.05), 0.3, 1)],
+    };
+  });
+
+  const former = FORMER_NAMES.map((name): PlayerTimeline => {
+    const joinsAt = rnd.chance(0.75) ? 0 : rnd.range(0.05, 0.3);
+    const finalTh = rnd.int(13, 17);
+    const skill = rnd.range(0.3, 0.9);
+    return {
+      tag: generateTag(rnd),
+      name,
+      joinsAt,
+      leavesAt: clamp(joinsAt + rnd.range(0.12, 0.7), 0.1, 0.85),
+      townHall: [Math.max(10, finalTh - rnd.int(0, 1)), finalTh],
+      skill: [skill, skill + rnd.range(-0.15, 0.05)],
+      reliability: [rnd.range(0.7, 1), rnd.range(0.5, 0.9)],
+      attendance: [rnd.range(0.7, 1), rnd.range(0.4, 0.8)],
+    };
+  });
+
+  return [...current, ...former].map((p) => ({ ...p, ...PERSONAS[p.name] }));
+}
+
+/** State of a player in the war at position `t` of the timeline; `null` if not in the clan then. */
+function profileAt(p: PlayerTimeline, t: number): PlayerProfile | null {
+  if (t < p.joinsAt || (p.leavesAt !== null && t >= p.leavesAt)) return null;
+  const end = p.leavesAt ?? 1;
+  const progress = end > p.joinsAt ? clamp((t - p.joinsAt) / (end - p.joinsAt), 0, 1) : 1;
+  return {
+    tag: p.tag,
+    name: p.name,
+    // Town Hall upgrades are steps, not a smooth curve.
+    townHall: Math.round(lerp(p.townHall, progress)),
+    // Above 1 = exceptional players who almost never miss a 3-star.
+    skill: clamp(lerp(p.skill, progress), 0.05, 1.6),
+    reliability: clamp(lerp(p.reliability, progress), 0, 1),
+    attendance: clamp(lerp(p.attendance, progress), 0, 1),
+    legend: p.legend,
+  };
+}
+
+/**
+ * War start times, from the most recent to the oldest: one war every 2-2.5 days, with no
+ * regular wars during the first {@link LEAGUE_DAYS} days of each month (Clan War League).
+ */
+function warStarts(rnd: Random, now: Date, count: number, inProgress: boolean): Date[] {
+  const starts: Date[] = [];
+  let start = new Date(now.getTime() - (inProgress ? 10 : 48) * HOUR);
+  for (let i = 0; i < count; i++) {
+    if (i > 0) {
+      start = new Date(start.getTime() - rnd.int(48, 62) * HOUR);
+      if (start.getUTCDate() <= LEAGUE_DAYS) {
+        // Back to the end of the previous month, before the league started.
+        start = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 0, rnd.int(8, 20)));
+      }
+    }
+    start.setUTCMinutes(0, 0, 0);
+    starts.push(start);
+  }
+  return starts;
+}
+
 export function generateMockData(options: MockOptions): MockDataset {
   const rnd = new Random(options.seed ?? 2026);
   const now = options.now ?? new Date();
-  const pastCount = options.pastWars ?? 24;
+  const pastCount = options.pastWars ?? 120;
   const inProgress = options.includeCurrentWar ?? true;
-
-  const memberProfiles: PlayerProfile[] = MEMBER_NAMES.map((name, i) => ({
-    tag: generateTag(rnd),
-    name,
-    townHall: clamp(17 - Math.floor(i / 5) + rnd.int(-1, 1), 10, 17),
-    skill: rnd.range(0.25, 0.95),
-    reliability: rnd.chance(0.15) ? rnd.range(0.45, 0.7) : rnd.range(0.85, 1),
-    attendance: rnd.chance(0.2) ? rnd.range(0.35, 0.6) : rnd.range(0.75, 1),
-  }));
-
-  const members: ClanMember[] = memberProfiles.map((p, i) => ({
-    tag: p.tag,
-    name: p.name,
-    role: roleForIndex(i),
-    townHall: p.townHall,
-    expLevel: 120 + p.townHall * 8 + rnd.int(0, 40),
-    trophies: 3200 + p.townHall * 150 + rnd.int(-400, 600),
-    donations: rnd.int(0, 2500),
-    donationsReceived: rnd.int(100, 1800),
-  }));
-
-  const wars: War[] = [];
   const total = pastCount + (inProgress ? 1 : 0);
+
+  const timelines = buildTimelines(rnd);
+  const currentTimelines = timelines.slice(0, MEMBER_NAMES.length);
+
+  const members: ClanMember[] = currentTimelines.map((p, i) => {
+    const townHall = p.townHall[1];
+    return {
+      tag: p.tag,
+      name: p.name,
+      role: roleForIndex(i),
+      townHall,
+      expLevel: 120 + townHall * 8 + rnd.int(0, 40) - (p.joinsAt > 0 ? 30 : 0),
+      trophies: 3200 + townHall * 150 + rnd.int(-400, 600),
+      donations: rnd.int(0, 2500),
+      donationsReceived: rnd.int(100, 1800),
+    };
+  });
+
+  // Oldest first: players evolve along the timeline.
+  const starts = warStarts(rnd, now, total, inProgress).reverse();
   const shuffledOpponents = rnd.shuffle(OPPONENT_NAMES);
+  const wars: War[] = [];
 
-  for (let i = 0; i < total; i++) {
-    const isCurrent = inProgress && i === 0;
-    const teamSize = TEAM_SIZES[i % TEAM_SIZES.length];
+  starts.forEach((start, k) => {
+    const isCurrent = inProgress && k === total - 1;
+    const t = total > 1 ? k / (total - 1) : 1;
     const attacksPerMember = 2;
-
-    // Dates: the current war started 10 hours ago; previous ones every ~2.5 days.
-    const start = isCurrent
-      ? new Date(now.getTime() - 10 * HOUR)
-      : new Date(now.getTime() - (inProgress ? i : i + 1) * 60 * HOUR - 36 * HOUR);
-    start.setMinutes(0, 0, 0);
     const end = new Date(start.getTime() + 24 * HOUR);
     const preparation = new Date(start.getTime() - 23 * HOUR);
 
+    const roster = timelines.map((p) => profileAt(p, t)).filter((p): p is PlayerProfile => p !== null);
+    const teamSize = Math.min(TEAM_SIZES[k % TEAM_SIZES.length], Math.floor(roster.length / 5) * 5);
+
     // Clan line-up: who signs up, sorted by strength.
-    const signedUp = memberProfiles.filter((p) => rnd.chance(p.attendance));
-    const reserves = memberProfiles.filter((p) => !signedUp.includes(p));
-    const lineUp = [...rnd.shuffle(signedUp), ...rnd.shuffle(reserves)]
+    const signedUp = roster.filter((p) => rnd.chance(p.attendance));
+    const reserves = roster.filter((p) => !signedUp.includes(p));
+    const legends = roster.filter((p) => p.legend);
+    const lineUp = [
+      ...legends,
+      ...rnd.shuffle(signedUp.filter((p) => !p.legend)),
+      ...rnd.shuffle(reserves.filter((p) => !p.legend)),
+    ]
       .slice(0, teamSize)
       .sort((a, b) => strength(b) - strength(a));
 
@@ -273,11 +444,11 @@ export function generateMockData(options: MockOptions): MockDataset {
     const ourAttacks = attacks.filter((a) => a.ours).map((a) => a.attack);
     const theirAttacks = attacks.filter((a) => !a.ours).map((a) => a.attack);
 
-    const opponentName = shuffledOpponents[i % shuffledOpponents.length];
+    const opponentName = shuffledOpponents[k % shuffledOpponents.length];
     const opponentTag = generateTag(rnd);
 
     // As with the real API, older wars are known only from the war log (no participants).
-    const hasDetails = i < total - SUMMARY_ONLY_WARS;
+    const hasDetails = k >= SUMMARY_ONLY_WARS;
     const clanSide = buildWarClan(options.clanTag, options.clanName, 18, lineUp, ourAttacks, theirAttacks);
     const opponentSide = buildWarClan(
       opponentTag,
@@ -300,7 +471,8 @@ export function generateMockData(options: MockOptions): MockDataset {
       clan: hasDetails ? clanSide : { ...clanSide, members: [] },
       opponent: hasDetails ? opponentSide : { ...opponentSide, members: [] },
     });
-  }
+  });
+  wars.reverse();
 
   const ended = wars.filter((w) => w.state === 'ended');
   const won = ended.filter((w) => warResult(w) === 'victory').length;
@@ -331,7 +503,8 @@ export function generateMockData(options: MockOptions): MockDataset {
     members,
   };
 
-  return { clan, wars };
+  const formerMembers = timelines.slice(MEMBER_NAMES.length).map(({ tag, name }) => ({ tag, name }));
+  return { clan, wars, formerMembers };
 }
 
 function winStreak(ended: War[]): number {

@@ -2,6 +2,27 @@
   font-size: var(--cn-fs-xs);
 }
 
+.name-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+}
+
+// Small commendation medals next to the tag.
+.medals {
+  display: flex;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  app-commendation-medal {
+    width: 18px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+  }
+}
+
 .attendance {
   display: inline-flex;
   align-items: center;

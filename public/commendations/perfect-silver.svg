@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 76" width="64" height="76">
+  <!-- Commendation medal: Unerring Blade (silver) -->
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#b9c4d2"/>
+      <stop offset="1" stop-color="#4a5568"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#b9c4d2"/>
+    </linearGradient>
+  </defs>
+  <!-- Ribbon tails -->
+  <path d="M18 44 L12 72 L20 67 L25 74 L30 50 Z" fill="#c62828" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M46 44 L52 72 L44 67 L39 74 L34 50 Z" fill="#c62828" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Medallion -->
+  <circle cx="32" cy="30" r="27" fill="url(#metal)" stroke="#0b1220" stroke-width="2.5"/>
+  <circle cx="32" cy="30" r="21.5" fill="url(#inner)" stroke="#4a5568" stroke-width="1.5"/>
+  <!-- Emblem -->
+  <g>
+    <path d="M32.00,9.50L34.65,15.86L41.51,16.41L36.28,20.89L37.88,27.59L32.00,24.00L26.12,27.59L27.72,20.89L22.49,16.41L29.35,15.86Z" fill="#fffbe6" stroke="#4a5568" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M22.00,25.50L24.65,31.86L31.51,32.41L26.28,36.89L27.88,43.59L22.00,40.00L16.12,43.59L17.72,36.89L12.49,32.41L19.35,31.86Z" fill="#fffbe6" stroke="#4a5568" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M42.00,25.50L44.65,31.86L51.51,32.41L46.28,36.89L47.88,43.59L42.00,40.00L36.12,43.59L37.72,36.89L32.49,32.41L39.35,31.86Z" fill="#fffbe6" stroke="#4a5568" stroke-width="1.8" stroke-linejoin="round"/>
+  </g>
+</svg>

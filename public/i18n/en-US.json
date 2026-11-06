@@ -112,14 +112,14 @@
     "unexpectedError": "An unexpected error occurred."
   },
   "errors": {
-    "invalidIp": "The API key does not allow the proxy server's IP address. Create a new key on developer.clashofclans.com with the correct IP. {{detail}}",
-    "accessDenied": "Access denied by the API: invalid or expired token.",
-    "apiUnreachable": "The proxy cannot reach api.clashofclans.com.",
-    "proxyUnreachable": "Proxy unreachable. Start the backend with “npm run server”.",
+    "invalidIp": "Clash of Clans data is currently unavailable. Please try again shortly.",
+    "accessDenied": "Clash of Clans data is currently unavailable. Please try again shortly.",
+    "apiUnreachable": "Unable to reach Clash of Clans. Please try again shortly.",
+    "proxyUnreachable": "Service temporarily unavailable. Please try again shortly.",
     "notFound": "Clan or resource not found.",
-    "tooManyRequests": "Too many requests to the API: try again in a moment.",
-    "maintenance": "The Clash of Clans API is under maintenance.",
-    "server": "Server error ({{status}})."
+    "tooManyRequests": "Too many requests: please try again in a moment.",
+    "maintenance": "Clash of Clans is under maintenance. Please try again later.",
+    "server": "Something went wrong ({{status}}). Please try again shortly."
   },
   "result": {
     "victory": "Victory",
@@ -158,7 +158,7 @@
     "rankingTitle": "Top performers",
     "allPlayers": "All players",
     "rankingNote": "Sorted by <strong>efficiency</strong>: stars earned per available attack (unused attacks count as 0 stars). Minimum 3 wars played.",
-    "rankingEmpty": "Not enough data for the ranking: at least 3 wars archived by the proxy with attack details are needed.",
+    "rankingEmpty": "Not enough data for the ranking: at least 3 wars recorded with attack details are needed.",
     "best": "The best",
     "worst": "Room for improvement",
     "playerInfo": "TH {{th}} · {{used}}/{{available}} attacks",
@@ -218,7 +218,7 @@
     "back": "Back to history",
     "notFound": "War not found. It may have been removed from the archive.",
     "noticeTitle": "Participant details not available",
-    "noticeText": "This war comes from the official API's war log, which only provides the summary (stars, destruction, result). Individual attacks are only available for wars archived by the proxy while they were in progress.",
+    "noticeText": "Only the summary is available for this war (stars, destruction, result): individual player attacks were not recorded.",
     "participationHint": "attacked at least once",
     "performance": "Individual performance"
   },
@@ -246,7 +246,7 @@
     "subtitle": "Clan members and statistics over the last {{n}} finished wars",
     "empty": "No members found in the clan.",
     "noticeTitle": "Individual statistics not available yet.",
-    "noticeText": "The Clash of Clans API only provides individual player attacks for the current war: statistics build up as the proxy archives wars. Keep <code>npm run server</code> running during the next war.",
+    "noticeText": "Individual player statistics build up war after war: they will be available when the next war ends.",
     "members": "Members ({{n}})",
     "filter": "Filter members",
     "search": "Search member",
@@ -322,7 +322,7 @@
     "allMonths": "All months",
     "warsOne": "{{n}} war",
     "warsOther": "{{n}} wars",
-    "historyEmpty": "The history is still empty: the proxy automatically adds every war when it ends. Keep npm run server running during wars.",
+    "historyEmpty": "The history is still empty: every war is added automatically when it ends.",
     "periodEmpty": "No wars recorded in this period.",
     "record": "{{wins}} W · {{draws}} D · {{losses}} L",
     "averagePerWar": "Average stars per war",
@@ -547,6 +547,51 @@
       "admin": "Admin",
       "verified": "Email",
       "createdAt": "Registered"
+    }
+  },
+  "commendations": {
+    "title": "Commendations · {{month}}",
+    "short": "Last month's commendations",
+    "tiers": {
+      "gold": "Gold",
+      "silver": "Silver",
+      "bronze": "Bronze"
+    },
+    "champion": {
+      "bronze": "Valiant",
+      "silver": "Commander",
+      "gold": "Warlord",
+      "description": "Position {{n}} in the monthly ranking by average stars per war (at least 3 wars)."
+    },
+    "perfect": {
+      "bronze": "Steady Hand",
+      "silver": "Relentless Sword",
+      "gold": "Unerring Blade",
+      "description": "At least {{n}} stars per attack on average during the month (at least 4 attacks)."
+    },
+    "giantSlayer": {
+      "bronze": "Daring",
+      "silver": "Giant Hunter",
+      "gold": "Bane of Titans",
+      "description": "At least {{n}} three-star attacks in the month against higher Town Halls."
+    },
+    "wall": {
+      "bronze": "Steady Shield",
+      "silver": "Steel Bastion",
+      "gold": "Impassable Wall",
+      "description": "On defence, at most {{n}} stars conceded per war on average (at least 3 wars)."
+    },
+    "tireless": {
+      "bronze": "Loyal Soldier",
+      "silver": "Tireless Veteran",
+      "gold": "Indomitable Arm",
+      "description": "No attack missed in at least {{n}} wars of the month."
+    },
+    "present": {
+      "bronze": "At Roll Call",
+      "silver": "Pillar of the Clan",
+      "gold": "Always on the Front Line",
+      "description": "Attacked in at least {{n}}% of the month's wars."
     }
   }
 }
