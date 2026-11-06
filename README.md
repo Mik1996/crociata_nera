@@ -461,6 +461,45 @@ dello stesso dominio, per esempio con un reverse proxy nginx verso `node server/
 imposta in `environment.ts` l'URL completo del proxy e abilita CORS sul proxy. La chiave API deve
 autorizzare l'IP pubblico del server dove gira il proxy.
 
+## Pubblicazione (VPS)
+
+Il sito gira su una VPS con IP fisso (Aruba Cloud, Ubuntu 24.04) e va online su **https://crociatanera.it**. La
+cartella `deploy/` contiene tutto quello che serve:
+
+| File | A cosa serve |
+| --- | --- |
+| `docker-compose.yml` | i tre servizi: `web` (Caddy + Angular), `proxy` (`server/`) e `backend` (`backend/`) |
+| `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/coc` va al proxy, `/api/v1` al backend, il resto è l'app Angular |
+| `web.Dockerfile`, `proxy.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
+| `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
+| `deploy.sh` | aggiorna il codice, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
+
+**Architettura:**
+- da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; proxy e backend restano sulla rete interna di
+  Docker;
+- il database è MongoDB Atlas (M0), con l'IP della VPS autorizzato;
+- proxy e backend usano la stessa chiave dell'API di Clash of Clans, creata per l'IP della VPS.
+
+**Primo avvio**, sulla VPS:
+
+```bash
+git clone https://github.com/Mik1996/crociata_nera.git ~/crociata_nera
+cd ~/crociata_nera/deploy
+cp .env.example .env && nano .env      # compila COC_API_TOKEN, DATABASE_URL e JWT_SECRET (openssl rand -base64 48)
+./deploy.sh
+```
+
+**Aggiornamenti:** dopo un push su `master`, basta `~/crociata_nera/deploy/deploy.sh`.
+
+**Comandi utili:**
+- `docker compose logs -f backend` (oppure `web` o `proxy`): mostra i log;
+- `docker compose ps`: mostra lo stato dei servizi;
+- `curl -s https://crociatanera.it/api/v1/health`: stato del database e della sincronizzazione delle guerre.
+
+**Dati:**
+- l'archivio del proxy è nel volume `proxy_data`, i certificati in `caddy_data`;
+- `deploy/.env` resta solo sul server ed è escluso da git.
+
 ## Test
 
 I test unitari coprono:

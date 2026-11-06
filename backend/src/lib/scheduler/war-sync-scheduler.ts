@@ -39,7 +39,7 @@ export function startWarSyncScheduler(): void {
     return;
   }
   if (!config.COC_API_TOKEN || !config.CLAN_TAG) {
-    console.warn('[war-sync] not started: set COC_API_TOKEN and CLAN_TAG in .env.local');
+    console.warn('[war-sync] not started: COC_API_TOKEN and CLAN_TAG must be set (.env.local in development)');
     return;
   }
   state.started = true;

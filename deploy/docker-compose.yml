@@ -1,0 +1,65 @@
+# Production stack on the VPS. Start/update with ./deploy.sh (see README "Pubblicazione").
+# Only Caddy (web) is reachable from the internet; proxy and backend stay on the internal network.
+
+name: crociata-nera
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in deploy/.env}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - proxy
+      - backend
+    logging: *logging
+
+  proxy:
+    build:
+      context: ..
+      dockerfile: deploy/proxy.Dockerfile
+    restart: unless-stopped
+    environment:
+      COC_API_TOKEN: ${COC_API_TOKEN:?set COC_API_TOKEN in deploy/.env}
+      COC_CLAN_TAG: ${CLAN_TAG:-#2J8JVVCLC}
+      COC_POLL_MINUTES: ${COC_POLL_MINUTES:-15}
+      PORT: '3000'
+    volumes:
+      - proxy_data:/app/server/data
+    logging: *logging
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in deploy/.env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in deploy/.env}
+      FRONTEND_URL: https://${DOMAIN}
+      CLAN_TAG: ${CLAN_TAG:-#2J8JVVCLC}
+      COC_API_TOKEN: ${COC_API_TOKEN}
+      WAR_SYNC_INTERVAL_MINUTES: ${WAR_SYNC_INTERVAL_MINUTES:-10}
+      ACCESS_TOKEN_EXPIRES_IN: ${ACCESS_TOKEN_EXPIRES_IN:-15m}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-30d}
+    logging: *logging
+
+volumes:
+  caddy_data:
+  caddy_config:
+  proxy_data:

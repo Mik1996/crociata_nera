@@ -1,0 +1,15 @@
+# Build context of the deploy images (deploy/*.Dockerfile): keep it small and secret-free.
+**/node_modules
+**/.angular
+**/.next
+dist
+coverage
+.git
+.vscode
+**/.env
+**/.env.*
+!**/.env.example
+server/data
+deploy/.env
+*.pem
+*.key
