@@ -9,6 +9,8 @@ function fakeSystemTheme(dark: boolean) {
     matches: dark,
     addEventListener: (_: string, l: (e: { matches: boolean }) => void) => listeners.push(l),
     removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
   };
   vi.spyOn(window, 'matchMedia').mockReturnValue(query as unknown as MediaQueryList);
   return (value: boolean) => {
@@ -18,13 +20,31 @@ function fakeSystemTheme(dark: boolean) {
 }
 
 describe('ThemeService', () => {
+  // jsdom has no matchMedia. The test files share one window, so the stub must be a valid
+  // MediaQueryList (other code, e.g. the CDK BreakpointObserver behind tooltips, reads it)
+  // and must be removed afterwards.
+  let stubbed = false;
+
   beforeEach(() => {
-    window.matchMedia ??= (() => null) as unknown as typeof window.matchMedia;
+    stubbed = typeof window.matchMedia !== 'function';
+    if (stubbed) {
+      window.matchMedia = ((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+      })) as unknown as typeof window.matchMedia;
+    }
     localStorage.removeItem(THEME_STORAGE_KEY);
   });
   afterEach(() => {
     localStorage.removeItem(THEME_STORAGE_KEY);
     vi.restoreAllMocks();
+    if (stubbed) delete (window as { matchMedia?: unknown }).matchMedia;
   });
 
   const theme = () => document.documentElement.dataset['theme'];
