@@ -12,7 +12,7 @@
 
 .note {
   margin: 0 0 1rem;
-  font-size: 0.85rem;
+  font-size: var(--cn-fs-sm);
 }
 
 .rankings {
@@ -26,7 +26,7 @@
   align-items: center;
   gap: 0.4rem;
   margin: 0 0 0.5rem;
-  font-size: 1rem;
+  font-size: var(--cn-fs-md);
 }
 
 .ranking--top h3 mat-icon {
@@ -64,12 +64,12 @@
   border-radius: 50%;
   background: var(--cn-surface-3);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--cn-fs-sm);
 }
 
 .ranking--top li:first-child .ranking__pos {
   background: var(--cn-gold);
-  color: #1d1503;
+  color: var(--cn-on-gold);
 }
 
 .ranking--flop .ranking__pos {
@@ -81,10 +81,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: var(--cn-fs-sm);
 
   a {
-    font-size: 0.95rem;
+    font-size: var(--cn-fs-md);
   }
 }
 
@@ -92,7 +92,7 @@
   align-items: flex-end;
 
   strong {
-    font-size: 1.05rem;
+    font-size: var(--cn-fs-lg);
     color: var(--cn-gold-light);
   }
 }
@@ -103,7 +103,7 @@
 
 h3 {
   margin: 0 0 0.75rem;
-  font-size: 1rem;
+  font-size: var(--cn-fs-md);
   color: var(--cn-text);
 }
 

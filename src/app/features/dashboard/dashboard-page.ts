@@ -7,6 +7,7 @@ import { ChartData } from 'chart.js';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { LanguageService } from '../../core/i18n/language.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerStats } from '../../core/models';
 import { PlayerService } from '../../core/services/player.service';
@@ -15,6 +16,7 @@ import { clanTrend, computeWarKpi, efficiency, rankPerformers } from '../../core
 import {
   barSeries,
   baseChartOptions,
+  CHART_CHROME,
   CHART_COLORS,
   lineSeries,
   shortDateLabel,
@@ -51,6 +53,7 @@ export class DashboardPage {
   private readonly wars = inject(WarService);
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
 
   // Each section has its own resource: an error in one does not block the others.
   protected readonly latest = rxResource({ stream: () => this.wars.getLatestWar() });
@@ -85,29 +88,31 @@ export class DashboardPage {
     this.trend().map((p) => `${shortDateLabel(p.date, this.language.current())} · ${p.opponent}`),
   );
 
-  protected readonly starsOptions = baseChartOptions({ min: 0 });
+  /** Chart colours of the current theme. */
+  private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
+
+  protected readonly starsOptions = computed(() => baseChartOptions(this.chrome(), { min: 0 }));
   protected readonly starsData = computed<ChartData<'line', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      lineSeries(this.language.t('dashboard.seriesStarsEarned'), this.trend().map((p) => p.stars), CHART_COLORS.gold),
-      lineSeries(this.language.t('dashboard.seriesStarsConceded'), this.trend().map((p) => p.starsConceded), CHART_COLORS.blue),
+      lineSeries(this.language.t('dashboard.seriesStarsEarned'), this.trend().map((p) => p.stars), CHART_COLORS.gold, this.chrome()),
+      lineSeries(this.language.t('dashboard.seriesStarsConceded'), this.trend().map((p) => p.starsConceded), CHART_COLORS.blue, this.chrome()),
     ],
   }));
 
-  protected readonly participationOptions = baseChartOptions<'bar'>({
-    min: 0,
-    max: 100,
-    suffix: '%',
-    legend: false,
-  });
+  protected readonly participationOptions = computed(() =>
+    baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 100, suffix: '%', legend: false }),
+  );
   protected readonly participationData = computed<ChartData<'bar', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      barSeries(this.language.t('dashboard.seriesAttacksUsed'), this.trend().map((p) => p.participation), CHART_COLORS.gold),
+      barSeries(this.language.t('dashboard.seriesAttacksUsed'), this.trend().map((p) => p.participation), CHART_COLORS.gold, this.chrome()),
     ],
   }));
 
-  protected readonly destructionOptions = baseChartOptions({ min: 0, max: 100, suffix: '%', legend: false });
+  protected readonly destructionOptions = computed(() =>
+    baseChartOptions(this.chrome(), { min: 0, max: 100, suffix: '%', legend: false }),
+  );
   protected readonly destructionData = computed<ChartData<'line', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
@@ -115,6 +120,7 @@ export class DashboardPage {
         this.language.t('dashboard.seriesDestruction'),
         this.trend().map((p) => p.destruction),
         CHART_COLORS.gold,
+        this.chrome(),
         CHART_COLORS.goldTransparent,
       ),
     ],

@@ -8,12 +8,14 @@ import { ChartData } from 'chart.js';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { LanguageService } from '../../core/i18n/language.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerService } from '../../core/services/player.service';
 import { efficiency } from '../../core/utils/war-stats';
 import {
   barSeries,
   baseChartOptions,
+  CHART_CHROME,
   CHART_COLORS,
   lineSeries,
   shortDateLabel,
@@ -46,6 +48,7 @@ import { roleKey } from '../../shared/labels';
 export class PlayerDetailPage {
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
 
   /** Route parameter `:tag` (bound automatically by the router, already decoded). */
   readonly tag = input.required<string>();
@@ -72,13 +75,18 @@ export class PlayerDetailPage {
     (this.stats()?.history ?? []).map((p) => `${shortDateLabel(p.date, this.language.current())} · ${p.opponent}`),
   );
 
-  protected readonly starsOptions = baseChartOptions<'bar'>({ min: 0, max: 6, legend: false });
+  /** Chart colours of the current theme. */
+  private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
+
+  protected readonly starsOptions = computed(() => baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 6, legend: false }));
   protected readonly starsData = computed<ChartData<'bar', number[]>>(() => ({
     labels: this.labels(),
-    datasets: [barSeries(this.language.t('player.seriesStars'), (this.stats()?.history ?? []).map((p) => p.stars), CHART_COLORS.gold)],
+    datasets: [barSeries(this.language.t('player.seriesStars'), (this.stats()?.history ?? []).map((p) => p.stars), CHART_COLORS.gold, this.chrome())],
   }));
 
-  protected readonly destructionOptions = baseChartOptions({ min: 0, max: 100, suffix: '%', legend: false });
+  protected readonly destructionOptions = computed(() =>
+    baseChartOptions(this.chrome(), { min: 0, max: 100, suffix: '%', legend: false }),
+  );
   protected readonly destructionData = computed<ChartData<'line', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
@@ -86,6 +94,7 @@ export class PlayerDetailPage {
         this.language.t('player.seriesDestruction'),
         (this.stats()?.history ?? []).map((p) => p.averageDestruction),
         CHART_COLORS.gold,
+        this.chrome(),
         CHART_COLORS.goldTransparent,
       ),
     ],

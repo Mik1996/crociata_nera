@@ -1,35 +1,152 @@
 @use '@angular/material' as mat;
 
+// Display font: "Clash" by Supercell (Regular 400, Bold 700), from src/assets/fonts.
+// Supercell font (all rights reserved), used as fan content: see README.
+@font-face {
+  font-family: 'Clash';
+  src: url('./assets/fonts/Clash_Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clash';
+  src: url('./assets/fonts/Clash_Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 // ---------------------------------------------------------------------------
-// "Crociata Nera" theme: black/anthracite with gold and dark red accents.
+// "Crociata Nera" themes: dark (black/anthracite) and light (ivory/parchment),
+// both with gold and dark red accents. Text colors meet WCAG AA (>= 4.5:1) on
+// every surface of their theme; accents used for icons and borders are >= 3:1.
+//
+// The active theme is `html[data-theme]`, set by ThemeService (and by an inline
+// script in index.html before the app boots, to avoid a flash of the wrong theme).
+// Without the attribute the system preference applies.
 // ---------------------------------------------------------------------------
 
-:root {
+@mixin dark-tokens {
+  color-scheme: dark;
   --cn-bg: #0d0d0f;
   --cn-surface: #18181b;
   --cn-surface-2: #222226;
   --cn-surface-3: #2c2c31;
   --cn-border: #34343a;
+  --cn-outline: #5a5a62;
   --cn-gold: #d9a93f;
-  --cn-gold-light: #f0c96a;
-  --cn-gold-dark: #8a6a24;
+  --cn-gold-light: #f0c96a; // gold used for text (headings, values, links)
+  --cn-gold-dark: #a8843c;
   --cn-red: #7a1414;
   --cn-red-mid: #a11d1d;
-  --cn-red-text: #f0675f; // red readable on a dark background (contrast > 4.5:1)
+  --cn-red-text: #f0675f;
   --cn-win: #63cf83;
   --cn-text: #ece6da;
   --cn-text-muted: #aaa396;
-  --cn-font-display: 'Cinzel', Georgia, serif;
+  --cn-on-gold: #1d1503;
+  --cn-primary: #d9a93f; // Material primary (button text, toggles, filled buttons)
+  --cn-on-primary: #1d1503;
+  --cn-sidenav-bg: #121214;
+  --cn-header-bg: linear-gradient(90deg, #0a0a0b 0%, #1a0c0c 55%, #0a0a0b 100%);
+  --cn-header-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  --cn-card-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  --cn-glow: rgba(217, 169, 63, 0.35);
+  --cn-brand-shadow: 0 1px 0 #000, 0 0 12px rgba(217, 169, 63, 0.35);
+  --cn-hover: rgba(217, 169, 63, 0.07);
+  --cn-nav-active: rgba(161, 29, 29, 0.45);
+  --cn-row-alert: rgba(161, 29, 29, 0.22);
+  --cn-score-glow: rgba(122, 20, 20, 0.5);
+  --cn-star-empty: #55524c;
+  --cn-tint-win: rgba(92, 199, 122, 0.12);
+  --cn-tint-loss: rgba(229, 83, 75, 0.12);
+  --cn-tint-neutral: rgba(255, 255, 255, 0.06);
+  --cn-tint-gold: rgba(224, 180, 76, 0.12);
+  --cn-flag-ring: rgba(255, 255, 255, 0.25);
+}
+
+@mixin light-tokens {
+  color-scheme: light;
+  --cn-bg: #f5f1e8;
+  --cn-surface: #ffffff;
+  --cn-surface-2: #fbf8f2;
+  --cn-surface-3: #efe8da;
+  --cn-border: #d6cdbb;
+  --cn-outline: #8c8270;
+  --cn-gold: #a87a1c;
+  --cn-gold-light: #7d560c;
+  --cn-gold-dark: #7a5a1a;
+  --cn-red: #7a1414;
+  --cn-red-mid: #a11d1d;
+  --cn-red-text: #b02a22;
+  --cn-win: #17692f;
+  --cn-text: #1f1a14;
+  --cn-text-muted: #5c554a;
+  --cn-on-gold: #1d1503;
+  --cn-primary: #7d560c; // darker gold: >= 4.5:1 as text on light surfaces
+  --cn-on-primary: #ffffff;
+  --cn-sidenav-bg: #ece5d6;
+  --cn-header-bg: linear-gradient(90deg, #fbf7ee 0%, #f4e4dc 55%, #fbf7ee 100%);
+  --cn-header-shadow: 0 2px 10px rgba(60, 40, 10, 0.12);
+  --cn-card-shadow: 0 4px 14px rgba(60, 40, 10, 0.08);
+  --cn-glow: rgba(168, 122, 28, 0.25);
+  --cn-brand-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  --cn-hover: rgba(168, 122, 28, 0.08);
+  --cn-nav-active: rgba(161, 29, 29, 0.14);
+  --cn-row-alert: rgba(161, 29, 29, 0.08);
+  --cn-score-glow: rgba(161, 29, 29, 0.12);
+  --cn-star-empty: #c4bba9;
+  --cn-tint-win: rgba(23, 105, 47, 0.1);
+  --cn-tint-loss: rgba(176, 42, 34, 0.09);
+  --cn-tint-neutral: rgba(0, 0, 0, 0.05);
+  --cn-tint-gold: rgba(168, 122, 28, 0.12);
+  --cn-flag-ring: rgba(0, 0, 0, 0.2);
+}
+
+:root {
+  // Display font for headings, clan name and big numbers (Clash of Clans style).
+  --cn-font-display: 'Clash', 'Trebuchet MS', sans-serif;
   --cn-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --cn-radius: 10px;
+
+  // Fluid type scale: each size grows linearly from 360px to 1440px of viewport width, between the
+  // given minimum and maximum. The middle term mixes rem and vw so text still follows browser zoom
+  // (WCAG 1.4.4); max/min ratios stay well below 2.5.
+  --cn-fs-2xs: clamp(0.68rem, 0.6567rem + 0.1037vw, 0.75rem);
+  --cn-fs-xs: clamp(0.72rem, 0.6933rem + 0.1185vw, 0.8rem);
+  --cn-fs-sm: clamp(0.78rem, 0.7483rem + 0.1407vw, 0.875rem);
+  --cn-fs-md: clamp(0.875rem, 0.8333rem + 0.1852vw, 1rem);
+  --cn-fs-base: clamp(0.9375rem, 0.9167rem + 0.0926vw, 1rem);
+  --cn-fs-lg: clamp(1rem, 0.95rem + 0.2222vw, 1.15rem);
+  --cn-fs-xl: clamp(1.15rem, 1.0333rem + 0.5185vw, 1.5rem);
+  --cn-fs-2xl: clamp(1.4rem, 1.2333rem + 0.7407vw, 1.9rem);
+  --cn-fs-3xl: clamp(1.8rem, 1.5333rem + 1.1852vw, 2.6rem);
+  --cn-fs-brand: clamp(1rem, 0.7667rem + 1.037vw, 1.7rem);
+
+  @include light-tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+:root[data-theme='light'] {
+  @include light-tokens;
 }
 
 html {
-  color-scheme: dark;
+  // `color-scheme` (set by the token mixins) drives Material's light-dark() system colors.
   @include mat.theme(
     (
       color: (
-        theme-type: dark,
+        theme-type: color-scheme,
         primary: mat.$yellow-palette,
         tertiary: mat.$red-palette,
       ),
@@ -42,16 +159,21 @@ html {
   );
 
   // System token tweaks to match the clan palette.
-  --mat-sys-primary: var(--cn-gold);
-  --mat-sys-on-primary: #1d1503;
+  --mat-sys-primary: var(--cn-primary);
+  --mat-sys-on-primary: var(--cn-on-primary);
   --mat-sys-surface: var(--cn-surface);
   --mat-sys-surface-container: var(--cn-surface-2);
   --mat-sys-surface-container-high: var(--cn-surface-3);
   --mat-sys-surface-container-low: var(--cn-surface);
   --mat-sys-on-surface: var(--cn-text);
   --mat-sys-on-surface-variant: var(--cn-text-muted);
-  --mat-sys-outline: #5a5a62;
+  --mat-sys-outline: var(--cn-outline);
   --mat-sys-outline-variant: var(--cn-border);
+
+  // Material typography follows the fluid scale (tables, form fields, menus, buttons).
+  --mat-sys-body-medium-size: var(--cn-fs-md);
+  --mat-sys-body-large-size: var(--cn-fs-base);
+  --mat-sys-label-large-size: var(--cn-fs-md);
 
   @include mat.table-overrides(
     (
@@ -67,7 +189,7 @@ html {
   );
   @include mat.sidenav-overrides(
     (
-      container-background-color: #121214,
+      container-background-color: var(--cn-sidenav-bg),
       content-background-color: var(--cn-bg),
       container-shape: 0,
     )
@@ -79,8 +201,26 @@ body {
   height: 100%;
 }
 
+// Theme switch: 300 ms ease-out cross-fade between the old and the new theme
+// (ThemeService wraps the change in a View Transition).
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 body {
   margin: 0;
+  font-size: var(--cn-fs-base);
   background: var(--cn-bg);
   color: var(--cn-text);
   font-family: var(--cn-font-body);
@@ -95,11 +235,12 @@ h1,
 h2,
 h3 {
   font-family: var(--cn-font-display);
+  font-weight: 400;
   letter-spacing: 0.02em;
 }
 
 h2 {
-  font-size: 1.15rem;
+  font-size: var(--cn-fs-lg);
   color: var(--cn-gold-light);
   margin: 0 0 0.75rem;
 }
@@ -128,7 +269,7 @@ h2 {
   border: 1px solid var(--cn-border);
   border-top: 2px solid var(--cn-red-mid);
   border-radius: var(--cn-radius);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--cn-card-shadow);
 }
 
 .cn-section {
@@ -188,7 +329,7 @@ h2 {
   th.mat-mdc-header-cell {
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: var(--cn-fs-xs);
     letter-spacing: 0.05em;
   }
 
@@ -197,7 +338,7 @@ h2 {
 
     &:hover,
     &:focus-visible {
-      background: rgba(217, 169, 63, 0.07);
+      background: var(--cn-hover);
     }
   }
 }
@@ -212,7 +353,7 @@ h2 {
   background: var(--cn-surface-3);
   border: 1px solid var(--cn-gold-dark);
   color: var(--cn-gold-light);
-  font-size: 0.8rem;
+  font-size: var(--cn-fs-sm);
   font-weight: 600;
 }
 
@@ -227,8 +368,9 @@ h2 {
   }
 }
 
-/* Language picker menu (rendered in an overlay, outside the shell). */
-.language-menu {
+/* Language and theme picker menus (rendered in an overlay, outside the shell). */
+.language-menu,
+.theme-menu {
   .mat-mdc-menu-item {
     min-width: 180px;
   }
@@ -245,12 +387,28 @@ h2 {
     height: 16px;
     border-radius: 2px;
     object-fit: cover;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 0 1px var(--cn-flag-ring);
   }
 
   .active {
     color: var(--cn-gold-light);
     font-weight: 600;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--cn-outline);
+  }
+
+  .swatch--light {
+    background: #ffffff;
+  }
+
+  .swatch--dark {
+    background: #000000;
   }
 
   .check {

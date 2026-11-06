@@ -39,17 +39,47 @@
     <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{ 'app.demoData' | translate }}</span>
   }
 
+  @let activeTheme = theme.currentOption();
+  <button
+    mat-button
+    type="button"
+    class="picker theme-picker"
+    [matMenuTriggerFor]="themeMenu"
+    [attr.aria-label]="'theme.change' | translate: { name: (activeTheme.labelKey | translate) }"
+  >
+    <span class="swatch" [class]="'swatch swatch--' + activeTheme.name" aria-hidden="true"></span>
+    <span class="theme-picker__label">{{ activeTheme.labelKey | translate }}</span>
+    <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+  </button>
+  <mat-menu #themeMenu="matMenu" xPosition="before" class="theme-menu" [ariaLabel]="'theme.menu' | translate">
+    @for (t of theme.themes; track t.name) {
+      <button
+        mat-menu-item
+        type="button"
+        [class.active]="t.name === activeTheme.name"
+        [attr.aria-current]="t.name === activeTheme.name ? 'true' : null"
+        (click)="theme.use(t.name)"
+      >
+        <span class="swatch" [class]="'swatch swatch--' + t.name" aria-hidden="true"></span>
+        <span class="theme-name">{{ t.labelKey | translate }}</span>
+        @if (t.name === activeTheme.name) {
+          <span class="check material-icons" aria-hidden="true">check</span>
+        }
+      </button>
+    }
+  </mat-menu>
+
   @let active = language.currentLanguage();
   <button
     mat-button
     type="button"
-    class="language"
+    class="picker language"
     [matMenuTriggerFor]="languageMenu"
     [attr.aria-label]="'language.change' | translate: { name: active.name }"
   >
     <img class="flag" [src]="active.flag" alt="" width="24" height="16" />
     <span class="language__code">{{ active.code.slice(0, 2) }}</span>
-    <mat-icon class="language__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+    <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
   </button>
   <mat-menu #languageMenu="matMenu" xPosition="before" class="language-menu" [ariaLabel]="'language.menu' | translate">
     @for (l of language.languages; track l.code) {

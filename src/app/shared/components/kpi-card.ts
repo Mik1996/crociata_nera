@@ -40,20 +40,20 @@ import { MatIconModule } from '@angular/material/icon';
       min-width: 0;
     }
     .kpi__label {
-      font-size: 0.8rem;
+      font-size: var(--cn-fs-sm);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--cn-text-muted);
     }
     .kpi__value {
       font-family: var(--cn-font-display);
-      font-size: 1.7rem;
+      font-size: var(--cn-fs-2xl);
       font-weight: 700;
       color: var(--cn-gold-light);
       line-height: 1.2;
     }
     .kpi__hint {
-      font-size: 0.8rem;
+      font-size: var(--cn-fs-sm);
       color: var(--cn-text-muted);
     }
   `,

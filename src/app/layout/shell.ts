@@ -14,6 +14,7 @@ import { CocApiService } from '../core/api/coc-api';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
+import { ThemeService } from '../core/theme/theme.service';
 
 interface MenuItem {
   path: string;
@@ -62,6 +63,7 @@ export class Shell {
   protected readonly badgeFailed = signal(false);
 
   protected readonly language = inject(LanguageService);
+  protected readonly theme = inject(ThemeService);
 
   protected changeLanguage(code: LanguageCode): void {
     if (code !== this.language.current()) this.language.use(code).subscribe();

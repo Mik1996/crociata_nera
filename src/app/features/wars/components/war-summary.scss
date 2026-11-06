@@ -8,7 +8,7 @@
   align-items: center;
   gap: 0.4rem 0.6rem;
   margin-bottom: 1rem;
-  font-size: 0.9rem;
+  font-size: var(--cn-fs-md);
 }
 
 .time-left {
@@ -43,7 +43,7 @@
 }
 
 .side__role {
-  font-size: 0.72rem;
+  font-size: var(--cn-fs-2xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--cn-text-muted);
@@ -51,7 +51,7 @@
 
 .side__name {
   margin: 0.15rem 0;
-  font-size: clamp(1rem, 2.4vw, 1.35rem);
+  font-size: var(--cn-fs-xl);
   color: var(--cn-text);
   overflow-wrap: anywhere;
 }
@@ -61,7 +61,7 @@
 }
 
 .side__info {
-  font-size: 0.8rem;
+  font-size: var(--cn-fs-sm);
 }
 
 .side__data {
@@ -75,7 +75,7 @@
   }
 
   dt {
-    font-size: 0.72rem;
+    font-size: var(--cn-fs-2xs);
     color: var(--cn-text-muted);
   }
 
@@ -92,12 +92,12 @@
   padding: 0.5rem 1rem;
   border: 1px solid var(--cn-gold-dark);
   border-radius: var(--cn-radius);
-  background: radial-gradient(circle, rgba(122, 20, 20, 0.5), transparent 75%);
+  background: radial-gradient(circle, var(--cn-score-glow), transparent 75%);
 }
 
 .score__stars {
   font-family: var(--cn-font-display);
-  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  font-size: var(--cn-fs-3xl);
   font-weight: 700;
   color: var(--cn-gold-light);
 }
@@ -107,7 +107,7 @@
 }
 
 .score__star {
-  font-size: 1.6rem;
+  font-size: var(--cn-fs-xl);
   color: var(--cn-gold);
 }
 

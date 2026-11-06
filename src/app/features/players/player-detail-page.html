@@ -64,7 +64,7 @@
               baseChart
               type="bar"
               [data]="starsData()"
-              [options]="starsOptions"
+              [options]="starsOptions()"
               role="img"
               [attr.aria-label]="'player.starsChartLabel' | translate"
             ></canvas>
@@ -77,7 +77,7 @@
               baseChart
               type="line"
               [data]="destructionData()"
-              [options]="destructionOptions"
+              [options]="destructionOptions()"
               role="img"
               [attr.aria-label]="'player.destructionChartLabel' | translate"
             ></canvas>

@@ -11,7 +11,7 @@
   z-index: 1000;
   padding: 0.6rem 1rem;
   background: var(--cn-gold);
-  color: #1d1503;
+  color: var(--cn-on-gold);
   border: 0;
   border-radius: 6px;
   font-weight: 600;
@@ -27,9 +27,9 @@
   z-index: 3;
   height: 64px;
   gap: 0.5rem;
-  background: linear-gradient(90deg, #0a0a0b 0%, #1a0c0c 55%, #0a0a0b 100%);
+  background: var(--cn-header-bg);
   border-bottom: 2px solid var(--cn-gold-dark);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--cn-header-shadow);
   color: var(--cn-text);
 }
 
@@ -46,7 +46,7 @@
   width: 36px;
   height: 40px;
   flex: none;
-  filter: drop-shadow(0 0 6px rgba(217, 169, 63, 0.35));
+  filter: drop-shadow(0 0 6px var(--cn-glow));
 }
 
 .brand__badge {
@@ -54,7 +54,7 @@
   height: 44px;
   flex: none;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(217, 169, 63, 0.35));
+  filter: drop-shadow(0 0 6px var(--cn-glow));
 }
 
 .brand__text {
@@ -67,16 +67,19 @@
 .brand__name {
   font-family: var(--cn-font-display);
   font-weight: 700;
-  font-size: clamp(1.15rem, 3.5vw, 1.6rem);
-  letter-spacing: 0.08em;
+  font-size: var(--cn-fs-brand);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--cn-gold-light);
-  text-shadow: 0 1px 0 #000, 0 0 12px rgba(217, 169, 63, 0.35);
+  text-shadow: var(--cn-brand-shadow);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand__tag {
-  font-size: 0.72rem;
+  font-family: var(--cn-font-body);
+  font-size: var(--cn-fs-2xs);
   letter-spacing: 0.08em;
   color: var(--cn-text-muted);
   white-space: nowrap;
@@ -89,10 +92,11 @@
 }
 
 .mock-chip {
+  font-family: var(--cn-font-body);
   padding: 0.2rem 0.6rem;
   border: 1px solid var(--cn-red-mid);
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: var(--cn-fs-2xs);
   color: var(--cn-red-text);
   white-space: nowrap;
 }
@@ -108,7 +112,7 @@
   flex-direction: column;
 
   a.active {
-    background: linear-gradient(90deg, rgba(161, 29, 29, 0.45), transparent);
+    background: linear-gradient(90deg, var(--cn-nav-active), transparent);
     border-left: 3px solid var(--cn-gold);
   }
 }
@@ -116,7 +120,7 @@
 .sidenav__motto {
   margin: 1.5rem 1rem;
   font-family: var(--cn-font-display);
-  font-size: 0.75rem;
+  font-size: var(--cn-fs-sm);
   color: var(--cn-gold-dark);
   text-align: center;
 }
@@ -128,7 +132,7 @@
   outline: none;
 }
 
-.language {
+.picker {
   flex: none;
   min-width: 0;
   padding: 0 0.5rem;
@@ -136,19 +140,42 @@
   border: 1px solid var(--cn-border);
   border-radius: 999px;
 
-  .language__code {
-    margin-left: 0.4rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .language__arrow {
+  .picker__arrow {
     margin-left: 0.1rem;
     font-size: 20px;
     width: 20px;
     height: 20px;
   }
+}
+
+.theme-picker .theme-picker__label {
+  margin-left: 0.4rem;
+  font-weight: 600;
+}
+
+.language .language__code {
+  margin-left: 0.4rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Colored dot of the active theme (white = light, black = dark). */
+.swatch {
+  display: inline-block;
+  vertical-align: middle;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--cn-outline);
+}
+
+.swatch--light {
+  background: #ffffff;
+}
+
+.swatch--dark {
+  background: #000000;
 }
 
 .flag {
@@ -158,12 +185,36 @@
   height: 16px;
   border-radius: 2px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 1px var(--cn-flag-ring);
 }
 
 @media (max-width: 599.98px) {
   .language .language__code,
+  .theme-picker .theme-picker__label,
   .mock-chip {
     display: none;
+  }
+
+  // Compact header on phones: icon-only pickers and a smaller badge leave room for the clan name.
+  .header {
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .brand__badge {
+    width: 36px;
+    height: 36px;
+  }
+
+  .picker {
+    padding: 0 0.6rem;
+
+    .picker__arrow {
+      display: none;
+    }
   }
 }

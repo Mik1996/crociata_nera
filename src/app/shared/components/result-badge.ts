@@ -23,26 +23,26 @@ const ICONS: Record<WarResult, string> = {
       gap: 0.35rem;
       padding: 0.15rem 0.6rem;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: var(--cn-fs-sm);
       font-weight: 600;
       white-space: nowrap;
       border: 1px solid currentColor;
     }
     :host(.badge--victory) {
       color: var(--cn-win);
-      background: rgba(92, 199, 122, 0.12);
+      background: var(--cn-tint-win);
     }
     :host(.badge--defeat) {
       color: var(--cn-red-text);
-      background: rgba(229, 83, 75, 0.12);
+      background: var(--cn-tint-loss);
     }
     :host(.badge--draw) {
       color: var(--cn-text-muted);
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--cn-tint-neutral);
     }
     :host(.badge--ongoing) {
       color: var(--cn-gold-light);
-      background: rgba(224, 180, 76, 0.12);
+      background: var(--cn-tint-gold);
     }
   `,
 })

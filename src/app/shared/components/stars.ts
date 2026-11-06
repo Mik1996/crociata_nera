@@ -11,9 +11,9 @@ import { LanguageService } from '../../core/i18n/language.service';
     :host {
       display: inline-flex;
       letter-spacing: 1px;
-      font-size: 1rem;
+      font-size: var(--cn-fs-md);
       line-height: 1;
-      color: #55524c;
+      color: var(--cn-star-empty);
     }
     .filled {
       color: var(--cn-gold);

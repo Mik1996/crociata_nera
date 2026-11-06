@@ -114,7 +114,7 @@
             baseChart
             type="line"
             [data]="starsData()"
-            [options]="starsOptions"
+            [options]="starsOptions()"
             role="img"
             [attr.aria-label]="'dashboard.starsChartLabel' | translate"
           ></canvas>
@@ -127,7 +127,7 @@
             baseChart
             type="bar"
             [data]="participationData()"
-            [options]="participationOptions"
+            [options]="participationOptions()"
             role="img"
             [attr.aria-label]="'dashboard.participationChartLabel' | translate"
           ></canvas>
@@ -140,7 +140,7 @@
             baseChart
             type="line"
             [data]="destructionData()"
-            [options]="destructionOptions"
+            [options]="destructionOptions()"
             role="img"
             [attr.aria-label]="'dashboard.destructionChartLabel' | translate"
           ></canvas>

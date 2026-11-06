@@ -17,6 +17,12 @@
     "change": "Change language (current: {{name}})",
     "menu": "Available languages"
   },
+  "theme": {
+    "change": "Change theme (current: {{name}})",
+    "menu": "Available themes",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "currentWar": "Current war",

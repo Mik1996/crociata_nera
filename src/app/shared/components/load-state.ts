@@ -72,7 +72,7 @@ export function errorMessage(error: unknown, translate: (key: string, params?: o
       margin: 0;
     }
     .detail {
-      font-size: 0.9rem;
+      font-size: var(--cn-fs-md);
     }
     button {
       margin-top: 0.75rem;

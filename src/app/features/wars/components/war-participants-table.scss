@@ -12,7 +12,7 @@
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.15rem;
-  font-size: 0.75rem;
+  font-size: var(--cn-fs-xs);
 
   mat-icon {
     font-size: 15px;
@@ -26,11 +26,11 @@
 }
 
 .attack-status--partial {
-  color: var(--cn-gold);
+  color: var(--cn-gold-light);
 }
 
 tr.row-without-attacks {
-  background: linear-gradient(90deg, rgba(161, 29, 29, 0.22), transparent 60%);
+  background: linear-gradient(90deg, var(--cn-row-alert), transparent 60%);
   box-shadow: inset 3px 0 0 var(--cn-red-mid);
 }
 

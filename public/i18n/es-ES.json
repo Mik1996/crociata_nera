@@ -17,6 +17,12 @@
     "change": "Cambiar idioma (actual: {{name}})",
     "menu": "Idiomas disponibles"
   },
+  "theme": {
+    "change": "Cambiar tema (actual: {{name}})",
+    "menu": "Temas disponibles",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
   "nav": {
     "dashboard": "Panel",
     "currentWar": "Guerra actual",

@@ -24,7 +24,8 @@ Inoltre:
 - stati di caricamento, assenza dati ed errore (con pulsante "Riprova") su ogni sezione;
 - accessibilità di base: link "Vai al contenuto", focus visibile, etichette ARIA, stato non affidato al solo colore, palette dei grafici verificata per contrasto e daltonismo;
 - layout responsive: menu laterale fisso su desktop, a scomparsa su mobile; tabelle con scorrimento orizzontale;
-- interfaccia in **italiano, inglese e spagnolo**, con selettore della lingua nell'header (vedi [Lingue](#lingue)).
+- interfaccia in **italiano, inglese e spagnolo**, con selettore della lingua nell'header (vedi [Lingue](#lingue));
+- **tema chiaro e scuro**: di default segue il sistema, si cambia dal menu accanto alle lingue (vedi [Temi](#temi)).
 
 ## Requisiti
 
@@ -69,6 +70,13 @@ npm run build               # build di produzione in dist/crociata_nera
 - **Angular Material 22**: tema Material 3 scuro personalizzato (nero/antracite, oro, rosso scuro)
 - **Chart.js 4 + ng2-charts 11** per i grafici
 - **ngx-translate 18** per le traduzioni
+- **Font**: Inter (Google Fonts) per il testo; **Clash** di Supercell (Regular e Bold, in `src/assets/fonts/`) per
+  titoli, nome del clan e numeri grandi, dichiarato con `@font-face` in `src/styles.scss` (`--cn-font-display`).
+  Il font Clash è © Supercell, tutti i diritti riservati: è usato come contenuto da fan, non commerciale, secondo la
+  [Fan Content Policy di Supercell](https://supercell.com/en/fan-content-policy/).
+- **Tipografia fluida**: le dimensioni dei testi sono token `--cn-fs-*` in `src/styles.scss`, definiti con `clamp()`:
+  crescono linearmente tra 360 e 1440 px di larghezza (per esempio i titoli di pagina da 22 a 30 px) e seguono lo zoom
+  del browser. Anche testi di tabelle, campi e pulsanti di Material usano la stessa scala.
 - **Vitest** + jsdom per i test unitari
 - **Proxy**: Node.js 24 senza dipendenze (`node:http`, `fetch` nativa, `node:test`)
 
@@ -112,6 +120,7 @@ src/
     │   ├── mock/                 Generatore di dati mock deterministico
     │   ├── services/             WarService (guerre), PlayerService (membri e statistiche), HistoryService (storico mensile)
     │   ├── utils/                Calcolo statistiche (war-stats), ordinamento e ricerca
+    │   ├── theme/                ThemeService e definizione dei temi
     │   └── i18n/                 Lingue, LanguageService, pipe localNumber/localDate, titolo pagina e paginatore tradotti
     ├── shared/
     │   ├── components/           LoadState, KpiCard, ResultBadge, Stars, PageHeader
@@ -174,6 +183,23 @@ Per aggiungere una lingua: crea `public/i18n/<codice>.json` con le stesse chiavi
 in `public/flags/`, la voce in `LANGUAGES` (`core/i18n/languages.ts`) e, se serve, i dati di formattazione con
 `registerLocaleData` in `locale-pipes.ts`. Un test verifica che tutti i file abbiano le stesse chiavi e gli stessi
 segnaposto.
+
+## Temi
+
+Sono disponibili un tema **chiaro** (avorio/pergamena) e uno **scuro** (nero/antracite), entrambi con accenti oro e
+rosso scuro. Al primo accesso si usa il tema del sistema operativo e lo si segue se cambia; scegliendo un tema dal
+menu nell'header (pallino bianco = Chiaro, pallino nero = Scuro) la scelta viene ricordata nel browser.
+
+- I colori sono variabili CSS (`--cn-*`) definite per i due temi in `src/styles.scss`; il tema attivo è
+  `<html data-theme="light|dark">`, impostato da `ThemeService` (`core/theme/`) e, prima dell'avvio dell'app, da
+  un piccolo script in `index.html` per evitare il lampeggio del tema sbagliato.
+- Angular Material segue il tema tramite `color-scheme`; i grafici ricevono i colori di assi, griglia e tooltip dal
+  tema corrente (`CHART_CHROME` in `shared/charts/chart-theme.ts`) e si ridisegnano al cambio.
+- Il passaggio da un tema all'altro è una dissolvenza ease-out di 300 ms su tutta la pagina (View Transitions API).
+  Non c'è animazione se il browser non la supporta o se l'utente ha attivato "riduci movimento".
+- Contrasti verificati: i testi sono almeno 4,5:1 su tutti i fondi del proprio tema, icone e bordi almeno 3:1;
+  i colori delle serie dei grafici superano i controlli di contrasto e daltonismo su entrambi i fondi. Un audit
+  axe-core (`color-contrast`) su tutte le pagine non segnala problemi in nessuno dei due temi.
 
 ## Configurazione
 

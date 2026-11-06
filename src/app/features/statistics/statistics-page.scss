@@ -16,7 +16,7 @@
 }
 
 .updated {
-  font-size: 0.8rem;
+  font-size: var(--cn-fs-sm);
 }
 
 .cn-filters {
@@ -51,12 +51,12 @@
   border-radius: 50%;
   background: var(--cn-surface-3);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--cn-fs-sm);
 }
 
 .pos--1 {
   background: var(--cn-gold);
-  color: #1d1503;
+  color: var(--cn-on-gold);
 }
 
 .pos--2 {
@@ -70,7 +70,7 @@
 }
 
 .tag {
-  font-size: 0.75rem;
+  font-size: var(--cn-fs-xs);
 }
 
 .former-name {
@@ -83,7 +83,7 @@
   padding: 0.05rem 0.4rem;
   border: 1px solid var(--cn-border);
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: var(--cn-fs-2xs);
   color: var(--cn-text-muted);
 }
 
@@ -92,7 +92,7 @@ tr.former-row {
 }
 
 .missed {
-  font-size: 0.75rem;
+  font-size: var(--cn-fs-xs);
   color: var(--cn-red-text);
 }
 
@@ -104,7 +104,7 @@ tr.former-row {
   strong {
     min-width: 2.6rem;
     color: var(--cn-gold-light);
-    font-size: 1.02rem;
+    font-size: var(--cn-fs-lg);
   }
 }
 
@@ -140,6 +140,6 @@ tr.former-row {
 
 .legend {
   margin: 0.9rem 0 0;
-  font-size: 0.8rem;
+  font-size: var(--cn-fs-sm);
   line-height: 1.5;
 }

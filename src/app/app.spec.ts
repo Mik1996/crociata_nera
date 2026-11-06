@@ -70,6 +70,26 @@ describe('App', () => {
     localStorage.clear();
   });
 
+  it('switches theme from the header menu, with a white and a black dot', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    el.querySelector<HTMLButtonElement>('button.theme-picker')!.click();
+    await fixture.whenStable();
+    const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.theme-menu [mat-menu-item]'));
+    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Chiaro', 'Scuro']);
+    expect(options[0].querySelector('.swatch--light')).not.toBeNull();
+    expect(options[1].querySelector('.swatch--dark')).not.toBeNull();
+
+    options[1].click();
+    await fixture.whenStable();
+    expect(document.documentElement.dataset['theme']).toBe('dark');
+    expect(el.querySelector('button.theme-picker .swatch--dark')).not.toBeNull();
+    expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe('Scuro');
+    localStorage.clear();
+  });
+
   it('offers a link to skip to the main content', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
