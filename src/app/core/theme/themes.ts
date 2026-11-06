@@ -20,8 +20,8 @@ export const THEME_STORAGE_KEY = 'crociata-nera.theme';
 
 /** Browser `theme-color` per theme (matches `--cn-bg`). */
 export const THEME_COLORS: Record<ThemeName, string> = {
-  light: '#f5f1e8',
-  dark: '#0d0d0f',
+  light: '#e6d7b8',
+  dark: '#0f1729',
 };
 
 export function isThemeName(value: unknown): value is ThemeName {

@@ -29,7 +29,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       font-family: var(--cn-font-display);
       font-weight: 700;
       font-size: var(--cn-fs-2xl);
-      color: var(--cn-gold-light);
+      color: var(--cn-heading);
+      text-shadow: var(--cn-heading-shadow);
     }
     .subtitle {
       margin: 0.15rem 0 0;

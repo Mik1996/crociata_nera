@@ -129,7 +129,9 @@
         }
       </mat-nav-list>
     </nav>
-    <p class="sidenav__motto">{{ 'app.motto' | translate }}</p>
+    @if (clan()?.description; as description) {
+      <p class="sidenav__clan_description">{{ description }}</p>
+    }
     <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
   </mat-sidenav>
 

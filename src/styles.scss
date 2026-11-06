@@ -19,9 +19,11 @@
 }
 
 // ---------------------------------------------------------------------------
-// "Crociata Nera" themes: dark (black/anthracite) and light (ivory/parchment),
-// both with gold and dark red accents. Text colors meet WCAG AA (>= 4.5:1) on
-// every surface of their theme; accents used for icons and borders are >= 3:1.
+// "Crociata Nera" themes, in the style of the Clash of Clans UI:
+// - dark: night slate-blue panels with dark outlines (like the game's menus);
+// - light: parchment panels with brown outlines (like the game's info windows).
+// Both use gold for headings/values and green for actions. Text colors meet WCAG AA
+// (>= 4.5:1) on every surface of their theme; accents for icons and borders are >= 3:1.
 //
 // The active theme is `html[data-theme]`, set by ThemeService (and by an inline
 // script in index.html before the app boots, to avoid a flash of the wrong theme).
@@ -30,78 +32,100 @@
 
 @mixin dark-tokens {
   color-scheme: dark;
-  --cn-bg: #0d0d0f;
-  --cn-surface: #18181b;
-  --cn-surface-2: #222226;
-  --cn-surface-3: #2c2c31;
-  --cn-border: #34343a;
-  --cn-outline: #5a5a62;
-  --cn-gold: #d9a93f;
-  --cn-gold-light: #f0c96a; // gold used for text (headings, values, links)
-  --cn-gold-dark: #a8843c;
+  --cn-bg: #0f1729;
+  --cn-bg-image:
+    radial-gradient(ellipse at 50% -10%, rgba(74, 104, 168, 0.35), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 14px);
+  --cn-surface: #1f2b45;
+  --cn-surface-2: #283656;
+  --cn-surface-3: #33436a;
+  --cn-border: #3b4d75; // dividers inside panels
+  --cn-outline: #7385ad;
+  --cn-panel-border: #0a1020; // thick outline around panels
+  --cn-panel-highlight: rgba(255, 255, 255, 0.1);
+  --cn-panel-bevel: rgba(0, 0, 0, 0.3);
+  --cn-heading: #ffffff;
+  --cn-heading-shadow: 0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
+  --cn-gold: #f4c542;
+  --cn-gold-light: #ffd862; // gold used for text (values, links)
+  --cn-gold-dark: #c99a2e;
   --cn-red: #7a1414;
-  --cn-red-mid: #a11d1d;
-  --cn-red-text: #f0675f;
-  --cn-win: #63cf83;
-  --cn-text: #ece6da;
-  --cn-text-muted: #aaa396;
+  --cn-red-mid: #c0392b;
+  --cn-red-text: #ff9b92;
+  --cn-win: #86e39a;
+  --cn-text: #ffffff;
+  --cn-text-muted: #c5cfe4;
   --cn-on-gold: #1d1503;
-  --cn-primary: #d9a93f; // Material primary (button text, toggles, filled buttons)
-  --cn-on-primary: #1d1503;
-  --cn-sidenav-bg: #121214;
-  --cn-header-bg: linear-gradient(90deg, #0a0a0b 0%, #1a0c0c 55%, #0a0a0b 100%);
-  --cn-header-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-  --cn-card-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  --cn-glow: rgba(217, 169, 63, 0.35);
-  --cn-brand-shadow: 0 1px 0 #000, 0 0 12px rgba(217, 169, 63, 0.35);
-  --cn-hover: rgba(217, 169, 63, 0.07);
-  --cn-nav-active: rgba(161, 29, 29, 0.45);
-  --cn-row-alert: rgba(161, 29, 29, 0.22);
-  --cn-score-glow: rgba(122, 20, 20, 0.5);
-  --cn-star-empty: #55524c;
-  --cn-tint-win: rgba(92, 199, 122, 0.12);
-  --cn-tint-loss: rgba(229, 83, 75, 0.12);
-  --cn-tint-neutral: rgba(255, 255, 255, 0.06);
-  --cn-tint-gold: rgba(224, 180, 76, 0.12);
-  --cn-flag-ring: rgba(255, 255, 255, 0.25);
+  --cn-primary: #8fd45e; // Material primary (text buttons, toggles, tabs)
+  --cn-on-primary: #10260a;
+  --cn-action: #367a19; // green "game" buttons
+  --cn-action-border: #173a08;
+  --cn-sidenav-bg: #141e34;
+  --cn-header-bg: linear-gradient(180deg, #2a3a5e 0%, #172238 100%);
+  --cn-header-shadow: 0 3px 0 #0a1020, 0 6px 14px rgba(0, 0, 0, 0.5);
+  --cn-card-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --cn-glow: rgba(244, 197, 66, 0.35);
+  --cn-brand-shadow: 0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
+  --cn-hover: rgba(244, 197, 66, 0.08);
+  --cn-nav-active: rgba(244, 197, 66, 0.18);
+  --cn-row-alert: rgba(192, 57, 43, 0.2);
+  --cn-score-glow: rgba(192, 57, 43, 0.35);
+  --cn-star-empty: #5b6b8f;
+  --cn-tint-win: rgba(134, 227, 154, 0.14);
+  --cn-tint-loss: rgba(255, 155, 146, 0.14);
+  --cn-tint-neutral: rgba(255, 255, 255, 0.08);
+  --cn-tint-gold: rgba(255, 216, 98, 0.14);
+  --cn-flag-ring: rgba(255, 255, 255, 0.3);
+  --cn-table-head: #172238;
 }
 
 @mixin light-tokens {
   color-scheme: light;
-  --cn-bg: #f5f1e8;
-  --cn-surface: #ffffff;
-  --cn-surface-2: #fbf8f2;
-  --cn-surface-3: #efe8da;
-  --cn-border: #d6cdbb;
-  --cn-outline: #8c8270;
-  --cn-gold: #a87a1c;
-  --cn-gold-light: #7d560c;
-  --cn-gold-dark: #7a5a1a;
+  --cn-bg: #e6d7b8;
+  --cn-bg-image:
+    radial-gradient(ellipse at 50% -10%, rgba(255, 248, 228, 0.7), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(90, 58, 28, 0.03) 0 2px, transparent 2px 14px);
+  --cn-surface: #f8efdc;
+  --cn-surface-2: #fdf7ea;
+  --cn-surface-3: #eadcbe;
+  --cn-border: #c4ae82;
+  --cn-outline: #8a6a45;
+  --cn-panel-border: #5a3a1c;
+  --cn-panel-highlight: rgba(255, 255, 255, 0.75);
+  --cn-panel-bevel: rgba(90, 58, 28, 0.18);
+  --cn-heading: #4a2c10;
+  --cn-heading-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  --cn-gold: #b77e0d;
+  --cn-gold-light: #734600;
+  --cn-gold-dark: #6e4a16;
   --cn-red: #7a1414;
   --cn-red-mid: #a11d1d;
-  --cn-red-text: #b02a22;
-  --cn-win: #17692f;
-  --cn-text: #1f1a14;
-  --cn-text-muted: #5c554a;
+  --cn-red-text: #9e1f17;
+  --cn-win: #175f28;
+  --cn-text: #3a2412;
+  --cn-text-muted: #64492f;
   --cn-on-gold: #1d1503;
-  --cn-primary: #7d560c; // darker gold: >= 4.5:1 as text on light surfaces
+  --cn-primary: #285e10;
   --cn-on-primary: #ffffff;
-  --cn-sidenav-bg: #ece5d6;
-  --cn-header-bg: linear-gradient(90deg, #fbf7ee 0%, #f4e4dc 55%, #fbf7ee 100%);
-  --cn-header-shadow: 0 2px 10px rgba(60, 40, 10, 0.12);
-  --cn-card-shadow: 0 4px 14px rgba(60, 40, 10, 0.08);
-  --cn-glow: rgba(168, 122, 28, 0.25);
+  --cn-action: #367a19;
+  --cn-action-border: #1d4209;
+  --cn-sidenav-bg: #dccaa3;
+  --cn-header-bg: linear-gradient(180deg, #f6ead0 0%, #e2cea4 100%);
+  --cn-header-shadow: 0 3px 0 #5a3a1c, 0 6px 12px rgba(90, 58, 28, 0.2);
+  --cn-card-shadow: 0 4px 12px rgba(90, 58, 28, 0.15);
+  --cn-glow: rgba(183, 126, 13, 0.3);
   --cn-brand-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
-  --cn-hover: rgba(168, 122, 28, 0.08);
-  --cn-nav-active: rgba(161, 29, 29, 0.14);
+  --cn-hover: rgba(183, 126, 13, 0.1);
+  --cn-nav-active: rgba(183, 126, 13, 0.18);
   --cn-row-alert: rgba(161, 29, 29, 0.08);
   --cn-score-glow: rgba(161, 29, 29, 0.12);
-  --cn-star-empty: #c4bba9;
-  --cn-tint-win: rgba(23, 105, 47, 0.1);
-  --cn-tint-loss: rgba(176, 42, 34, 0.09);
-  --cn-tint-neutral: rgba(0, 0, 0, 0.05);
-  --cn-tint-gold: rgba(168, 122, 28, 0.12);
-  --cn-flag-ring: rgba(0, 0, 0, 0.2);
+  --cn-star-empty: #c2ad86;
+  --cn-tint-win: rgba(23, 95, 40, 0.1);
+  --cn-tint-loss: rgba(158, 31, 23, 0.09);
+  --cn-tint-neutral: rgba(90, 58, 28, 0.07);
+  --cn-tint-gold: rgba(183, 126, 13, 0.14);
+  --cn-flag-ring: rgba(90, 58, 28, 0.35);
+  --cn-table-head: #eadcbe;
 }
 
 :root {
@@ -250,10 +274,17 @@ h3 {
   letter-spacing: 0.02em;
 }
 
+// Section titles: white with a dark outline (dark theme) or dark brown (light theme), like the game.
 h2 {
   font-size: var(--cn-fs-lg);
-  color: var(--cn-gold-light);
+  color: var(--cn-heading);
+  text-shadow: var(--cn-heading-shadow);
   margin: 0 0 0.6rem;
+}
+
+// Textured backdrop behind the panels.
+.mat-drawer-content {
+  background-image: var(--cn-bg-image);
 }
 
 // Clearly visible focus for keyboard navigation.
@@ -275,12 +306,92 @@ h2 {
 // Reusable layout components
 // ---------------------------------------------------------------------------
 
+// Game-style panel: thick dark outline, light bevel on top, darker bevel at the bottom.
 .cn-card {
   background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
-  border: 1px solid var(--cn-border);
-  border-top: 2px solid var(--cn-red-mid);
-  border-radius: var(--cn-radius);
-  box-shadow: var(--cn-card-shadow);
+  border: 3px solid var(--cn-panel-border);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 2px 0 var(--cn-panel-highlight),
+    inset 0 -4px 0 var(--cn-panel-bevel),
+    var(--cn-card-shadow);
+}
+
+// --- Game-style controls ---------------------------------------------------------
+
+// Filled and outlined buttons become the game's chunky green buttons.
+.mat-mdc-unelevated-button.mat-mdc-button-base,
+.mat-mdc-outlined-button.mat-mdc-button-base {
+  --mat-button-filled-container-color: var(--cn-action);
+  --mat-button-filled-label-text-color: #ffffff;
+  --mat-button-outlined-label-text-color: #ffffff;
+  --mat-button-outlined-outline-color: transparent;
+  --mat-button-filled-container-shape: 10px;
+  --mat-button-outlined-container-shape: 10px;
+  background: var(--cn-action);
+  border: 2px solid var(--cn-action-border) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 2px 0 var(--cn-action-border);
+  font-family: var(--cn-font-display);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 var(--cn-action-border);
+
+  &:active:not([disabled]) {
+    transform: translateY(2px);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  &[disabled] {
+    filter: grayscale(0.7);
+    opacity: 0.7;
+  }
+}
+
+// Text buttons (links like "View details"): gold, display font.
+.mat-mdc-button.mat-mdc-button-base:not(.picker) {
+  --mat-button-text-label-text-color: var(--cn-gold-light);
+  font-family: var(--cn-font-display);
+  letter-spacing: 0.02em;
+}
+
+// Tabs: display font labels and a thick gold indicator.
+.mat-mdc-tab-group {
+  --mat-tab-active-indicator-color: var(--cn-gold);
+  --mat-tab-active-focus-indicator-color: var(--cn-gold);
+  --mat-tab-active-hover-indicator-color: var(--cn-gold);
+  --mat-tab-active-indicator-height: 4px;
+  --mat-tab-active-label-text-color: var(--cn-heading);
+  --mat-tab-active-focus-label-text-color: var(--cn-heading);
+  --mat-tab-active-hover-label-text-color: var(--cn-heading);
+  --mat-tab-inactive-label-text-color: var(--cn-text-muted);
+  --mat-tab-label-text-font: var(--cn-font-display);
+  --mat-tab-label-text-tracking: 0.02em;
+}
+
+// Segmented filters (button toggles): the selected option is a gold game button.
+.mat-button-toggle-group.mat-button-toggle-group-appearance-standard {
+  --mat-button-toggle-shape: 10px;
+  --mat-button-toggle-selected-state-background-color: #f2bd38;
+  --mat-button-toggle-selected-state-text-color: #1d1503;
+  --mat-button-toggle-divider-color: var(--cn-panel-border);
+  border: 2px solid var(--cn-panel-border);
+  font-family: var(--cn-font-display);
+  box-shadow: 0 2px 0 var(--cn-panel-border);
+}
+
+// Table headers on a darker band, like the game's lists.
+.cn-table-wrap th.mat-mdc-header-cell {
+  background: var(--cn-table-head);
+}
+
+.cn-table-wrap tr.mat-mdc-header-row th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.cn-table-wrap tr.mat-mdc-header-row th:last-child {
+  border-top-right-radius: 8px;
 }
 
 /*

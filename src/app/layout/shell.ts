@@ -1,5 +1,12 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -50,16 +57,18 @@ export class Shell {
   protected readonly clanTag = this.config.clanTag;
   protected readonly useMock = this.config.useMockApi;
 
-  /** Official clan badge (badgeUrls.large); if missing or failing to load, the SVG crest is shown. */
-  protected readonly badgeUrl = toSignal(
+  protected readonly clan = toSignal(
     inject(CocApiService)
       .getClan()
       .pipe(
-        map((clan) => clan.badgeUrl ?? null),
+        map((clan) => clan ?? null),
         catchError(() => of(null)),
       ),
     { initialValue: null },
   );
+
+  /** Official clan badge (badgeUrls.large); if missing or failing to load, the SVG crest is shown. */
+  protected readonly badgeUrl = computed(() => this.clan()?.badgeUrl ?? null);
   protected readonly badgeFailed = signal(false);
 
   protected readonly language = inject(LanguageService);

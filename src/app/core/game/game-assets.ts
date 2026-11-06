@@ -103,6 +103,7 @@ export const UNIT_ICONS: Readonly<Record<string, string>> = {
   'home|Magic Mirror': 'game/units/magic-mirror.webp',
   'home|Meteor Staff': 'game/units/meteor-staff.webp',
   'home|Noble Iron': 'game/units/noble-iron.webp',
+  'home|Stick Horse': 'game/units/stick-horse.webp',
   'home|Hog Rider Puppet': 'game/units/hog-rider-puppet.webp',
   'home|Electro Boots': 'game/units/electro-boots.webp',
   'home|Action Figure': 'game/units/action-figure.webp',

@@ -106,18 +106,39 @@
 }
 
 .sidenav {
-  width: 240px;
-  border-right: 1px solid var(--cn-border);
+  width: 264px;
+  border-right: 3px solid var(--cn-panel-border);
   display: flex;
   flex-direction: column;
 
+  // Menu entries as game buttons: the active one is a raised gold button.
+  a.mat-mdc-list-item {
+    margin: 0.2rem 0.5rem;
+    width: auto;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    font-family: var(--cn-font-display);
+    --mat-list-list-item-label-text-font: var(--cn-font-display);
+    --mat-list-list-item-label-text-size: var(--cn-fs-md);
+    --mat-list-list-item-label-text-tracking: 0.01em;
+  }
+
   a.active {
-    background: linear-gradient(90deg, var(--cn-nav-active), transparent);
-    border-left: 3px solid var(--cn-gold);
+    --mat-list-list-item-label-text-color: #1d1503;
+    --mat-list-list-item-hover-label-text-color: #1d1503;
+    --mat-list-list-item-focus-label-text-color: #1d1503;
+    --mat-list-list-item-leading-icon-color: #1d1503;
+    --mat-list-list-item-hover-leading-icon-color: #1d1503;
+    background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
+    border-color: var(--cn-panel-border);
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+      0 2px 0 var(--cn-panel-border);
   }
 }
 
-.sidenav__motto {
+.sidenav__clan_description {
   margin: 1rem 0.75rem;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-sm);

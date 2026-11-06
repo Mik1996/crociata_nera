@@ -207,8 +207,10 @@ segnaposto.
 
 ## Temi
 
-Sono disponibili un tema **chiaro** (avorio/pergamena) e uno **scuro** (nero/antracite), entrambi con accenti oro e
-rosso scuro. Al primo accesso si usa il tema del sistema operativo e lo si segue se cambia; scegliendo un tema dal
+Lo stile riprende l'interfaccia di Clash of Clans: pannelli con contorno scuro spesso e smusso in rilievo, titoli nel
+font Clash, pulsanti verdi "da gioco", voce di menu attiva come pulsante dorato. Sono disponibili un tema **chiaro**
+(pannelli pergamena con contorno marrone, come le finestre informative del gioco) e uno **scuro** (pannelli blu
+ardesia, come i menu notturni), entrambi con oro per titoli e valori. Al primo accesso si usa il tema del sistema operativo e lo si segue se cambia; scegliendo un tema dal
 menu nell'header (pallino bianco = Chiaro, pallino nero = Scuro) la scelta viene ricordata nel browser.
 
 - I colori sono variabili CSS (`--cn-*`) definite per i due temi in `src/styles.scss`; il tema attivo è

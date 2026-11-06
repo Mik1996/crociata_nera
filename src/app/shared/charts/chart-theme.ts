@@ -3,13 +3,13 @@ import { ThemeName } from '../../core/theme/themes';
 
 /**
  * Chart series colours, shared by both themes.
- * The gold/blue pair is validated on the dark (#18181b) and light (#ffffff) chart surfaces:
+ * The gold/blue pair is validated on the dark (#1f2b45) and light (#f8efdc) chart surfaces:
  * lightness band, contrast >= 3:1 and colour-blindness separation (ΔE > 20). Red is NOT used as a
  * series colour because it cannot be told apart from gold by people with deuteranopia.
  */
 export const CHART_COLORS = {
-  gold: '#b8892c',
-  goldTransparent: 'rgba(184, 137, 44, 0.2)',
+  gold: '#a8791b',
+  goldTransparent: 'rgba(168, 121, 27, 0.2)',
   blue: '#4a90c8',
   blueTransparent: 'rgba(74, 144, 200, 0.2)',
 };
@@ -27,20 +27,20 @@ export interface ChartChrome {
 /** Axis text meets 4.5:1 on its card surface in both themes. */
 export const CHART_CHROME: Record<ThemeName, ChartChrome> = {
   dark: {
-    text: '#cfc7b8',
-    grid: 'rgba(255, 255, 255, 0.08)',
-    surface: '#18181b',
-    tooltipBackground: '#141416',
-    tooltipBorder: '#5a4a2a',
-    tooltipText: '#ece6da',
+    text: '#c5cfe4',
+    grid: 'rgba(255, 255, 255, 0.1)',
+    surface: '#1f2b45',
+    tooltipBackground: '#141e34',
+    tooltipBorder: '#0a1020',
+    tooltipText: '#ffffff',
   },
   light: {
-    text: '#5c554a',
-    grid: 'rgba(0, 0, 0, 0.08)',
-    surface: '#ffffff',
-    tooltipBackground: '#ffffff',
-    tooltipBorder: '#d6cdbb',
-    tooltipText: '#1f1a14',
+    text: '#64492f',
+    grid: 'rgba(90, 58, 28, 0.12)',
+    surface: '#f8efdc',
+    tooltipBackground: '#fdf7ea',
+    tooltipBorder: '#5a3a1c',
+    tooltipText: '#3a2412',
   },
 };
 

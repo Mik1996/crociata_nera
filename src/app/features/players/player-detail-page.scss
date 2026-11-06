@@ -22,6 +22,13 @@
     }
 
     ::ng-deep .mat-mdc-tab-body-content {
+      overflow: hidden;
+    }
+
+    // Each tab panel is its own focusable scroll region (keyboard users can scroll it too).
+    .tab {
+      box-sizing: border-box;
+      height: 100%;
       overflow-y: auto;
       overscroll-behavior: contain;
     }
@@ -60,7 +67,7 @@ h2 {
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 155px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 175px), 1fr));
   gap: 0.75rem;
   margin: 0 0 1.1rem;
   padding: 0;
@@ -69,7 +76,7 @@ h2 {
 
 .stat {
   display: grid;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 34px 1fr;
   grid-template-rows: auto auto;
   column-gap: 0.75rem;
   align-items: center;
@@ -83,14 +90,14 @@ h2 {
   > img,
   > .stat__icon {
     grid-row: 1 / span 2;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
   }
 }
 
 .stat__icon {
-  font-size: 34px;
+  font-size: 30px;
   color: var(--cn-game-gold);
   filter: drop-shadow(0 1px 0 #0b1220);
 }
@@ -100,7 +107,7 @@ h2 {
   font-family: var(--cn-font-display);
   font-weight: 700;
   font-size: var(--cn-fs-lg);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   line-height: 1.1;
   text-shadow: var(--cn-game-text-outline);
 }
@@ -156,8 +163,9 @@ h2 {
   gap: 0.75rem;
   padding: 0.6rem;
   border-radius: 14px;
-  border: 1px solid var(--cn-border);
-  background: var(--cn-surface);
+  border: 3px solid var(--cn-panel-border);
+  background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
+  box-shadow: inset 0 2px 0 var(--cn-panel-highlight), inset 0 -4px 0 var(--cn-panel-bevel);
 }
 
 .hero__portrait {
@@ -236,12 +244,13 @@ h2 {
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid var(--cn-border);
-  background: var(--cn-surface);
+  border: 3px solid var(--cn-panel-border);
+  background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
+  box-shadow: inset 0 2px 0 var(--cn-panel-highlight), inset 0 -4px 0 var(--cn-panel-bevel);
 }
 
 .achievement--done {
-  border-color: var(--cn-gold-dark);
+  background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-tint-gold)), var(--cn-surface);
 }
 
 .achievement__stars {
