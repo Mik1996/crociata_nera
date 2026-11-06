@@ -1,0 +1,75 @@
+@let p = profile();
+<section class="banner" aria-labelledby="player-name">
+  <div class="banner__town-hall">
+    @if (p.townHallImage) {
+      <img class="banner__th-image" [src]="p.townHallImage" alt="" width="128" height="128" />
+    }
+    <span class="banner__th-label">{{ 'player.townHall' | translate: { n: p.townHall } }}</span>
+    @if (p.townHallWeapon) {
+      <span class="banner__weapon" role="img" [attr.aria-label]="'player.townHallWeapon' | translate: { n: p.townHallWeapon }">
+        @for (s of weaponStars(p.townHallWeapon); track $index) {
+          <span aria-hidden="true">★</span>
+        }
+      </span>
+    }
+  </div>
+
+  <div class="banner__identity">
+    <div class="banner__name-row">
+      <app-xp-badge [level]="p.expLevel" />
+      <div class="banner__name-block">
+        <h1 id="player-name" class="banner__name">{{ p.name }}</h1>
+        <span class="banner__tag">{{ p.tag }}</span>
+      </div>
+    </div>
+
+    <div class="banner__meta">
+      @if (p.role) {
+        <span class="chip chip--role">{{ roleKey(p.role) | translate }}</span>
+      }
+      @if (p.clan; as clan) {
+        <span class="chip">
+          @if (clan.badgeUrl) {
+            <img [src]="clan.badgeUrl" alt="" width="20" height="20" />
+          }
+          {{ clan.name }}
+        </span>
+      }
+      @if (p.warPreference) {
+        <span class="chip" [class.chip--in]="p.warPreference === 'in'" [class.chip--out]="p.warPreference === 'out'">
+          <mat-icon aria-hidden="true">{{ p.warPreference === 'in' ? 'check_circle' : 'do_not_disturb_on' }}</mat-icon>
+          {{ (p.warPreference === 'in' ? 'player.warIn' : 'player.warOut') | translate }}
+        </span>
+      }
+    </div>
+
+    @if (p.labels.length) {
+      <ul class="banner__labels" [attr.aria-label]="'player.labels' | translate">
+        @for (label of p.labels; track label.name) {
+          <li [matTooltip]="label.name">
+            @if (label.icon) {
+              <img [src]="label.icon" [alt]="label.name" width="32" height="32" />
+            } @else {
+              {{ label.name }}
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <div class="banner__league">
+    @if (p.leagueTier ?? p.league; as league) {
+      @if (league.icon) {
+        <img class="banner__league-icon" [src]="league.icon" alt="" width="88" height="88" />
+      }
+      <span class="banner__league-name">{{ league.name }}</span>
+    }
+    <span class="banner__trophies">
+      <mat-icon aria-hidden="true">emoji_events</mat-icon>
+      <span class="cn-visually-hidden">{{ 'player.trophies' | translate }}:</span>
+      {{ p.trophies | localNumber }}
+    </span>
+    <span class="banner__best">{{ 'player.bestTrophies' | translate: { n: (p.bestTrophies | localNumber) } }}</span>
+  </div>
+</section>

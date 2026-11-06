@@ -124,6 +124,17 @@
   --cn-fs-3xl: clamp(1.8rem, 1.5333rem + 1.1852vw, 2.6rem);
   --cn-fs-brand: clamp(1rem, 0.7667rem + 1.037vw, 1.7rem);
 
+  // Game-style surfaces (player profile): dark slate panels in both themes, as in the game UI,
+  // so white outlined text keeps a high contrast.
+  --cn-game-panel: linear-gradient(180deg, #34476b 0%, #22304b 55%, #1a2438 100%);
+  --cn-game-panel-border: #0e1525;
+  --cn-game-panel-text: #ffffff;
+  --cn-game-panel-muted: #c9d4ea;
+  --cn-game-tile: linear-gradient(180deg, #4a5d82 0%, #2c3a57 100%);
+  --cn-game-tile-border: #1a2236;
+  --cn-game-gold: #f4c542;
+  --cn-game-text-outline: 0 2px 0 #0b1220, 1px 1px 0 #0b1220, -1px 1px 0 #0b1220, 1px -1px 0 #0b1220, -1px -1px 0 #0b1220;
+
   @include light-tokens;
 }
 

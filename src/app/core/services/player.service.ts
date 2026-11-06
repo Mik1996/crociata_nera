@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
 import { CocApiService } from '../api/coc-api';
 import { APP_CONFIG } from '../config/app-config';
-import { ClanMember, PlayerStats } from '../models';
+import { ClanMember, PlayerProfile, PlayerStats } from '../models';
 import { computePlayerStats } from '../utils/war-stats';
 import { WarService } from './war.service';
 
@@ -30,6 +30,11 @@ export class PlayerService {
         return members.map((m) => computePlayerStats(m, warWindow));
       }),
     );
+  }
+
+  /** Full game profile of a member (heroes, troops, achievements…); `null` if not a member. */
+  getPlayerProfile(tag: string): Observable<PlayerProfile | null> {
+    return this.api.getPlayer(tag);
   }
 
   /** Stats of a single member; `null` if the tag does not belong to the clan. */

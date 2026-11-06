@@ -1,102 +1,100 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
-import { ChartData } from 'chart.js';
 import { TranslatePipe } from '@ngx-translate/core';
-import { BaseChartDirective } from 'ng2-charts';
-import { LanguageService } from '../../core/i18n/language.service';
-import { ThemeService } from '../../core/theme/theme.service';
-import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
+import { GAME_ICONS } from '../../core/game/game-assets';
+import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
+import { PlayerUnit } from '../../core/models';
 import { PlayerService } from '../../core/services/player.service';
-import { efficiency } from '../../core/utils/war-stats';
-import {
-  barSeries,
-  baseChartOptions,
-  CHART_CHROME,
-  CHART_COLORS,
-  lineSeries,
-  shortDateLabel,
-} from '../../shared/charts/chart-theme';
-import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { ResultBadge } from '../../shared/components/result-badge';
-import { roleKey } from '../../shared/labels';
+import { UnitTile } from '../../shared/game/unit-tile';
+import { PlayerBanner } from './components/player-banner';
+import { PlayerWarStats } from './components/player-war-stats';
 
+interface ArmySection {
+  /** Translation key of the section title. */
+  title: string;
+  units: (PlayerUnit & { active?: boolean })[];
+  /** Whether "x of y maxed" is meaningful (not for super troops, whose level follows the base troop). */
+  showMaxed: boolean;
+}
+
+/** Player page in the style of the game profile: banner plus Profile, Army, Achievements and Wars tabs. */
 @Component({
   selector: 'app-player-detail-page',
   imports: [
-    LocalDatePipe,
-    LocalNumberPipe,
     TranslatePipe,
+    LocalNumberPipe,
     RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
-    BaseChartDirective,
-    PageHeader,
+    MatTabsModule,
     LoadState,
-    KpiCard,
-    ResultBadge,
+    UnitTile,
+    PlayerBanner,
+    PlayerWarStats,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-detail-page.html',
+  styleUrl: './player-detail-page.scss',
 })
 export class PlayerDetailPage {
   private readonly players = inject(PlayerService);
-  private readonly language = inject(LanguageService);
-  private readonly theme = inject(ThemeService);
 
   /** Route parameter `:tag` (bound automatically by the router, already decoded). */
   readonly tag = input.required<string>();
 
-  protected readonly resource = rxResource({
+  protected readonly icons = GAME_ICONS;
+
+  protected readonly profileResource = rxResource({
+    params: () => this.tag(),
+    stream: ({ params }) => this.players.getPlayerProfile(params),
+  });
+  protected readonly statsResource = rxResource({
     params: () => this.tag(),
     stream: ({ params }) => this.players.getPlayerStats(params),
   });
-  protected readonly stats = computed(() => (this.resource.hasValue() ? this.resource.value() : null));
-  protected readonly role = computed(() => {
-    const s = this.stats();
-    return s ? this.language.t(roleKey(s.role)) : '';
-  });
-  protected readonly efficiency = computed(() => {
-    const s = this.stats();
-    return s ? efficiency(s) : 0;
+
+  protected readonly profile = computed(() => (this.profileResource.hasValue() ? this.profileResource.value() : null));
+  protected readonly stats = computed(() => (this.statsResource.hasValue() ? this.statsResource.value() : null));
+
+  /** Army grouped like the game's army overview; empty groups are hidden. */
+  protected readonly army = computed<ArmySection[]>(() => {
+    const p = this.profile();
+    if (!p) return [];
+    const sections: ArmySection[] = [
+      { title: 'player.troops', units: p.troops, showMaxed: true },
+      { title: 'player.superTroops', units: p.superTroops, showMaxed: false },
+      { title: 'player.siegeMachines', units: p.siegeMachines, showMaxed: true },
+      { title: 'player.pets', units: p.pets, showMaxed: true },
+      { title: 'player.spells', units: p.spells, showMaxed: true },
+      { title: 'player.heroEquipment', units: p.heroEquipment, showMaxed: true },
+      { title: 'player.builderHeroes', units: p.builderBaseHeroes, showMaxed: true },
+      { title: 'player.builderTroops', units: p.builderBaseTroops, showMaxed: true },
+    ];
+    return sections.filter((s) => s.units.length > 0);
   });
 
-  protected readonly columns = ['date', 'opponent', 'result', 'mapPosition', 'attacks', 'stars', 'averageDestruction'];
-  /** Table ordered from the most recent war. */
-  protected readonly recentWars = computed(() => [...(this.stats()?.history ?? [])].reverse());
+  /** Share of maxed units, per section. */
+  protected maxedCount(units: PlayerUnit[]): number {
+    return units.filter((u) => u.level >= u.maxLevel).length;
+  }
 
-  private readonly labels = computed(() =>
-    (this.stats()?.history ?? []).map((p) => `${shortDateLabel(p.date, this.language.current())} · ${p.opponent}`),
+  protected readonly achievementsDone = computed(
+    () => this.profile()?.achievements.filter((a) => a.stars >= 3).length ?? 0,
+  );
+  /** Incomplete achievements first, then the completed ones. */
+  protected readonly achievements = computed(() =>
+    [...(this.profile()?.achievements ?? [])].sort((a, b) => Number(a.stars >= 3) - Number(b.stars >= 3)),
   );
 
-  /** Chart colours of the current theme. */
-  private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
+  protected readonly starSlots = [0, 1, 2];
 
-  protected readonly starsOptions = computed(() => baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 6, legend: false }));
-  protected readonly starsData = computed<ChartData<'bar', number[]>>(() => ({
-    labels: this.labels(),
-    datasets: [barSeries(this.language.t('player.seriesStars'), (this.stats()?.history ?? []).map((p) => p.stars), CHART_COLORS.gold, this.chrome())],
-  }));
-
-  protected readonly destructionOptions = computed(() =>
-    baseChartOptions(this.chrome(), { min: 0, max: 100, suffix: '%', legend: false }),
-  );
-  protected readonly destructionData = computed<ChartData<'line', number[]>>(() => ({
-    labels: this.labels(),
-    datasets: [
-      lineSeries(
-        this.language.t('player.seriesDestruction'),
-        (this.stats()?.history ?? []).map((p) => p.averageDestruction),
-        CHART_COLORS.gold,
-        this.chrome(),
-        CHART_COLORS.goldTransparent,
-      ),
-    ],
-  }));
+  protected percent(value: number, max: number): number {
+    return max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
+  }
 }

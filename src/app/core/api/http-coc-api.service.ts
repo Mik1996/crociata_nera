@@ -4,10 +4,10 @@ import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from
 import { InterpolationParameters } from '@ngx-translate/core';
 import { APP_CONFIG } from '../config/app-config';
 import { TranslatableError } from '../i18n/translatable-error';
-import { Clan, HistoryPeriod, MonthSummary, War } from '../models';
+import { Clan, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
 import { CocApiService } from './coc-api';
-import { closeExpiredWars, mapClan, mapWar, mapWarLogEntry, mergeWarHistory } from './coc-api.mappers';
-import { CocClan, CocClientError, CocWar, CocWarLog } from './coc-api.types';
+import { closeExpiredWars, mapClan, mapWar, mapWarLogEntry, mergeWarHistory, mapPlayerProfile } from './coc-api.mappers';
+import { CocClan, CocClientError, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
 
 /**
  * API error carrying Supercell's original `reason` (e.g. `accessDenied.invalidIp`).
@@ -39,6 +39,7 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * - `GET {base}/archive/wars`             -> `currentwar` snapshots saved by the proxy (with details)
  * - `GET {base}/history`                  -> list of months in the monthly history
  * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
+ * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}` (clan members only)
  */
 @Injectable()
 export class HttpCocApiService extends CocApiService {
@@ -91,6 +92,14 @@ export class HttpCocApiService extends CocApiService {
         // 404 = no wars recorded in the month.
         catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
       );
+  }
+
+  getPlayer(tag: string): Observable<PlayerProfile | null> {
+    return this.http.get<CocPlayer>(`${this.config.apiBaseUrl}/players/${encodeURIComponent(tag)}`).pipe(
+      map(mapPlayerProfile),
+      // 404 = not a member of the clan (the proxy refuses other players).
+      catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
+    );
   }
 
   getWar(id: string): Observable<War | null> {

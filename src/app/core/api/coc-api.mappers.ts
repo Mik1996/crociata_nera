@@ -1,7 +1,23 @@
-import { Attack, Clan, ClanMember, ClanRole, War, WarClan, WarParticipant, WarState } from '../models';
+import {
+  Attack,
+  Clan,
+  ClanMember,
+  ClanRole,
+  IconItem,
+  PlayerHero,
+  PlayerProfile,
+  PlayerUnit,
+  War,
+  WarClan,
+  WarParticipant,
+  WarState,
+} from '../models';
 import {
   CocClan,
   CocClanMember,
+  CocNamedIcon,
+  CocPlayer,
+  CocPlayerItem,
   CocWar,
   CocWarAttack,
   CocWarClan,
@@ -9,6 +25,7 @@ import {
   CocWarLogEntry,
   CocWarMember,
 } from './coc-api.types';
+import { isSuperTroop, PETS, SIEGE_MACHINES, townHallImage, unitIcon } from '../game/units';
 
 const ROLES: Record<CocClanMember['role'], ClanRole> = {
   leader: 'leader',
@@ -219,4 +236,85 @@ export function mergeWarHistory(archived: War[], warLog: War[]): War[] {
   return [...byKey.values()]
     .filter((w) => w.state === 'ended')
     .sort((a, b) => b.endTime.localeCompare(a.endTime));
+}
+
+// --- Player profile ---------------------------------------------------------
+
+function iconItem(raw: CocNamedIcon | undefined): IconItem | undefined {
+  if (!raw || raw.name === 'Unranked') return undefined;
+  const icons = raw.iconUrls;
+  return { name: raw.name, icon: icons?.large ?? icons?.medium ?? icons?.small ?? icons?.tiny };
+}
+
+function mapUnit(raw: CocPlayerItem): PlayerUnit {
+  return {
+    name: raw.name,
+    village: raw.village,
+    level: raw.level,
+    maxLevel: raw.maxLevel,
+    icon: unitIcon(raw.village, raw.name),
+  };
+}
+
+/** Maps `GET /players/{tag}` grouping units the way the game shows them. */
+export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
+  const troops = raw.troops ?? [];
+  const home = troops.filter((t) => t.village === 'home');
+  const isSuper = (t: CocPlayerItem) => isSuperTroop(t.name);
+  const heroes = raw.heroes ?? [];
+  const legend = raw.legendStatistics;
+
+  return {
+    tag: raw.tag,
+    name: raw.name,
+    role: raw.role ? ROLES[raw.role] : undefined,
+    expLevel: raw.expLevel,
+    townHall: raw.townHallLevel,
+    townHallImage: townHallImage(raw.townHallLevel),
+    townHallWeapon: raw.townHallWeaponLevel,
+    trophies: raw.trophies,
+    bestTrophies: raw.bestTrophies,
+    league: iconItem(raw.league),
+    leagueTier: iconItem(raw.leagueTier),
+    legendTrophies: legend?.legendTrophies,
+    legendRank: legend?.currentSeason?.rank,
+    warStars: raw.warStars,
+    warPreference: raw.warPreference,
+    attackWins: raw.attackWins,
+    defenseWins: raw.defenseWins,
+    donations: raw.donations,
+    donationsReceived: raw.donationsReceived,
+    capitalContributions: raw.clanCapitalContributions ?? 0,
+    builderHall: raw.builderHallLevel,
+    builderBaseTrophies: raw.builderBaseTrophies,
+    bestBuilderBaseTrophies: raw.bestBuilderBaseTrophies,
+    builderBaseLeague: raw.builderBaseLeague?.name,
+    clan: raw.clan && {
+      tag: raw.clan.tag,
+      name: raw.clan.name,
+      level: raw.clan.clanLevel,
+      badgeUrl: raw.clan.badgeUrls?.medium ?? raw.clan.badgeUrls?.small,
+    },
+    labels: (raw.labels ?? []).map((l) => iconItem(l)).filter((l): l is IconItem => !!l),
+    heroes: heroes
+      .filter((h) => h.village === 'home')
+      .map((h): PlayerHero => ({ ...mapUnit(h), equipment: (h.equipment ?? []).map(mapUnit) })),
+    troops: home.filter((t) => !isSuper(t) && !SIEGE_MACHINES.has(t.name) && !PETS.has(t.name)).map(mapUnit),
+    superTroops: home.filter(isSuper).map((t) => ({ ...mapUnit(t), active: !!t.superTroopIsActive })),
+    siegeMachines: home.filter((t) => SIEGE_MACHINES.has(t.name)).map(mapUnit),
+    pets: home.filter((t) => PETS.has(t.name)).map(mapUnit),
+    spells: (raw.spells ?? []).filter((s) => s.village === 'home').map(mapUnit),
+    heroEquipment: (raw.heroEquipment ?? []).filter((e) => e.village === 'home').map(mapUnit),
+    builderBaseHeroes: heroes.filter((h) => h.village === 'builderBase').map(mapUnit),
+    builderBaseTroops: troops.filter((t) => t.village === 'builderBase').map(mapUnit),
+    achievements: (raw.achievements ?? []).map((a) => ({
+      name: a.name,
+      stars: a.stars,
+      value: a.value,
+      target: a.target,
+      info: a.info,
+      completionInfo: a.completionInfo ?? undefined,
+      village: a.village,
+    })),
+  };
 }

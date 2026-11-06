@@ -67,7 +67,8 @@ describe('HTTP proxy', () => {
   let dir;
   const enc = encodeURIComponent(TAG);
   const { fn, calls } = fakeFetch({
-    [`/clans/${enc}`]: [200, { tag: TAG, name: 'Crociata Nera' }],
+    [`/clans/${enc}`]: [200, { tag: TAG, name: 'Crociata Nera', memberList: [{ tag: '#P1', name: 'Player one' }] }],
+    ['/players/%23P1']: [200, { tag: '#P1', name: 'Player one', townHallLevel: 17 }],
     [`/clans/${enc}/currentwar`]: [200, war('inWar')],
     [`/clans/${enc}/warlog?limit=50`]: [403, { reason: 'accessDenied', message: 'private war log' }],
   });
@@ -120,6 +121,20 @@ describe('HTTP proxy', () => {
     const callsBefore = calls.length;
     await fetch(`${base}/api/coc/clans/${enc}`);
     assert.equal(calls.length, callsBefore);
+  });
+
+  it('returns the profile of a clan member', async () => {
+    const r = await fetch(`${base}/api/coc/players/%23p1`);
+    assert.equal(r.status, 200);
+    assert.equal((await r.json()).townHallLevel, 17);
+  });
+
+  it('refuses profiles of players outside the clan without calling the API', async () => {
+    const callsBefore = calls.length;
+    const r = await fetch(`${base}/api/coc/players/%23NOTMEMBER`);
+    assert.equal(r.status, 404);
+    assert.match((await r.json()).message, /not a member/);
+    assert.equal(calls.filter((c) => c.url.includes('/players/')).length, calls.slice(0, callsBefore).filter((c) => c.url.includes('/players/')).length);
   });
 
   it('exposes a health check', async () => {

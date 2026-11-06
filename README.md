@@ -16,7 +16,7 @@ Per provare l'interfaccia senza token è disponibile una modalità con **dati mo
 | Storico guerre | `/wars` | Tabella con ricerca, filtro per risultato, ordinamento e paginazione |
 | Dettaglio guerra | `/wars/:id` | Performance individuali di una guerra |
 | Giocatori | `/players` | Elenco membri con statistiche di guerra, ricerca e ordinamento |
-| Scheda giocatore | `/players/:tag` | Guerre disputate, presenza, attacchi, stelle, media, % 3 stelle, distruzione media, grafici e storico |
+| Scheda giocatore | `/players/:tag` | Profilo in stile Clash of Clans (municipio, livello, lega, trofei, eroi con equipaggiamento, esercito, obiettivi) e statistiche di guerra con grafici e storico |
 | Statistiche | `/statistics` | Classifica dei membri per **media stelle per guerra** (max 6), per mese o su tutti i mesi, dallo storico mensile del proxy |
 
 Inoltre:
@@ -136,7 +136,8 @@ src/
     └── testing/                  Dati e provider per i test (fixtures.ts, i18n.ts)
 public/
 ├── i18n/                         Traduzioni: it-IT.json, en-US.json, es-ES.json
-└── flags/                        Bandiere del selettore lingua
+├── flags/                        Bandiere del selettore lingua
+└── game/                         Immagini del Supercell Fan Kit (municipi, eroi, truppe, incantesimi, equipaggiamenti)
 ```
 
 ### Flusso dei dati
@@ -165,6 +166,26 @@ Le statistiche (KPI, medie, percentuali, rendimento) si calcolano lato client in
 Le statistiche dei giocatori considerano solo le guerre **terminate** e **con dettaglio dei partecipanti**
 (vedi [Da dove arriva lo storico](#da-dove-arriva-lo-storico)). I grafici di andamento del clan usano invece
 i totali, quindi includono anche le guerre con solo riepilogo.
+
+## Scheda giocatore
+
+Cliccando un giocatore si apre la sua scheda, ispirata al profilo del gioco. I dati arrivano da
+`GET /v1/players/{tag}` tramite il proxy, che risponde solo per i membri attuali del clan (non è un inoltro aperto).
+
+- **Intestazione**: municipio (con livello dell'arma), stella dell'esperienza, nome, ruolo, clan, preferenza di guerra,
+  etichette, lega con icona ufficiale, trofei e record.
+- **Profilo**: stelle di guerra, attacchi e difese vinti, truppe donate e ricevute, contributi alla capitale, trofei
+  leggenda, base del costruttore; eroi con livello, barra di avanzamento ed equipaggiamento assegnato.
+- **Esercito**: truppe, super truppe (attive a colori), macchine d'assedio, animali, incantesimi, equipaggiamenti e base
+  del costruttore, con il livello nell'angolo (oro se al massimo).
+- **Obiettivi**: achievement con stelle e avanzamento. **Guerre**: le statistiche di guerra dall'archivio del proxy.
+
+Immagini: municipi, eroi, truppe, incantesimi ed equipaggiamenti vengono dal
+[Supercell Fan Kit](https://fankit.supercell.com/d/vkEdmkUCngKw/game-assets), ritagliati, ridimensionati e salvati in WebP
+in `public/game/` (circa 1,6 MB); `src/app/core/game/game-assets.ts` collega i nomi dell'API ai file. Le icone di
+leghe, etichette e stemmi arrivano direttamente dall'API. Le poche unità senza immagine nel fan kit mostrano le
+iniziali. Nel menu laterale c'è la nota richiesta dalla
+[Fan Content Policy di Supercell](https://supercell.com/en/fan-content-policy/).
 
 ## Lingue
 
@@ -258,6 +279,7 @@ Il proxy accetta solo `GET` sulle rotte del clan configurato, quindi non funzion
 | `GET /api/coc/history` | Elenco dei mesi dello storico, con il bilancio delle guerre |
 | `GET /api/coc/history/AAAA-MM` | Guerre e statistiche dei giocatori di un mese (404 se vuoto) |
 | `GET /api/coc/history/all` | Tutti i mesi sommati |
+| `GET /api/coc/players/{tag}` | Profilo completo di un giocatore (`/v1/players/{tag}`), solo per i membri attuali del clan |
 | `GET /api/health` | Stato del proxy |
 
 Le risposte dell'API restano in cache per 60 secondi. Gli errori dell'API (`{ reason, message }`) vengono

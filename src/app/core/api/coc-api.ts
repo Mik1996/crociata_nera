@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Clan, HistoryPeriod, MonthSummary, War } from '../models';
+import { Clan, HistoryPeriod, MonthSummary, PlayerProfile, War } from '../models';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -29,4 +29,7 @@ export abstract class CocApiService {
    * Returns `null` if no wars were recorded in the month.
    */
   abstract getHistoryPeriod(period: string): Observable<HistoryPeriod | null>;
+
+  /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
+  abstract getPlayer(tag: string): Observable<PlayerProfile | null>;
 }

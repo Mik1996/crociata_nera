@@ -126,3 +126,83 @@ export interface CocWarLog {
   items: CocWarLogEntry[];
   paging?: { cursors?: { before?: string; after?: string } };
 }
+
+export interface CocIconUrls {
+  tiny?: string;
+  small?: string;
+  medium?: string;
+  large?: string;
+}
+
+/** League, league tier or label, with its official icon. */
+export interface CocNamedIcon {
+  id: number;
+  name: string;
+  iconUrls?: CocIconUrls;
+}
+
+/** Hero, troop, spell or hero equipment of a player. */
+export interface CocPlayerItem {
+  name: string;
+  level: number;
+  maxLevel: number;
+  village: 'home' | 'builderBase' | 'clanCapital';
+  /** Only for super troops: whether it is currently boosted. */
+  superTroopIsActive?: boolean;
+  /** Only for heroes: equipment currently assigned. */
+  equipment?: CocPlayerItem[];
+}
+
+export interface CocPlayerAchievement {
+  name: string;
+  stars: number;
+  value: number;
+  target: number;
+  info: string;
+  completionInfo?: string | null;
+  village: 'home' | 'builderBase' | 'clanCapital';
+}
+
+export interface CocLegendSeason {
+  id?: string;
+  rank?: number;
+  trophies: number;
+}
+
+/** `GET /players/{playerTag}` */
+export interface CocPlayer {
+  tag: string;
+  name: string;
+  townHallLevel: number;
+  townHallWeaponLevel?: number;
+  expLevel: number;
+  trophies: number;
+  bestTrophies: number;
+  warStars: number;
+  attackWins: number;
+  defenseWins: number;
+  builderHallLevel?: number;
+  builderBaseTrophies?: number;
+  bestBuilderBaseTrophies?: number;
+  role?: CocClanMember['role'];
+  warPreference?: 'in' | 'out';
+  donations: number;
+  donationsReceived: number;
+  clanCapitalContributions?: number;
+  clan?: { tag: string; name: string; clanLevel: number; badgeUrls?: CocBadgeUrls };
+  league?: CocNamedIcon;
+  leagueTier?: CocNamedIcon;
+  builderBaseLeague?: { id: number; name: string };
+  legendStatistics?: {
+    legendTrophies?: number;
+    currentSeason?: CocLegendSeason;
+    previousSeason?: CocLegendSeason;
+    bestSeason?: CocLegendSeason;
+  };
+  labels?: CocNamedIcon[];
+  achievements?: CocPlayerAchievement[];
+  heroes?: CocPlayerItem[];
+  heroEquipment?: CocPlayerItem[];
+  troops?: CocPlayerItem[];
+  spells?: CocPlayerItem[];
+}

@@ -54,6 +54,10 @@ export class CocClient {
     return this.get(`/clans/${encodeURIComponent(tag)}/currentwar`);
   }
 
+  player(tag) {
+    return this.get(`/players/${encodeURIComponent(tag)}`);
+  }
+
   warLog(tag, limit = 50) {
     return this.get(`/clans/${encodeURIComponent(tag)}/warlog?limit=${limit}`);
   }

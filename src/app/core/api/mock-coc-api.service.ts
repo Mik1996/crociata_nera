@@ -2,9 +2,11 @@ import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { generateMockData, MockDataset } from '../mock/mock-data';
-import { Clan, HistoryPeriod, HistoryWar, MonthSummary, War } from '../models';
+import { mockPlayer } from '../mock/mock-player';
+import { Clan, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, War } from '../models';
 import { historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
 import { CocApiService } from './coc-api';
+import { mapPlayerProfile } from './coc-api.mappers';
 
 /** Mock implementation: locally generated data with simulated latency. */
 @Injectable()
@@ -53,5 +55,11 @@ export class MockCocApiService extends CocApiService {
 
   getHistoryPeriod(period: string): Observable<HistoryPeriod | null> {
     return this.respond(historyPeriod(period, this.history, this.updatedAt));
+  }
+
+  getPlayer(tag: string): Observable<PlayerProfile | null> {
+    const { clan } = this.data;
+    const member = clan.members.find((m) => m.tag === tag);
+    return this.respond(member ? mapPlayerProfile(mockPlayer(member, clan)) : null);
   }
 }

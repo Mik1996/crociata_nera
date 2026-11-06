@@ -5,3 +5,4 @@ export * from './kpi.model';
 export * from './player-stats.model';
 export * from './war-participant.model';
 export * from './war.model';
+export * from './player-profile.model';

@@ -1,0 +1,171 @@
+// Game-style header: dark slate panel with a gold frame and white outlined text (same in both themes).
+.banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem 1.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 3px solid var(--cn-game-panel-border);
+  border-radius: 16px;
+  outline: 2px solid var(--cn-game-gold);
+  outline-offset: -6px;
+  background: var(--cn-game-panel);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), var(--cn-card-shadow);
+  color: var(--cn-game-panel-text);
+}
+
+.banner__town-hall,
+.banner__league {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.banner__th-image {
+  width: clamp(88px, 12vw, 128px);
+  height: auto;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.banner__th-label,
+.banner__league-name {
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-sm);
+  text-shadow: var(--cn-game-text-outline);
+}
+
+.banner__weapon {
+  color: var(--cn-game-gold);
+  letter-spacing: 1px;
+  text-shadow: var(--cn-game-text-outline);
+}
+
+.banner__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.banner__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.banner__name-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.banner__name {
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-weight: 700;
+  font-size: var(--cn-fs-2xl);
+  color: var(--cn-game-panel-text);
+  text-shadow: var(--cn-game-text-outline);
+  overflow-wrap: anywhere;
+}
+
+.banner__tag {
+  font-size: var(--cn-fs-sm);
+  color: var(--cn-game-panel-muted);
+}
+
+.banner__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: var(--cn-fs-sm);
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.chip--role {
+  background: var(--cn-game-gold);
+  border-color: transparent;
+  color: #1d1503;
+}
+
+.chip--in mat-icon {
+  color: #7ee08f;
+}
+
+.chip--out mat-icon {
+  color: #ff9a92;
+}
+
+.banner__labels {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  img {
+    display: block;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.banner__league-icon {
+  width: clamp(64px, 8vw, 88px);
+  height: auto;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
+}
+
+.banner__trophies {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--cn-font-display);
+  font-weight: 700;
+  font-size: var(--cn-fs-xl);
+  text-shadow: var(--cn-game-text-outline);
+
+  mat-icon {
+    color: var(--cn-game-gold);
+    filter: drop-shadow(0 1px 0 #0b1220);
+  }
+}
+
+.banner__best {
+  font-size: var(--cn-fs-xs);
+  color: var(--cn-game-panel-muted);
+}
+
+@media (max-width: 719.98px) {
+  .banner {
+    grid-template-columns: auto 1fr;
+  }
+
+  .banner__league {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+  }
+}

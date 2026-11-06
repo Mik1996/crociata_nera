@@ -45,8 +45,23 @@ export function createApp({ client, archive, history, clanTag }) {
     '/api/health': async () => ({ status: 'ok', clanTag }),
   };
 
-  /** Parameterised routes: `/api/coc/history/YYYY-MM`. */
+  /**
+   * Player profile, only for current members of the clan (checked against the cached member list),
+   * so the proxy cannot be used to look up arbitrary players.
+   */
+  async function memberProfile(playerTag) {
+    const clan = await client.clan(clanTag);
+    if (!clan.memberList?.some((m) => m.tag === playerTag)) {
+      throw new CocApiError(404, { reason: 'notFound', message: `Player ${playerTag} is not a member of the clan` });
+    }
+    return client.player(playerTag);
+  }
+
+  /** Parameterised routes: `/api/coc/history/YYYY-MM` and `/api/coc/players/{tag}`. */
   function dynamicHandler(path) {
+    const playerTag = /^\/api\/coc\/players\/(%23[0-9A-Z]{1,15})$/i.exec(path)?.[1];
+    if (playerTag) return () => memberProfile(decodeURIComponent(playerTag).toUpperCase());
+
     const month = /^\/api\/coc\/history\/(\d{4}-\d{2})$/.exec(path)?.[1];
     if (!month || !MONTH_REGEX.test(month)) return undefined;
     return async () => {

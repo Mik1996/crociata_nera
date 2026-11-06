@@ -125,6 +125,18 @@
   text-align: center;
 }
 
+/* Notice required by the Supercell Fan Content Policy (game assets and font). */
+.sidenav__fan-content {
+  margin: auto 1rem 1rem;
+  font-size: var(--cn-fs-2xs);
+  line-height: 1.4;
+  color: var(--cn-text-muted);
+
+  ::ng-deep a {
+    color: inherit;
+  }
+}
+
 .content {
   max-width: 1280px;
   margin: 0 auto;
