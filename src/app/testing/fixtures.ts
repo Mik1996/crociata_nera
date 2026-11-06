@@ -6,6 +6,7 @@ export const TEST_CONFIG: AppConfig = {
   production: false,
   useMockApi: true,
   apiBaseUrl: '/api/coc',
+  backendBaseUrl: '/api/v1',
   clanTag: '#TEST',
   clanName: 'Crociata Nera',
   mockLatencyMs: 0,

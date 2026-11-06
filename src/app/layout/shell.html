@@ -1,14 +1,14 @@
 <button type="button" class="skip-link" (click)="content.focus()">{{ 'app.skipToContent' | translate }}</button>
 
 <mat-toolbar class="header" role="banner">
-  @if (mobile()) {
+  @if (mobile() && showNav()) {
     <button
       mat-icon-button
       type="button"
       [attr.aria-label]="'app.toggleNavigation' | translate"
-      [attr.aria-expanded]="sidenav.opened"
+      [attr.aria-expanded]="navOpen()"
       aria-controls="navigation"
-      (click)="sidenav.toggle()"
+      (click)="toggleNav()"
     >
       <mat-icon>menu</mat-icon>
     </button>
@@ -99,45 +99,83 @@
       </button>
     }
   </mat-menu>
+
+  @if (!useMock) {
+    @if (auth.user(); as user) {
+      <button
+        mat-button
+        type="button"
+        class="picker account"
+        [matMenuTriggerFor]="accountMenu"
+        [attr.aria-label]="'auth.account.menu' | translate: { name: user.username }"
+      >
+        <span class="account__avatar" aria-hidden="true">{{ user.username.charAt(0).toUpperCase() }}</span>
+        <span class="account__name">{{ user.username }}</span>
+        <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+      </button>
+      <mat-menu #accountMenu="matMenu" xPosition="before" class="account-menu" [ariaLabel]="'auth.account.menuLabel' | translate">
+        <div class="account-menu__header">
+          <span class="account-menu__label">{{ 'auth.account.signedInAs' | translate }}</span>
+          <span class="account-menu__email">{{ user.email }}</span>
+        </div>
+        <button mat-menu-item type="button" (click)="signOut()">
+          <span class="material-icons" aria-hidden="true">logout</span>
+          <span>{{ 'auth.account.signOut' | translate }}</span>
+        </button>
+      </mat-menu>
+    } @else {
+      <a mat-button class="picker account" routerLink="/sign-in" [attr.aria-label]="'auth.account.signIn' | translate">
+        <span class="material-icons account__icon" aria-hidden="true">login</span>
+        <span class="account__name">{{ 'auth.account.signIn' | translate }}</span>
+      </a>
+    }
+  }
 </mat-toolbar>
 
 <mat-sidenav-container class="container">
-  <mat-sidenav
-    #sidenav
-    id="navigation"
-    class="sidenav"
-    [mode]="mode()"
-    [opened]="!mobile()"
-    [fixedInViewport]="mobile()"
-    fixedTopGap="64"
-  >
-    <nav [attr.aria-label]="'app.mainNavigation' | translate">
-      <mat-nav-list>
-        @for (item of menu; track item.path) {
-          <a
-            mat-list-item
-            [routerLink]="item.path"
-            routerLinkActive="active"
-            #rla="routerLinkActive"
-            [activated]="rla.isActive"
-            [attr.aria-current]="rla.isActive ? 'page' : null"
-            (click)="closeIfMobile()"
-          >
-            <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label | translate }}</span>
-          </a>
-        }
-      </mat-nav-list>
-    </nav>
-    @if (clan()?.description; as description) {
-      <p class="sidenav__clan_description">{{ description }}</p>
-    }
-    <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
-  </mat-sidenav>
+  @if (showNav()) {
+    <mat-sidenav
+      #sidenav
+      (openedChange)="navOpen.set($event)"
+      id="navigation"
+      class="sidenav"
+      [mode]="mode()"
+      [opened]="!mobile()"
+      [fixedInViewport]="mobile()"
+      fixedTopGap="64"
+    >
+      <nav [attr.aria-label]="'app.mainNavigation' | translate">
+        <mat-nav-list>
+          @for (item of menu; track item.path) {
+            <a
+              mat-list-item
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              #rla="routerLinkActive"
+              [activated]="rla.isActive"
+              [attr.aria-current]="rla.isActive ? 'page' : null"
+              (click)="closeIfMobile()"
+            >
+              <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+              <span matListItemTitle>{{ item.label | translate }}</span>
+            </a>
+          }
+        </mat-nav-list>
+      </nav>
+      @if (clan()?.description; as description) {
+        <p class="sidenav__clan_description">{{ description }}</p>
+      }
+      <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
+    </mat-sidenav>
+  }
 
   <mat-sidenav-content>
     <main id="content" #content tabindex="-1" class="content">
       <router-outlet />
+      @if (!showNav()) {
+        <!-- The side navigation (with this notice) is hidden while signed out. -->
+        <p class="content__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
+      }
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>

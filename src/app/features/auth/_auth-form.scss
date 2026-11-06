@@ -1,0 +1,66 @@
+// Form styles shared by the sign-in and sign-up pages (included by each page stylesheet).
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+
+  mat-form-field {
+    width: 100%;
+    // Dynamic subscripts grow with long hints/errors: keep a steady gap between fields.
+    margin-bottom: 0.6rem;
+  }
+
+  mat-icon[matPrefix] {
+    margin: 0 0.25rem 0 0.6rem;
+    color: var(--cn-text-muted);
+  }
+}
+
+.auth-form__alert {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--cn-red-mid);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cn-red-mid) 14%, transparent);
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+
+  mat-icon {
+    flex: none;
+  }
+
+  p {
+    margin: 0.1rem 0;
+  }
+}
+
+.auth-form__hint {
+  color: var(--cn-text-muted);
+}
+
+.auth-form__submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.5rem;
+  font-size: var(--cn-fs-lg);
+
+  mat-progress-spinner {
+    display: inline-block;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    --mat-progress-spinner-active-indicator-color: #ffffff;
+  }
+}
+
+[authFooter] {
+  margin: 0;
+
+  a {
+    color: var(--cn-gold-light);
+    font-family: var(--cn-font-display);
+    letter-spacing: 0.02em;
+  }
+}

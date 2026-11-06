@@ -7,7 +7,7 @@
     "skipToContent": "Vai al contenuto principale",
     "toggleNavigation": "Apri o chiudi il menu di navigazione",
     "goToDashboard": "{{name}} – vai alla dashboard",
-    "brandSubtitle": "Clan {{tag}} · Guerre",
+    "brandSubtitle": "Clan {{tag}}",
     "demoData": "Dati demo",
     "demoDataTitle": "I dati mostrati sono simulati",
     "mainNavigation": "Navigazione principale",
@@ -32,7 +32,9 @@
     "players": "Giocatori",
     "player": "Scheda giocatore",
     "statistics": "Statistiche",
-    "notFound": "Pagina non trovata"
+    "notFound": "Pagina non trovata",
+    "signIn": "Accedi",
+    "signUp": "Registrati"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -343,5 +345,87 @@
     "legend": "<strong>Media ★ / guerra</strong> = stelle totali ÷ guerre disputate: gli attacchi non usati valgono 0. A parità decidono distruzione media, partecipazione e numero di guerre. <strong>Difesa ★</strong> = stelle concesse in media all'avversario (più basso è meglio).",
     "periodWars": "Guerre del periodo ({{n}})",
     "periodWarsTable": "Guerre registrate nel periodo"
+  },
+  "auth": {
+    "fields": {
+      "identifier": "Email o username",
+      "email": "Email",
+      "username": "Username",
+      "password": "Password",
+      "repeatPassword": "Ripeti la password",
+      "playerTag": "Tag giocatore (facoltativo)"
+    },
+    "hints": {
+      "username": "3–24 caratteri: lettere, numeri e . - _",
+      "password": "Almeno 8 caratteri, con una lettera e un numero",
+      "playerTag": "Il tuo tag in Clash of Clans, es. #ABC123"
+    },
+    "showPassword": "Mostra la password",
+    "signIn": {
+      "title": "Accedi",
+      "subtitle": "Entra per salvare automaticamente le guerre del clan",
+      "submit": "Accedi",
+      "submitting": "Accesso in corso…",
+      "noAccount": "Non hai un account?",
+      "toSignUp": "Registrati"
+    },
+    "signUp": {
+      "title": "Registrati",
+      "subtitle": "Crea il tuo account per la Crociata",
+      "submit": "Crea account",
+      "submitting": "Creazione in corso…",
+      "haveAccount": "Hai già un account?",
+      "toSignIn": "Accedi"
+    },
+    "account": {
+      "signIn": "Accedi",
+      "menu": "Account di {{name}}",
+      "menuLabel": "Menu account",
+      "signedInAs": "Accesso effettuato come",
+      "signOut": "Esci"
+    },
+    "errors": {
+      "backendUnreachable": "Impossibile contattare il server. Riprova tra poco."
+    }
+  },
+  "SUCCESS": {
+    "USER_CREATED": "Account creato",
+    "SIGNED_IN": "Accesso effettuato",
+    "SIGNED_OUT": "Disconnessione effettuata",
+    "TOKEN_REFRESHED": "Sessione rinnovata",
+    "WAR_CREATED": "Guerra salvata",
+    "WAR_UPDATED": "Guerra aggiornata",
+    "WAR_UNCHANGED": "Guerra già aggiornata"
+  },
+  "ERROR": {
+    "UNAUTHORIZED": "Devi accedere per continuare.",
+    "FORBIDDEN": "Non hai i permessi per questa operazione.",
+    "INVALID_TOKEN": "Sessione non valida: accedi di nuovo.",
+    "INVALID_CREDENTIALS": "Email, username o password non corretti.",
+    "INVALID_REFRESH_TOKEN": "Sessione scaduta: accedi di nuovo.",
+    "ORIGIN_NOT_ALLOWED": "Richiesta non consentita da questa origine.",
+    "USER_NOT_FOUND": "Utente non trovato.",
+    "EMAIL_IS_ALREADY_TAKEN": "Questa email è già registrata.",
+    "USERNAME_IS_ALREADY_TAKEN": "Questo username è già in uso.",
+    "INVALID_JSON": "Richiesta non valida.",
+    "INVALID_FIELD": "Valore non valido.",
+    "EMAIL_SHOULD_NOT_BE_EMPTY": "Inserisci l'email.",
+    "EMAIL_MUST_BE_AN_EMAIL": "Inserisci un indirizzo email valido.",
+    "USERNAME_SHOULD_NOT_BE_EMPTY": "Inserisci uno username.",
+    "USERNAME_IS_NOT_VALID": "Da 3 a 24 caratteri: lettere, numeri, punto, trattino e trattino basso.",
+    "IDENTIFIER_SHOULD_NOT_BE_EMPTY": "Inserisci l'email o lo username.",
+    "PASSWORD_SHOULD_NOT_BE_EMPTY": "Inserisci la password.",
+    "PASSWORD_IS_NOT_STRONG_ENOUGH": "Almeno 8 caratteri, con una lettera e un numero.",
+    "PASSWORD_IS_TOO_LONG": "La password è troppo lunga.",
+    "REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY": "Ripeti la password.",
+    "PASSWORDS_DO_NOT_MATCH": "Le password non coincidono.",
+    "PLAYER_TAG_IS_NOT_VALID": "Tag non valido: # seguito da 3–15 lettere o numeri.",
+    "WAR_NOT_FOUND": "Guerra non trovata.",
+    "WAR_IS_NOT_SAVABLE": "Questa guerra non può essere salvata.",
+    "WAR_CLAN_NOT_ALLOWED": "La guerra appartiene a un altro clan.",
+    "NOT_FOUND": "Risorsa non trovata.",
+    "TOO_MANY_REQUESTS": "Troppi tentativi: riprova tra qualche minuto.",
+    "SERVICE_UNAVAILABLE": "Servizio momentaneamente non disponibile.",
+    "UNHANDLED_ERROR": "Si è verificato un errore imprevisto."
   }
 }

@@ -49,6 +49,16 @@ Inoltre:
    npm start            # app su http://localhost:4200 (le chiamate /api/coc vanno al proxy)
    ```
 
+3. Facoltativo: per login e salvataggio automatico delle guerre avvia anche il backend applicativo, in un terzo terminale
+   (configurazione in [backend/README.md](backend/README.md)):
+
+   ```bash
+   npm run backend      # Next.js su http://localhost:3001 (le chiamate /api/v1 vanno al backend)
+   ```
+
+   Senza backend il sito funziona lo stesso: il ripristino della sessione fallisce senza conseguenze e le guerre non
+   vengono salvate.
+
 ### Con i dati mock (senza token né backend)
 
 ```bash
@@ -61,6 +71,7 @@ npm run start:mock
 npm test                    # test unitari del frontend (Vitest) in modalità watch
 npx ng test --watch=false   # esecuzione singola, per CI
 npm run test:server         # test del proxy (node:test)
+npm --prefix backend test   # test del backend (Vitest + MongoDB in memoria)
 npm run build               # build di produzione in dist/crociata_nera
 ```
 
@@ -234,6 +245,7 @@ Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
 | --- | --- | --- |
 | `useMockApi` | `true` = dati mock, `false` = chiamate HTTP al proxy | `false` (`true` solo in `environment.mock.ts`) |
 | `apiBaseUrl` | URL base del **proxy backend** | `/api/coc` |
+| `backendBaseUrl` | URL base del **backend applicativo** (`backend/`: login, guerre salvate) | `/api/v1` |
 | `clanTag` | Tag del clan, con `#` | `#2J8JVVCLC` |
 | `clanName` | Nome mostrato nell'header | `Crociata Nera` |
 | `mockLatencyMs` | Latenza simulata del mock (ms) | `500` dev / `300` prod |
@@ -251,6 +263,44 @@ Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
 | `COC_HISTORY_DIR` | Cartella dello storico mensile | `server/data/history` |
 
 `.env` e `server/data/` sono esclusi da git.
+
+## Backend applicativo
+
+`backend/` è un progetto Next.js separato, con il suo `package.json`. Gestisce:
+
+- l'autenticazione: sign-up, sign-in, refresh, sign-out e `me`;
+- il **salvataggio automatico delle guerre** su MongoDB.
+
+Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si aggiunge, non sostituisce niente.
+
+- **Sessione:** l'access token resta in memoria (`AuthService`). Il refresh token è un cookie httpOnly; all'avvio
+  l'app lo usa per ripristinare la sessione.
+- **Header:** `authInterceptor` aggiunge `Authorization: Bearer` solo alle chiamate verso `backendBaseUrl`. Se la
+  risposta è 401, rinnova il token una volta e ripete la richiesta.
+- **Salvataggio:** `HttpCocApiService` passa a `WarSyncService` ogni guerra che riceve (guerra corrente e archivio).
+  Il servizio la invia a `POST /api/v1/wars` solo se c'è un utente con login e la guerra è cambiata.
+
+- **Pagine:** `/sign-in` (email o username + password) e `/sign-up` (email, username, password, conferma, tag
+  giocatore facoltativo), nello stile del sito: pannello con banner dorato e pulsante verde.
+  - Il form controlla le stesse regole del backend prima di inviare.
+  - Gli errori del backend arrivano come chiavi (`ERROR.*`), tradotte nelle tre lingue e mostrate sotto il campo
+    interessato oppure in un avviso.
+  - Dopo l'accesso si torna alla pagina indicata da `?returnUrl=`, solo se è un percorso interno del sito.
+  - `guestGuard` porta alla dashboard chi ha già fatto login.
+- **Accesso riservato:** tutte le pagine tranne `/sign-in` e `/sign-up` stanno in un gruppo di rotte protetto da
+  `authGuard`. Chi non ha fatto login viene mandato all'accesso e, dopo, torna alla pagina che aveva chiesto.
+  - Vale anche per il 404 e per i link diretti.
+  - La guardia aspetta che all'avvio venga ripristinata la sessione dal cookie, così chi ha già fatto login non
+    viene rimandato all'accesso.
+  - Senza login l'header mostra solo tema, lingua e "Accedi"; la navigazione laterale è nascosta e l'avviso della
+    Fan Content Policy appare sotto il pannello.
+  - Se la sessione finisce (logout, scadenza o revoca), si torna subito alla pagina di accesso.
+  - Con i dati mock (`start:mock`) non c'è backend: tutte le pagine restano aperte e quelle di accesso non si
+    raggiungono.
+- **Header:** a destra c'è il pulsante "Accedi" oppure il menu dell'utente (iniziale, nome, email, "Esci"). Con i
+  dati mock è nascosto.
+
+Rotte, modello dati e sicurezza sono descritti in [backend/README.md](backend/README.md).
 
 ## Dati reali dall'API di Clash of Clans
 
@@ -365,5 +415,15 @@ I test unitari coprono:
 - traduzioni (`i18n.spec.ts`): stesse chiavi e segnaposto in tutti i file, scelta della lingua iniziale, cambio
   lingua, formattazione di numeri e date;
 - `WarService` e `PlayerService`;
+- sessione con il backend (`auth.service.spec.ts`): access token in memoria, ripristino dal cookie, un solo refresh
+  anche con chiamate contemporanee, Bearer solo verso il backend, nuovo tentativo dopo un 401, sign-out;
+- pagine di accesso e registrazione (`sign-in-page.spec.ts`, `sign-up-page.spec.ts`): errori di validazione tradotti,
+  normalizzazione del tag, errori del backend sotto i campi o in un avviso, backend irraggiungibile, ritorno solo a
+  pagine interne; guard (`auth.guards.spec.ts`) e rotte protette (`app.routes.spec.ts`: ogni pagina rimanda
+  all'accesso senza login, attesa del ripristino della sessione, modalità mock);
+- salvataggio automatico (`war-sync.service.spec.ts`): niente invii senza login, invio delle guerre in attesa dopo il
+  login, nuovo invio solo se la guerra cambia, nuovo tentativo dopo un errore, guerre terminate ricordate;
+- backend (`backend/test`): registrazione, login, rotazione e riuso dei refresh token, sign-out, controllo
+  dell'origine, limiti di frequenza, salvataggio idempotente delle guerre senza passi indietro di stato;
 - componenti: shell e header (badge del clan, menu lingue), `LoadState` (errori tradotti), tabella partecipanti (filtri ed evidenza di chi non ha attaccato),
   pagina guerra corrente (dati, assenza guerra, errore).

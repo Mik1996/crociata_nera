@@ -7,7 +7,7 @@
     "skipToContent": "Ir al contenido principal",
     "toggleNavigation": "Abrir o cerrar el menú de navegación",
     "goToDashboard": "{{name}} – ir al panel",
-    "brandSubtitle": "Clan {{tag}} · Guerras",
+    "brandSubtitle": "Clan {{tag}}",
     "demoData": "Datos de prueba",
     "demoDataTitle": "Los datos mostrados son simulados",
     "mainNavigation": "Navegación principal",
@@ -32,7 +32,9 @@
     "players": "Jugadores",
     "player": "Ficha del jugador",
     "statistics": "Estadísticas",
-    "notFound": "Página no encontrada"
+    "notFound": "Página no encontrada",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -343,5 +345,87 @@
     "legend": "<strong>Media ★ / guerra</strong> = estrellas totales ÷ guerras jugadas: los ataques no usados cuentan como 0. En caso de empate deciden la destrucción media, la participación y el número de guerras. <strong>Defensa ★</strong> = estrellas concedidas de media al rival (cuanto más bajo, mejor).",
     "periodWars": "Guerras del periodo ({{n}})",
     "periodWarsTable": "Guerras registradas en el periodo"
+  },
+  "auth": {
+    "fields": {
+      "identifier": "Email o nombre de usuario",
+      "email": "Email",
+      "username": "Nombre de usuario",
+      "password": "Contraseña",
+      "repeatPassword": "Repite la contraseña",
+      "playerTag": "Tag de jugador (opcional)"
+    },
+    "hints": {
+      "username": "3–24 caracteres: letras, números y . - _",
+      "password": "Al menos 8 caracteres, con una letra y un número",
+      "playerTag": "Tu tag de Clash of Clans, p. ej. #ABC123"
+    },
+    "showPassword": "Mostrar la contraseña",
+    "signIn": {
+      "title": "Iniciar sesión",
+      "subtitle": "Entra para guardar automáticamente las guerras del clan",
+      "submit": "Entrar",
+      "submitting": "Entrando…",
+      "noAccount": "¿No tienes cuenta?",
+      "toSignUp": "Regístrate"
+    },
+    "signUp": {
+      "title": "Registrarse",
+      "subtitle": "Crea tu cuenta para la Cruzada",
+      "submit": "Crear cuenta",
+      "submitting": "Creando cuenta…",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "toSignIn": "Inicia sesión"
+    },
+    "account": {
+      "signIn": "Iniciar sesión",
+      "menu": "Cuenta de {{name}}",
+      "menuLabel": "Menú de cuenta",
+      "signedInAs": "Sesión iniciada como",
+      "signOut": "Cerrar sesión"
+    },
+    "errors": {
+      "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve."
+    }
+  },
+  "SUCCESS": {
+    "USER_CREATED": "Cuenta creada",
+    "SIGNED_IN": "Sesión iniciada",
+    "SIGNED_OUT": "Sesión cerrada",
+    "TOKEN_REFRESHED": "Sesión renovada",
+    "WAR_CREATED": "Guerra guardada",
+    "WAR_UPDATED": "Guerra actualizada",
+    "WAR_UNCHANGED": "La guerra ya está actualizada"
+  },
+  "ERROR": {
+    "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
+    "FORBIDDEN": "No tienes permiso para esta operación.",
+    "INVALID_TOKEN": "Sesión no válida: inicia sesión de nuevo.",
+    "INVALID_CREDENTIALS": "Email, nombre de usuario o contraseña incorrectos.",
+    "INVALID_REFRESH_TOKEN": "Sesión caducada: inicia sesión de nuevo.",
+    "ORIGIN_NOT_ALLOWED": "Solicitud no permitida desde este origen.",
+    "USER_NOT_FOUND": "Usuario no encontrado.",
+    "EMAIL_IS_ALREADY_TAKEN": "Este email ya está registrado.",
+    "USERNAME_IS_ALREADY_TAKEN": "Este nombre de usuario ya está en uso.",
+    "INVALID_JSON": "Solicitud no válida.",
+    "INVALID_FIELD": "Valor no válido.",
+    "EMAIL_SHOULD_NOT_BE_EMPTY": "Introduce tu email.",
+    "EMAIL_MUST_BE_AN_EMAIL": "Introduce un email válido.",
+    "USERNAME_SHOULD_NOT_BE_EMPTY": "Introduce un nombre de usuario.",
+    "USERNAME_IS_NOT_VALID": "De 3 a 24 caracteres: letras, números, punto, guion y guion bajo.",
+    "IDENTIFIER_SHOULD_NOT_BE_EMPTY": "Introduce tu email o nombre de usuario.",
+    "PASSWORD_SHOULD_NOT_BE_EMPTY": "Introduce la contraseña.",
+    "PASSWORD_IS_NOT_STRONG_ENOUGH": "Al menos 8 caracteres, con una letra y un número.",
+    "PASSWORD_IS_TOO_LONG": "La contraseña es demasiado larga.",
+    "REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY": "Repite la contraseña.",
+    "PASSWORDS_DO_NOT_MATCH": "Las contraseñas no coinciden.",
+    "PLAYER_TAG_IS_NOT_VALID": "Tag no válido: # seguido de 3–15 letras o números.",
+    "WAR_NOT_FOUND": "Guerra no encontrada.",
+    "WAR_IS_NOT_SAVABLE": "Esta guerra no se puede guardar.",
+    "WAR_CLAN_NOT_ALLOWED": "La guerra pertenece a otro clan.",
+    "NOT_FOUND": "Recurso no encontrado.",
+    "TOO_MANY_REQUESTS": "Demasiados intentos: inténtalo de nuevo en unos minutos.",
+    "SERVICE_UNAVAILABLE": "Servicio no disponible temporalmente.",
+    "UNHANDLED_ERROR": "Se ha producido un error inesperado."
   }
 }

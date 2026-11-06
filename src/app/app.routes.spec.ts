@@ -1,0 +1,55 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { routes } from './app.routes';
+import { AuthService } from './core/backend/auth.service';
+import { provideCocApiTest } from './testing/fixtures';
+
+describe('app routes', () => {
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: false })],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  it.each(['/dashboard', '/current-war', '/wars', '/wars/123', '/players', '/players/%23ABC', '/statistics', '/missing'])(
+    'sends signed-out users from %s to sign-in',
+    async (url) => {
+      const harness = await RouterTestingHarness.create();
+      await harness.navigateByUrl(url);
+      const router = TestBed.inject(Router);
+      expect(router.url.split('?')[0]).toBe('/sign-in');
+      expect(router.parseUrl(router.url).queryParams['returnUrl']).toBe(url === '/dashboard' ? undefined : url);
+    },
+  );
+
+  it('opens the sign-up page while signed out', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/sign-up');
+    expect(TestBed.inject(Router).url).toBe('/sign-up');
+  });
+
+  it('sends the root and the dashboard (home) to sign-in without a return URL', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/');
+    expect(TestBed.inject(Router).url).toBe('/sign-in');
+  });
+
+  it('waits for the session restore before deciding', async () => {
+    TestBed.inject(AuthService).restoreSession();
+    const harness = await RouterTestingHarness.create();
+    const navigation = harness.navigateByUrl('/statistics');
+    httpMock.expectOne('/api/v1/auth/refresh').flush({
+      result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'a' } },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
+    await navigation.catch(() => undefined);
+    expect(TestBed.inject(Router).url).toBe('/statistics');
+  });
+});

@@ -5,6 +5,7 @@ export const environment: AppConfig = {
   production: false,
   useMockApi: true,
   apiBaseUrl: '/api/coc',
+  backendBaseUrl: '/api/v1',
   clanTag: '#2J8JVVCLC',
   clanName: 'Crociata Nera',
   mockLatencyMs: 500,

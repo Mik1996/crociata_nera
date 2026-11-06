@@ -530,6 +530,36 @@ h2 {
 }
 
 /* Language and theme picker menus (rendered in an overlay, outside the shell). */
+.account-menu {
+  .mat-mdc-menu-content {
+    min-width: 220px;
+  }
+
+  .account-menu__header {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1rem 0.6rem;
+    border-bottom: 1px solid var(--cn-border);
+    margin-bottom: 0.25rem;
+  }
+
+  .account-menu__label {
+    font-size: var(--cn-fs-2xs);
+    color: var(--cn-text-muted);
+  }
+
+  .account-menu__email {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .mat-mdc-menu-item-text {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}
+
 .language-menu,
 .theme-menu {
   .mat-mdc-menu-item {

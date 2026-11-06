@@ -1,0 +1,23 @@
+import mongoose from 'mongoose';
+import { afterAll, beforeEach, inject } from 'vitest';
+import { resetEnvCache } from '@/lib/config/env';
+import { connectToDatabase } from '@/lib/db/mongoose';
+import { resetRateLimits } from '@/lib/http/rate-limit';
+
+process.env.DATABASE_URL = inject('databaseUrl');
+process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-characters-long';
+process.env.FRONTEND_URL = 'http://localhost:4200';
+process.env.CLAN_TAG = '#2J8JVVCLC';
+resetEnvCache();
+
+beforeEach(async () => {
+  resetRateLimits();
+  await connectToDatabase();
+  await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).syncIndexes()));
+  await Promise.all(Object.values(mongoose.connection.collections).map((c) => c.deleteMany({})));
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  (globalThis as { __mongoose?: { promise: unknown } }).__mongoose!.promise = null;
+});

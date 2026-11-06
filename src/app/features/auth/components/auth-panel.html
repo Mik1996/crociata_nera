@@ -1,0 +1,15 @@
+<section class="panel cn-card" [attr.aria-labelledby]="'auth-heading'">
+  <header class="panel__banner">
+    <img class="panel__emblem" src="game/misc/clan-war.webp" alt="" width="72" height="72" />
+    <h1 id="auth-heading" class="panel__heading">{{ heading() }}</h1>
+  </header>
+  <div class="panel__body">
+    @if (subtitle()) {
+      <p class="panel__subtitle">{{ subtitle() }}</p>
+    }
+    <ng-content />
+  </div>
+  <footer class="panel__footer">
+    <ng-content select="[authFooter]" />
+  </footer>
+</section>

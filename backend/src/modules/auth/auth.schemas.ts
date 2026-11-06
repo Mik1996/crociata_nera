@@ -1,0 +1,67 @@
+import { z } from 'zod';
+import { MessageKey } from '@/lib/http/message-key';
+
+/** bcrypt only uses the first 72 bytes of a password. */
+const MAX_PASSWORD_BYTES = 72;
+
+const email = z
+  .string({ error: MessageKey.EMAIL_SHOULD_NOT_BE_EMPTY })
+  .trim()
+  .toLowerCase()
+  .min(1, { error: MessageKey.EMAIL_SHOULD_NOT_BE_EMPTY })
+  .pipe(z.email({ error: MessageKey.EMAIL_MUST_BE_AN_EMAIL }).max(254, { error: MessageKey.EMAIL_MUST_BE_AN_EMAIL }));
+
+const username = z
+  .string({ error: MessageKey.USERNAME_SHOULD_NOT_BE_EMPTY })
+  .trim()
+  .min(1, { error: MessageKey.USERNAME_SHOULD_NOT_BE_EMPTY })
+  .regex(/^[A-Za-z0-9_.-]{3,24}$/, { error: MessageKey.USERNAME_IS_NOT_VALID });
+
+/** At least 8 characters with a letter and a digit. */
+const newPassword = z
+  .string({ error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+  .min(1, { error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+  .refine((p) => new TextEncoder().encode(p).length <= MAX_PASSWORD_BYTES, {
+    error: MessageKey.PASSWORD_IS_TOO_LONG,
+  })
+  .refine((p) => p.length >= 8 && /\p{L}/u.test(p) && /\d/.test(p), {
+    error: MessageKey.PASSWORD_IS_NOT_STRONG_ENOUGH,
+  });
+
+export const signUpSchema = z
+  .object({
+    email,
+    username,
+    password: newPassword,
+    repeatPassword: z
+      .string({ error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY })
+      .min(1, { error: MessageKey.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY }),
+    playerTag: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^#[0-9A-Z]{3,15}$/, { error: MessageKey.PLAYER_TAG_IS_NOT_VALID })
+      .optional(),
+  })
+  .refine((data) => data.password === data.repeatPassword, {
+    error: MessageKey.PASSWORDS_DO_NOT_MATCH,
+    path: ['repeatPassword'],
+    // Report the mismatch even when another field is invalid.
+    when: (payload) => typeof payload.value === 'object' && payload.value !== null,
+  });
+
+export const signInSchema = z.object({
+  /** Email or username. */
+  identifier: z
+    .string({ error: MessageKey.IDENTIFIER_SHOULD_NOT_BE_EMPTY })
+    .trim()
+    .min(1, { error: MessageKey.IDENTIFIER_SHOULD_NOT_BE_EMPTY })
+    .max(254, { error: MessageKey.INVALID_CREDENTIALS }),
+  password: z
+    .string({ error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+    .min(1, { error: MessageKey.PASSWORD_SHOULD_NOT_BE_EMPTY })
+    .max(1024, { error: MessageKey.INVALID_CREDENTIALS }),
+});
+
+export type SignUpInput = z.output<typeof signUpSchema>;
+export type SignInInput = z.output<typeof signInSchema>;

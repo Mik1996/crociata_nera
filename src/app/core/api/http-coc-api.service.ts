@@ -1,7 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { InterpolationParameters } from '@ngx-translate/core';
+import { WarSyncService } from '../backend/war-sync.service';
 import { APP_CONFIG } from '../config/app-config';
 import { TranslatableError } from '../i18n/translatable-error';
 import { Clan, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
@@ -40,11 +41,16 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * - `GET {base}/history`                  -> list of months in the monthly history
  * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
  * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}` (clan members only)
+ *
+ * Every war received (current war and archive snapshots) is also handed to
+ * {@link WarSyncService}, which saves it to the application backend for signed-in users.
+ * This is a side effect only: the data returned here is unchanged.
  */
 @Injectable()
 export class HttpCocApiService extends CocApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);
+  private readonly warSync = inject(WarSyncService);
 
   private get clanPath(): string {
     return `${this.config.apiBaseUrl}/clans/${encodeURIComponent(this.config.clanTag)}`;
@@ -56,6 +62,7 @@ export class HttpCocApiService extends CocApiService {
 
   getCurrentWar(): Observable<War | null> {
     return this.http.get<CocWar>(`${this.clanPath}/currentwar`).pipe(
+      tap((war) => this.warSync.submit(war)),
       map(mapWar),
       catchError((err: HttpErrorResponse) =>
         // Private war log: the API does not expose the current war.
@@ -66,6 +73,7 @@ export class HttpCocApiService extends CocApiService {
 
   getWarHistory(): Observable<War[]> {
     const archive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`).pipe(
+      tap((snapshots) => snapshots.forEach((war) => this.warSync.submit(war))),
       map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)),
       // The archive is optional: if missing, only the war log is used.
       catchError(() => of<War[]>([])),

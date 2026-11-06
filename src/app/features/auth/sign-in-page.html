@@ -1,0 +1,62 @@
+<app-auth-panel [heading]="'auth.signIn.title' | translate" [subtitle]="'auth.signIn.subtitle' | translate">
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (generalErrors().length) {
+      <div class="auth-form__alert" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <div>
+          @for (message of generalErrors(); track message.key) {
+            <p>{{ message.key | translate: message.params }}</p>
+          }
+        </div>
+      </div>
+    }
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>{{ 'auth.fields.identifier' | translate }}</mat-label>
+      <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+      <input matInput formControlName="identifier" autocomplete="username" autocapitalize="none" spellcheck="false" />
+      @if (errorKey(form.controls.identifier, identifierErrors); as key) {
+        <mat-error>{{ key | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>{{ 'auth.fields.password' | translate }}</mat-label>
+      <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+      <input
+        matInput
+        formControlName="password"
+        autocomplete="current-password"
+        [type]="showPassword() ? 'text' : 'password'"
+      />
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        class="picker"
+        [attr.aria-label]="'auth.showPassword' | translate"
+        [attr.aria-pressed]="showPassword()"
+        (click)="showPassword.set(!showPassword())"
+      >
+        <mat-icon aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      @if (errorKey(form.controls.password, passwordErrors); as key) {
+        <mat-error>{{ key | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <button mat-flat-button type="submit" class="auth-form__submit" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-progress-spinner diameter="20" mode="indeterminate" aria-hidden="true" />
+        <span>{{ 'auth.signIn.submitting' | translate }}</span>
+      } @else {
+        <span>{{ 'auth.signIn.submit' | translate }}</span>
+      }
+    </button>
+  </form>
+
+  <p authFooter>
+    {{ 'auth.signIn.noAccount' | translate }}
+    <a routerLink="/sign-up" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}">{{ 'auth.signIn.toSignUp' | translate }}</a>
+  </p>
+</app-auth-panel>

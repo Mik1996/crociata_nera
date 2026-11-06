@@ -3,8 +3,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -14,10 +16,12 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, of } from 'rxjs';
 import { CocApiService } from '../core/api/coc-api';
+import { signInRedirect } from '../core/backend/auth.guards';
+import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
@@ -51,7 +55,9 @@ interface MenuItem {
 })
 export class Shell {
   private readonly config = inject(APP_CONFIG);
-  private readonly sidenav = viewChild.required(MatSidenav);
+  private readonly router = inject(Router);
+  /** Absent while signed out (the navigation is not rendered). */
+  private readonly sidenav = viewChild(MatSidenav);
 
   protected readonly clanName = this.config.clanName;
   protected readonly clanTag = this.config.clanTag;
@@ -73,6 +79,24 @@ export class Shell {
 
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
+  protected readonly auth = inject(AuthService);
+
+  /** Navigation and app pages are only for signed-in users (always shown with mock data). */
+  protected readonly showNav = computed(() => this.useMock || this.auth.isAuthenticated());
+  protected readonly navOpen = signal(false);
+
+  constructor() {
+    // Signed out (button, expired or revoked session): leave the protected page for sign-in,
+    // remembering where the user was.
+    let wasSignedIn = false;
+    effect(() => {
+      const signedIn = this.auth.isAuthenticated();
+      if (wasSignedIn && !signedIn && !this.useMock) {
+        untracked(() => void this.router.navigateByUrl(signInRedirect(this.router, this.router.url)));
+      }
+      wasSignedIn = signedIn;
+    });
+  }
 
   protected changeLanguage(code: LanguageCode): void {
     if (code !== this.language.current()) this.language.use(code).subscribe();
@@ -95,9 +119,17 @@ export class Shell {
 
   protected readonly mode = computed(() => (this.mobile() ? 'over' : 'side'));
 
+  protected signOut(): void {
+    this.auth.signOut().subscribe();
+  }
+
+  protected toggleNav(): void {
+    void this.sidenav()?.toggle();
+  }
+
   protected closeIfMobile(): void {
     if (this.mobile()) {
-      void this.sidenav().close();
+      void this.sidenav()?.close();
     }
   }
 }

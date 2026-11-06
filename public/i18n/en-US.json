@@ -7,7 +7,7 @@
     "skipToContent": "Skip to main content",
     "toggleNavigation": "Open or close the navigation menu",
     "goToDashboard": "{{name}} – go to the dashboard",
-    "brandSubtitle": "Clan {{tag}} · Wars",
+    "brandSubtitle": "Clan {{tag}}",
     "demoData": "Demo data",
     "demoDataTitle": "The data shown is simulated",
     "mainNavigation": "Main navigation",
@@ -32,7 +32,9 @@
     "players": "Players",
     "player": "Player profile",
     "statistics": "Statistics",
-    "notFound": "Page not found"
+    "notFound": "Page not found",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -343,5 +345,87 @@
     "legend": "<strong>Avg. ★ / war</strong> = total stars ÷ wars played: unused attacks count as 0. Ties are broken by average destruction, participation and number of wars. <strong>Defense ★</strong> = average stars conceded to the opponent (lower is better).",
     "periodWars": "Wars in the period ({{n}})",
     "periodWarsTable": "Wars recorded in the period"
+  },
+  "auth": {
+    "fields": {
+      "identifier": "Email or username",
+      "email": "Email",
+      "username": "Username",
+      "password": "Password",
+      "repeatPassword": "Repeat password",
+      "playerTag": "Player tag (optional)"
+    },
+    "hints": {
+      "username": "3–24 characters: letters, digits and . - _",
+      "password": "At least 8 characters, with a letter and a digit",
+      "playerTag": "Your Clash of Clans tag, e.g. #ABC123"
+    },
+    "showPassword": "Show password",
+    "signIn": {
+      "title": "Sign in",
+      "subtitle": "Sign in to save the clan's wars automatically",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "toSignUp": "Sign up"
+    },
+    "signUp": {
+      "title": "Sign up",
+      "subtitle": "Create your account for the Crusade",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "toSignIn": "Sign in"
+    },
+    "account": {
+      "signIn": "Sign in",
+      "menu": "{{name}}'s account",
+      "menuLabel": "Account menu",
+      "signedInAs": "Signed in as",
+      "signOut": "Sign out"
+    },
+    "errors": {
+      "backendUnreachable": "Unable to reach the server. Please try again shortly."
+    }
+  },
+  "SUCCESS": {
+    "USER_CREATED": "Account created",
+    "SIGNED_IN": "Signed in",
+    "SIGNED_OUT": "Signed out",
+    "TOKEN_REFRESHED": "Session renewed",
+    "WAR_CREATED": "War saved",
+    "WAR_UPDATED": "War updated",
+    "WAR_UNCHANGED": "War already up to date"
+  },
+  "ERROR": {
+    "UNAUTHORIZED": "You need to sign in to continue.",
+    "FORBIDDEN": "You don't have permission for this action.",
+    "INVALID_TOKEN": "Invalid session: please sign in again.",
+    "INVALID_CREDENTIALS": "Incorrect email, username or password.",
+    "INVALID_REFRESH_TOKEN": "Session expired: please sign in again.",
+    "ORIGIN_NOT_ALLOWED": "Request not allowed from this origin.",
+    "USER_NOT_FOUND": "User not found.",
+    "EMAIL_IS_ALREADY_TAKEN": "This email is already registered.",
+    "USERNAME_IS_ALREADY_TAKEN": "This username is already taken.",
+    "INVALID_JSON": "Invalid request.",
+    "INVALID_FIELD": "Invalid value.",
+    "EMAIL_SHOULD_NOT_BE_EMPTY": "Enter your email.",
+    "EMAIL_MUST_BE_AN_EMAIL": "Enter a valid email address.",
+    "USERNAME_SHOULD_NOT_BE_EMPTY": "Enter a username.",
+    "USERNAME_IS_NOT_VALID": "3 to 24 characters: letters, digits, dot, hyphen and underscore.",
+    "IDENTIFIER_SHOULD_NOT_BE_EMPTY": "Enter your email or username.",
+    "PASSWORD_SHOULD_NOT_BE_EMPTY": "Enter your password.",
+    "PASSWORD_IS_NOT_STRONG_ENOUGH": "At least 8 characters, with a letter and a digit.",
+    "PASSWORD_IS_TOO_LONG": "The password is too long.",
+    "REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY": "Repeat the password.",
+    "PASSWORDS_DO_NOT_MATCH": "The passwords don't match.",
+    "PLAYER_TAG_IS_NOT_VALID": "Invalid tag: # followed by 3–15 letters or digits.",
+    "WAR_NOT_FOUND": "War not found.",
+    "WAR_IS_NOT_SAVABLE": "This war cannot be saved.",
+    "WAR_CLAN_NOT_ALLOWED": "The war belongs to another clan.",
+    "NOT_FOUND": "Resource not found.",
+    "TOO_MANY_REQUESTS": "Too many attempts: try again in a few minutes.",
+    "SERVICE_UNAVAILABLE": "Service temporarily unavailable.",
+    "UNHANDLED_ERROR": "An unexpected error occurred."
   }
 }
