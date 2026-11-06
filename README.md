@@ -178,6 +178,31 @@ Le statistiche dei giocatori considerano solo le guerre **terminate** e **con de
 (vedi [Da dove arriva lo storico](#da-dove-arriva-lo-storico)). I grafici di andamento del clan usano invece
 i totali, quindi includono anche le guerre con solo riepilogo.
 
+## Cache delle chiamate HTTP
+
+`cacheInterceptor` (`src/app/core/http/`) tiene in memoria le risposte delle GET, così cambiando pagina le stesse API non
+vengono richiamate.
+
+- **GET:** una risposta riuscita resta in cache per `CACHE_DURATION`, 15 minuti di default. Per cambiarla su una
+  singola chiamata si usa `{ context: cacheFor({ minutes: 2 }) }`; con `noCache()` la chiamata va sempre in rete.
+  Richieste identiche fatte nello stesso momento partono una volta sola. Gli errori non vengono salvati.
+- **POST, PUT, PATCH, DELETE:** se riescono, cancellano le GET in cache della stessa API (una chiamata a `/api/v1/…`
+  svuota le `/api/v1/…`). Con `CACHE_INVALIDATES` si scelgono altri prefissi; `['']` svuota tutto. Una GET partita
+  prima dell'invalidazione non salva la sua risposta.
+- **Durate per tipo di dato** (`HttpCocApiService`):
+
+  | Dato | Durata |
+  | --- | --- |
+  | guerra corrente | 2 minuti |
+  | archivio del proxy | 5 minuti |
+  | profilo giocatore | 10 minuti |
+  | clan, registro guerre, storico mensile, traduzioni | 15 minuti (default) |
+
+- **Aggiornamento manuale:** "Aggiorna" nella guerra corrente salta la cache (`WarService.refreshCurrentWar()`); per lo
+  storico c'è `WarService.refreshHistory()`.
+- **Durata della cache:** è in memoria per scheda, quindi ricaricando la pagina riparte vuota. Gli header
+  `Cache-Control` del server non vengono considerati.
+
 ## Aree scorrevoli e riga del giocatore
 
 - **Indicatore di scorrimento:** la direttiva `appScrollFade` (`src/app/shared/directives/scroll-fade.ts`) aggiunge in
@@ -452,6 +477,9 @@ I test unitari coprono:
 - traduzioni (`i18n.spec.ts`): stesse chiavi e segnaposto in tutti i file, scelta della lingua iniziale, cambio
   lingua, formattazione di numeri e date;
 - `WarService` e `PlayerService`;
+- cache HTTP (`cache.interceptor.spec.ts`): durata di default e personalizzata, `noCache`, parametri di query, richieste
+  contemporanee condivise, errori non salvati, invalidazione dopo POST/PUT/PATCH/DELETE riusciti e solo per la stessa
+  API, risposte partite prima dell'invalidazione non salvate;
 - sessione con il backend (`auth.service.spec.ts`): access token in memoria, ripristino dal cookie, un solo refresh
   anche con chiamate contemporanee, Bearer solo verso il backend, nuovo tentativo dopo un 401, sign-out;
 - pagine di accesso e registrazione (`sign-in-page.spec.ts`, `sign-up-page.spec.ts`): errori di validazione tradotti,

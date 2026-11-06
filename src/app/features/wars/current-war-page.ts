@@ -37,6 +37,12 @@ export class CurrentWarPage {
 
   protected readonly resource = rxResource({ stream: () => this.wars.getCurrentWar() });
   protected readonly war = computed(() => (this.resource.hasValue() ? this.resource.value() : null));
+
+  /** "Refresh" skips the cache: the current war is read again from the API. */
+  protected refresh(): void {
+    this.wars.refreshCurrentWar();
+    this.resource.reload();
+  }
   protected readonly rows = computed(() => {
     const w = this.war();
     return w ? participantRows(w) : [];

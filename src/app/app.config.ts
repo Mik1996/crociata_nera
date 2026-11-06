@@ -6,6 +6,7 @@ import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { provideCocApi } from './core/api/provide-coc-api';
 import { authInterceptor } from './core/backend/auth.interceptor';
+import { cacheInterceptor } from './core/http/cache.interceptor';
 import { AuthService } from './core/backend/auth.service';
 import { provideI18n } from './core/i18n/provide-i18n';
 import { configureChartTheme } from './shared/charts/chart-theme';
@@ -20,7 +21,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
     ),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([cacheInterceptor, authInterceptor])),
     // Restores the backend session from the refresh cookie without delaying startup
     // (skipped with mock data, which runs without any backend).
     provideAppInitializer(() => {

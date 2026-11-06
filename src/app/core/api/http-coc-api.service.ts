@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { InterpolationParameters } from '@ngx-translate/core';
 import { APP_CONFIG } from '../config/app-config';
+import { cacheFor } from '../http/http-cache';
 import { TranslatableError } from '../i18n/translatable-error';
 import { Clan, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
 import { CocApiService } from './coc-api';
@@ -40,7 +41,20 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * - `GET {base}/history`                  -> list of months in the monthly history
  * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
  * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}` (clan members only)
+ *
+ * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that
+ * changes during a war (see {@link CACHE}).
  */
+/** Cache duration per kind of data (the others use the 15-minute default). */
+const CACHE = {
+  /** Attacks arrive continuously during the battle day. */
+  currentWar: cacheFor({ minutes: 2 }),
+  /** The proxy archives the current war every 15 minutes. */
+  archive: cacheFor({ minutes: 5 }),
+  /** Profiles change with every upgrade, but rarely within minutes. */
+  player: cacheFor({ minutes: 10 }),
+};
+
 @Injectable()
 export class HttpCocApiService extends CocApiService {
   private readonly http = inject(HttpClient);
@@ -55,7 +69,7 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getCurrentWar(): Observable<War | null> {
-    return this.http.get<CocWar>(`${this.clanPath}/currentwar`).pipe(
+    return this.http.get<CocWar>(`${this.clanPath}/currentwar`, { context: CACHE.currentWar }).pipe(
       map(mapWar),
       catchError((err: HttpErrorResponse) =>
         // Private war log: the API does not expose the current war.
@@ -65,7 +79,7 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getWarHistory(): Observable<War[]> {
-    const archive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`).pipe(
+    const archive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`, { context: CACHE.archive }).pipe(
       map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)),
       // The archive is optional: if missing, only the war log is used.
       catchError(() => of<War[]>([])),
@@ -95,7 +109,7 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {
-    return this.http.get<CocPlayer>(`${this.config.apiBaseUrl}/players/${encodeURIComponent(tag)}`).pipe(
+    return this.http.get<CocPlayer>(`${this.config.apiBaseUrl}/players/${encodeURIComponent(tag)}`, { context: CACHE.player }).pipe(
       map(mapPlayerProfile),
       // 404 = not a member of the clan (the proxy refuses other players).
       catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),

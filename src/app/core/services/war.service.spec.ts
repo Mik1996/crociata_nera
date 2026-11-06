@@ -1,8 +1,10 @@
+import { HttpResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of } from 'rxjs';
 import { provideCocApiTest, sampleWar } from '../../testing/fixtures';
 import { CocApiService } from '../api/coc-api';
 import { MockCocApiService } from '../api/mock-coc-api.service';
+import { HttpCacheService } from '../http/http-cache.service';
 import { WarService } from './war.service';
 
 describe('WarService', () => {
@@ -26,15 +28,21 @@ describe('WarService', () => {
     expect(history[0].endTime >= history[history.length - 1].endTime).toBe(true);
   });
 
-  it('caches the history and reloads it after refreshHistory()', async () => {
-    const spy = vi.spyOn(api, 'getWarHistory');
+  it('refreshHistory() and refreshCurrentWar() drop the cached responses they concern', () => {
+    const cache = TestBed.inject(HttpCacheService);
+    const response = new HttpResponse({ status: 200, body: [] });
+    for (const url of ['/api/coc/archive/wars', '/api/coc/clans/%23X/warlog', '/api/coc/clans/%23X/currentwar', '/api/coc/clans/%23X']) {
+      cache.set(url, response, 60_000, cache.currentGeneration);
+    }
+
     service.refreshHistory();
-    await firstValueFrom(service.getHistory());
-    await firstValueFrom(service.getHistory());
-    expect(spy).toHaveBeenCalledTimes(1);
-    service.refreshHistory();
-    await firstValueFrom(service.getHistory());
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(cache.get('/api/coc/archive/wars')).toBeNull();
+    expect(cache.get('/api/coc/clans/%23X/warlog')).toBeNull();
+    expect(cache.get('/api/coc/clans/%23X/currentwar')).not.toBeNull();
+
+    service.refreshCurrentWar();
+    expect(cache.get('/api/coc/clans/%23X/currentwar')).toBeNull();
+    expect(cache.get('/api/coc/clans/%23X')).not.toBeNull();
   });
 
   it('getLatestWar prefers the current war', async () => {

@@ -2,6 +2,7 @@
   "conventionalCommits.scopes": [
     "account-profile",
     "backend",
-    "welcome-page"
+    "welcome-page",
+    "cache"
   ]
 }
