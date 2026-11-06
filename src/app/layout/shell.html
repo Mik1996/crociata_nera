@@ -1,0 +1,110 @@
+<button type="button" class="skip-link" (click)="content.focus()">{{ 'app.skipToContent' | translate }}</button>
+
+<mat-toolbar class="header" role="banner">
+  @if (mobile()) {
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="'app.toggleNavigation' | translate"
+      [attr.aria-expanded]="sidenav.opened"
+      aria-controls="navigation"
+      (click)="sidenav.toggle()"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <a routerLink="/dashboard" class="brand" [attr.aria-label]="'app.goToDashboard' | translate: { name: clanName }">
+    @if (badgeUrl(); as url) {
+      @if (!badgeFailed()) {
+        <img class="brand__badge" [src]="url" alt="" width="44" height="44" (error)="badgeFailed.set(true)" />
+      }
+    }
+    @if (!badgeUrl() || badgeFailed()) {
+      <svg class="brand__crest" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
+        <path d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z" fill="#141416" stroke="#d9a93f" stroke-width="3" />
+        <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" fill="#7a1414" />
+        <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" fill="#f0c96a" />
+      </svg>
+    }
+    <span class="brand__text">
+      <span class="brand__name">{{ clanName }}</span>
+      <span class="brand__tag">{{ 'app.brandSubtitle' | translate: { tag: clanTag } }}</span>
+    </span>
+  </a>
+
+  <span class="spacer"></span>
+
+  @if (useMock) {
+    <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{ 'app.demoData' | translate }}</span>
+  }
+
+  @let active = language.currentLanguage();
+  <button
+    mat-button
+    type="button"
+    class="language"
+    [matMenuTriggerFor]="languageMenu"
+    [attr.aria-label]="'language.change' | translate: { name: active.name }"
+  >
+    <img class="flag" [src]="active.flag" alt="" width="24" height="16" />
+    <span class="language__code">{{ active.code.slice(0, 2) }}</span>
+    <mat-icon class="language__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+  </button>
+  <mat-menu #languageMenu="matMenu" xPosition="before" class="language-menu" [ariaLabel]="'language.menu' | translate">
+    @for (l of language.languages; track l.code) {
+      <button
+        mat-menu-item
+        type="button"
+        [lang]="l.code"
+        [class.active]="l.code === active.code"
+        [attr.aria-current]="l.code === active.code ? 'true' : null"
+        (click)="changeLanguage(l.code)"
+      >
+        <img class="flag" [src]="l.flag" alt="" width="24" height="16" />
+        <span class="language-name">{{ l.name }}</span>
+        @if (l.code === active.code) {
+          <span class="check material-icons" aria-hidden="true">check</span>
+        }
+      </button>
+    }
+  </mat-menu>
+</mat-toolbar>
+
+<mat-sidenav-container class="container">
+  <mat-sidenav
+    #sidenav
+    id="navigation"
+    class="sidenav"
+    [mode]="mode()"
+    [opened]="!mobile()"
+    [fixedInViewport]="mobile()"
+    fixedTopGap="64"
+  >
+    <nav [attr.aria-label]="'app.mainNavigation' | translate">
+      <mat-nav-list>
+        @for (item of menu; track item.path) {
+          <a
+            mat-list-item
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            #rla="routerLinkActive"
+            [activated]="rla.isActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            (click)="closeIfMobile()"
+          >
+            <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label | translate }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </nav>
+    <p class="sidenav__motto">{{ 'app.motto' | translate }}</p>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <main id="content" #content tabindex="-1" class="content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

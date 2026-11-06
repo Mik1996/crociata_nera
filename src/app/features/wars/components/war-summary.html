@@ -1,0 +1,36 @@
+@let w = war();
+<div class="meta">
+  <app-result-badge [result]="result()" />
+  <span>{{ state() | translate }}</span>
+  <span class="cn-muted">· {{ 'summary.versus' | translate: { n: w.teamSize } }}</span>
+  @if (timeLeft(); as t) {
+    <span class="time-left"><mat-icon aria-hidden="true">schedule</mat-icon>{{ t }}</span>
+  } @else {
+    <span class="cn-muted">· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span>
+  }
+</div>
+
+<div class="scoreboard">
+  @for (side of [w.clan, w.opponent]; track side.tag; let isOpponent = $last) {
+    <section class="side" [class.side--opponent]="isOpponent" [attr.aria-label]="(isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate">
+      <span class="side__role">{{ (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate }}</span>
+      <h2 class="side__name">{{ side.name }}</h2>
+      <span class="cn-muted side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+      <dl class="side__data">
+        <div><dt>{{ 'common.destruction' | translate }}</dt><dd class="cn-num">{{ side.destructionPercentage | localNumber: '1.1-1' }}%</dd></div>
+        <div><dt>{{ 'common.attacks' | translate }}</dt><dd class="cn-num">{{ side.attacksUsed || (w.hasDetails ? 0 : '—') }}/{{ totalAttacks() }}</dd></div>
+      </dl>
+    </section>
+    @if (!isOpponent) {
+      <div class="score" role="group" [attr.aria-label]="'summary.score' | translate">
+        <span class="score__stars cn-num">
+          <span class="cn-visually-hidden">{{ 'summary.starsEarned' | translate }}</span>{{ w.clan.stars }}
+        </span>
+        <span class="score__star" aria-hidden="true">★</span>
+        <span class="score__stars score__stars--theirs cn-num">
+          <span class="cn-visually-hidden">{{ 'summary.starsConceded' | translate }}</span>{{ w.opponent.stars }}
+        </span>
+      </div>
+    }
+  }
+</div>

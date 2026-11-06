@@ -1,0 +1,151 @@
+<app-page-header [title]="'nav.dashboard' | translate" [subtitle]="'dashboard.subtitle' | translate" />
+
+<!-- Latest war and KPIs -->
+<section class="cn-card cn-section" aria-labelledby="latest-war-title">
+  <div class="section-header">
+    <h2 id="latest-war-title">{{ (war()?.state === 'ended' ? 'dashboard.latestWar' : 'dashboard.warInProgress') | translate }}</h2>
+    @if (war(); as w) {
+      <a mat-button [routerLink]="w.state === 'ended' ? ['/wars', w.id] : ['/current-war']">
+        {{ 'common.viewDetails' | translate }} <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+      </a>
+    }
+  </div>
+  <app-load-state
+    [loading]="latest.isLoading()"
+    [error]="latest.error()"
+    [empty]="!war()"
+    emptyIcon="shield"
+    [emptyMessage]="'dashboard.noWar' | translate"
+    (retry)="latest.reload()"
+  >
+    @if (war(); as w) {
+      <app-war-summary [war]="w" />
+    }
+  </app-load-state>
+</section>
+
+@if (kpi(); as k) {
+  <div class="cn-grid-kpi">
+    <app-kpi-card
+      icon="bolt"
+      [label]="'common.attacksUsed' | translate"
+      [value]="k.attacksUsed + '/' + k.attacksAvailable"
+      [hint]="'dashboard.available' | translate: { n: k.attacksAvailable - k.attacksUsed }"
+    />
+    <app-kpi-card
+      icon="star"
+      [label]="'common.averageStars' | translate"
+      [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
+      [hint]="'common.perAttack' | translate"
+    />
+    <app-kpi-card
+      icon="military_tech"
+      [label]="'common.threeStarAttacks' | translate"
+      [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
+    />
+    <app-kpi-card
+      icon="groups"
+      [label]="'common.participation' | translate"
+      [value]="(k.participation | localNumber: '1.0-0') + '%'"
+      [hint]="'dashboard.withoutAttacks' | translate: { n: k.participantsWithoutAttacks }"
+    />
+  </div>
+}
+
+<!-- Ranking -->
+<section class="cn-card cn-section" aria-labelledby="ranking-title">
+  <div class="section-header">
+    <h2 id="ranking-title">{{ 'dashboard.rankingTitle' | translate }}</h2>
+    <a mat-button routerLink="/players">
+      {{ 'dashboard.allPlayers' | translate }} <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+    </a>
+  </div>
+  <p class="cn-muted note" [innerHTML]="'dashboard.rankingNote' | translate"></p>
+  <app-load-state
+    [loading]="members.isLoading()"
+    [error]="members.error()"
+    [empty]="best().length === 0"
+    [emptyMessage]="'dashboard.rankingEmpty' | translate"
+    (retry)="members.reload()"
+  >
+    <div class="rankings">
+      @for (list of rankings(); track list.title) {
+        <div class="ranking" [class]="'ranking--' + list.modifier">
+          <h3><mat-icon aria-hidden="true">{{ list.icon }}</mat-icon> {{ list.title | translate }}</h3>
+          <ol>
+            @for (s of list.entries; track s.tag; let i = $index) {
+              <li>
+                <span class="ranking__pos" aria-hidden="true">{{ i + 1 }}</span>
+                <span class="ranking__name">
+                  <a class="cn-link-cell" [routerLink]="['/players', s.tag]">{{ s.name }}</a>
+                  <span class="cn-muted">{{
+                    'dashboard.playerInfo' | translate: { th: s.townHall, used: s.attacksUsed, available: s.attacksAvailable }
+                  }}</span>
+                </span>
+                <span class="ranking__value cn-num">
+                  <strong>{{ efficiency(s) | localNumber: '1.2-2' }}</strong>
+                  <span class="cn-muted">{{ 'dashboard.averagePerAttack' | translate: { average: (s.averageStars | localNumber: '1.2-2') } }}</span>
+                </span>
+              </li>
+            }
+          </ol>
+        </div>
+      }
+    </div>
+  </app-load-state>
+</section>
+
+<!-- Trend -->
+<section aria-labelledby="trend-title">
+  <h2 id="trend-title" class="trend-title">{{ 'dashboard.trend' | translate: { n: trend().length } }}</h2>
+  <app-load-state
+    [loading]="history.isLoading()"
+    [error]="history.error()"
+    [empty]="trend().length === 0"
+    emptyIcon="insights"
+    [emptyMessage]="'dashboard.trendEmpty' | translate"
+    (retry)="history.reload()"
+  >
+    <div class="cn-grid-2">
+      <section class="cn-card cn-section wide-chart" aria-labelledby="stars-chart-title">
+        <h3 id="stars-chart-title">{{ 'dashboard.starsChart' | translate }}</h3>
+        <div class="cn-chart">
+          <canvas
+            baseChart
+            type="line"
+            [data]="starsData()"
+            [options]="starsOptions"
+            role="img"
+            [attr.aria-label]="'dashboard.starsChartLabel' | translate"
+          ></canvas>
+        </div>
+      </section>
+      <section class="cn-card cn-section" aria-labelledby="participation-chart-title">
+        <h3 id="participation-chart-title">{{ 'dashboard.participationChart' | translate }}</h3>
+        <div class="cn-chart">
+          <canvas
+            baseChart
+            type="bar"
+            [data]="participationData()"
+            [options]="participationOptions"
+            role="img"
+            [attr.aria-label]="'dashboard.participationChartLabel' | translate"
+          ></canvas>
+        </div>
+      </section>
+      <section class="cn-card cn-section" aria-labelledby="destruction-chart-title">
+        <h3 id="destruction-chart-title">{{ 'dashboard.destructionChart' | translate }}</h3>
+        <div class="cn-chart">
+          <canvas
+            baseChart
+            type="line"
+            [data]="destructionData()"
+            [options]="destructionOptions"
+            role="img"
+            [attr.aria-label]="'dashboard.destructionChartLabel' | translate"
+          ></canvas>
+        </div>
+      </section>
+    </div>
+  </app-load-state>
+</section>

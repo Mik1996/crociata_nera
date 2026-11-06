@@ -1,0 +1,54 @@
+.tag {
+  font-size: 0.75rem;
+}
+
+.attendance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attendance__bar {
+  display: inline-block;
+  width: 48px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--cn-surface-3);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--cn-red-mid), var(--cn-gold));
+  }
+}
+
+.missing-attacks {
+  color: var(--cn-red-text);
+}
+
+.no-results {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--cn-text-muted);
+}
+
+.notice {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+
+  mat-icon {
+    flex: none;
+    color: var(--cn-gold);
+  }
+
+  p {
+    margin: 0;
+    color: var(--cn-text-muted);
+  }
+
+  strong {
+    color: var(--cn-text);
+  }
+}

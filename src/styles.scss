@@ -1,0 +1,261 @@
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// "Crociata Nera" theme: black/anthracite with gold and dark red accents.
+// ---------------------------------------------------------------------------
+
+:root {
+  --cn-bg: #0d0d0f;
+  --cn-surface: #18181b;
+  --cn-surface-2: #222226;
+  --cn-surface-3: #2c2c31;
+  --cn-border: #34343a;
+  --cn-gold: #d9a93f;
+  --cn-gold-light: #f0c96a;
+  --cn-gold-dark: #8a6a24;
+  --cn-red: #7a1414;
+  --cn-red-mid: #a11d1d;
+  --cn-red-text: #f0675f; // red readable on a dark background (contrast > 4.5:1)
+  --cn-win: #63cf83;
+  --cn-text: #ece6da;
+  --cn-text-muted: #aaa396;
+  --cn-font-display: 'Cinzel', Georgia, serif;
+  --cn-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --cn-radius: 10px;
+}
+
+html {
+  color-scheme: dark;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$yellow-palette,
+        tertiary: mat.$red-palette,
+      ),
+      typography: (
+        plain-family: var(--cn-font-body),
+        brand-family: var(--cn-font-display),
+      ),
+      density: 0,
+    )
+  );
+
+  // System token tweaks to match the clan palette.
+  --mat-sys-primary: var(--cn-gold);
+  --mat-sys-on-primary: #1d1503;
+  --mat-sys-surface: var(--cn-surface);
+  --mat-sys-surface-container: var(--cn-surface-2);
+  --mat-sys-surface-container-high: var(--cn-surface-3);
+  --mat-sys-surface-container-low: var(--cn-surface);
+  --mat-sys-on-surface: var(--cn-text);
+  --mat-sys-on-surface-variant: var(--cn-text-muted);
+  --mat-sys-outline: #5a5a62;
+  --mat-sys-outline-variant: var(--cn-border);
+
+  @include mat.table-overrides(
+    (
+      background-color: transparent,
+      header-headline-color: var(--cn-gold-light),
+      row-item-outline-color: var(--cn-border),
+    )
+  );
+  @include mat.paginator-overrides(
+    (
+      container-background-color: transparent,
+    )
+  );
+  @include mat.sidenav-overrides(
+    (
+      container-background-color: #121214,
+      content-background-color: var(--cn-bg),
+      container-shape: 0,
+    )
+  );
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--cn-bg);
+  color: var(--cn-text);
+  font-family: var(--cn-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--cn-gold-light);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--cn-font-display);
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: 1.15rem;
+  color: var(--cn-gold-light);
+  margin: 0 0 0.75rem;
+}
+
+// Clearly visible focus for keyboard navigation.
+:focus-visible {
+  outline: 2px solid var(--cn-gold-light);
+  outline-offset: 2px;
+}
+
+.cn-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Reusable layout components
+// ---------------------------------------------------------------------------
+
+.cn-card {
+  background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
+  border: 1px solid var(--cn-border);
+  border-top: 2px solid var(--cn-red-mid);
+  border-radius: var(--cn-radius);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.cn-section {
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.cn-grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.cn-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 1.25rem;
+}
+
+.cn-chart {
+  position: relative;
+  height: 260px;
+}
+
+.cn-muted {
+  color: var(--cn-text-muted);
+}
+
+.cn-num {
+  font-variant-numeric: tabular-nums;
+}
+
+// Filters above tables
+.cn-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  align-items: center;
+
+  mat-form-field {
+    flex: 1 1 180px;
+    min-width: 160px;
+  }
+}
+
+// Responsive tables: horizontal scrolling on narrow screens.
+.cn-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  table {
+    width: 100%;
+    min-width: 640px;
+  }
+
+  th.mat-mdc-header-cell {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  tr.cn-row-link {
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(217, 169, 63, 0.07);
+    }
+  }
+}
+
+.cn-th {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  background: var(--cn-surface-3);
+  border: 1px solid var(--cn-gold-dark);
+  color: var(--cn-gold-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cn-link-cell {
+  color: var(--cn-text);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--cn-gold-light);
+    text-decoration: underline;
+  }
+}
+
+/* Language picker menu (rendered in an overlay, outside the shell). */
+.language-menu {
+  .mat-mdc-menu-item {
+    min-width: 180px;
+  }
+
+  .mat-mdc-menu-item-text {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .flag {
+    width: 24px;
+    height: 16px;
+    border-radius: 2px;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+
+  .active {
+    color: var(--cn-gold-light);
+    font-weight: 600;
+  }
+
+  .check {
+    margin-left: auto;
+    font-size: 20px;
+    color: var(--cn-gold);
+  }
+}

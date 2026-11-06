@@ -1,59 +1,319 @@
-# CrociataNera
+# Crociata Nera · Guerre di clan
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.6.
+Webapp Angular per il clan **Crociata Nera** di Clash of Clans (tag `#2J8JVVCLC`).
+Permette di consultare le guerre del clan e di analizzare nel tempo le performance dei partecipanti.
 
-## Development server
+I dati reali arrivano dall'[API ufficiale di Clash of Clans](https://developer.clashofclans.com) tramite un
+piccolo **proxy Node** incluso nel progetto (`server/`), che conserva il token lontano dal browser.
+Per provare l'interfaccia senza token è disponibile una modalità con **dati mock** di fantasia.
 
-To start a local development server, run:
+## Funzionalità
+
+| Pagina | Percorso | Contenuto |
+| --- | --- | --- |
+| Dashboard | `/dashboard` | Riepilogo dell'ultima guerra, KPI (attacchi, media stelle, % 3 stelle, partecipazione), classifica migliori e peggiori, grafici di andamento |
+| Guerra corrente | `/current-war` | Clan contro avversario, tempo residuo, partecipanti con filtri (nome, municipio, stelle) ed evidenza di chi non ha ancora attaccato |
+| Storico guerre | `/wars` | Tabella con ricerca, filtro per risultato, ordinamento e paginazione |
+| Dettaglio guerra | `/wars/:id` | Performance individuali di una guerra |
+| Giocatori | `/players` | Elenco membri con statistiche di guerra, ricerca e ordinamento |
+| Scheda giocatore | `/players/:tag` | Guerre disputate, presenza, attacchi, stelle, media, % 3 stelle, distruzione media, grafici e storico |
+| Statistiche | `/statistics` | Classifica dei membri per **media stelle per guerra** (max 6), per mese o su tutti i mesi, dallo storico mensile del proxy |
+
+Inoltre:
+
+- stati di caricamento, assenza dati ed errore (con pulsante "Riprova") su ogni sezione;
+- accessibilità di base: link "Vai al contenuto", focus visibile, etichette ARIA, stato non affidato al solo colore, palette dei grafici verificata per contrasto e daltonismo;
+- layout responsive: menu laterale fisso su desktop, a scomparsa su mobile; tabelle con scorrimento orizzontale;
+- interfaccia in **italiano, inglese e spagnolo**, con selettore della lingua nell'header (vedi [Lingue](#lingue)).
+
+## Requisiti
+
+- Node.js 24 (vedi `.nvmrc`) e npm 11
+
+## Avvio
+
+### Con i dati reali
+
+1. Crea il file `.env` partendo dall'esempio e inserisci il token (vedi [Chiave API](#chiave-api)):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. In due terminali separati:
+
+   ```bash
+   npm install
+   npm run server       # proxy su http://localhost:3000
+   npm start            # app su http://localhost:4200 (le chiamate /api/coc vanno al proxy)
+   ```
+
+### Con i dati mock (senza token né backend)
 
 ```bash
-ng serve
+npm run start:mock
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Altri comandi
 
 ```bash
-ng generate component component-name
+npm test                    # test unitari del frontend (Vitest) in modalità watch
+npx ng test --watch=false   # esecuzione singola, per CI
+npm run test:server         # test del proxy (node:test)
+npm run build               # build di produzione in dist/crociata_nera
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Stack
 
-```bash
-ng generate --help
+- **Angular 22**: componenti standalone, signals, `rxResource`, change detection zoneless, controllo di flusso `@if`/`@for`
+- **Angular Material 22**: tema Material 3 scuro personalizzato (nero/antracite, oro, rosso scuro)
+- **Chart.js 4 + ng2-charts 11** per i grafici
+- **ngx-translate 18** per le traduzioni
+- **Vitest** + jsdom per i test unitari
+- **Proxy**: Node.js 24 senza dipendenze (`node:http`, `fetch` nativa, `node:test`)
+
+## Convenzioni
+
+Il codice è scritto in **inglese**: nomi di file, tipi, variabili, funzioni, classi CSS, chiavi di traduzione,
+commenti e descrizioni dei test. L'italiano (come inglese e spagnolo) compare solo nei testi dell'interfaccia,
+in `public/i18n/*.json`.
+
+## Struttura del progetto
+
+```
+server/                           Proxy verso l'API ufficiale
+├── index.mjs                     Avvio, lettura .env, aggiornamento periodico dell'archivio
+├── app.mjs                       Server HTTP con le sole rotte consentite
+├── coc-client.mjs                Client API con token e cache in memoria
+├── archive.mjs                   Archivio delle guerre (server/data/wars.json)
+├── history.mjs                   Storico mensile e statistiche cumulative (server/data/history/AAAA-MM.json)
+├── server.test.mjs               Test del proxy
+└── history.test.mjs              Test dello storico mensile
+proxy.conf.json                   Inoltro /api/coc → proxy durante `npm start`
+.env.example                      Modello delle variabili d'ambiente del proxy
+src/
+├── environments/                 Configurazione (mock/API, URL proxy, tag clan)
+│   ├── environment.ts            produzione (npm run build) – dati reali
+│   ├── environment.development.ts sviluppo (npm start) – dati reali via proxy
+│   └── environment.mock.ts       demo (npm run start:mock) – dati mock
+└── app/
+    ├── app.config.ts             Provider globali (router, HTTP, grafici, traduzioni)
+    ├── app.routes.ts             Rotte con caricamento lazy delle pagine
+    ├── core/
+    │   ├── models/               Interfacce: Clan, War, WarParticipant, Attack, PlayerStats, HistoryPeriod…
+    │   ├── config/app-config.ts  Interfaccia AppConfig + token APP_CONFIG
+    │   ├── api/
+    │   │   ├── coc-api.ts            Contratto astratto CocApiService
+    │   │   ├── mock-coc-api.service.ts  Implementazione mock
+    │   │   ├── http-coc-api.service.ts  Implementazione HTTP (via proxy)
+    │   │   ├── coc-api.types.ts      Tipi della risposta dell'API ufficiale
+    │   │   ├── coc-api.mappers.ts    Conversione API → modelli dell'app
+    │   │   └── provide-coc-api.ts    Sceglie mock o HTTP in base alla configurazione
+    │   ├── mock/                 Generatore di dati mock deterministico
+    │   ├── services/             WarService (guerre), PlayerService (membri e statistiche), HistoryService (storico mensile)
+    │   ├── utils/                Calcolo statistiche (war-stats), ordinamento e ricerca
+    │   └── i18n/                 Lingue, LanguageService, pipe localNumber/localDate, titolo pagina e paginatore tradotti
+    ├── shared/
+    │   ├── components/           LoadState, KpiCard, ResultBadge, Stars, PageHeader
+    │   ├── charts/chart-theme.ts Tema e helper per i grafici
+    │   └── labels.ts             Chiavi di traduzione per stati, risultati e ruoli
+    ├── layout/                   Shell: header "Crociata Nera" + menu laterale
+    ├── features/
+    │   ├── dashboard/
+    │   ├── wars/                 Guerra corrente, storico, dettaglio + componenti condivisi
+    │   ├── players/              Elenco e scheda giocatore
+    │   ├── statistics/           Classifica dallo storico mensile
+    │   └── not-found/
+    └── testing/                  Dati e provider per i test (fixtures.ts, i18n.ts)
+public/
+├── i18n/                         Traduzioni: it-IT.json, en-US.json, es-ES.json
+└── flags/                        Bandiere del selettore lingua
 ```
 
-## Building
+### Flusso dei dati
 
-To build the project run:
-
-```bash
-ng build
+```
+Pagine (rxResource) ─► WarService / PlayerService ─► CocApiService (astratto)
+                                                        ├─ MockCocApiService  (useMockApi: true)
+                                                        └─ HttpCocApiService  (useMockApi: false)
+                                                              │
+                              browser ─► /api/coc (proxy.conf.json) ─► server/ (token) ─► api.clashofclans.com/v1
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Le statistiche (KPI, medie, percentuali, rendimento) si calcolano lato client in
+`core/utils/war-stats.ts`, quindi funzionano allo stesso modo con i dati mock e con quelli reali.
 
-## Running unit tests
+### Definizioni delle metriche
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+- **Media stelle**: stelle totali / attacchi usati.
+- **% 3 stelle**: attacchi da 3 stelle / attacchi usati.
+- **Partecipazione** (KPI di guerra): partecipanti con almeno un attacco / partecipanti schierati.
+- **Partecipazione** (grafico): attacchi usati / attacchi disponibili.
+- **Presenza** (giocatore): guerre in cui era schierato / guerre analizzate (ultime `statsWindow`).
+- **Rendimento** (classifica): stelle totali / attacchi *disponibili*. Un attacco non usato vale 0 stelle.
+  Nella classifica entra solo chi ha disputato almeno 3 guerre.
 
-```bash
-ng test
-```
+Le statistiche dei giocatori considerano solo le guerre **terminate** e **con dettaglio dei partecipanti**
+(vedi [Da dove arriva lo storico](#da-dove-arriva-lo-storico)). I grafici di andamento del clan usano invece
+i totali, quindi includono anche le guerre con solo riepilogo.
 
-## Running end-to-end tests
+## Lingue
 
-For end-to-end (e2e) testing, run:
+L'interfaccia è disponibile in italiano (`it-IT`), inglese (`en-US`) e spagnolo (`es-ES`). Il pulsante con la
+bandiera a destra nell'header apre il menu delle lingue; la scelta viene ricordata nel browser (`localStorage`).
+Al primo accesso si usa la lingua del browser, se supportata, altrimenti l'italiano.
 
-```bash
-ng e2e
-```
+- I testi sono in `public/i18n/<codice>.json` e vengono caricati con ngx-translate al cambio lingua.
+  L'italiano è anche la lingua di riserva per le chiavi mancanti.
+- Numeri e date seguono la lingua scelta (`1.234,5` / `1,234.5`; `05/11/2026` / `11/05/2026`) tramite le pipe
+  `localNumber` e `localDate` in `core/i18n/locale-pipes.ts`; i formati di data sono nei file di traduzione (`formats.*`).
+- Anche titolo della scheda del browser, etichette dei grafici, paginatore, testi per screen reader e messaggi
+  d'errore dell'API cambiano lingua. Restano invariati i dati di gioco (nomi di clan e giocatori, tag).
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Per aggiungere una lingua: crea `public/i18n/<codice>.json` con le stesse chiavi dell'italiano, aggiungi la bandiera
+in `public/flags/`, la voce in `LANGUAGES` (`core/i18n/languages.ts`) e, se serve, i dati di formattazione con
+`registerLocaleData` in `locale-pipes.ts`. Un test verifica che tutti i file abbiano le stesse chiavi e gli stessi
+segnaposto.
 
-## Additional Resources
+## Configurazione
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Frontend
+
+Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
+
+| Chiave | Descrizione | Default |
+| --- | --- | --- |
+| `useMockApi` | `true` = dati mock, `false` = chiamate HTTP al proxy | `false` (`true` solo in `environment.mock.ts`) |
+| `apiBaseUrl` | URL base del **proxy backend** | `/api/coc` |
+| `clanTag` | Tag del clan, con `#` | `#2J8JVVCLC` |
+| `clanName` | Nome mostrato nell'header | `Crociata Nera` |
+| `mockLatencyMs` | Latenza simulata del mock (ms) | `500` dev / `300` prod |
+| `statsWindow` | Numero di guerre usate per le statistiche dei giocatori | `20` |
+
+### Proxy (`.env`)
+
+| Variabile | Descrizione | Default |
+| --- | --- | --- |
+| `COC_API_TOKEN` | Token dell'API (obbligatorio) | — |
+| `COC_CLAN_TAG` | Tag del clan, **tra virgolette** (in `.env` il `#` inizia un commento) | `"#2J8JVVCLC"` |
+| `PORT` | Porta del proxy; deve coincidere con `target` in `proxy.conf.json` | `3000` |
+| `COC_POLL_MINUTES` | Ogni quanti minuti archiviare la guerra corrente (`0` = mai) | `15` |
+| `COC_ARCHIVE_FILE` | File dell'archivio | `server/data/wars.json` |
+| `COC_HISTORY_DIR` | Cartella dello storico mensile | `server/data/history` |
+
+`.env` e `server/data/` sono esclusi da git.
+
+## Dati reali dall'API di Clash of Clans
+
+### Chiave API
+
+1. Accedi a <https://developer.clashofclans.com> e crea una chiave.
+2. Nel campo **IP addresses** inserisci l'**IP pubblico della macchina su cui gira il proxy**
+   (per scoprirlo: `curl https://api.ipify.org`). La chiave funziona **solo** da quegli IP.
+3. Copia il token in `COC_API_TOKEN` nel file `.env`.
+
+Se l'IP cambia (le connessioni domestiche hanno spesso IP dinamico) l'app mostra l'errore
+*"La chiave API non autorizza l'indirizzo IP del server proxy"* con l'IP rilevato: crea una nuova chiave
+con quell'IP. Il portale permette più chiavi per account.
+
+**Non inserire mai il token nel codice del frontend** né negli `environment.ts`: sarebbe pubblico.
+Il browser non può comunque chiamare l'API direttamente (IP variabili, nessun CORS).
+
+### Endpoint del proxy
+
+Il proxy accetta solo `GET` sulle rotte del clan configurato, quindi non funziona come inoltro aperto:
+
+| Endpoint del proxy | Sorgente |
+| --- | --- |
+| `GET /api/coc/clans/{tag}` | `GET /v1/clans/{tag}`: dati del clan e `memberList` |
+| `GET /api/coc/clans/{tag}/currentwar` | `GET /v1/clans/{tag}/currentwar`: guerra corrente con attacchi |
+| `GET /api/coc/clans/{tag}/warlog` | `GET /v1/clans/{tag}/warlog?limit=50`: riepiloghi delle guerre passate |
+| `GET /api/coc/archive/wars` | Snapshot `currentwar` salvati dal proxy |
+| `GET /api/coc/history` | Elenco dei mesi dello storico, con il bilancio delle guerre |
+| `GET /api/coc/history/AAAA-MM` | Guerre e statistiche dei giocatori di un mese (404 se vuoto) |
+| `GET /api/coc/history/all` | Tutti i mesi sommati |
+| `GET /api/health` | Stato del proxy |
+
+Le risposte dell'API restano in cache per 60 secondi. Gli errori dell'API (`{ reason, message }`) vengono
+inoltrati invariati, così il frontend distingue i casi.
+
+### Da dove arriva lo storico
+
+L'API ufficiale **non fornisce gli attacchi individuali delle guerre passate**:
+
+- `/currentwar` contiene partecipanti e attacchi, ma solo per la guerra in corso, o appena finita (`warEnded`);
+- `/warlog` elenca le guerre passate con risultato, stelle e distruzione, ma **senza partecipanti**.
+
+Per questo il proxy interroga `/currentwar` ogni `COC_POLL_MINUTES` minuti e salva l'ultimo snapshot di
+ogni guerra in `server/data/wars.json`. Il frontend unisce le due sorgenti:
+
+- guerre **archiviate**: dettaglio completo, con i totali definitivi presi dal registro;
+- guerre presenti **solo nel registro**: segnate come *"solo riepilogo"* nello storico. Il dettaglio mostra
+  il tabellone senza la tabella dei partecipanti, e queste guerre sono escluse dalle statistiche dei giocatori.
+
+Conseguenza pratica: le statistiche individuali si costruiscono **da quando il proxy è attivo**. Tienilo in
+esecuzione con continuità (server, Raspberry Pi, VPS…) per non perdere guerre: ne basta uno snapshot
+durante le ~24 ore di `warEnded`.
+
+### Storico mensile e classifica
+
+Quando una guerra arriva allo stato `warEnded` (sia con il controllo periodico sia quando qualcuno apre la guerra
+corrente), il proxy la **somma allo storico del mese in cui è terminata** (fuso orario Europe/Rome):
+`server/data/history/2026-11.json`. All'avvio recupera anche le guerre terminate già presenti nell'archivio.
+
+Ogni file mensile contiene:
+
+- `guerre`: riepilogo di ogni guerra (avversario, risultato, stelle, distruzione) con, per ogni giocatore,
+  municipio, posizione, attacchi disponibili, ogni attacco (stelle, distruzione, municipio e posizione del bersaglio),
+  attacchi subiti e stelle concesse in difesa;
+- `giocatori`: totali per giocatore ricalcolati a ogni guerra. Comprendono guerre, attacchi disponibili, usati e
+  mancati, stelle, attacchi da 3/2/1/0 stelle, **media stelle per guerra**, media stelle per attacco, % 3 stelle,
+  distruzione media, partecipazione e media delle stelle concesse.
+
+La registrazione è **idempotente**: la stessa guerra, cioè con lo stesso inizio della preparazione e lo stesso
+avversario, sostituisce la precedente invece di essere contata due volte.
+
+La pagina **Statistiche** mostra la classifica ordinata per **media stelle per guerra** = stelle totali ÷ guerre
+disputate. Il massimo è 6, cioè due attacchi da 3 stelle, e gli attacchi non usati valgono 0. A parità decidono
+distruzione media, partecipazione e numero di guerre. Si può scegliere un mese o "Tutti i mesi", filtrare per numero
+minimo di guerre e nascondere gli ex membri.
+
+> Le guerre della Lega (CWL) non passano da `/currentwar` e quindi non entrano nello storico.
+> Per un backup basta copiare la cartella `server/data/`.
+
+### Casi particolari
+
+| Risposta API | Comportamento dell'app |
+| --- | --- |
+| `403 accessDenied.invalidIp` | Errore con l'IP rilevato: crea una chiave per quell'IP |
+| `403 accessDenied` su `currentwar`/`warlog` | Registro guerre del clan **privato**: nessuna guerra visibile. Rendilo pubblico dalle impostazioni del clan nel gioco |
+| `state: notInWar` | "Il clan non è attualmente in guerra" |
+| `429 requestThrottled` / `503 inMaintenance` | Messaggio dedicato e pulsante Riprova |
+| Proxy spento | "Proxy non raggiungibile. Avvia il backend con npm run server" |
+| Voci CWL nel registro (`result: null`) | Ignorate: le guerre della Lega usano endpoint diversi, non ancora gestiti |
+
+### In produzione
+
+Pubblica `dist/crociata_nera/browser` come sito statico e rendi raggiungibile il proxy sotto `/api/coc`
+dello stesso dominio, per esempio con un reverse proxy nginx verso `node server/index.mjs`. In alternativa
+imposta in `environment.ts` l'URL completo del proxy e abilita CORS sul proxy. La chiave API deve
+autorizzare l'IP pubblico del server dove gira il proxy.
+
+## Test
+
+I test unitari coprono:
+
+- calcolo statistiche e KPI (`war-stats.spec.ts`), ordinamento e ricerca (`sort.spec.ts`);
+- generatore mock: determinismo e rispetto delle regole di guerra (`mock-data.spec.ts`);
+- mapper dell'API ufficiale, compresi registro guerre, voci CWL e unione con l'archivio (`coc-api.mappers.spec.ts`);
+- servizio HTTP con `HttpTestingController`: tag codificato, assenza del token, distinzione tra registro privato e IP
+  non autorizzato, proxy spento, unione di archivio e registro;
+- proxy (`server/server.test.mjs`): archiviazione, inoltro con token, errori, rotte non consentite, cache;
+- storico mensile (`server/history.test.mjs`, `monthly-history.spec.ts`): somma delle guerre, medie, ordinamento della
+  classifica, mese con fuso italiano, idempotenza, registrazioni concorrenti, rotte;
+- pagina Statistiche: ordinamento per media stelle, filtro sul minimo di guerre, storico vuoto;
+- traduzioni (`i18n.spec.ts`): stesse chiavi e segnaposto in tutti i file, scelta della lingua iniziale, cambio
+  lingua, formattazione di numeri e date;
+- `WarService` e `PlayerService`;
+- componenti: shell e header (badge del clan, menu lingue), `LoadState` (errori tradotti), tabella partecipanti (filtri ed evidenza di chi non ha attaccato),
+  pagina guerra corrente (dati, assenza guerra, errore).
