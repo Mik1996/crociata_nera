@@ -432,6 +432,18 @@ h2 {
 }
 
 /*
+ * No visible scrollbars anywhere: scrolling still works (wheel, touch, keyboard) and the
+ * `appScrollFade` bands show when there is more content.
+ */
+* {
+  scrollbar-width: none; // Firefox, Chrome 121+
+
+  &::-webkit-scrollbar {
+    display: none; // Safari, older Chrome
+  }
+}
+
+/*
  * Scroll hint (directive `appScrollFade`): sticky blurred bands at the top/bottom edge of a
  * scrollable area, shown only when there is more content in that direction. They overlay the
  * content (negative margins: no layout shift) and never catch clicks.
