@@ -75,11 +75,7 @@ function rowFromWar(w: War): HistoryRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
   templateUrl: './war-history-page.html',
-  styles: `
-    .summary-only {
-      font-style: italic;
-    }
-  `,
+  styleUrl: './war-history-page.scss',
 })
 export class WarHistoryPage {
   private readonly wars = inject(WarService);

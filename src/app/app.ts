@@ -5,6 +5,7 @@ import { Shell } from './layout/shell';
   selector: 'app-root',
   imports: [Shell],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: '<app-shell />',
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {}

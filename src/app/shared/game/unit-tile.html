@@ -1,0 +1,22 @@
+<div
+  class="unit__tile"
+  [matTooltip]="
+    unit().name +
+    ' · ' +
+    ('player.level' | translate: { level: unit().level, max: unit().maxLevel })
+  "
+>
+  @if (unit().icon; as icon) {
+    <img [src]="icon" alt="" loading="lazy" decoding="async" />
+  } @else {
+    <span class="unit__initials" aria-hidden="true">{{ initials() }}</span>
+  }
+  <app-level-badge class="unit__badge" [level]="unit().level" [maxed]="maxed()" />
+</div>
+<span class="unit__name">{{ unit().name }}</span>
+<span class="cn-visually-hidden">
+  {{
+    (maxed() ? 'player.maxed' : 'player.level')
+      | translate: { level: unit().level, max: unit().maxLevel }
+  }}
+</span>

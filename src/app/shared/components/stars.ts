@@ -6,19 +6,8 @@ import { LanguageService } from '../../core/i18n/language.service';
   selector: 'app-stars',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { role: 'img', '[attr.aria-label]': 'label()' },
-  template: `@for (filled of stars(); track $index) {<span [class.filled]="filled" aria-hidden="true">★</span>}`,
-  styles: `
-    :host {
-      display: inline-flex;
-      letter-spacing: 1px;
-      font-size: var(--cn-fs-md);
-      line-height: 1;
-      color: var(--cn-star-empty);
-    }
-    .filled {
-      color: var(--cn-gold);
-    }
-  `,
+  templateUrl: './stars.html',
+  styleUrl: './stars.scss',
 })
 export class Stars {
   readonly value = input.required<number>();

@@ -25,59 +25,8 @@ export function errorMessage(error: unknown, translate: (key: string, params?: o
   selector: 'app-load-state',
   imports: [MatProgressSpinnerModule, MatIconModule, MatButtonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    @if (loading()) {
-      <div class="state" role="status" aria-live="polite">
-        <mat-spinner diameter="44" [attr.aria-label]="'status.loading' | translate" />
-        <p>{{ loadingMessage() ?? ('status.loading' | translate) }}</p>
-      </div>
-    } @else if (error()) {
-      <div class="state state--error" role="alert">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
-        <p><strong>{{ 'status.errorTitle' | translate }}</strong></p>
-        <p class="detail">{{ errorText() }}</p>
-        <button mat-stroked-button type="button" (click)="retry.emit()">
-          <mat-icon aria-hidden="true">refresh</mat-icon> {{ 'status.retry' | translate }}
-        </button>
-      </div>
-    } @else if (empty()) {
-      <div class="state state--empty" role="status">
-        <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
-        <p>{{ emptyMessage() ?? ('status.noData' | translate) }}</p>
-      </div>
-    } @else {
-      <ng-content />
-    }
-  `,
-  styles: `
-    .state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 3rem 1rem;
-      text-align: center;
-      color: var(--cn-text-muted);
-    }
-    .state > mat-icon {
-      font-size: 44px;
-      width: 44px;
-      height: 44px;
-      color: var(--cn-gold);
-    }
-    .state--error > mat-icon {
-      color: var(--cn-red-text);
-    }
-    .state p {
-      margin: 0;
-    }
-    .detail {
-      font-size: var(--cn-fs-md);
-    }
-    button {
-      margin-top: 0.75rem;
-    }
-  `,
+  templateUrl: './load-state.html',
+  styleUrl: './load-state.scss',
 })
 export class LoadState {
   readonly loading = input(false);

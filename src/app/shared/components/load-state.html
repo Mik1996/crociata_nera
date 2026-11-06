@@ -1,0 +1,24 @@
+@if (loading()) {
+  <div class="state" role="status" aria-live="polite">
+    <mat-spinner diameter="44" [attr.aria-label]="'status.loading' | translate" />
+    <p>{{ loadingMessage() ?? ('status.loading' | translate) }}</p>
+  </div>
+} @else if (error()) {
+  <div class="state state--error" role="alert">
+    <mat-icon aria-hidden="true">error_outline</mat-icon>
+    <p>
+      <strong>{{ 'status.errorTitle' | translate }}</strong>
+    </p>
+    <p class="detail">{{ errorText() }}</p>
+    <button mat-stroked-button type="button" (click)="retry.emit()">
+      <mat-icon aria-hidden="true">refresh</mat-icon> {{ 'status.retry' | translate }}
+    </button>
+  </div>
+} @else if (empty()) {
+  <div class="state state--empty" role="status">
+    <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
+    <p>{{ emptyMessage() ?? ('status.noData' | translate) }}</p>
+  </div>
+} @else {
+  <ng-content />
+}

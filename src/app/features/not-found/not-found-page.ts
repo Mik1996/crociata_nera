@@ -8,14 +8,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-not-found-page',
   imports: [RouterLink, MatButtonModule, MatIconModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="cn-card cn-section" style="text-align: center; padding: 3rem 1rem">
-      <h1 style="color: var(--cn-gold-light); margin-top: 0">{{ 'notFound.title' | translate }}</h1>
-      <p class="cn-muted">{{ 'notFound.text' | translate }}</p>
-      <a mat-flat-button routerLink="/dashboard">
-        <mat-icon aria-hidden="true">home</mat-icon> {{ 'notFound.back' | translate }}
-      </a>
-    </section>
-  `,
+  templateUrl: './not-found-page.html',
+  styleUrl: './not-found-page.scss',
 })
 export class NotFoundPage {}

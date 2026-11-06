@@ -1,0 +1,77 @@
+<app-page-header
+  [title]="
+    war()
+      ? ('warDetail.versus' | translate: { name: war()!.opponent.name })
+      : ('nav.warDetail' | translate)
+  "
+  [subtitle]="'warDetail.subtitle' | translate"
+>
+  <a mat-stroked-button routerLink="/wars">
+    <mat-icon aria-hidden="true">arrow_back</mat-icon> {{ 'warDetail.back' | translate }}
+  </a>
+</app-page-header>
+
+<div class="page__scroll">
+  <app-load-state
+    [loading]="resource.isLoading()"
+    [error]="resource.error()"
+    [empty]="!war()"
+    emptyIcon="search_off"
+    [emptyMessage]="'warDetail.notFound' | translate"
+    (retry)="resource.reload()"
+  >
+    @if (war(); as w) {
+      <section class="cn-card cn-section" [attr.aria-label]="'common.battleSummary' | translate">
+        <app-war-summary [war]="w" />
+      </section>
+
+      @if (!w.hasDetails) {
+        <section class="cn-card cn-section notice" role="note">
+          <mat-icon aria-hidden="true">info</mat-icon>
+          <div>
+            <h2>{{ 'warDetail.noticeTitle' | translate }}</h2>
+            <p class="cn-muted">{{ 'warDetail.noticeText' | translate }}</p>
+          </div>
+        </section>
+      }
+
+      @if (kpi(); as k) {
+        <div class="cn-grid-kpi">
+          <app-kpi-card
+            icon="bolt"
+            [label]="'common.attacksUsed' | translate"
+            [value]="k.attacksUsed + '/' + k.attacksAvailable"
+          />
+          <app-kpi-card
+            icon="star"
+            [label]="'common.averageStars' | translate"
+            [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
+            [hint]="'common.perAttack' | translate"
+          />
+          <app-kpi-card
+            icon="military_tech"
+            [label]="'common.threeStarAttacks' | translate"
+            [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
+          />
+          <app-kpi-card
+            icon="groups"
+            [label]="'common.participation' | translate"
+            [value]="(k.participation | localNumber: '1.0-0') + '%'"
+            [hint]="'warDetail.participationHint' | translate"
+          />
+        </div>
+      }
+
+      @if (w.hasDetails) {
+        <section class="cn-card cn-section" aria-labelledby="performance-title">
+          <h2 id="performance-title">{{ 'warDetail.performance' | translate }}</h2>
+          <app-war-participants-table
+            [rows]="rows()"
+            [attacksPerMember]="w.attacksPerMember"
+            [inProgress]="w.state !== 'ended'"
+          />
+        </section>
+      }
+    }
+  </app-load-state>
+</div>

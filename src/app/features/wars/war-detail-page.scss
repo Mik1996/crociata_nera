@@ -1,0 +1,18 @@
+.notice {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.notice mat-icon {
+  flex: none;
+  color: var(--cn-gold);
+}
+
+.notice h2 {
+  margin-bottom: 0.25rem;
+}
+
+.notice p {
+  margin: 0;
+}

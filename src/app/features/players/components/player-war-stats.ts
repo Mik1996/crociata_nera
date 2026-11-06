@@ -26,6 +26,7 @@ import { ResultBadge } from '../../../shared/components/result-badge';
   imports: [LocalDatePipe, LocalNumberPipe, TranslatePipe, RouterLink, MatTableModule, BaseChartDirective, KpiCard, ResultBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-war-stats.html',
+  styleUrl: './player-war-stats.scss',
 })
 export class PlayerWarStats {
   private readonly language = inject(LanguageService);
