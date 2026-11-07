@@ -1,32 +1,17 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
-import { InterpolationParameters } from '@ngx-translate/core';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
-import { TranslatableError } from '../i18n/translatable-error';
-import { Clan, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
+import { Clan, ClanRanks, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
 import { CocApiService } from './coc-api';
+import { CocApiClient } from './coc-api-client';
 import { closeExpiredWars, mapClan, mapWar, mapWarLogEntry, mergeWarHistory, mapPlayerProfile } from './coc-api.mappers';
-import { CocClan, CocClientError, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
+import { errorBody, isPrivateWarLog, toApiError } from './coc-api-errors';
+import { CocClan, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
 
-/**
- * API error carrying Supercell's original `reason` (e.g. `accessDenied.invalidIp`).
- * `message` is in English (logs and diagnostics); the UI uses `i18nKey` to translate it.
- */
-export class CocApiHttpError extends Error implements TranslatableError {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly reason?: string,
-    readonly i18nKey = 'errors.server',
-    readonly i18nParams?: InterpolationParameters,
-  ) {
-    super(message);
-    this.name = 'CocApiHttpError';
-  }
-}
+export { CocApiHttpError, toApiError } from './coc-api-errors';
 
 /**
  * HTTP implementation of the data layer.
@@ -41,7 +26,9 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * - `GET {base}/archive/wars`             -> `currentwar` snapshots saved by the proxy (with details)
  * - `GET {base}/history`                  -> list of months in the monthly history
  * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
- * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}` (clan members only)
+ * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}`
+ *
+ * Every other official endpoint is available, as raw responses, through `CocApiClient`.
  *
  * War history and monthly statistics come first from the application backend
  * (`{backend}/wars/archive`, `{backend}/history`), which saves every war in MongoDB; if the
@@ -50,6 +37,11 @@ export class CocApiHttpError extends Error implements TranslatableError {
  * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that
  * changes during a war (see {@link CACHE}).
  */
+/** Location id of the worldwide ("International") rankings. */
+export const GLOBAL_LOCATION_ID = 32000006;
+/** The rankings list at most the top 200 clans. */
+const RANKING_SIZE = 200;
+
 /** Saved wars requested from the backend for the history (the war log covers older ones). */
 const ARCHIVE_LIMIT = 60;
 
@@ -67,6 +59,7 @@ const CACHE = {
 export class HttpCocApiService extends CocApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);
+  private readonly client = inject(CocApiClient);
 
   private get clanPath(): string {
     return `${this.config.apiBaseUrl}/clans/${encodeURIComponent(this.config.clanTag)}`;
@@ -74,6 +67,25 @@ export class HttpCocApiService extends CocApiService {
 
   getClan(): Observable<Clan> {
     return this.http.get<CocClan>(this.clanPath).pipe(map(mapClan), catchError(toApiError));
+  }
+
+  getClanRanks(): Observable<ClanRanks> {
+    return this.getClan().pipe(
+      switchMap((clan) =>
+        forkJoin({
+          local: clan.locationId ? this.rankIn(clan.locationId) : of(undefined),
+          global: this.rankIn(GLOBAL_LOCATION_ID),
+        }),
+      ),
+    );
+  }
+
+  /** Position of the clan in a location ranking: `null` beyond the top 200, `undefined` on errors. */
+  private rankIn(locationId: number): Observable<number | null | undefined> {
+    return this.client.clanRankings(locationId, { limit: RANKING_SIZE }).pipe(
+      map((ranking) => ranking.items.find((c) => c.tag === this.config.clanTag)?.rank ?? null),
+      catchError(() => of(undefined)),
+    );
   }
 
   getCurrentWar(): Observable<War | null> {
@@ -136,7 +148,7 @@ export class HttpCocApiService extends CocApiService {
   getPlayer(tag: string): Observable<PlayerProfile | null> {
     return this.http.get<CocPlayer>(`${this.config.apiBaseUrl}/players/${encodeURIComponent(tag)}`, { context: CACHE.player }).pipe(
       map(mapPlayerProfile),
-      // 404 = not a member of the clan (the proxy refuses other players).
+      // 404 = the player does not exist.
       catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
     );
   }
@@ -157,50 +169,4 @@ export class HttpCocApiService extends CocApiService {
 /** The backend answered with its envelope (as opposed to a proxy or network error). */
 function isBackendError(err: HttpErrorResponse): boolean {
   return typeof err.error === 'object' && err.error !== null && 'status' in err.error && 'messages' in err.error;
-}
-
-function errorBody(err: HttpErrorResponse): CocClientError | undefined {
-  return typeof err.error === 'object' && err.error && 'reason' in err.error
-    ? (err.error as CocClientError)
-    : undefined;
-}
-
-/** 403 `accessDenied` (without `.invalidIp`) = the clan war log is not public. */
-function isPrivateWarLog(err: HttpErrorResponse): boolean {
-  return err.status === 403 && errorBody(err)?.reason === 'accessDenied';
-}
-
-function toApiError(err: HttpErrorResponse): Observable<never> {
-  const body = errorBody(err);
-  const reason = body?.reason;
-  const fail = (key: string, message: string, params?: InterpolationParameters) =>
-    throwError(() => new CocApiHttpError(message.trim(), err.status, reason, key, params));
-
-  if (reason === 'accessDenied.invalidIp') {
-    const detail = body?.message ?? '';
-    return fail(
-      'errors.invalidIp',
-      'The API key does not allow the IP address of the proxy server. ' +
-        'Create a new key on developer.clashofclans.com with the correct IP. ' +
-        detail,
-      { detail },
-    );
-  }
-  if (reason === 'accessDenied') {
-    return fail('errors.accessDenied', 'Access denied by the API: invalid or expired token.');
-  }
-  if (reason === 'proxy.unreachable') {
-    return fail('errors.apiUnreachable', 'The proxy cannot reach api.clashofclans.com.');
-  }
-  if (err.status === 0 || err.status === 502 || err.status === 504 || (err.status === 500 && !body)) {
-    return fail('errors.proxyUnreachable', 'Proxy unreachable. Start the backend with “npm run server”.');
-  }
-  const known: Record<number, [string, string]> = {
-    404: ['errors.notFound', 'Clan or resource not found.'],
-    429: ['errors.tooManyRequests', 'Too many requests to the API: try again in a moment.'],
-    503: ['errors.maintenance', 'Clash of Clans API under maintenance.'],
-  };
-  const match = known[err.status];
-  if (match) return fail(match[0], match[1]);
-  return fail('errors.server', body?.message ?? `Server error (${err.status}).`, { status: err.status });
 }

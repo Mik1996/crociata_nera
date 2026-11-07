@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Clan, HistoryPeriod, MonthSummary, PlayerProfile, War } from '../models';
+import { Clan, ClanRanks, HistoryPeriod, MonthSummary, PlayerProfile, War } from '../models';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -11,6 +11,9 @@ import { Clan, HistoryPeriod, MonthSummary, PlayerProfile, War } from '../models
 export abstract class CocApiService {
   /** Clan and member information. */
   abstract getClan(): Observable<Clan>;
+
+  /** Position of the clan in its country's and in the worldwide trophy rankings. */
+  abstract getClanRanks(): Observable<ClanRanks>;
 
   /** War in progress or in preparation; `null` if the clan is not at war. */
   abstract getCurrentWar(): Observable<War | null>;

@@ -3,7 +3,7 @@ import { delay, Observable, of } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { generateMockData, MockDataset } from '../mock/mock-data';
 import { mockPlayer } from '../mock/mock-player';
-import { Clan, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, War } from '../models';
+import { Clan, ClanRanks, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, War } from '../models';
 import { historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
 import { CocApiService } from './coc-api';
 import { mapPlayerProfile } from './coc-api.mappers';
@@ -26,6 +26,11 @@ export class MockCocApiService extends CocApiService {
 
   getClan(): Observable<Clan> {
     return this.respond(this.data.clan);
+  }
+
+  /** In the top 200 of its country, not worldwide. */
+  getClanRanks(): Observable<ClanRanks> {
+    return this.respond({ local: 27, global: null });
   }
 
   getCurrentWar(): Observable<War | null> {

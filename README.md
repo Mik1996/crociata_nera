@@ -108,7 +108,9 @@ in `public/i18n/*.json`.
 server/                           Proxy verso l'API ufficiale
 ├── index.mjs                     Avvio, lettura .env, aggiornamento periodico dell'archivio
 ├── app.mjs                       Server HTTP con le sole rotte consentite
-├── coc-client.mjs                Client API con token e cache in memoria
+├── coc-routes.mjs                Elenco degli endpoint ufficiali inoltrati, con validazione dei parametri
+├── rate-limit.mjs                Limite di richieste per IP sugli endpoint generici
+├── coc-client.mjs                Client API con token e cache in memoria (al massimo 1000 risposte)
 ├── archive.mjs                   Archivio delle guerre (server/data/wars.json)
 ├── history.mjs                   Storico mensile e statistiche cumulative (server/data/history/AAAA-MM.json)
 ├── server.test.mjs               Test del proxy
@@ -130,6 +132,7 @@ src/
     │   │   ├── coc-api.ts            Contratto astratto CocApiService
     │   │   ├── mock-coc-api.service.ts  Implementazione mock
     │   │   ├── http-coc-api.service.ts  Implementazione HTTP (via proxy)
+    │   │   ├── coc-api-client.ts     Client grezzo di tutti gli endpoint GET dell'API ufficiale
     │   │   ├── coc-api.types.ts      Tipi della risposta dell'API ufficiale
     │   │   ├── coc-api.mappers.ts    Conversione API → modelli dell'app
     │   │   └── provide-coc-api.ts    Sceglie mock o HTTP in base alla configurazione
@@ -165,6 +168,14 @@ Pagine (rxResource) ─► WarService / PlayerService ─► CocApiService (astr
                                                               │
                               browser ─► /api/coc (proxy.conf.json) ─► server/ (token) ─► api.clashofclans.com/v1
 ```
+
+### Tutti gli endpoint dell'API ufficiale
+
+`CocApiClient` (`core/api/coc-api-client.ts`) espone un metodo per ogni endpoint GET dell'API di
+Clash of Clans (giocatori, clan, leghe, posizioni e classifiche), con le risposte così come arrivano
+dall'API. Il proxy li inoltra solo se sono nell'elenco di `server/coc-routes.mjs`: percorsi e
+parametri vengono validati, le richieste sono limitate a 60 al minuto per IP (le rotte del nostro
+clan non hanno limite) e le risposte restano in cache da 1 minuto a 1 ora a seconda del tipo di dato.
 
 Le statistiche (KPI, medie, percentuali, rendimento) si calcolano lato client in
 `core/utils/war-stats.ts`, quindi funzionano allo stesso modo con i dati mock e con quelli reali.
@@ -248,7 +259,7 @@ La scelta dell'immagine dal nome della lega è in `src/app/core/game/clan-assets
 ## Scheda giocatore
 
 Cliccando un giocatore si apre la sua scheda, ispirata al profilo del gioco. I dati arrivano da
-`GET /v1/players/{tag}` tramite il proxy, che risponde solo per i membri attuali del clan (non è un inoltro aperto).
+`GET /v1/players/{tag}` tramite il proxy.
 
 - **Intestazione**: municipio (con livello dell'arma), stella dell'esperienza, nome, ruolo, clan, preferenza di guerra,
   etichette, lega con icona ufficiale, trofei e record.

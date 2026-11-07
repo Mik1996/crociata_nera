@@ -85,6 +85,7 @@ export function mapClan(raw: CocClan): Clan {
     clanPoints: raw.clanPoints ?? 0,
     capitalPoints: raw.clanCapitalPoints ?? 0,
     location: raw.location?.name,
+    locationId: raw.location?.id,
     countryCode: raw.location?.isCountry ? raw.location.countryCode : undefined,
     chatLanguage: raw.chatLanguage?.name,
     labels: (raw.labels ?? []).map((l) => ({ name: l.name, iconUrl: l.iconUrls?.medium ?? l.iconUrls?.small })),

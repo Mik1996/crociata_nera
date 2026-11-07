@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
 import { APP_CONFIG, AppConfig } from '../../core/config/app-config';
-import { Clan } from '../../core/models';
+import { Clan, ClanRanks } from '../../core/models';
 import { WelcomePage } from './welcome-page';
 
 const clan: Clan = {
@@ -27,10 +27,10 @@ const clan: Clan = {
 };
 
 describe('WelcomePage', () => {
-  async function render(data: Clan) {
+  async function render(data: Clan, ranks: ClanRanks = { local: 12, global: null }) {
     TestBed.configureTestingModule({
       providers: [
-        { provide: CocApiService, useValue: { getClan: () => of(data) } },
+        { provide: CocApiService, useValue: { getClan: () => of(data), getClanRanks: () => of(ranks) } },
         { provide: APP_CONFIG, useValue: { clanTag: '#2J8JVVCLC' } as AppConfig },
       ],
     });
@@ -64,6 +64,23 @@ describe('WelcomePage', () => {
 
     expect(el.textContent).toContain('Capitale non ancora fondata');
     expect(el.textContent).toContain('Non classificato');
+  });
+
+  it('shows the positions in the country and worldwide rankings', async () => {
+    const el = await render({ ...clan, countryCode: 'IT' });
+    const ranks = Array.from(el.querySelectorAll('.hero__stat--rank')).map((li) => [
+      li.querySelector('.hero__stat-value')?.textContent?.trim(),
+      li.querySelector('.hero__stat-label')?.textContent?.trim(),
+    ]);
+    expect(ranks).toEqual([
+      ['#12', 'Classifica Italia'],
+      ['200+', 'Classifica mondiale'],
+    ]);
+  });
+
+  it('hides the rankings that are not available', async () => {
+    const el = await render(clan, { local: undefined, global: undefined });
+    expect(el.querySelectorAll('.hero__stat--rank')).toHaveLength(0);
   });
 
   it('invites players to join, with the in-game link and the open spots', async () => {

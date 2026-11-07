@@ -36,6 +36,8 @@ export interface Clan {
   capitalPoints: number;
   /** Country or region (e.g. "Italy"). */
   location?: string;
+  /** Location id, for the location rankings. */
+  locationId?: number;
   /** ISO country code, for the flag (e.g. "IT"). */
   countryCode?: string;
   chatLanguage?: string;
@@ -58,4 +60,15 @@ export interface ClanLeague {
 export interface ClanLabel {
   name: string;
   iconUrl?: string;
+}
+
+/**
+ * Position of the clan in the trophy rankings (`GET /locations/{id}/rankings/clans`).
+ * The API only lists the top 200 clans: `null` = not in the top 200, `undefined` = not available.
+ */
+export interface ClanRanks {
+  /** Ranking of the clan's country. */
+  local?: number | null;
+  /** Worldwide ranking. */
+  global?: number | null;
 }

@@ -273,9 +273,10 @@ $scene-muted: #cfd7e8;
 
 .hero__stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  // Up to 6 stats (with the rankings): one row on wide screens, then they wrap evenly.
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.5rem;
-  width: min(100%, 640px);
+  width: min(100%, 960px);
   margin: 0.75rem 0 0;
   padding: 0;
   list-style: none;
@@ -304,6 +305,11 @@ $scene-muted: #cfd7e8;
   }
 }
 
+// Positions in the country's and worldwide rankings.
+.hero__stat--rank .hero__stat-value {
+  color: var(--cn-game-gold);
+}
+
 .hero__stat-label {
   font-size: var(--cn-fs-2xs);
   letter-spacing: 0.05em;
@@ -327,7 +333,7 @@ $scene-muted: #cfd7e8;
   gap: 0.35rem;
   padding: 0.2rem 0.7rem 0.2rem 0.3rem;
   border: 1px solid rgba(255, 216, 98, 0.45);
-  border-radius: 999px;
+  border-radius: 0.25rem;
   background: rgba(10, 14, 24, 0.7);
   font-size: var(--cn-fs-xs);
   color: $scene-ink;

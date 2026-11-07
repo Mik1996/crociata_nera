@@ -3,6 +3,11 @@
     "account-profile",
     "backend",
     "welcome-page",
-    "cache"
+    "cache",
+    "services"
+  ],
+  "i18n-ally.localesPaths": [
+    "public/i18n",
+    "src/app/core/i18n"
   ]
 }

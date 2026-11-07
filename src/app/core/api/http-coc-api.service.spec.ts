@@ -74,6 +74,26 @@ describe('HttpCocApiService', () => {
     expect((await response).name).toBe('Crociata Nera');
   });
 
+  it('finds the clan in its country and worldwide rankings (null beyond the top 200)', async () => {
+    const response = firstValueFrom(api.getClanRanks());
+    http.expectOne(CLAN).flush({
+      tag: '#2J8JVVCLC', name: 'Crociata Nera', clanLevel: 10, memberList: [],
+      location: { id: 32000120, name: 'Italy', isCountry: true, countryCode: 'IT' },
+    });
+    http
+      .expectOne('/proxy/locations/32000120/rankings/clans?limit=200')
+      .flush({ items: [{ tag: '#OTHER', rank: 1 }, { tag: '#2J8JVVCLC', rank: 12 }] });
+    http.expectOne('/proxy/locations/32000006/rankings/clans?limit=200').flush({ items: [{ tag: '#OTHER', rank: 1 }] });
+    expect(await response).toEqual({ local: 12, global: null });
+  });
+
+  it('leaves a ranking undefined when it cannot be loaded', async () => {
+    const response = firstValueFrom(api.getClanRanks());
+    http.expectOne(CLAN).flush({ tag: '#2J8JVVCLC', name: 'Crociata Nera', clanLevel: 10, memberList: [] });
+    http.expectOne('/proxy/locations/32000006/rankings/clans?limit=200').flush({}, { status: 429, statusText: 'Too Many' });
+    expect(await response).toEqual({ local: undefined, global: undefined });
+  });
+
   it('treats a private war log (403 accessDenied) as no war', async () => {
     const response = firstValueFrom(api.getCurrentWar());
     http.expectOne(`${CLAN}/currentwar`).flush({ reason: 'accessDenied' }, { status: 403, statusText: 'Forbidden' });

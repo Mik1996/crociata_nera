@@ -486,6 +486,8 @@
     "warWins": "Guerre vinte",
     "winStreak": "Serie di vittorie",
     "clanPoints": "Punti clan",
+    "rankLocal": "Classifica {{country}}",
+    "rankGlobal": "Classifica mondiale",
     "labels": "Etichette del clan",
     "unranked": "Non classificato",
     "capital": {

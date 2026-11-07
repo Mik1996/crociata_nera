@@ -1,9 +1,13 @@
 // HTTP proxy between the frontend and the Clash of Clans API.
 // The token stays on the server; the frontend only talks to this proxy.
+// It is not an open relay: besides the routes of the configured clan, it only forwards the
+// official GET endpoints listed in `coc-routes.mjs`, with validated parameters and a per-IP limit.
 
 import { createServer } from 'node:http';
 import { CocApiError } from './coc-client.mjs';
+import { resolveCocRoute } from './coc-routes.mjs';
 import { MONTH_REGEX } from './history.mjs';
+import { clientIp, RateLimiter } from './rate-limit.mjs';
 
 /**
  * Saves a `currentwar` response to the archive and, if the war has ended, to the monthly history.
@@ -25,12 +29,16 @@ export async function saveWar(war, { archive, history }) {
  * @param {{ client: import('./coc-client.mjs').CocClient,
  *           archive: import('./archive.mjs').WarArchive,
  *           history: import('./history.mjs').MonthlyHistory,
- *           clanTag: string }} deps
+ *           clanTag: string,
+ *           rateLimiter?: RateLimiter }} deps
  */
-export function createApp({ client, archive, history, clanTag }) {
+export function createApp({ client, archive, history, clanTag, rateLimiter = new RateLimiter() }) {
   const encodedTag = encodeURIComponent(clanTag);
 
-  /** Allowed routes: only the configured clan (the proxy is not an open relay). */
+  /**
+   * Routes of the configured clan, used by the site's own pages: not rate limited, and the
+   * current war is archived on every read.
+   */
   const routes = {
     [`/api/coc/clans/${encodedTag}`]: () => client.clan(clanTag),
     [`/api/coc/clans/${encodedTag}/currentwar`]: async () => {
@@ -45,23 +53,8 @@ export function createApp({ client, archive, history, clanTag }) {
     '/api/health': async () => ({ status: 'ok', clanTag }),
   };
 
-  /**
-   * Player profile, only for current members of the clan (checked against the cached member list),
-   * so the proxy cannot be used to look up arbitrary players.
-   */
-  async function memberProfile(playerTag) {
-    const clan = await client.clan(clanTag);
-    if (!clan.memberList?.some((m) => m.tag === playerTag)) {
-      throw new CocApiError(404, { reason: 'notFound', message: `Player ${playerTag} is not a member of the clan` });
-    }
-    return client.player(playerTag);
-  }
-
-  /** Parameterised routes: `/api/coc/history/YYYY-MM` and `/api/coc/players/{tag}`. */
-  function dynamicHandler(path) {
-    const playerTag = /^\/api\/coc\/players\/(%23[0-9A-Z]{1,15})$/i.exec(path)?.[1];
-    if (playerTag) return () => memberProfile(decodeURIComponent(playerTag).toUpperCase());
-
+  /** Monthly history: `/api/coc/history/YYYY-MM`. */
+  function historyHandler(path) {
     const month = /^\/api\/coc\/history\/(\d{4}-\d{2})$/.exec(path)?.[1];
     if (!month || !MONTH_REGEX.test(month)) return undefined;
     return async () => {
@@ -73,14 +66,37 @@ export function createApp({ client, archive, history, clanTag }) {
     };
   }
 
+  /**
+   * Any other official endpoint in the allowlist (`coc-routes.mjs`): validated, rate limited per
+   * IP and cached by the client.
+   * @returns {{ handler?: () => Promise<unknown>, status?: number, error?: string, retryAfter?: number }}
+   */
+  function cocHandler(req, url) {
+    if (!url.pathname.startsWith('/api/coc/')) return {};
+    const resolved = resolveCocRoute(url.pathname.slice('/api/coc'.length), url.searchParams);
+    if ('error' in resolved) return { status: resolved.status, error: resolved.error };
+    const retryAfter = rateLimiter.hit(clientIp(req));
+    if (retryAfter) return { status: 429, error: 'Too many requests: try again shortly', retryAfter };
+    return { handler: () => client.get(resolved.upstream, resolved.ttlMs) };
+  }
+
   return createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
-    const handler =
-      req.method === 'GET' ? (routes[url.pathname] ?? dynamicHandler(url.pathname)) : undefined;
-
-    if (!handler) {
-      return respond(res, 404, { reason: 'notFound', message: `Route not available: ${url.pathname}` });
+    if (req.method !== 'GET') {
+      return respond(res, 405, { reason: 'methodNotAllowed', message: 'Only GET requests are supported' });
     }
+
+    let handler = routes[url.pathname] ?? historyHandler(url.pathname);
+    if (!handler) {
+      const coc = cocHandler(req, url);
+      if (!coc.handler) {
+        const reason = coc.status === 429 ? 'requestThrottled' : coc.status === 400 ? 'badRequest' : 'notFound';
+        const headers = coc.retryAfter ? { 'Retry-After': String(coc.retryAfter) } : {};
+        return respond(res, coc.status ?? 404, { reason, message: coc.error ?? `Route not available: ${url.pathname}` }, headers);
+      }
+      handler = coc.handler;
+    }
+
     try {
       respond(res, 200, await handler());
     } catch (err) {
@@ -94,7 +110,7 @@ export function createApp({ client, archive, history, clanTag }) {
   });
 }
 
-function respond(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+function respond(res, status, body, headers = {}) {
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers });
   res.end(JSON.stringify(body));
 }

@@ -68,6 +68,20 @@
             <span class="hero__stat-value cn-num">{{ c.clanPoints | localNumber }}</span>
             <span class="hero__stat-label">{{ 'welcome.clanPoints' | translate }}</span>
           </li>
+          @if (ranks(); as r) {
+            @if (r.local !== undefined && country()) {
+              <li class="hero__stat--rank">
+                <span class="hero__stat-value cn-num">{{ r.local ? '#' + r.local : '200+' }}</span>
+                <span class="hero__stat-label">{{ 'welcome.rankLocal' | translate: { country: country() } }}</span>
+              </li>
+            }
+            @if (r.global !== undefined && r.global !== null && r.global <= 200) {
+              <li class="hero__stat--rank">
+                <span class="hero__stat-value cn-num">{{ '#' + r.global }}</span>
+                <span class="hero__stat-label">{{ 'welcome.rankGlobal' | translate }}</span>
+              </li>
+            }
+          }
         </ul>
 
         @if (c.labels.length) {

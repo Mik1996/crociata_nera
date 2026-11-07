@@ -486,6 +486,8 @@
     "warWins": "Wars won",
     "winStreak": "Win streak",
     "clanPoints": "Clan points",
+    "rankLocal": "{{country}} ranking",
+    "rankGlobal": "Global ranking",
     "labels": "Clan labels",
     "unranked": "Unranked",
     "capital": {
