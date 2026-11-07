@@ -482,7 +482,9 @@
     "ROLES_ARE_NOT_VALID": "Ruoli non validi.",
     "PERIOD_IS_NOT_VALID": "Periodo non valido.",
     "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo.",
-    "CWL_SEASON_NOT_FOUND": "Stagione della Lega non trovata."
+    "CWL_SEASON_NOT_FOUND": "Stagione della Lega non trovata.",
+    "PLAYER_NOT_FOUND": "Giocatore non trovato.",
+    "PLAYERS_SYNC_FAILED": "Lettura dei membri da Clash of Clans non riuscita."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -699,8 +701,9 @@
     "history": {
       "earned": "encomi conquistati",
       "earnedOne": "encomio conquistato",
-      "hint": "Contati su tutti i periodi conclusi salvati dal sito: mesi di guerra, Raid Weekend e stagioni della Lega.",
-      "times": "{{n}} volte"
+      "hint": "Contati quando ogni periodo si è concluso (mese di guerra, Raid Weekend, stagione della Lega) e salvati: restano invariati anche se le regole cambiano.",
+      "times": "{{n}} volte",
+      "others": "Altri encomi"
     }
   },
   "join": {

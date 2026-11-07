@@ -92,3 +92,33 @@
     opacity: 0.7;
   }
 }
+
+// Commendations saved under a code that no longer exists (renamed or retired rules).
+.others {
+  margin-top: 1rem;
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-family: var(--cn-font-display);
+    font-size: var(--cn-fs-md);
+    color: var(--cn-heading);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: inline-flex;
+    gap: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--cn-border);
+    border-radius: 999px;
+    background: var(--cn-tint-neutral);
+  }
+}

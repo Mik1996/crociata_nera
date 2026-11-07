@@ -38,9 +38,11 @@ export class PlayerCommendations {
     stream: ({ params }) => this.commendations.historyForPlayer(params),
   });
 
+  private readonly earned = computed(() => (this.history.hasValue() ? this.history.value() : []));
+
   /** One row per commendation, bronze → gold, with the count of each medal. */
   protected readonly rows = computed(() => {
-    const counts = this.history.hasValue() ? this.history.value() : new Map();
+    const counts = new Map(this.earned().map((c) => [`${c.type}-${c.tier}`, c.quantity]));
     return COMMENDATION_TYPES.map((type) => ({
       type,
       medals: TIERS_ASCENDING.map((tier) => ({
@@ -52,7 +54,15 @@ export class PlayerCommendations {
     }));
   });
 
-  protected readonly total = computed(() =>
-    this.rows().reduce((sum, row) => sum + row.medals.reduce((s, m) => s + m.count, 0), 0),
-  );
+  /**
+   * Saved commendations that are not among the current ones (renamed or retired after they
+   * were awarded): still part of the player's history, translated from their type and tier
+   * (the keys must stay in the translation files).
+   */
+  protected readonly others = computed(() => {
+    const known = new Set(this.rows().flatMap((r) => r.medals.map((m) => m.emblem as string)));
+    return this.earned().filter((c) => !known.has(`${c.type}-${c.tier}`));
+  });
+
+  protected readonly total = computed(() => this.earned().reduce((sum, c) => sum + c.quantity, 0));
 }

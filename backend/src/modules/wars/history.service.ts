@@ -136,7 +136,7 @@ export function toHistoryWar(war: WarDocument): HistoryWar | null {
   };
 }
 
-function compareForRanking(a: HistoryPlayerStats, b: HistoryPlayerStats): number {
+export function compareForRanking(a: HistoryPlayerStats, b: HistoryPlayerStats): number {
   return (
     b.averageStarsPerWar - a.averageStarsPerWar ||
     b.averageDestruction - a.averageDestruction ||

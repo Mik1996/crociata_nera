@@ -29,4 +29,18 @@
       </li>
     }
   </ul>
+
+  @if (others().length) {
+    <section class="others" aria-labelledby="other-commendations">
+      <h3 id="other-commendations">{{ 'commendations.history.others' | translate }}</h3>
+      <ul>
+        @for (c of others(); track c.id) {
+          <li>
+            <span>{{ 'commendations.' + c.type + '.' + c.tier | translate }}</span>
+            <span class="cn-num">× {{ c.quantity }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 </app-load-state>

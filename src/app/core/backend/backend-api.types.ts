@@ -71,3 +71,31 @@ export interface SignInRequest {
   identifier: string;
   password: string;
 }
+
+/**
+ * A commendation earned, as saved by the backend. Translated from `type` and `tier`
+ * (`commendations.<type>.<tier>`).
+ */
+export interface EarnedCommendation {
+  /** Unique id of the commendation (backend catalogue, e.g. `95000015`). */
+  id: string;
+  /** `<type>-<tier>`, e.g. `capitalRaider-gold` (also the name of the medal image). */
+  name: string;
+  type: string;
+  tier: string;
+  quantity: number;
+}
+
+/** `GET /api/v1/players/{tag}`: a saved player (current or former member) and the commendations earned. */
+export interface PlayerRecord {
+  tag: string;
+  name: string;
+  role: string | null;
+  townHallLevel: number | null;
+  expLevel: number | null;
+  trophies: number | null;
+  league: { id: number; name: string; iconUrl?: string } | null;
+  inClan: boolean;
+  lastSeenAt: string | null;
+  commendations: EarnedCommendation[];
+}

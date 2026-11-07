@@ -1,5 +1,6 @@
 import { env } from '../config/env';
 import { connectToDatabase } from '../db/mongoose';
+import { syncCommendations } from '@/modules/commendations/commendation-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
@@ -63,6 +64,8 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     logReport(report);
     await runCwlSync();
     await runRaidSync();
+    // Last: commendations of the periods closed by the syncs above.
+    await runCommendationSync();
     return report;
   } finally {
     state.running = false;
@@ -88,6 +91,19 @@ async function runRaidSync(): Promise<void> {
     if (raids.error) console.warn(`[raid-sync] ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
   } catch (error) {
     console.error('[raid-sync] run failed:', error);
+  }
+}
+
+/** Members' data and commendations of the closed periods (saved once, never recomputed). */
+async function runCommendationSync(): Promise<void> {
+  try {
+    const result = await syncCommendations();
+    if (result.error) console.warn(`[commendations] members not updated: ${result.error.reason} (${result.error.status})`);
+    if (result.periodsProcessed.length) {
+      console.info(`[commendations] ${result.awards} awarded for ${result.periodsProcessed.join(', ')}`);
+    }
+  } catch (error) {
+    console.error('[commendations] run failed:', error);
   }
 }
 

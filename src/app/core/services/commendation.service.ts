@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { CocApiService } from '../api/coc-api';
+import { EarnedCommendation } from '../backend/backend-api.types';
+import { PlayerRecordsService } from '../backend/player-records.service';
+import { APP_CONFIG } from '../config/app-config';
 import { Commendation, CommendationEmblem, CommendationPeriods, CwlSeason, PlayerCommendations, RaidSeason } from '../models';
 import {
   awardCommendations,
@@ -33,6 +36,8 @@ export interface ClanCommendations extends CommendationPeriods {
 export class CommendationService {
   private readonly history = inject(HistoryService);
   private readonly api = inject(CocApiService);
+  private readonly records = inject(PlayerRecordsService);
+  private readonly useMock = inject(APP_CONFIG).useMockApi;
 
   forClan(now = new Date()): Observable<ClanCommendations> {
     const month = previousMonth(now);
@@ -93,9 +98,22 @@ export class CommendationService {
     return forkJoin([months$, raids$, cwl$]).pipe(map((sources) => countCommendations(sources.flat())));
   }
 
-  /** How many times the player earned each medal (medals never earned are missing). */
-  historyForPlayer(tag: string, now = new Date()): Observable<ReadonlyMap<CommendationEmblem, number>> {
-    return this.historyForClan(now).pipe(map((counts) => counts.get(tag) ?? new Map()));
+  /**
+   * Commendations earned by the player over time. With the backend: the ones saved when each
+   * period closed (frozen, whatever the rules become). In demo mode (no backend): recomputed
+   * from the mock data with {@link historyForClan}.
+   */
+  historyForPlayer(tag: string, now = new Date()): Observable<EarnedCommendation[]> {
+    if (!this.useMock) return this.records.getPlayer(tag).pipe(map((player) => player?.commendations ?? []));
+    return this.historyForClan(now).pipe(
+      map((counts) =>
+        // Demo data: no backend catalogue, the name doubles as id.
+        [...(counts.get(tag) ?? new Map<CommendationEmblem, number>())].map(([name, quantity]) => {
+          const [type, tier] = name.split('-');
+          return { id: name, name, type, tier, quantity };
+        }),
+      ),
+    );
   }
 
   private lastEndedCwl(): Observable<CwlSeason | null> {

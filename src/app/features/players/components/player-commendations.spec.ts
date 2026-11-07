@@ -1,15 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { CommendationEmblem } from '../../../core/models';
+import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
 import { PlayerCommendations } from './player-commendations';
 
 describe('PlayerCommendations', () => {
   it('shows every medal with its name and count, greyscale when never earned', async () => {
-    const counts = new Map<CommendationEmblem, number>([
-      ['champion-gold', 3],
-      ['present-bronze', 1],
-    ]);
+    const counts: EarnedCommendation[] = [
+      { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 3 },
+      { id: '95000022', name: 'present-bronze', type: 'present', tier: 'bronze', quantity: 1 },
+    ];
     TestBed.configureTestingModule({
       providers: [{ provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } }],
     });
@@ -26,5 +26,25 @@ describe('PlayerCommendations', () => {
     expect(champion.classList).not.toContain('medal--none');
     expect(el.querySelectorAll('li.medal--none')).toHaveLength(22);
     expect(el.querySelector('.summary__total')!.textContent).toContain('4');
+  });
+
+  it('keeps showing saved commendations that are not among the current ones, translated from type and tier', async () => {
+    // A tier the current rules do not have (e.g. a retired "platinum"), with its translation still in place.
+    const saved: EarnedCommendation[] = [
+      { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 1 },
+      { id: '95000099', name: 'giantSlayer-platinum', type: 'giantSlayer', tier: 'platinum', quantity: 2 },
+    ];
+    TestBed.configureTestingModule({
+      providers: [{ provide: CommendationService, useValue: { historyForPlayer: () => of(saved) } }],
+    });
+    const fixture = TestBed.createComponent(PlayerCommendations);
+    fixture.componentRef.setInput('tag', '#A');
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    // Without a translation for that key, the key itself is shown: the history is never lost.
+    expect(el.querySelector('.others')!.textContent).toContain('commendations.giantSlayer.platinum');
+    expect(el.querySelector('.others')!.textContent).toContain('2');
+    expect(el.querySelector('.summary__total')!.textContent).toContain('3');
   });
 });

@@ -48,6 +48,11 @@ export async function cocGet(path: string): Promise<unknown> {
 
 const clanPath = (clanTag: string) => `/clans/${encodeURIComponent(clanTag)}`;
 
+/** `GET /clans/{tag}`: clan details and member list. */
+export function fetchClan(clanTag: string): Promise<unknown> {
+  return cocGet(clanPath(clanTag));
+}
+
 /** `GET /clans/{tag}/currentwar`. */
 export function fetchCurrentWar(clanTag: string): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/currentwar`);

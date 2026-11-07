@@ -482,7 +482,9 @@
     "ROLES_ARE_NOT_VALID": "Invalid roles.",
     "PERIOD_IS_NOT_VALID": "Invalid period.",
     "HISTORY_NOT_FOUND": "No wars recorded in the period.",
-    "CWL_SEASON_NOT_FOUND": "League season not found."
+    "CWL_SEASON_NOT_FOUND": "League season not found.",
+    "PLAYER_NOT_FOUND": "Player not found.",
+    "PLAYERS_SYNC_FAILED": "Reading the members from Clash of Clans failed."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -699,8 +701,9 @@
     "history": {
       "earned": "commendations earned",
       "earnedOne": "commendation earned",
-      "hint": "Counted over every completed period saved by the site: war months, Raid Weekends and League seasons.",
-      "times": "{{n}} times"
+      "hint": "Counted when each period ended (war month, Raid Weekend, League season) and saved: they stay the same even if the rules change.",
+      "times": "{{n}} times",
+      "others": "Other commendations"
     }
   },
   "join": {
