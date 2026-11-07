@@ -17,6 +17,7 @@ import {
   CocClanMember,
   CocNamedIcon,
   CocPlayer,
+  CocPlayerAchievement,
   CocPlayerItem,
   CocWar,
   CocWarAttack,
@@ -350,7 +351,7 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
     builderBaseTroops: troops.filter((t) => t.village === 'builderBase').map(mapUnit),
     achievements: (raw.achievements ?? []).map((a) => ({
       name: a.name,
-      stars: a.stars,
+      stars: isAchievementCompleted(a) ? 3 : a.stars,
       value: a.value,
       target: a.target,
       info: a.info,
@@ -358,4 +359,12 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
       village: a.village,
     })),
   };
+}
+
+/**
+ * An achievement is complete (3 stars) also when its value reached the target or the API says
+ * `Completed!`: some achievements (e.g. one-off or capped ones) never report 3 stars.
+ */
+function isAchievementCompleted(a: CocPlayerAchievement): boolean {
+  return a.stars >= 3 || (a.target > 0 && a.value >= a.target) || a.completionInfo?.trim() === 'Completed!';
 }

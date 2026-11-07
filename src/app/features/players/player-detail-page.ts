@@ -15,6 +15,7 @@ import { LoadState } from '../../shared/components/load-state';
 import { LevelBadge } from '../../shared/game/level-badge';
 import { UnitTile } from '../../shared/game/unit-tile';
 import { PlayerBanner } from './components/player-banner';
+import { PlayerCommendations } from './components/player-commendations';
 import { PlayerWarStats } from './components/player-war-stats';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 
@@ -24,7 +25,7 @@ interface ArmySection {
   units: (PlayerUnit & { active?: boolean })[];
 }
 
-/** Player page in the style of the game profile: banner plus Profile, Army, Achievements and Wars tabs. */
+/** Player page in the style of the game profile: banner plus Profile, Army, Achievements, Wars and Commendations tabs. */
 @Component({
   selector: 'app-player-detail-page',
   imports: [
@@ -39,6 +40,7 @@ interface ArmySection {
     LevelBadge,
     PlayerBanner,
     PlayerWarStats,
+    PlayerCommendations,
     ScrollFade,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

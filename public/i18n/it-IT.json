@@ -290,6 +290,7 @@
     "tabArmy": "Esercito",
     "tabAchievements": "Obiettivi",
     "tabWars": "Guerre",
+    "tabCommendations": "Encomi",
     "townHall": "Municipio {{n}}",
     "townHallWeapon": "Arma del municipio livello {{n}}",
     "expLevel": "Livello esperienza {{n}}",
@@ -694,6 +695,12 @@
       "silver": "Pilastro del Clan",
       "gold": "Sempre in Prima Linea",
       "description": "Ha attaccato in almeno il {{n}}% delle guerre del mese."
+    },
+    "history": {
+      "earned": "encomi conquistati",
+      "earnedOne": "encomio conquistato",
+      "hint": "Contati su tutti i periodi conclusi salvati dal sito: mesi di guerra, Raid Weekend e stagioni della Lega.",
+      "times": "{{n}} volte"
     }
   },
   "join": {

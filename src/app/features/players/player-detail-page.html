@@ -192,6 +192,15 @@
           </app-load-state>
         </div>
       </mat-tab>
+
+      <!-- Commendations: history of every medal earned (loaded when the tab is opened) -->
+      <mat-tab [label]="'player.tabCommendations' | translate">
+        <ng-template matTabContent>
+          <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabCommendations' | translate">
+            <app-player-commendations [tag]="p.tag" />
+          </div>
+        </ng-template>
+      </mat-tab>
     </mat-tab-group>
   }
 </app-load-state>

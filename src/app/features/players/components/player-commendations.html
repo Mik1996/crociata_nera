@@ -1,0 +1,32 @@
+<app-load-state [loading]="history.isLoading()" [error]="history.error()" [empty]="false" (retry)="history.reload()">
+  <p class="summary">
+    <span class="summary__total cn-num">{{ total() }}</span>
+    {{ (total() === 1 ? 'commendations.history.earnedOne' : 'commendations.history.earned') | translate }}
+  </p>
+  <p class="cn-muted hint">{{ 'commendations.history.hint' | translate }}</p>
+
+  <ul class="commendation-rows" [attr.aria-label]="'player.tabCommendations' | translate">
+    @for (row of rows(); track row.type) {
+      <li class="commendation-row">
+        <ul class="medals">
+          @for (m of row.medals; track m.tier) {
+            @let name = 'commendations.' + row.type + '.' + m.tier | translate;
+            @let tier = 'commendations.tiers.' + m.tier | translate;
+            @let description = 'commendations.' + row.type + '.description' | translate: { n: (m.threshold | localNumber) };
+            <li
+              class="medal"
+              [class.medal--none]="m.count === 0"
+              tabindex="0"
+              [attr.aria-label]="name + ' (' + tier + '): ' + ('commendations.history.times' | translate: { n: m.count })"
+              [matTooltip]="name + ' (' + tier + ') — ' + description"
+            >
+              <app-commendation-medal [emblem]="m.emblem" />
+              <span class="medal__name" aria-hidden="true">{{ name }}</span>
+              <span class="medal__count cn-num" aria-hidden="true">× {{ m.count }}</span>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+</app-load-state>

@@ -290,6 +290,7 @@
     "tabArmy": "Army",
     "tabAchievements": "Achievements",
     "tabWars": "Wars",
+    "tabCommendations": "Commendations",
     "townHall": "Town Hall {{n}}",
     "townHallWeapon": "Town Hall weapon level {{n}}",
     "expLevel": "Experience level {{n}}",
@@ -694,6 +695,12 @@
       "silver": "Pillar of the Clan",
       "gold": "Always on the Front Line",
       "description": "Attacked in at least {{n}}% of the month's wars."
+    },
+    "history": {
+      "earned": "commendations earned",
+      "earnedOne": "commendation earned",
+      "hint": "Counted over every completed period saved by the site: war months, Raid Weekends and League seasons.",
+      "times": "{{n}} times"
     }
   },
   "join": {

@@ -4,6 +4,7 @@ import {
   awardCwlCommendations,
   awardRaidCommendations,
   compareCommendations,
+  countCommendations,
   mergeCommendations,
   previousMonth,
   tierFor,
@@ -210,6 +211,20 @@ describe('Raid Weekend and CWL commendations', () => {
       { type: 'cwlStriker', tier: 'silver' },
       { type: 'present', tier: 'silver' },
     ]);
+  });
+});
+
+describe('countCommendations', () => {
+  it('counts how many times each player earned each medal, over several periods', () => {
+    const gold = { type: 'present' as const, tier: 'gold' as const };
+    const raid = { type: 'capitalRaider' as const, tier: 'bronze' as const };
+    const counts = countCommendations([
+      new Map([['#A', [gold]], ['#B', [gold]]]),
+      new Map([['#A', [gold, raid]]]),
+    ]);
+    expect(counts.get('#A')).toEqual(new Map([['present-gold', 2], ['capitalRaider-bronze', 1]]));
+    expect(counts.get('#B')).toEqual(new Map([['present-gold', 1]]));
+    expect(counts.has('#C')).toBe(false);
   });
 });
 

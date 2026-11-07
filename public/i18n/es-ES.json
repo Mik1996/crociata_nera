@@ -290,6 +290,7 @@
     "tabArmy": "Ejército",
     "tabAchievements": "Logros",
     "tabWars": "Guerras",
+    "tabCommendations": "Distinciones",
     "townHall": "Ayuntamiento {{n}}",
     "townHallWeapon": "Arma del ayuntamiento nivel {{n}}",
     "expLevel": "Nivel de experiencia {{n}}",
@@ -694,6 +695,12 @@
       "silver": "Pilar del Clan",
       "gold": "Siempre en Primera Línea",
       "description": "Atacó en al menos el {{n}}% de las guerras del mes."
+    },
+    "history": {
+      "earned": "distinciones conseguidas",
+      "earnedOne": "distinción conseguida",
+      "hint": "Contadas en todos los periodos terminados guardados por el sitio: meses de guerra, Raid Weekends y temporadas de Liga.",
+      "times": "{{n}} veces"
     }
   },
   "join": {

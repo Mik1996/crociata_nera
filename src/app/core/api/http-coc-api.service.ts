@@ -186,13 +186,13 @@ export class HttpCocApiService extends CocApiService {
    * From the backend, which also keeps the members of past weekends (the API lists them only
    * while a weekend is in progress); if the backend has nothing or cannot answer, from the API.
    */
-  getRaidSeasons(): Observable<RaidSeason[]> {
+  getRaidSeasons(limit = RAID_SEASONS): Observable<RaidSeason[]> {
     const api$ = this.client
-      .clanCapitalRaidSeasons(this.config.clanTag, { limit: RAID_SEASONS })
+      .clanCapitalRaidSeasons(this.config.clanTag, { limit })
       .pipe(map((list) => list.items));
     return this.http
       .get<BaseResult<CocCapitalRaidSeason[]>>(`${this.config.backendBaseUrl}/raids/seasons`, {
-        params: { limit: RAID_SEASONS },
+        params: { limit },
         context: CACHE.archive,
       })
       .pipe(

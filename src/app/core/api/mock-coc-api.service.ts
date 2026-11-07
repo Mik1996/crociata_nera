@@ -92,8 +92,8 @@ export class MockCocApiService extends CocApiService {
     return this.respond(record ? buildCwlSeason(record, this.data.clan.tag) : null);
   }
 
-  getRaidSeasons(): Observable<RaidSeason[]> {
-    return this.respond(this.raidSeasons.map(mapRaidSeason));
+  getRaidSeasons(limit = 10): Observable<RaidSeason[]> {
+    return this.respond(this.raidSeasons.slice(0, limit).map(mapRaidSeason));
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {

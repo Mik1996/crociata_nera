@@ -159,6 +159,22 @@ export function mergeCommendations(...maps: Map<string, Commendation[]>[]): Map<
   return merged;
 }
 
+/** How many times each player earned each medal (`<type>-<tier>`), over several periods. */
+export type CommendationCounts = Map<string, Map<CommendationEmblem, number>>;
+
+/** Sums the commendations of several periods (each map: commendations per player tag). */
+export function countCommendations(periods: Map<string, Commendation[]>[]): CommendationCounts {
+  const counts: CommendationCounts = new Map();
+  for (const period of periods) {
+    for (const [tag, items] of period) {
+      const player = counts.get(tag) ?? new Map<CommendationEmblem, number>();
+      for (const item of items) player.set(emblemOf(item), (player.get(emblemOf(item)) ?? 0) + 1);
+      counts.set(tag, player);
+    }
+  }
+  return counts;
+}
+
 /** Exact average (the rounded `averageStarsPerAttack` would turn 2.996 into 3). */
 function starsPerAttack(p: HistoryPlayerStats): number {
   return p.attacksUsed ? p.stars / p.attacksUsed : 0;

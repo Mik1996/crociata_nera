@@ -39,8 +39,8 @@ export abstract class CocApiService {
   /** A Clan War League season (`YYYY-MM`); `null` if it was not recorded. */
   abstract getCwlSeason(season: string): Observable<CwlSeason | null>;
 
-  /** Raid Weekends of the Clan Capital, most recent first. */
-  abstract getRaidSeasons(): Observable<RaidSeason[]>;
+  /** Raid Weekends of the Clan Capital, most recent first (`limit`: how many, default about 2 months). */
+  abstract getRaidSeasons(limit?: number): Observable<RaidSeason[]>;
 
   /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
   abstract getPlayer(tag: string): Observable<PlayerProfile | null>;

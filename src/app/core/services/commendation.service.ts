@@ -1,15 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { CocApiService } from '../api/coc-api';
-import { Commendation, CommendationPeriods, CwlSeason, PlayerCommendations, RaidSeason } from '../models';
+import { Commendation, CommendationEmblem, CommendationPeriods, CwlSeason, PlayerCommendations, RaidSeason } from '../models';
 import {
   awardCommendations,
   awardCwlCommendations,
   awardRaidCommendations,
+  CommendationCounts,
+  countCommendations,
   mergeCommendations,
   previousMonth,
 } from '../utils/commendations';
 import { HistoryService } from './history.service';
+
+/** Raid Weekends read for the history (one year; the backend keeps them all). */
+const HISTORY_RAID_WEEKENDS = 52;
 
 /** Commendations of the whole clan, with the period of each kind. */
 export interface ClanCommendations extends CommendationPeriods {
@@ -56,6 +61,41 @@ export class CommendationService {
   /** Commendations of a player (empty list when none). */
   forPlayer(tag: string, now = new Date()): Observable<PlayerCommendations> {
     return this.forClan(now).pipe(map(({ byTag, ...periods }) => ({ ...periods, items: byTag.get(tag) ?? [] })));
+  }
+
+  /**
+   * History of the whole clan: how many times each player earned each medal, recomputed with
+   * the current rules over every completed period saved in the database (completed months,
+   * Raid Weekends with their members, ended CWL seasons). Each source is optional.
+   */
+  historyForClan(now = new Date()): Observable<CommendationCounts> {
+    const lastMonth = previousMonth(now);
+    const months$ = this.history.getMonths().pipe(
+      switchMap((months) => {
+        const completed = months.filter((m) => m.month <= lastMonth);
+        return completed.length ? forkJoin(completed.map((m) => this.history.getPeriod(m.month))) : of([]);
+      }),
+      map((periods) => periods.flatMap((p) => (p ? [awardCommendations(p)] : []))),
+      catchError(() => of([])),
+    );
+    const raids$ = this.api.getRaidSeasons(HISTORY_RAID_WEEKENDS).pipe(
+      map((seasons) => seasons.filter((s) => s.state === 'ended' && s.hasMembers).map(awardRaidCommendations)),
+      catchError(() => of([])),
+    );
+    const cwl$ = this.api.getCwlSeasons().pipe(
+      switchMap((seasons) => {
+        const ended = seasons.filter((s) => s.state === 'ended');
+        return ended.length ? forkJoin(ended.map((s) => this.api.getCwlSeason(s.season))) : of([]);
+      }),
+      map((seasons) => seasons.flatMap((s) => (s ? [awardCwlCommendations(s)] : []))),
+      catchError(() => of([])),
+    );
+    return forkJoin([months$, raids$, cwl$]).pipe(map((sources) => countCommendations(sources.flat())));
+  }
+
+  /** How many times the player earned each medal (medals never earned are missing). */
+  historyForPlayer(tag: string, now = new Date()): Observable<ReadonlyMap<CommendationEmblem, number>> {
+    return this.historyForClan(now).pipe(map((counts) => counts.get(tag) ?? new Map()));
   }
 
   private lastEndedCwl(): Observable<CwlSeason | null> {

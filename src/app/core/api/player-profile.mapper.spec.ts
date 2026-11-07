@@ -73,4 +73,17 @@ describe('mapPlayerProfile', () => {
     expect(p.heroes[0].equipment[0].name).toBe('Giant Gauntlet');
     expect(p.heroes[0].icon).toBe('game/units/barbarian-king.webp');
   });
+
+  it('counts an achievement as complete (3 stars) when value reached target or it says "Completed!"', () => {
+    const achievement = (overrides: Record<string, unknown>) =>
+      mapPlayerProfile({
+        ...rawPlayer(),
+        achievements: [{ name: 'X', stars: 2, value: 10, target: 100, info: 'i', completionInfo: null, village: 'home', ...overrides }],
+      }).achievements[0].stars;
+    expect(achievement({})).toBe(2);
+    expect(achievement({ value: 100 })).toBe(3);
+    expect(achievement({ value: 120 })).toBe(3);
+    expect(achievement({ completionInfo: 'Completed!' })).toBe(3);
+    expect(achievement({ stars: 0, value: 0, target: 0 })).toBe(0);
+  });
 });

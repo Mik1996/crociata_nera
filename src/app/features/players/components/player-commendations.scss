@@ -1,0 +1,94 @@
+.summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-lg);
+  color: var(--cn-heading);
+}
+
+.summary__total {
+  margin-block-start: .5rem;
+  font-size: var(--cn-fs-2xl);
+  color: var(--cn-gold-light);
+}
+
+.hint {
+  margin: 0.25rem 0 1rem;
+  font-size: var(--cn-fs-sm);
+}
+
+.commendation-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// One commendation: bronze, silver and gold side by side, on a game-style panel.
+.commendation-row {
+  padding: 0.75rem 0.5rem;
+  border: 2px solid var(--cn-game-panel-border);
+  border-radius: 14px;
+  background: var(--cn-game-panel);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.medals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 10px;
+  text-align: center;
+  color: var(--cn-game-panel-text);
+  cursor: default;
+
+  app-commendation-medal {
+    width: 64px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-game-gold);
+    outline-offset: 2px;
+  }
+}
+
+.medal__name {
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xs);
+  line-height: 1.15;
+  text-shadow: var(--cn-game-text-outline);
+}
+
+.medal__count {
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xl);
+  color: var(--cn-game-gold);
+  text-shadow: var(--cn-game-text-outline);
+}
+
+// Never earned: greyscale and dimmed.
+.medal--none {
+  app-commendation-medal {
+    filter: grayscale(1) opacity(0.45);
+  }
+
+  .medal__name,
+  .medal__count {
+    color: var(--cn-game-panel-muted);
+    opacity: 0.7;
+  }
+}
