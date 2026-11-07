@@ -57,3 +57,21 @@ export function fetchCurrentWar(clanTag: string): Promise<unknown> {
 export function fetchWarLog(clanTag: string, limit = 10): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/warlog?limit=${limit}`);
 }
+
+/** `GET /clans/{tag}/currentwar/leaguegroup`: the Clan War League group of the season (404 outside CWL). */
+export function fetchLeagueGroup(clanTag: string): Promise<unknown> {
+  return cocGet(`${clanPath(clanTag)}/currentwar/leaguegroup`);
+}
+
+/** `GET /clanwarleagues/wars/{warTag}`: one war of the Clan War League. */
+export function fetchLeagueWar(warTag: string): Promise<unknown> {
+  return cocGet(`/clanwarleagues/wars/${encodeURIComponent(warTag)}`);
+}
+
+/**
+ * `GET /clans/{tag}/capitalraidseasons`: Raid Weekends, most recent first. The API includes the
+ * members (attacks, Capital Gold) only for the weekend in progress: the backend saves them.
+ */
+export function fetchRaidSeasons(clanTag: string, limit = 5): Promise<unknown> {
+  return cocGet(`${clanPath(clanTag)}/capitalraidseasons?limit=${limit}`);
+}

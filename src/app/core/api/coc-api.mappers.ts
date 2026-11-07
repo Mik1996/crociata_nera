@@ -64,6 +64,13 @@ export function mapClanMember(raw: CocClanMember): ClanMember {
     trophies: raw.trophies,
     donations: raw.donations,
     donationsReceived: raw.donationsReceived,
+    league: raw.leagueTier
+      ? {
+          id: raw.leagueTier.id,
+          name: raw.leagueTier.name,
+          iconUrl: raw.leagueTier.iconUrls?.large ?? raw.leagueTier.iconUrls?.small,
+        }
+      : undefined,
   };
 }
 

@@ -27,6 +27,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "currentWar": "Current war",
+    "cwl": "League (CWL)",
+    "raids": "Raid Weekend",
     "history": "War history",
     "warDetail": "War details",
     "players": "Players",
@@ -97,7 +99,8 @@
     "threeStarRate": "Sort by 3-star percentage",
     "averageStarsPerWar": "Sort by average stars per war",
     "averageStarsPerAttack": "Sort by average stars per attack",
-    "starsConceded": "Sort by stars conceded on defense"
+    "starsConceded": "Sort by stars conceded on defense",
+    "league": "Sort by league"
   },
   "paginator": {
     "itemsPerPage": "Rows per page:",
@@ -259,7 +262,8 @@
     "averageStars": "Avg. ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Destr. %",
-    "noResults": "No member matches the filters."
+    "noResults": "No member matches the filters.",
+    "league": "League"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Town Hall {{th}}",
@@ -476,7 +480,8 @@
     "TOKEN_SHOULD_NOT_BE_EMPTY": "The link is incomplete.",
     "ROLES_ARE_NOT_VALID": "Invalid roles.",
     "PERIOD_IS_NOT_VALID": "Invalid period.",
-    "HISTORY_NOT_FOUND": "No wars recorded in the period."
+    "HISTORY_NOT_FOUND": "No wars recorded in the period.",
+    "CWL_SEASON_NOT_FOUND": "League season not found."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -635,7 +640,7 @@
     }
   },
   "commendations": {
-    "title": "Commendations · {{month}}",
+    "title": "Commendations",
     "short": "Last month's commendations",
     "tiers": {
       "gold": "Gold",
@@ -659,6 +664,18 @@
       "silver": "Giant Hunter",
       "gold": "Bane of Titans",
       "description": "At least {{n}} three-star attacks in the month against higher Town Halls."
+    },
+    "cwlStriker": {
+      "bronze": "League Warrior",
+      "silver": "League Champion",
+      "gold": "League Legend",
+      "description": "At least {{n}} stars per attack on average in the last CWL (at least 3 attacks)."
+    },
+    "capitalRaider": {
+      "bronze": "Raider",
+      "silver": "Capital Predator",
+      "gold": "Conqueror of Capitals",
+      "description": "More than {{n}} Capital Gold looted in the last Raid Weekend."
     },
     "wall": {
       "bronze": "Steady Shield",
@@ -688,5 +705,59 @@
     "subtitle": "App theme and language",
     "theme": "Theme",
     "language": "Language"
+  },
+  "cwl": {
+    "subtitle": "Group standings, rounds and player performance in the Clan War League",
+    "season": "Season",
+    "state": {
+      "preparation": "In preparation",
+      "inWar": "In progress",
+      "ended": "Ended"
+    },
+    "empty": "No League season recorded yet: it will be saved automatically during the next CWL.",
+    "standings": "Group standings",
+    "clan": "Clan",
+    "wins": "Wins",
+    "stars": "Stars",
+    "destruction": "Destruction",
+    "standingsNote": "As in the game: total stars plus 10 stars for every war won; ties are broken by destruction.",
+    "rounds": "Rounds",
+    "round": "Round {{n}}",
+    "versus": "vs {{name}}",
+    "notScheduled": "Not scheduled yet",
+    "warState": {
+      "preparation": "Preparation",
+      "battle": "In progress"
+    },
+    "players": "Player performance",
+    "attacks": "Attacks",
+    "averageStars": "Average stars",
+    "threeStars": "3★ attacks",
+    "averageDestruction": "Average destruction"
+  },
+  "raids": {
+    "subtitle": "Capital Gold and attacks of every member, weekend by weekend",
+    "weekend": "Weekend",
+    "state": {
+      "ongoing": "In progress",
+      "ended": "Ended"
+    },
+    "empty": "No Raid Weekend available.",
+    "totalLoot": "Capital Gold",
+    "attacks": "Attacks",
+    "participants": "{{n}} participants",
+    "raidsCompleted": "Raids completed",
+    "districts": "{{n}} districts destroyed",
+    "rewards": "Raid medals",
+    "rewardsHint": "{{offense}} offense · {{defense}} defense",
+    "members": "Members",
+    "attacksColumn": "Attacks",
+    "looted": "Gold looted",
+    "absent": "Did not take part ({{n}})",
+    "absentOngoing": "Current members who have not attacked yet this weekend.",
+    "absentEnded": "Current members with no attacks this weekend: capital raids are mandatory.",
+    "allIn": "Every member took part.",
+    "noMembersTitle": "Member detail not available",
+    "noMembersText": "Clash of Clans shows who attacked only while the weekend is in progress: the site saves it since it went live, so only the totals are available for this weekend."
   }
 }

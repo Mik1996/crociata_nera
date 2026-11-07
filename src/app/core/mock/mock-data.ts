@@ -1,4 +1,4 @@
-import { Attack, Clan, ClanMember, ClanRole, War, WarClan, WarParticipant } from '../models';
+import { Attack, Clan, ClanMember, ClanRole, MemberLeague, War, WarClan, WarParticipant } from '../models';
 import { warResult } from '../utils/war-stats';
 import { Random } from './random';
 
@@ -266,6 +266,19 @@ function buildWarClan(
   };
 }
 
+/** Leagues of the mock members by trophies, with the local league images (offline demo). */
+const MOCK_LEAGUES: [minTrophies: number, league: MemberLeague][] = [
+  [5900, { id: 105000037, name: 'Legend League', iconUrl: 'game/leagues/legend.webp' }],
+  [5500, { id: 105000034, name: 'Titan League', iconUrl: 'game/leagues/titan.webp' }],
+  [5000, { id: 105000031, name: 'Champion League', iconUrl: 'game/leagues/champion.webp' }],
+  [4500, { id: 105000028, name: 'Master League', iconUrl: 'game/leagues/master.webp' }],
+  [0, { id: 105000025, name: 'Crystal League', iconUrl: 'game/leagues/crystal.webp' }],
+];
+
+function mockLeague(trophies: number): MemberLeague {
+  return MOCK_LEAGUES.find(([min]) => trophies >= min)![1];
+}
+
 function strength(p: PlayerProfile): number {
   return p.townHall * 10 + p.skill * 6;
 }
@@ -379,15 +392,17 @@ export function generateMockData(options: MockOptions): MockDataset {
 
   const members: ClanMember[] = currentTimelines.map((p, i) => {
     const townHall = p.townHall[1];
+    const trophies = 3200 + townHall * 150 + rnd.int(-400, 600);
     return {
       tag: p.tag,
       name: p.name,
       role: roleForIndex(i),
       townHall,
       expLevel: 120 + townHall * 8 + rnd.int(0, 40) - (p.joinsAt > 0 ? 30 : 0),
-      trophies: 3200 + townHall * 150 + rnd.int(-400, 600),
+      trophies,
       donations: rnd.int(0, 2500),
       donationsReceived: rnd.int(100, 1800),
+      league: mockLeague(trophies),
     };
   });
 

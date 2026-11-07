@@ -13,6 +13,8 @@ Per provare l'interfaccia senza token è disponibile una modalità con **dati mo
 | --- | --- | --- |
 | Dashboard | `/dashboard` | Riepilogo dell'ultima guerra, KPI (attacchi, media stelle, % 3 stelle, partecipazione), classifica migliori e peggiori, grafici di andamento |
 | Guerra corrente | `/current-war` | Clan contro avversario, tempo residuo, partecipanti con filtri (nome, municipio, stelle) ed evidenza di chi non ha ancora attaccato |
+| Lega (CWL) | `/cwl` | Classifica del girone (stelle + 10 per vittoria), le 7 giornate del clan e il rendimento dei giocatori, stagione per stagione (salvate dal backend) |
+| Raid Weekend | `/raids` | Oro della capitale e attacchi di ogni membro, weekend per weekend, con l'elenco dei membri che non hanno partecipato. I membri dei weekend passati vengono dal backend, che li salva mentre il weekend è in corso (l'API li mostra solo in quel momento) |
 | Storico guerre | `/wars` | Tabella con ricerca, filtro per risultato, ordinamento e paginazione |
 | Dettaglio guerra | `/wars/:id` | Performance individuali di una guerra |
 | Giocatori | `/players` | Elenco membri con statistiche di guerra, ricerca e ordinamento |

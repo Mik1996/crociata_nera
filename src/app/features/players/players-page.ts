@@ -26,6 +26,15 @@ import { CommendationMedal } from '../../shared/game/commendation-medal';
 
 const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2, member: 3 };
 
+/**
+ * League order: league ids grow from Unranked to the top Legend tier; within the same league
+ * the trophies decide (they stay below 1 000 000, so the key never mixes two leagues).
+ * Players without a league come last.
+ */
+function leagueSortKey(m: PlayerStats): number {
+  return (m.league?.id ?? 0) * 1_000_000 + m.trophies;
+}
+
 @Component({
   selector: 'app-players-page',
   imports: [
@@ -68,6 +77,7 @@ export class PlayersPage {
   protected readonly roleKey = roleKey;
   protected readonly emblemOf = emblemOf;
   protected readonly columns = [
+    'league',
     'name',
     'role',
     'townHall',
@@ -82,7 +92,8 @@ export class PlayersPage {
 
   protected readonly search = signal('');
   protected readonly role = signal<ClanRole | null>(null);
-  private readonly sort = signal<SortState>({ field: 'role', direction: 'asc' });
+  /** Default: highest league first (Legend → Unranked), then most trophies. */
+  private readonly sort = signal<SortState>({ field: 'league', direction: 'desc' });
 
   private readonly members = computed(() => (this.resource.hasValue() ? this.resource.value() : []));
 
@@ -102,7 +113,9 @@ export class PlayersPage {
     return sortRows(filtered, this.sort(), (m, field) =>
       field === 'role'
         ? ROLE_ORDER[m.role] * 100 - m.townHall
-        : (m[field as keyof PlayerStats] as number | string),
+        : field === 'league'
+          ? leagueSortKey(m)
+          : (m[field as keyof PlayerStats] as number | string),
     );
   });
 

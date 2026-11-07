@@ -94,6 +94,55 @@ describe('HttpCocApiService', () => {
     expect(await response).toEqual({ local: undefined, global: undefined });
   });
 
+  it('reads the CWL seasons saved by the backend and builds the season', async () => {
+    const list = firstValueFrom(api.getCwlSeasons());
+    http.expectOne('/api/v1/cwl/seasons').flush({ result: [{ season: '2026-11', state: 'ended' }], messages: [], status: { code: 200 } });
+    expect(await list).toEqual([{ season: '2026-11', state: 'ended' }]);
+
+    const detail = firstValueFrom(api.getCwlSeason('2026-11'));
+    http.expectOne('/api/v1/cwl/seasons/2026-11').flush({
+      result: {
+        season: '2026-11', state: 'ended', clanTag: '#2J8JVVCLC',
+        clans: [{ tag: '#2J8JVVCLC', name: 'Crociata Nera', clanLevel: 18, members: [] }, { tag: '#OPP', name: 'Opp', clanLevel: 9, members: [] }],
+        rounds: [{ warTags: ['#W1'] }],
+        wars: [{ ...snapshot, warTag: '#W1' }],
+      },
+      messages: [],
+      status: { code: 200 },
+    });
+    const season = await detail;
+    expect(season!.standings[0]).toMatchObject({ tag: '#2J8JVVCLC', stars: 13, wins: 1, isOwn: true });
+    expect(season!.players[0]).toMatchObject({ tag: '#A' });
+  });
+
+  it('a CWL season not recorded (backend 404) is null', async () => {
+    const detail = firstValueFrom(api.getCwlSeason('2020-01'));
+    http
+      .expectOne('/api/v1/cwl/seasons/2020-01')
+      .flush({ result: null, messages: [{ key: 'ERROR.CWL_SEASON_NOT_FOUND' }], status: { code: 404 } }, { status: 404, statusText: 'Not Found' });
+    expect(await detail).toBeNull();
+  });
+
+  const raidItem = (withMembers: boolean) => ({
+    state: 'ended', startTime: '20261030T070000.000Z', endTime: '20261102T070000.000Z', capitalTotalLoot: 1000,
+    raidsCompleted: 1, totalAttacks: 1, enemyDistrictsDestroyed: 1, offensiveReward: 1, defensiveReward: 1,
+    ...(withMembers ? { members: [{ tag: '#A', name: 'A', attacks: 6, attackLimit: 5, bonusAttackLimit: 1, capitalResourcesLooted: 31000 }] } : {}),
+    attackLog: [], defenseLog: [],
+  });
+
+  it('reads the Raid Weekends saved by the backend, with the members of past weekends', async () => {
+    const raids = firstValueFrom(api.getRaidSeasons());
+    http.expectOne('/api/v1/raids/seasons?limit=10').flush({ result: [raidItem(true)], messages: [], status: { code: 200 } });
+    expect((await raids)[0]).toMatchObject({ state: 'ended', hasMembers: true, members: [{ tag: '#A', attackLimit: 6, looted: 31000 }] });
+  });
+
+  it('falls back to the API when the backend has no weekend (past ones without members)', async () => {
+    const raids = firstValueFrom(api.getRaidSeasons());
+    http.expectOne('/api/v1/raids/seasons?limit=10').flush({}, { status: 503, statusText: 'Unavailable' });
+    http.expectOne(`${CLAN}/capitalraidseasons?limit=10`).flush({ items: [raidItem(false)] });
+    expect((await raids)[0]).toMatchObject({ state: 'ended', hasMembers: false, members: [] });
+  });
+
   it('treats a private war log (403 accessDenied) as no war', async () => {
     const response = firstValueFrom(api.getCurrentWar());
     http.expectOne(`${CLAN}/currentwar`).flush({ reason: 'accessDenied' }, { status: 403, statusText: 'Forbidden' });

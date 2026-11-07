@@ -39,9 +39,6 @@ interface MenuItem {
   public?: boolean;
 }
 
-/** Pages that use the full width of the content area. */
-const WIDE_PAGES = new Set(['/', '/join']);
-
 /**
  * Main layout: header with the clan name, side navigation and content.
  * The side navigation is always there: signed out it only offers the public pages and the
@@ -106,9 +103,6 @@ export class Shell {
     { initialValue: this.router.url },
   );
 
-  /** The welcome and "Join us" pages use the full width of the content area (the others are capped). */
-  protected readonly wideContent = computed(() => WIDE_PAGES.has(this.currentUrl().split(/[?#]/)[0]));
-
   /**
    * "Sign in" keeps the page to come back to: the `returnUrl` set by the guard on the welcome
    * page, or the current page itself.
@@ -147,6 +141,8 @@ export class Shell {
     { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
     { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
     { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
+    { path: '/cwl', label: 'nav.cwl', icon: 'emoji_events' },
+    { path: '/raids', label: 'nav.raids', icon: 'castle' },
     { path: '/wars', label: 'nav.history', icon: 'history_edu' },
     { path: '/players', label: 'nav.players', icon: 'groups' },
     { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },

@@ -3,8 +3,10 @@ import {
   CommendationEmblem,
   CommendationTier,
   CommendationType,
+  CwlSeason,
   HistoryPeriod,
   HistoryPlayerStats,
+  RaidSeason,
 } from '../models';
 import { compareForRanking, monthOf } from './monthly-history';
 
@@ -13,6 +15,8 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
   'champion',
   'perfect',
   'giantSlayer',
+  'cwlStriker',
+  'capitalRaider',
   'wall',
   'tireless',
   'present',
@@ -28,7 +32,9 @@ export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver'
  * - giantSlayer: 3-star attacks against a higher Town Hall;
  * - wall: maximum average stars conceded per war on defence (at least {@link MIN_WARS} wars and attacks received);
  * - tireless: wars played without missing any attack;
- * - present: share (%) of the clan's wars of the month with at least one attack (months with at least {@link MIN_WARS} wars).
+ * - present: share (%) of the clan's wars of the month with at least one attack (months with at least {@link MIN_WARS} wars);
+ * - cwlStriker: average stars per attack in the last ended Clan War League (at least {@link CWL_MIN_ATTACKS} attacks);
+ * - capitalRaider: Capital Gold looted in the last ended Raid Weekend (more than the threshold).
  */
 export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Record<CommendationTier, number>>>> = {
   champion: { bronze: 3, silver: 2, gold: 1 },
@@ -37,7 +43,12 @@ export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly
   wall: { bronze: 2.5, silver: 2, gold: 1.5 },
   tireless: { bronze: 3, silver: 5, gold: 8 },
   present: { bronze: 50, silver: 75, gold: 100 },
+  cwlStriker: { bronze: 2.5, silver: 2.75, gold: 3 },
+  capitalRaider: { bronze: 25_000, silver: 27_500, gold: 30_000 },
 };
+
+/** `cwlStriker` needs at least this many attacks (one per war). */
+export const CWL_MIN_ATTACKS = 3;
 
 /** Minimum wars played in the month for the commendations based on averages. */
 export const MIN_WARS = 3;
@@ -46,12 +57,18 @@ export const PERFECT_MIN_ATTACKS = 4;
 
 /** Is a higher value better for this type? (ranking position and stars conceded: lower is better) */
 const LOWER_IS_BETTER: ReadonlySet<CommendationType> = new Set(['champion', 'wall']);
+/** The value must exceed the threshold ("more than"), not just reach it. */
+const STRICTLY_ABOVE: ReadonlySet<CommendationType> = new Set(['capitalRaider']);
 
 /** Highest tier reached by a value; `null` when not even bronze. */
 export function tierFor(type: CommendationType, value: number): CommendationTier | null {
   const thresholds = COMMENDATION_THRESHOLDS[type];
   const reached = (tier: CommendationTier) =>
-    LOWER_IS_BETTER.has(type) ? value <= thresholds[tier] : value >= thresholds[tier];
+    LOWER_IS_BETTER.has(type)
+      ? value <= thresholds[tier]
+      : STRICTLY_ABOVE.has(type)
+        ? value > thresholds[tier]
+        : value >= thresholds[tier];
   return COMMENDATION_TIERS.find(reached) ?? null;
 }
 
@@ -109,6 +126,37 @@ export function awardCommendations(period: HistoryPeriod): Map<string, Commendat
 
   for (const list of awards.values()) list.sort(compareCommendations);
   return awards;
+}
+
+/** Commendations of a Raid Weekend (`capitalRaider`), by Capital Gold looted. */
+export function awardRaidCommendations(season: RaidSeason): Map<string, Commendation[]> {
+  const awards = new Map<string, Commendation[]>();
+  for (const m of season.members) {
+    const tier = tierFor('capitalRaider', m.looted);
+    if (tier) awards.set(m.tag, [{ type: 'capitalRaider', tier }]);
+  }
+  return awards;
+}
+
+/** Commendations of a Clan War League season (`cwlStriker`), by exact average stars per attack. */
+export function awardCwlCommendations(season: CwlSeason): Map<string, Commendation[]> {
+  const awards = new Map<string, Commendation[]>();
+  for (const p of season.players) {
+    if (p.attacks < CWL_MIN_ATTACKS) continue;
+    const tier = tierFor('cwlStriker', p.stars / p.attacks);
+    if (tier) awards.set(p.tag, [{ type: 'cwlStriker', tier }]);
+  }
+  return awards;
+}
+
+/** Merges commendation maps (one per kind of period), each list sorted most valuable first. */
+export function mergeCommendations(...maps: Map<string, Commendation[]>[]): Map<string, Commendation[]> {
+  const merged = new Map<string, Commendation[]>();
+  for (const map of maps) {
+    for (const [tag, items] of map) merged.set(tag, [...(merged.get(tag) ?? []), ...items]);
+  }
+  for (const list of merged.values()) list.sort(compareCommendations);
+  return merged;
 }
 
 /** Exact average (the rounded `averageStarsPerAttack` would turn 2.996 into 3). */

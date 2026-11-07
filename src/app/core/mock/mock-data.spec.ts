@@ -106,7 +106,9 @@ describe('generateMockData', () => {
       const history = data.wars.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
       for (const month of ['2026-10', '2026-09', '2026-06']) {
         const awards = awardCommendations(historyPeriod(month, history, '')!).get(leader.tag);
-        expect(awards, month).toEqual(COMMENDATION_TYPES.map((type) => ({ type, tier: 'gold' })));
+        // Raid and CWL commendations come from their own seasons (see mock-cwl.spec.ts).
+        const monthly = COMMENDATION_TYPES.filter((type) => type !== 'capitalRaider' && type !== 'cwlStriker');
+        expect(awards, month).toEqual(monthly.map((type) => ({ type, tier: 'gold' })));
       }
     });
   });

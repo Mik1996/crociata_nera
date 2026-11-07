@@ -11,6 +11,15 @@ export interface ClanMember {
   trophies: number;
   donations: number;
   donationsReceived: number;
+  /** Home village league, with its official icon. */
+  league?: MemberLeague;
+}
+
+/** League of a member (`leagueTier`): the id also orders the leagues from lowest to highest. */
+export interface MemberLeague {
+  id: number;
+  name: string;
+  iconUrl?: string;
 }
 
 /** General clan information. */

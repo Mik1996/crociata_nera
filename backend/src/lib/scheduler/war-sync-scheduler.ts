@@ -1,5 +1,7 @@
 import { env } from '../config/env';
 import { connectToDatabase } from '../db/mongoose';
+import { syncCwl } from '@/modules/cwl/cwl-sync.service';
+import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 
 interface SchedulerState {
@@ -8,6 +10,8 @@ interface SchedulerState {
   timer: NodeJS.Timeout | null;
   lastReport: WarSyncReport | null;
   nextRunAt: Date | null;
+  /** Last read before the end of the Raid Weekend in progress. */
+  raidCheckAt: Date | null;
 }
 
 // One scheduler per process, even if the module is evaluated again (dev hot reload).
@@ -18,6 +22,7 @@ const state: SchedulerState = (globalState.__warSync ??= {
   timer: null,
   lastReport: null,
   nextRunAt: null,
+  raidCheckAt: null,
 });
 
 /** Shortest wait between two runs, whatever the end time of the current war. */
@@ -56,9 +61,33 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     const report = await syncWars();
     state.lastReport = report;
     logReport(report);
+    await runCwlSync();
+    await runRaidSync();
     return report;
   } finally {
     state.running = false;
+  }
+}
+
+/** Clan War League group and wars: a failure here must not stop the regular war sync. */
+async function runCwlSync(): Promise<void> {
+  try {
+    const cwl = await syncCwl();
+    if (cwl.error) console.warn(`[cwl-sync] ${cwl.error.reason} (${cwl.error.status}): ${cwl.error.message}`);
+    else if (cwl.season) console.info(`[cwl-sync] season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
+  } catch (error) {
+    console.error('[cwl-sync] run failed:', error);
+  }
+}
+
+/** Raid Weekends (members are only listed while the weekend is in progress). */
+async function runRaidSync(): Promise<void> {
+  try {
+    const raids = await syncRaids();
+    state.raidCheckAt = raids.nextCheckAt ? new Date(raids.nextCheckAt) : null;
+    if (raids.error) console.warn(`[raid-sync] ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
+  } catch (error) {
+    console.error('[raid-sync] run failed:', error);
   }
 }
 
@@ -83,7 +112,8 @@ async function runAndReschedule(): Promise<void> {
 
   const interval = env().WAR_SYNC_INTERVAL_MINUTES * 60_000;
   const untilEnd = report?.nextCheckAt ? new Date(report.nextCheckAt).getTime() - Date.now() : Infinity;
-  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd));
+  const untilRaidEnd = state.raidCheckAt ? state.raidCheckAt.getTime() - Date.now() : Infinity;
+  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd, untilRaidEnd));
   state.nextRunAt = new Date(Date.now() + delay);
   state.timer = setTimeout(() => void runAndReschedule(), delay);
   state.timer.unref();

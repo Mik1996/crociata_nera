@@ -30,6 +30,8 @@ export interface CocClanMember {
   previousClanRank?: number;
   donations: number;
   donationsReceived: number;
+  /** Home village league (ranked battles). */
+  leagueTier?: { id: number; name: string; iconUrls?: { small?: string; large?: string } };
 }
 
 /** `GET /clans/{clanTag}` */
@@ -447,3 +449,16 @@ export interface CocLabel {
  * kept as a generic object until the app uses it and its fields can be typed.
  */
 export type CocUntypedResponse = Record<string, unknown>;
+
+/**
+ * Clan War League season saved by the backend (`GET /api/v1/cwl/seasons/{season}`):
+ * the group and every war of the group, in the formats of the official API.
+ */
+export interface CocCwlSeasonRecord {
+  season: string;
+  state: string;
+  clanTag: string;
+  clans: CocClanWarLeagueGroup['clans'];
+  rounds: { warTags: string[] }[];
+  wars: (CocClanWarLeagueWar & { warTag: string })[];
+}

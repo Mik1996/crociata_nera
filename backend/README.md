@@ -130,6 +130,8 @@ I messaggi sono chiavi (`SUCCESS.*` / `ERROR.*`), non testo: il frontend le trad
 | PATCH | `/api/v1/admin/users/{id}` | ADMIN | `{ roles?, playerTag? }`: un admin non può togliersi il ruolo da solo; se i ruoli cambiano, le sessioni dell'utente vengono chiuse |
 | GET | `/api/v1/wars/archive?limit=60` | Bearer | guerre salvate complete, nel formato `currentwar` dell'API di Clash of Clans: è la fonte dello storico nel frontend |
 | GET | `/api/v1/history` · `/api/v1/history/{YYYY-MM\|all}` | Bearer | mesi registrati e classifiche, calcolati da MongoDB con lo stesso formato del proxy |
+| GET | `/api/v1/cwl/seasons` · `/api/v1/cwl/seasons/{YYYY-MM}` | Bearer | stagioni della Lega (CWL) salvate e dettaglio di una stagione: girone e tutte le guerre, nel formato dell'API di Clash of Clans. Lo scheduler delle guerre salva anche la CWL (gruppo e guerre; quelle concluse si leggono una volta sola) |
+| GET | `/api/v1/raids/seasons?limit=10` | Bearer | Raid Weekend salvati, nel formato di `capitalraidseasons`. L'API elenca i membri (attacchi e oro) solo mentre il weekend è in corso: lo scheduler li salva a ogni lettura e un minuto prima della fine, così restano anche per i weekend passati |
 | GET | `/api/v1/wars?page&limit&state` | Bearer | riepilogo delle guerre salvate, dalla più recente, senza membri |
 | GET | `/api/v1/wars/{warKey}` | Bearer | dettaglio con membri e attacchi |
 

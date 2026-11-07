@@ -2,6 +2,7 @@ import { sampleWar } from '../../testing/fixtures';
 import {
   closeExpiredWars,
   mapClan,
+  mapClanMember,
   mapWar,
   mapWarLogEntry,
   mergeWarHistory,
@@ -73,6 +74,15 @@ describe('coc-api mappers', () => {
     });
     expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 })).toMatchObject({ capitalHallLevel: 0, labels: [] });
     expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 }).requiredLeague).toBeUndefined();
+  });
+
+  it('maps the league of a member, with the large icon (small as fallback)', () => {
+    const base = { tag: '#A', name: 'A', role: 'member' as const, expLevel: 200, trophies: 5000, donations: 0, donationsReceived: 0 };
+    expect(
+      mapClanMember({ ...base, leagueTier: { id: 105000036, name: 'Legend League', iconUrls: { small: 's.png', large: 'l.png' } } }).league,
+    ).toEqual({ id: 105000036, name: 'Legend League', iconUrl: 'l.png' });
+    expect(mapClanMember({ ...base, leagueTier: { id: 1, name: 'Unranked', iconUrls: { small: 's.png' } } }).league?.iconUrl).toBe('s.png');
+    expect(mapClanMember(base).league).toBeUndefined();
   });
 
   it('mapWar returns null when the clan is not at war', () => {

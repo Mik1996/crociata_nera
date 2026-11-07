@@ -152,6 +152,8 @@ export function computePlayerStats(member: ClanMember, wars: War[]): PlayerStats
     name: member.name,
     role: member.role,
     townHall: member.townHall,
+    league: member.league,
+    trophies: member.trophies,
     warsPlayed: history.length,
     warsTotal: wars.length,
     attendance: percentage(history.length, wars.length),

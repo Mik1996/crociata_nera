@@ -1,4 +1,4 @@
-import { ClanRole } from './clan.model';
+import { ClanRole, MemberLeague } from './clan.model';
 import { WarResult } from './war.model';
 
 /** A player's performance in a single war. */
@@ -21,6 +21,8 @@ export interface PlayerStats {
   name: string;
   role: ClanRole;
   townHall: number;
+  league?: MemberLeague;
+  trophies: number;
   /** Wars in which the player was lined up. */
   warsPlayed: number;
   /** Wars analysed (reference window). */

@@ -44,11 +44,35 @@
           mat-table
           [dataSource]="rows()"
           matSort
-          matSortActive="role"
-          matSortDirection="asc"
+          matSortActive="league"
+          matSortDirection="desc"
           (matSortChange)="updateSort($event)"
           [attr.aria-label]="'players.table' | translate"
         >
+          <ng-container matColumnDef="league">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.league' | translate">{{ 'players.league' | translate }}</th>
+            <td mat-cell *matCellDef="let m" class="league-cell">
+              @if (m.league; as league) {
+                @if (league.iconUrl) {
+                  <img
+                    class="league-icon"
+                    [src]="league.iconUrl"
+                    [alt]="league.name"
+                    [matTooltip]="league.name"
+                    width="36"
+                    height="36"
+                    tabindex="0"
+                    (click)="$event.stopPropagation()"
+                  />
+                } @else {
+                  <span class="cn-muted">{{ league.name }}</span>
+                }
+              } @else {
+                <span class="cn-muted" aria-hidden="true">—</span>
+              }
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.name' | translate">{{ 'common.player' | translate }}</th>
             <td mat-cell *matCellDef="let m">

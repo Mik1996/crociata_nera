@@ -4,12 +4,13 @@ import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
-import { Clan, ClanRanks, HistoryPeriod, MonthSummary, War, PlayerProfile } from '../models';
+import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
 import { CocApiService } from './coc-api';
 import { CocApiClient } from './coc-api-client';
 import { closeExpiredWars, mapClan, mapWar, mapWarLogEntry, mergeWarHistory, mapPlayerProfile } from './coc-api.mappers';
 import { errorBody, isPrivateWarLog, toApiError } from './coc-api-errors';
-import { CocClan, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
+import { CocCapitalRaidSeason, CocClan, CocCwlSeasonRecord, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
 
 export { CocApiHttpError, toApiError } from './coc-api-errors';
 
@@ -41,6 +42,9 @@ export { CocApiHttpError, toApiError } from './coc-api-errors';
 export const GLOBAL_LOCATION_ID = 32000006;
 /** The rankings list at most the top 200 clans. */
 const RANKING_SIZE = 200;
+
+/** Raid Weekends requested from the API (about 2 months). */
+const RAID_SEASONS = 10;
 
 /** Saved wars requested from the backend for the history (the war log covers older ones). */
 const ARCHIVE_LIMIT = 60;
@@ -151,6 +155,52 @@ export class HttpCocApiService extends CocApiService {
       // 404 = the player does not exist.
       catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
     );
+  }
+
+  getCwlSeasons(): Observable<CwlSeasonSummary[]> {
+    return this.http
+      .get<BaseResult<{ season: string; state: string }[]>>(`${this.config.backendBaseUrl}/cwl/seasons`, { context: CACHE.archive })
+      .pipe(
+        map((response) =>
+          (response.result ?? []).map((s) => ({
+            season: cwlMonth(s.season),
+            state: s.state === 'ended' ? ('ended' as const) : s.state === 'preparation' ? ('preparation' as const) : ('inWar' as const),
+          })),
+        ),
+      );
+  }
+
+  getCwlSeason(season: string): Observable<CwlSeason | null> {
+    return this.http
+      .get<BaseResult<CocCwlSeasonRecord>>(`${this.config.backendBaseUrl}/cwl/seasons/${encodeURIComponent(season)}`, {
+        context: CACHE.archive,
+      })
+      .pipe(
+        map((response) => (response.result ? buildCwlSeason(response.result, this.config.clanTag) : null)),
+        // 404 = season not recorded.
+        catchError((err: HttpErrorResponse) => (err.status === 404 && isBackendError(err) ? of(null) : toApiError(err))),
+      );
+  }
+
+  /**
+   * From the backend, which also keeps the members of past weekends (the API lists them only
+   * while a weekend is in progress); if the backend has nothing or cannot answer, from the API.
+   */
+  getRaidSeasons(): Observable<RaidSeason[]> {
+    const api$ = this.client
+      .clanCapitalRaidSeasons(this.config.clanTag, { limit: RAID_SEASONS })
+      .pipe(map((list) => list.items));
+    return this.http
+      .get<BaseResult<CocCapitalRaidSeason[]>>(`${this.config.backendBaseUrl}/raids/seasons`, {
+        params: { limit: RAID_SEASONS },
+        context: CACHE.archive,
+      })
+      .pipe(
+        map((response) => response.result ?? []),
+        catchError(() => of<CocCapitalRaidSeason[]>([])),
+        switchMap((saved) => (saved.length ? of(saved) : api$)),
+        map((seasons) => seasons.map(mapRaidSeason)),
+      );
   }
 
   getWar(id: string): Observable<War | null> {

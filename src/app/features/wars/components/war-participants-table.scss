@@ -29,9 +29,16 @@
   color: var(--cn-gold-light);
 }
 
+// Solid colours: a gradient on a table row is repeated by the browser in every cell.
+// Red: no attack yet; yellow: an attack still to do.
 tr.row-without-attacks {
-  background: linear-gradient(90deg, var(--cn-row-alert), transparent 60%);
+  background-color: var(--cn-row-alert);
   box-shadow: inset 3px 0 0 var(--cn-red-mid);
+}
+
+tr.row-partial-attacks {
+  background-color: var(--cn-row-warn);
+  box-shadow: inset 3px 0 0 var(--cn-gold);
 }
 
 .targets {

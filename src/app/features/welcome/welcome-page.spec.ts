@@ -67,15 +67,21 @@ describe('WelcomePage', () => {
   });
 
   it('shows the positions in the country and worldwide rankings', async () => {
-    const el = await render({ ...clan, countryCode: 'IT' });
+    const el = await render({ ...clan, countryCode: 'IT' }, { local: 12, global: 150 });
     const ranks = Array.from(el.querySelectorAll('.hero__stat--rank')).map((li) => [
       li.querySelector('.hero__stat-value')?.textContent?.trim(),
       li.querySelector('.hero__stat-label')?.textContent?.trim(),
     ]);
     expect(ranks).toEqual([
       ['#12', 'Classifica Italia'],
-      ['200+', 'Classifica mondiale'],
+      ['#150', 'Classifica mondiale'],
     ]);
+  });
+
+  it('shows the worldwide ranking only for the top 200, the country one always', async () => {
+    const el = await render({ ...clan, countryCode: 'IT' }, { local: null, global: null });
+    const values = Array.from(el.querySelectorAll('.hero__stat--rank .hero__stat-value')).map((v) => v.textContent?.trim());
+    expect(values).toEqual(['200+']);
   });
 
   it('hides the rankings that are not available', async () => {

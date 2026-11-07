@@ -172,15 +172,9 @@
 }
 
 .content {
-  max-width: 1280px;
-  margin: 0 auto;
+  // Every page uses the whole width of the content area, also on large screens.
   padding: 1rem clamp(0.75rem, 2.5vw, 1.5rem) 1rem;
   outline: none;
-}
-
-// Welcome page: as wide as the screen allows.
-.content--wide {
-  max-width: none;
 }
 
 .picker {

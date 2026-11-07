@@ -27,6 +27,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "currentWar": "Guerra corrente",
+    "cwl": "Lega (CWL)",
+    "raids": "Raid Weekend",
     "history": "Storico guerre",
     "warDetail": "Dettaglio guerra",
     "players": "Giocatori",
@@ -97,7 +99,8 @@
     "threeStarRate": "Ordina per percentuale di 3 stelle",
     "averageStarsPerWar": "Ordina per media stelle per guerra",
     "averageStarsPerAttack": "Ordina per media stelle per attacco",
-    "starsConceded": "Ordina per stelle concesse in difesa"
+    "starsConceded": "Ordina per stelle concesse in difesa",
+    "league": "Ordina per lega"
   },
   "paginator": {
     "itemsPerPage": "Righe per pagina:",
@@ -259,7 +262,8 @@
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Distr. %",
-    "noResults": "Nessun membro corrisponde ai filtri."
+    "noResults": "Nessun membro corrisponde ai filtri.",
+    "league": "Lega"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Municipio {{th}}",
@@ -476,7 +480,8 @@
     "TOKEN_SHOULD_NOT_BE_EMPTY": "Il link non è completo.",
     "ROLES_ARE_NOT_VALID": "Ruoli non validi.",
     "PERIOD_IS_NOT_VALID": "Periodo non valido.",
-    "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo."
+    "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo.",
+    "CWL_SEASON_NOT_FOUND": "Stagione della Lega non trovata."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -635,7 +640,7 @@
     }
   },
   "commendations": {
-    "title": "Encomi di {{month}}",
+    "title": "Encomi",
     "short": "Encomi del mese scorso",
     "tiers": {
       "gold": "Oro",
@@ -659,6 +664,18 @@
       "silver": "Cacciatore di Giganti",
       "gold": "Flagello dei Titani",
       "description": "Almeno {{n}} attacchi a 3 stelle nel mese contro Municipi più alti del proprio."
+    },
+    "cwlStriker": {
+      "bronze": "Guerriero di Lega",
+      "silver": "Campione di Lega",
+      "gold": "Leggenda della Lega",
+      "description": "Media di almeno {{n}} stelle per attacco nell'ultima CWL (almeno 3 attacchi)."
+    },
+    "capitalRaider": {
+      "bronze": "Razziatore",
+      "silver": "Predatore della Capitale",
+      "gold": "Conquistatore di Capitali",
+      "description": "Più di {{n}} di oro della capitale saccheggiato nell'ultimo Raid Weekend."
     },
     "wall": {
       "bronze": "Scudo Saldo",
@@ -688,5 +705,59 @@
     "subtitle": "Tema e lingua dell'app",
     "theme": "Tema",
     "language": "Lingua"
+  },
+  "cwl": {
+    "subtitle": "Classifica del girone, giornate e rendimento dei giocatori nella Lega delle guerre tra clan",
+    "season": "Stagione",
+    "state": {
+      "preparation": "In preparazione",
+      "inWar": "In corso",
+      "ended": "Conclusa"
+    },
+    "empty": "Nessuna stagione della Lega registrata finora: verrà salvata automaticamente alla prossima CWL.",
+    "standings": "Classifica del girone",
+    "clan": "Clan",
+    "wins": "Vittorie",
+    "stars": "Stelle",
+    "destruction": "Distruzione",
+    "standingsNote": "Come nel gioco: stelle totali più 10 stelle per ogni guerra vinta, a parità conta la distruzione.",
+    "rounds": "Giornate",
+    "round": "Giornata {{n}}",
+    "versus": "contro {{name}}",
+    "notScheduled": "Non ancora programmata",
+    "warState": {
+      "preparation": "Preparazione",
+      "battle": "In corso"
+    },
+    "players": "Rendimento dei giocatori",
+    "attacks": "Attacchi",
+    "averageStars": "Media stelle",
+    "threeStars": "Attacchi a 3★",
+    "averageDestruction": "Distruzione media"
+  },
+  "raids": {
+    "subtitle": "Oro della capitale e attacchi di ogni membro, weekend per weekend",
+    "weekend": "Weekend",
+    "state": {
+      "ongoing": "In corso",
+      "ended": "Concluso"
+    },
+    "empty": "Nessun Raid Weekend disponibile.",
+    "totalLoot": "Oro della capitale",
+    "attacks": "Attacchi",
+    "participants": "{{n}} partecipanti",
+    "raidsCompleted": "Incursioni completate",
+    "districts": "{{n}} distretti distrutti",
+    "rewards": "Medaglie dei raid",
+    "rewardsHint": "{{offense}} in attacco · {{defense}} in difesa",
+    "members": "Membri",
+    "attacksColumn": "Attacchi",
+    "looted": "Oro saccheggiato",
+    "absent": "Non hanno partecipato ({{n}})",
+    "absentOngoing": "Membri attuali che non hanno ancora attaccato in questo weekend.",
+    "absentEnded": "Membri attuali senza attacchi in questo weekend: gli assalti alla capitale sono obbligatori.",
+    "allIn": "Tutti i membri hanno partecipato.",
+    "noMembersTitle": "Dettaglio dei membri non disponibile",
+    "noMembersText": "Clash of Clans mostra chi ha attaccato solo mentre il weekend è in corso: il sito lo salva da quando è attivo, quindi per questo weekend sono disponibili solo i totali."
   }
 }

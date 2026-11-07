@@ -69,6 +69,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/wars/current-war-page').then((m) => m.CurrentWarPage),
       },
       {
+        path: 'cwl',
+        title: 'nav.cwl',
+        loadComponent: () => import('./features/cwl/cwl-page').then((m) => m.CwlPage),
+      },
+      {
+        path: 'raids',
+        title: 'nav.raids',
+        loadComponent: () => import('./features/raids/raids-page').then((m) => m.RaidsPage),
+      },
+      {
         path: 'wars',
         title: 'nav.history',
         loadComponent: () => import('./features/wars/war-history-page').then((m) => m.WarHistoryPage),

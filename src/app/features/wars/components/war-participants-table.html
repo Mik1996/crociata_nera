@@ -117,7 +117,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!r.hasAttacked" [class.cn-row-me]="r.tag === myTag()"></tr>
+    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!r.hasAttacked" [class.row-partial-attacks]="r.hasAttacked && r.attacksUsed < r.attacksAvailable" [class.cn-row-me]="r.tag === myTag()"></tr>
     <tr class="mat-row" *matNoDataRow>
       <td class="mat-cell no-results" [attr.colspan]="columns.length">
         {{ 'participants.noResults' | translate }}

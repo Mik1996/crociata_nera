@@ -7,3 +7,5 @@ export * from './war-participant.model';
 export * from './war.model';
 export * from './player-profile.model';
 export * from './commendation.model';
+export * from './cwl.model';
+export * from './raid.model';

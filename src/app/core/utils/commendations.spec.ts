@@ -1,5 +1,13 @@
-import { CommendationTier, CommendationType, HistoryAttack, HistoryPeriod, HistoryWar, HistoryWarPlayer } from '../models';
-import { awardCommendations, compareCommendations, previousMonth, tierFor } from './commendations';
+import { CommendationTier, CommendationType, CwlSeason, HistoryAttack, HistoryPeriod, HistoryWar, HistoryWarPlayer, RaidSeason } from '../models';
+import {
+  awardCommendations,
+  awardCwlCommendations,
+  awardRaidCommendations,
+  compareCommendations,
+  mergeCommendations,
+  previousMonth,
+  tierFor,
+} from './commendations';
 import { aggregateHistoryPlayers } from './monthly-history';
 
 type PlayerSpec = Partial<HistoryWarPlayer> & { tag: string; stars?: number[] };
@@ -149,6 +157,59 @@ describe('awardCommendations', () => {
     expect(
       compareCommendations({ type: 'present', tier: 'gold' }, { type: 'champion', tier: 'silver' }),
     ).toBeLessThan(0);
+  });
+});
+
+describe('Raid Weekend and CWL commendations', () => {
+  it('capital raiders need MORE than 25 000, 27 500 and 30 000 Capital Gold', () => {
+    expect(tierFor('capitalRaider', 25_000)).toBeNull();
+    expect(tierFor('capitalRaider', 25_001)).toBe('bronze');
+    expect(tierFor('capitalRaider', 27_500)).toBe('bronze');
+    expect(tierFor('capitalRaider', 27_501)).toBe('silver');
+    expect(tierFor('capitalRaider', 30_001)).toBe('gold');
+  });
+
+  it('CWL strikers need an average of at least 2.5, 2.75 and 3 stars', () => {
+    expect(tierFor('cwlStriker', 2.49)).toBeNull();
+    expect(tierFor('cwlStriker', 2.5)).toBe('bronze');
+    expect(tierFor('cwlStriker', 2.75)).toBe('silver');
+    expect(tierFor('cwlStriker', 3)).toBe('gold');
+  });
+
+  it('awards the capital raiders of a weekend', () => {
+    const member = (tag: string, looted: number) => ({ tag, name: tag, attacks: 6, attackLimit: 6, looted });
+    const season = { members: [member('#GOLD', 31_000), member('#SILVER', 28_000), member('#NONE', 20_000)] } as RaidSeason;
+    const awards = awardRaidCommendations(season);
+    expect(awards.get('#GOLD')).toEqual([{ type: 'capitalRaider', tier: 'gold' }]);
+    expect(awards.get('#SILVER')).toEqual([{ type: 'capitalRaider', tier: 'silver' }]);
+    expect(awards.has('#NONE')).toBe(false);
+  });
+
+  it('awards the CWL strikers on the exact average, with at least 3 attacks', () => {
+    const player = (tag: string, attacks: number, stars: number) =>
+      ({ tag, name: tag, townHall: 16, wars: 7, attacks, stars, threeStars: 0, averageStars: 0, averageDestruction: 0 });
+    const season = {
+      players: [player('#PERFECT', 7, 21), player('#ALMOST', 7, 20), player('#LUCKY', 2, 6), player('#GOOD', 4, 11)],
+    } as CwlSeason;
+    const awards = awardCwlCommendations(season);
+    expect(awards.get('#PERFECT')).toEqual([{ type: 'cwlStriker', tier: 'gold' }]);
+    // 20 / 7 = 2.857: silver, even though it would round to 2.86.
+    expect(awards.get('#ALMOST')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+    expect(awards.has('#LUCKY')).toBe(false);
+    expect(awards.get('#GOOD')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+  });
+
+  it('merges the commendations of different periods, most valuable first', () => {
+    const merged = mergeCommendations(
+      new Map([['#A', [{ type: 'present' as const, tier: 'silver' as const }]]]),
+      new Map([['#A', [{ type: 'capitalRaider' as const, tier: 'gold' as const }]]]),
+      new Map([['#A', [{ type: 'cwlStriker' as const, tier: 'silver' as const }]]]),
+    );
+    expect(merged.get('#A')).toEqual([
+      { type: 'capitalRaider', tier: 'gold' },
+      { type: 'cwlStriker', tier: 'silver' },
+      { type: 'present', tier: 'silver' },
+    ]);
   });
 });
 

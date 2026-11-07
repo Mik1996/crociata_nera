@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Clan, ClanRanks, HistoryPeriod, MonthSummary, PlayerProfile, War } from '../models';
+import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -32,6 +32,15 @@ export abstract class CocApiService {
    * Returns `null` if no wars were recorded in the month.
    */
   abstract getHistoryPeriod(period: string): Observable<HistoryPeriod | null>;
+
+  /** Saved Clan War League seasons, most recent first. */
+  abstract getCwlSeasons(): Observable<CwlSeasonSummary[]>;
+
+  /** A Clan War League season (`YYYY-MM`); `null` if it was not recorded. */
+  abstract getCwlSeason(season: string): Observable<CwlSeason | null>;
+
+  /** Raid Weekends of the Clan Capital, most recent first. */
+  abstract getRaidSeasons(): Observable<RaidSeason[]>;
 
   /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
   abstract getPlayer(tag: string): Observable<PlayerProfile | null>;
