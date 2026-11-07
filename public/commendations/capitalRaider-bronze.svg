@@ -1,27 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 76" width="64" height="76">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -2 64 64" width="64" height="64">
   <!-- Commendation medal: Capital raider (bronze) -->
   <defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffd2a1"/>
-      <stop offset="0.55" stop-color="#c77a3a"/>
-      <stop offset="1" stop-color="#5e2f0d"/>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd9b0"/><stop offset="0.45" stop-color="#cd7f3e"/><stop offset="1" stop-color="#7a3f12"/>
     </linearGradient>
-    <linearGradient id="inner" x1="1" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#ffd2a1"/>
-      <stop offset="1" stop-color="#c77a3a"/>
+    <linearGradient id="ringInner" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd9b0"/><stop offset="0.5" stop-color="#cd7f3e"/><stop offset="1" stop-color="#7a3f12"/>
     </linearGradient>
+    <radialGradient id="disc" cx="0.38" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#ffe1c0"/><stop offset="0.55" stop-color="#cd7f3e"/><stop offset="1" stop-color="#9a5f2e"/>
+    </radialGradient>
+    <linearGradient id="emb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8e5c36"/><stop offset="1" stop-color="#4f290c"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd9b0"/><stop offset="1" stop-color="#7a3f12"/>
+    </linearGradient>
+    <radialGradient id="rays" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.4" stop-color="#fff1a0" stop-opacity="1"/><stop offset="0.8" stop-color="#ffc83a" stop-opacity="0.75"/><stop offset="1" stop-color="#ffb000" stop-opacity="0.15"/>
+    </radialGradient>
+    <clipPath id="discClip"><circle cx="32" cy="30" r="19.5"/></clipPath>
   </defs>
-  <!-- Ribbon tails -->
-  <path d="M18 44 L12 72 L20 67 L25 74 L30 50 Z" fill="#00897b" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M46 44 L52 72 L44 67 L39 74 L34 50 Z" fill="#00897b" stroke="#0b1220" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Medallion -->
-  <circle cx="32" cy="30" r="27" fill="url(#metal)" stroke="#0b1220" stroke-width="2.5"/>
-  <circle cx="32" cy="30" r="21.5" fill="url(#inner)" stroke="#5e2f0d" stroke-width="1.5"/>
-  <!-- Emblem -->
-  <g>
-    <path d="M20 46 V22 H23.5 V16 H28 V20 H30 V16 H34 V20 H36 V16 H40.5 V22 H44 V46 Z" fill="#5e2f0d" stroke="#5e2f0d" stroke-width="1" stroke-linejoin="round"/>
-    <path d="M28.5 46 V38.5 A3.5 3.5 0 0 1 35.5 38.5 V46 Z" fill="#ffd2a1"/>
-    <rect x="25" y="27" width="3.5" height="4.5" rx="1" fill="#ffd2a1"/>
-    <rect x="35.5" y="27" width="3.5" height="4.5" rx="1" fill="#ffd2a1"/>
-  </g>
+  <circle cx="32" cy="31.2" r="24.6" fill="#000" opacity="0.35"/>
+  <circle cx="32" cy="30" r="24" fill="url(#ring)" stroke="#0b1220" stroke-width="2"/>
+  <circle cx="32" cy="30" r="22.2" fill="url(#ringInner)"/>
+  <circle cx="32" cy="30" r="19.5" fill="url(#disc)" stroke="#3b1d07" stroke-width="1.2"/>
+  <circle cx="32" cy="30" r="17.5" fill="none" stroke="#ffd9b0" stroke-width="0.8" stroke-dasharray="1.2 1.6" opacity="0.7"/>
+  <g transform="translate(0 1)" opacity="0.35"><g transform="translate(32 30) scale(0.8) translate(-32 -31)"><path d="M20 46 V22 H23.5 V16 H28 V20 H30 V16 H34 V20 H36 V16 H40.5 V22 H44 V46 Z" fill="#000" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/><path d="M28.5 46 V38.5 A3.5 3.5 0 0 1 35.5 38.5 V46 Z" fill="#000"/><rect x="25" y="27" width="3.5" height="4.5" rx="1" fill="#000"/><rect x="35.5" y="27" width="3.5" height="4.5" rx="1" fill="#000"/><path d="M20 34 H44" stroke="#000" stroke-width="0.8" opacity="0.6"/></g></g>
+  <g transform="translate(32 30) scale(0.8) translate(-32 -31)"><path d="M20 46 V22 H23.5 V16 H28 V20 H30 V16 H34 V20 H36 V16 H40.5 V22 H44 V46 Z" fill="url(#emb)" stroke="#3b1d07" stroke-width="1.4" stroke-linejoin="round"/><path d="M28.5 46 V38.5 A3.5 3.5 0 0 1 35.5 38.5 V46 Z" fill="#ffd9b0"/><rect x="25" y="27" width="3.5" height="4.5" rx="1" fill="#ffd9b0"/><rect x="35.5" y="27" width="3.5" height="4.5" rx="1" fill="#ffd9b0"/><path d="M20 34 H44" stroke="#3b1d07" stroke-width="0.8" opacity="0.6"/></g>
+  <ellipse cx="29" cy="20" rx="14" ry="7" fill="#fff" opacity="0.26" clip-path="url(#discClip)"/>
 </svg>

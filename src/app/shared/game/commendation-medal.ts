@@ -4,7 +4,7 @@ import { CommendationEmblem } from '../../core/models';
 /**
  * Medal of a commendation, drawn in `public/commendations/<emblem>.svg` (e.g. `wall-gold`).
  * Decorative: the accessible name is given by the parent (tooltip and label).
- * Default width 60px; the parent can resize it by setting `width` on the element.
+ * Default width 72px (square medal); the parent can resize it by setting `width` on the element.
  */
 @Component({
   selector: 'app-commendation-medal',

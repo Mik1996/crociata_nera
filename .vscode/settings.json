@@ -5,7 +5,8 @@
     "welcome-page",
     "cache",
     "services",
-    "images"
+    "images",
+    "commendation"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",
