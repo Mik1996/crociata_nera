@@ -56,6 +56,7 @@ export interface CocClan {
   chatLanguage?: { id: number; name: string; languageCode?: string };
   labels?: { id: number; name: string; iconUrls?: { small?: string; medium?: string } }[];
   requiredTownhallLevel?: number;
+  requiredLeagueTier?: { id: number; name: string; iconUrls?: { large?: string; small?: string } };
   requiredTrophies?: number;
   members?: number;
   memberList?: CocClanMember[];

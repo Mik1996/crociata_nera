@@ -1,0 +1,97 @@
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+// Large, game-style choices: the selected one is a raised gold tile.
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 56px;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--cn-border);
+  border-radius: 12px;
+  background: var(--cn-tint-neutral);
+  color: var(--cn-text);
+  font: inherit;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-md);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease;
+
+  &:hover {
+    border-color: var(--cn-gold);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--cn-gold);
+    outline-offset: 2px;
+  }
+}
+
+.option--selected {
+  border-color: var(--cn-panel-border);
+  background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+    0 2px 0 var(--cn-panel-border);
+  color: #1d1503;
+}
+
+.option__label {
+  flex: 1;
+}
+
+.option__check {
+  flex: none;
+  color: #1d1503;
+}
+
+/* Colored dot of the theme (white = light, black = dark). */
+.swatch {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--cn-outline);
+}
+
+.swatch--light {
+  background: #ffffff;
+}
+
+.swatch--dark {
+  background: #000000;
+}
+
+.flag {
+  flex: none;
+  width: 32px;
+  height: 22px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--cn-flag-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+}

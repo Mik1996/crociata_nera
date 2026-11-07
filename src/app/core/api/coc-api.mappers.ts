@@ -91,6 +91,12 @@ export function mapClan(raw: CocClan): Clan {
     type: raw.type,
     requiredTownHall: raw.requiredTownhallLevel,
     requiredTrophies: raw.requiredTrophies,
+    requiredLeague: raw.requiredLeagueTier
+      ? {
+          name: raw.requiredLeagueTier.name,
+          iconUrl: raw.requiredLeagueTier.iconUrls?.large ?? raw.requiredLeagueTier.iconUrls?.small,
+        }
+      : undefined,
     members: (raw.memberList ?? []).map(mapClanMember),
   };
 }

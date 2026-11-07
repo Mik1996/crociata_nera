@@ -1,0 +1,14 @@
+// Vertical scrolling only: on touch screens the page must never slide sideways.
+:host {
+  overflow-x: clip;
+  touch-action: pan-y pinch-zoom;
+}
+
+.page__scroll {
+  overflow-x: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.join__banner {
+  margin-top: 0;
+}

@@ -1,0 +1,76 @@
+@let c = clan();
+<section class="recruit" [attr.aria-labelledby]="titleId">
+  <div class="recruit__pitch">
+    <span class="recruit__kicker">{{ 'welcome.recruit.kicker' | translate }}</span>
+    <h2 [id]="titleId" class="recruit__title">{{ 'welcome.recruit.title' | translate }}</h2>
+    <p class="recruit__text">{{ 'welcome.recruit.text' | translate }}</p>
+  </div>
+
+  <aside class="enlist" [attr.aria-label]="'welcome.recruit.enlist' | translate">
+    <p class="enlist__slots" [class.enlist__slots--full]="openSlots() === 0">
+      @if (openSlots() > 0) {
+        <span class="enlist__slots-value cn-num">{{ openSlots() }}</span>
+        {{ (openSlots() === 1 ? 'welcome.recruit.openSlot' : 'welcome.recruit.openSlots') | translate }}
+      } @else {
+        {{ 'welcome.recruit.full' | translate }}
+      }
+    </p>
+
+    @if (c.requiredTownHall || c.requiredLeague) {
+      <dl class="enlist__requirements">
+        @if (c.requiredTownHall) {
+          <div>
+            <dt>{{ 'welcome.recruit.minTownHall' | translate }}</dt>
+            <dd>
+              @if (townHallImage(); as image) {
+                <img class="enlist__badge" [src]="image" alt="" width="96" height="96" />
+              }
+              <span>{{ 'common.townHallN' | translate: { n: c.requiredTownHall } }}</span>
+            </dd>
+          </div>
+        }
+        @if (c.requiredLeague; as league) {
+          <div>
+            <dt>{{ 'welcome.recruit.requiredLeague' | translate }}</dt>
+            <dd>
+              @if (league.iconUrl) {
+                <img class="enlist__badge" [src]="league.iconUrl" alt="" width="96" height="96" />
+              }
+              <span>{{ league.name }}</span>
+            </dd>
+          </div>
+        }
+      </dl>
+    }
+
+    <a class="enlist__cta" [href]="joinUrl()" target="_blank" rel="noopener">
+      <mat-icon aria-hidden="true">shield</mat-icon>
+      {{ 'welcome.recruit.cta' | translate }}
+      <span class="cn-visually-hidden">({{ 'common.opensInNewTab' | translate }})</span>
+    </a>
+    <p class="enlist__hint">{{ 'welcome.recruit.ctaHint' | translate }}</p>
+  </aside>
+
+  <!-- After the call to action in the DOM: on phones the join button comes before the perks;
+       on wide screens the grid areas put the perks back under the pitch. -->
+  <ul class="perks">
+    @for (perk of perks; track perk.key) {
+      <li class="perk">
+        <mat-icon
+          class="perk__icon"
+          [class.perk__icon--red]="perk.tone === 'red'"
+          [class.perk__icon--gold]="perk.tone === 'gold'"
+          aria-hidden="true"
+          >{{ perk.icon }}</mat-icon
+        >
+        <div>
+          <h3 class="perk__title">
+            {{ 'welcome.recruit.perks.' + perk.key + '.title' | translate: { league: c.warLeague?.name ?? '', n: c.capitalHallLevel } }}
+          </h3>
+          <p class="perk__text">{{ 'welcome.recruit.perks.' + perk.key + '.text' | translate }}</p>
+        </div>
+      </li>
+    }
+  </ul>
+</section>
+

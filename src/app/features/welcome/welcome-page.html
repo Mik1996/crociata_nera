@@ -158,12 +158,8 @@
         </section>
       </div>
 
-      <!-- Clan description, as a parchment scroll -->
-      @if (c.description) {
-        <section class="creed" [attr.aria-label]="'welcome.creed' | translate">
-          <p class="creed__text">{{ c.description }}</p>
-        </section>
-      }
+      <app-recruitment-banner [clan]="c" />
+      <app-clan-rules />
     }
   </app-load-state>
 </div>

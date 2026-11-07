@@ -111,6 +111,12 @@
   display: flex;
   flex-direction: column;
 
+  // Material wraps the content in an inner container: a column, so Settings can sit at the bottom.
+  ::ng-deep .mat-drawer-inner-container {
+    display: flex;
+    flex-direction: column;
+  }
+
   // Menu entries as game buttons: the active one is a raised gold button.
   a.mat-mdc-list-item {
     margin: 0.2rem 0.5rem;
@@ -146,9 +152,16 @@
   text-align: center;
 }
 
+// Settings: pinned to the bottom of the side navigation, above the notice.
+.sidenav__bottom {
+  margin-top: auto;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--cn-border);
+}
+
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */
 .sidenav__fan-content {
-  margin: auto 0.75rem 0.75rem;
+  margin: 0.5rem 0.75rem 0.75rem;
   font-size: var(--cn-fs-2xs);
   line-height: 1.4;
   color: var(--cn-text-muted);
@@ -254,6 +267,29 @@
   box-shadow: 0 0 0 1px var(--cn-flag-ring);
 }
 
+// Small screens (collapsible side navigation): theme and language live in Settings, and the
+// account / sign-in button is a round icon (its name stays in the aria-label).
+@media (max-width: 959.98px) {
+  .theme-picker,
+  .language {
+    display: none;
+  }
+
+  .account {
+    justify-content: center;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+
+    .account__name,
+    .picker__arrow {
+      display: none;
+    }
+  }
+}
+
 @media (max-width: 599.98px) {
   .language .language__code,
   .theme-picker .theme-picker__label,
@@ -283,18 +319,5 @@
     .picker__arrow {
       display: none;
     }
-  }
-}
-
-// Fan Content Policy notice under the sign-in/sign-up panel (the sidenav is hidden there).
-.content__fan-content {
-  max-width: 440px;
-  margin: 1rem auto 0;
-  text-align: center;
-  font-size: var(--cn-fs-2xs);
-  color: var(--cn-text-muted);
-
-  ::ng-deep a {
-    color: inherit;
   }
 }

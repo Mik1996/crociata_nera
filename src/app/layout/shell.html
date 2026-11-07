@@ -1,7 +1,7 @@
 <button type="button" class="skip-link" (click)="content.focus()">{{ 'app.skipToContent' | translate }}</button>
 
 <mat-toolbar class="header" role="banner">
-  @if (mobile() && showNav()) {
+  @if (mobile()) {
     <button
       mat-icon-button
       type="button"
@@ -149,50 +149,52 @@
 </mat-toolbar>
 
 <mat-sidenav-container class="container">
-  @if (showNav()) {
-    <mat-sidenav
-      #sidenav
-      (openedChange)="navOpen.set($event)"
-      id="navigation"
-      class="sidenav"
-      [mode]="mode()"
-      [opened]="!mobile()"
-      [fixedInViewport]="mobile()"
-      fixedTopGap="64"
+  <mat-sidenav
+    #sidenav
+    (openedChange)="navOpen.set($event)"
+    id="navigation"
+    class="sidenav"
+    [mode]="mode()"
+    [opened]="!mobile()"
+    [fixedInViewport]="mobile()"
+    fixedTopGap="64"
+  >
+    <nav [attr.aria-label]="'app.mainNavigation' | translate">
+      <mat-nav-list>
+        @for (item of menu(); track item.path) {
+          <ng-container *ngTemplateOutlet="navItem; context: { $implicit: item }" />
+        }
+      </mat-nav-list>
+    </nav>
+    @if (clan()?.description; as description) {
+      <p class="sidenav__clan_description">{{ description }}</p>
+    }
+    <!-- Settings (theme and language) at the bottom, for everyone -->
+    <mat-nav-list class="sidenav__bottom" [attr.aria-label]="'nav.settings' | translate">
+      <ng-container *ngTemplateOutlet="navItem; context: { $implicit: settingsItem }" />
+    </mat-nav-list>
+    <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
+  </mat-sidenav>
+
+  <ng-template #navItem let-item>
+    <a
+      mat-list-item
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+      #rla="routerLinkActive"
+      [activated]="rla.isActive"
+      [attr.aria-current]="rla.isActive ? 'page' : null"
+      (click)="closeIfMobile()"
     >
-      <nav [attr.aria-label]="'app.mainNavigation' | translate">
-        <mat-nav-list>
-          @for (item of menu; track item.path) {
-            <a
-              mat-list-item
-              [routerLink]="item.path"
-              routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-              #rla="routerLinkActive"
-              [activated]="rla.isActive"
-              [attr.aria-current]="rla.isActive ? 'page' : null"
-              (click)="closeIfMobile()"
-            >
-              <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
-              <span matListItemTitle>{{ item.label | translate }}</span>
-            </a>
-          }
-        </mat-nav-list>
-      </nav>
-      @if (clan()?.description; as description) {
-        <p class="sidenav__clan_description">{{ description }}</p>
-      }
-      <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
-    </mat-sidenav>
-  }
+      <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+      <span matListItemTitle>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
 
   <mat-sidenav-content>
     <main id="content" #content tabindex="-1" class="content" [class.content--wide]="wideContent()">
       <router-outlet />
-      @if (!showNav()) {
-        <!-- The side navigation (with this notice) is hidden while signed out. -->
-        <p class="content__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
-      }
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>

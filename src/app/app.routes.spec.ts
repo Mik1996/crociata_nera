@@ -41,6 +41,16 @@ describe('app routes', () => {
     expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-welcome-page');
   });
 
+  it.each([
+    ['/join', 'app-join-page'],
+    ['/settings', 'app-settings-page'],
+  ])('opens %s while signed out', async (url, tag) => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    expect(TestBed.inject(Router).url).toBe(url);
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe(tag);
+  });
+
   it('opens the sign-in page while signed out', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/sign-in?returnUrl=%2Fwars');

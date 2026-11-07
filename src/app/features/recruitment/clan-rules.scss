@@ -1,0 +1,122 @@
+// Clan rules: parchment scroll (same look in both themes).
+
+:host {
+  display: block;
+  // Room for the rolled edges of the scroll (no horizontal overflow).
+  margin: 1.5rem 6px 0.75rem;
+}
+
+.rules {
+  position: relative;
+  padding: 1.1rem clamp(0.9rem, 3vw, 2rem) 1.4rem;
+  border: 3px solid #5a3a1c;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
+    linear-gradient(180deg, #f6e7c4 0%, #ead3a2 100%);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.35),
+    inset 0 -6px 0 rgba(90, 58, 28, 0.18),
+    var(--cn-card-shadow);
+  color: #3a2412;
+
+  // Rolled edges of the scroll (inside the page margin: no horizontal overflow).
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    height: 12px;
+    border: 3px solid #5a3a1c;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #d9b97c, #b88c4a);
+  }
+
+  &::before {
+    top: -9px;
+  }
+
+  &::after {
+    bottom: -9px;
+  }
+}
+
+.rules__title {
+  margin: 0 0 0.9rem;
+  font-family: var(--cn-font-display);
+  font-size: clamp(1.5rem, 1rem + 1.8vw, 2.1rem);
+  text-align: center;
+  color: #5a1414;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.rules__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+  gap: 0.75rem;
+}
+
+.rule-group {
+  padding: 0.75rem 0.9rem;
+  border: 2px solid rgba(90, 58, 28, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 250, 235, 0.55);
+}
+
+.rule-group__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-lg);
+  color: #5a3a1c;
+
+  mat-icon {
+    color: #8a1c1c;
+  }
+}
+
+.rule-group__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding-left: 1.3rem;
+    line-height: 1.4;
+
+    // Small red cross, like the clan badge.
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0.15rem;
+      top: 0.35em;
+      width: 0.7rem;
+      height: 0.7rem;
+      background:
+        linear-gradient(#8a1c1c, #8a1c1c) center / 100% 30% no-repeat,
+        linear-gradient(#8a1c1c, #8a1c1c) center / 30% 100% no-repeat;
+    }
+  }
+}
+
+// Forbidden things: a red ✕ instead of the cross.
+.rule-group__list--forbidden li::before {
+  transform: rotate(45deg);
+  background:
+    linear-gradient(#c62828, #c62828) center / 100% 26% no-repeat,
+    linear-gradient(#c62828, #c62828) center / 26% 100% no-repeat;
+}
+
+.rule-group__note {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+  color: #5a3a1c;
+}
+

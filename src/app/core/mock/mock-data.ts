@@ -500,6 +500,7 @@ export function generateMockData(options: MockOptions): MockDataset {
     type: 'inviteOnly',
     requiredTownHall: 17,
     requiredTrophies: 1400,
+    requiredLeague: { name: 'Master League', iconUrl: 'game/leagues/master.webp' },
     members,
   };
 

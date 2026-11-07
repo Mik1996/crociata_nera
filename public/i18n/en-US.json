@@ -36,11 +36,13 @@
     "signIn": "Sign in",
     "signUp": "Sign up",
     "welcome": "Welcome",
+    "join": "Join us",
     "forgotPassword": "Forgot password",
     "resetPassword": "Reset password",
     "verifyEmail": "Confirm email",
     "profile": "My profile",
-    "admin": "Administration"
+    "admin": "Administration",
+    "settings": "Settings"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -70,7 +72,8 @@
     "threeStarAttacks": "3-star attacks",
     "participation": "Participation",
     "battleSummary": "Battle summary",
-    "you": "You"
+    "you": "You",
+    "opensInNewTab": "opens in a new tab"
   },
   "sort": {
     "position": "Sort by position",
@@ -381,7 +384,7 @@
     },
     "signUp": {
       "title": "Sign up",
-      "subtitle": "Create your account for the Crusade",
+      "subtitle": "Create your account for Crociata Nera",
       "submit": "Create account",
       "submitting": "Creating account…",
       "haveAccount": "Already have an account?",
@@ -485,7 +488,6 @@
     "clanPoints": "Clan points",
     "labels": "Clan labels",
     "unranked": "Unranked",
-    "creed": "Our creed",
     "capital": {
       "title": "Clan Capital",
       "hall": "Capital Hall",
@@ -500,6 +502,87 @@
       "ties": "Ties",
       "losses": "Losses",
       "winRate": "Win rate"
+    },
+    "recruit": {
+      "kicker": "Now recruiting",
+      "title": "Join Crociata Nera",
+      "text": "We are looking for loyal warriors, ready to fight side by side. Here every attack counts, every star matters and nobody fights alone: bring your village to Crociata Nera.",
+      "enlist": "Enlist",
+      "openSlots": "open spots in our ranks",
+      "openSlot": "open spot in our ranks",
+      "full": "Our ranks are full: come back soon!",
+      "minTownHall": "Required Town Hall level",
+      "requiredLeague": "Required league",
+      "cta": "Join the clan",
+      "ctaHint": "The link opens Clash of Clans on the clan profile: tap “Join” and wait to be accepted.",
+      "perks": {
+        "wars": {
+          "title": "Endless wars",
+          "text": "Clan wars and Clan War League every month, with a clear plan and teammates who actually attack."
+        },
+        "league": {
+          "title": "In {{league}}",
+          "text": "We compete at the top: every war is a real challenge against worthy clans."
+        },
+        "capital": {
+          "title": "Capital level {{n}}",
+          "text": "Raid weekends every week and a capital to grow together."
+        },
+        "clanGames": {
+          "title": "Clan Games always completed",
+          "text": "Every month we reach the top Clan Games tier and never miss an event: the best rewards are for everyone."
+        },
+        "cwl": {
+          "title": "Organized, structured CWL",
+          "text": "Line-ups, turns and targets planned together: we coordinate on our WhatsApp and Telegram channels, so everyone always knows what to do and when to attack."
+        },
+        "redCrusade": {
+          "title": "Crociata Rossa",
+          "text": "Our sister clan, where we play the second CWL: more League medals and a spot for everyone."
+        },
+        "goldCrusade": {
+          "title": "Crociata d'Oro",
+          "text": "The parallel wars clan: while the two CWLs are on, we keep fighting clan wars there and the action never stops."
+        },
+        "honours": {
+          "title": "Glory to those who earn it",
+          "text": "Stats for every attack, monthly rankings and bronze, silver and gold commendations for the best."
+        }
+      }
+    },
+    "rules": {
+      "title": "Clan rules",
+      "values": {
+        "title": "Our values",
+        "1": "Good manners",
+        "2": "Maturity",
+        "3": "Respect"
+      },
+      "war": {
+        "title": "Wars and League",
+        "1": "War and Clan War League (CWL) attacks are mandatory",
+        "2": "1st attack no later than 10 hours before the war ends",
+        "3": "2nd attack no later than 2 hours before the war ends"
+      },
+      "capital": {
+        "title": "Clan Capital",
+        "1": "Capital raids are mandatory",
+        "2": "Capital Gold goes first to priority buildings",
+        "3": "Capital Peak is upgraded last"
+      },
+      "forbidden": {
+        "title": "Not allowed",
+        "1": "Heroes upgrading during wars and CWL",
+        "2": "Stress and arguments",
+        "3": "Rushed villages"
+      },
+      "requirements": {
+        "title": "To take part in wars",
+        "1": "Troops",
+        "2": "Heroes",
+        "3": "Buildings",
+        "note": "All maxed for the previous Town Hall."
+      }
     }
   },
   "profile": {
@@ -593,5 +676,15 @@
       "gold": "Always on the Front Line",
       "description": "Attacked in at least {{n}}% of the month's wars."
     }
+  },
+  "join": {
+    "title": "Join us",
+    "subtitle": "Join Crociata Nera: why join, how to do it and the clan rules"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "App theme and language",
+    "theme": "Theme",
+    "language": "Language"
   }
 }

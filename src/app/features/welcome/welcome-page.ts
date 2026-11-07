@@ -7,15 +7,18 @@ import { capitalHallImage, capitalLeagueIcon, warLeagueIcon } from '../../core/g
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { LoadState } from '../../shared/components/load-state';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { ClanRules } from '../recruitment/clan-rules';
+import { RecruitmentBanner } from '../recruitment/recruitment-banner';
 
 /**
- * Home page: the clan presented like a game banner. The badge is the centrepiece, under a
- * flaming metallic clan name; Clan Capital and Clan War League panels follow, with the
- * clan description at the bottom. Data comes from `GET /clans/{tag}`.
+ * Home page and recruiting page: the clan presented like a game banner. The badge is the
+ * centrepiece, under a flaming metallic clan name; Clan Capital and Clan War League panels
+ * follow, then the recruitment pitch with the in-game join link and the clan rules.
+ * Data comes from `GET /clans/{tag}`.
  */
 @Component({
   selector: 'app-welcome-page',
-  imports: [MatIconModule, TranslatePipe, LocalNumberPipe, LoadState, ScrollFade],
+  imports: [MatIconModule, TranslatePipe, LocalNumberPipe, LoadState, ScrollFade, RecruitmentBanner, ClanRules],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
   templateUrl: './welcome-page.html',

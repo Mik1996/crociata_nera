@@ -47,7 +47,23 @@ describe('App', () => {
     await fixture.whenStable();
     const nav = (fixture.nativeElement as HTMLElement).querySelector('nav[aria-label="Navigazione principale"]');
     const items = Array.from(nav?.querySelectorAll('a [matListItemTitle]') ?? []).map((s) => s.textContent?.trim());
-    expect(items).toEqual(['Benvenuto', 'Dashboard', 'Guerra corrente', 'Storico guerre', 'Giocatori', 'Statistiche']);
+    expect(items).toEqual([
+      'Benvenuto',
+      'Unisciti a noi',
+      'Dashboard',
+      'Guerra corrente',
+      'Storico guerre',
+      'Giocatori',
+      'Statistiche',
+    ]);
+  });
+
+  it('offers Settings at the bottom of the side navigation', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('.sidenav__bottom a')!;
+    expect(link.textContent).toContain('Impostazioni');
+    expect(link.getAttribute('href')).toBe('/settings');
   });
 
   it('switches language from the header menu, with the flag and name of each language', async () => {
@@ -64,7 +80,7 @@ describe('App', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(items()).toEqual(['Welcome', 'Dashboard', 'Current war', 'War history', 'Players', 'Statistics']);
+    expect(items()).toEqual(['Welcome', 'Join us', 'Dashboard', 'Current war', 'War history', 'Players', 'Statistics']);
     expect(el.querySelector('button.language img')?.getAttribute('src')).toBe('flags/us.svg');
     TestBed.inject(TranslateService).use('it-IT');
     localStorage.clear();

@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -34,12 +35,22 @@ interface MenuItem {
   /** Translation key. */
   label: string;
   icon: string;
+  /** Reachable while signed out. */
+  public?: boolean;
 }
 
-/** Main layout: header with the clan name, side navigation and content. */
+/** Pages that use the full width of the content area. */
+const WIDE_PAGES = new Set(['/', '/join']);
+
+/**
+ * Main layout: header with the clan name, side navigation and content.
+ * The side navigation is always there: signed out it only offers the public pages and the
+ * settings (theme and language).
+ */
 @Component({
   selector: 'app-shell',
   imports: [
+    NgTemplateOutlet,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -83,8 +94,8 @@ export class Shell {
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
 
-  /** Navigation and app pages are only for signed-in users (always shown with mock data). */
-  protected readonly showNav = computed(() => this.useMock || this.auth.isAuthenticated());
+  /** App pages are only for signed-in users (always open with mock data). */
+  private readonly signedIn = computed(() => this.useMock || this.auth.isAuthenticated());
   protected readonly navOpen = signal(false);
 
   private readonly currentUrl = toSignal(
@@ -95,8 +106,8 @@ export class Shell {
     { initialValue: this.router.url },
   );
 
-  /** The welcome page uses the full width of the content area (the other pages are capped). */
-  protected readonly wideContent = computed(() => this.currentUrl().split(/[?#]/)[0] === '/');
+  /** The welcome and "Join us" pages use the full width of the content area (the others are capped). */
+  protected readonly wideContent = computed(() => WIDE_PAGES.has(this.currentUrl().split(/[?#]/)[0]));
 
   /**
    * "Sign in" keeps the page to come back to: the `returnUrl` set by the guard on the welcome
@@ -131,14 +142,19 @@ export class Shell {
     if (code !== this.language.current()) this.language.use(code).subscribe();
   }
 
-  protected readonly menu: MenuItem[] = [
-    { path: '/', label: 'nav.welcome', icon: 'fort' },
+  private readonly allMenu: MenuItem[] = [
+    { path: '/', label: 'nav.welcome', icon: 'fort', public: true },
+    { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
     { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
     { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
     { path: '/wars', label: 'nav.history', icon: 'history_edu' },
     { path: '/players', label: 'nav.players', icon: 'groups' },
     { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
   ];
+
+  /** Signed out: only the public pages (welcome, join us); settings are always at the bottom. */
+  protected readonly menu = computed(() => (this.signedIn() ? this.allMenu : this.allMenu.filter((i) => i.public)));
+  protected readonly settingsItem: MenuItem = { path: '/settings', label: 'nav.settings', icon: 'settings', public: true };
 
   protected readonly mobile = toSignal(
     inject(BreakpointObserver)

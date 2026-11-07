@@ -4,6 +4,17 @@
 $scene-ink: #f2f5fb; // text on the dark scene
 $scene-muted: #cfd7e8;
 
+// Vertical scrolling only: on touch screens the page must never slide sideways.
+:host {
+  overflow-x: clip;
+  touch-action: pan-y pinch-zoom;
+}
+
+.page__scroll {
+  overflow-x: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
@@ -478,58 +489,6 @@ $scene-muted: #cfd7e8;
 
 .fact--loss {
   background: var(--cn-tint-loss);
-}
-
-// ---------------------------------------------------------------------------
-// Description: parchment scroll (same look in both themes)
-// ---------------------------------------------------------------------------
-
-.creed {
-  position: relative;
-  margin: 0.9rem auto 0;
-  max-width: 860px;
-  padding: 1.1rem clamp(1rem, 4vw, 2.5rem) 1.3rem;
-  border: 3px solid #5a3a1c;
-  border-radius: 14px;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
-    linear-gradient(180deg, #f6e7c4 0%, #ead3a2 100%);
-  box-shadow:
-    inset 0 0 0 4px rgba(255, 255, 255, 0.35),
-    inset 0 -6px 0 rgba(90, 58, 28, 0.18),
-    var(--cn-card-shadow);
-  color: #3a2412;
-  text-align: center;
-
-  // Rolled edges of the scroll.
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    left: -6px;
-    right: -6px;
-    height: 12px;
-    border: 3px solid #5a3a1c;
-    border-radius: 8px;
-    background: linear-gradient(180deg, #d9b97c, #b88c4a);
-  }
-
-  &::before {
-    top: -9px;
-  }
-
-  &::after {
-    bottom: -9px;
-  }
-}
-
-.creed__text {
-  margin: 0;
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-lg);
-  line-height: 1.5;
-  white-space: pre-line;
-  overflow-wrap: anywhere;
 }
 
 // ---------------------------------------------------------------------------

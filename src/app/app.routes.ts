@@ -4,7 +4,7 @@ import { adminGuard, authGuard, guestGuard } from './core/backend/auth.guards';
 /**
  * Route `title`s are translation keys, resolved by `PageTitleStrategy`.
  *
- * Public pages: the welcome page (home), sign-in and sign-up. Every other page (including
+ * Public pages: the welcome page (home), "Join us", settings, sign-in and sign-up. Every other page (including
  * the 404) lives under a group protected by `authGuard`: signed-out users are sent to the
  * welcome page, from which "Sign in" brings them back to the page they asked for.
  */
@@ -14,6 +14,16 @@ export const routes: Routes = [
     pathMatch: 'full',
     title: 'nav.welcome',
     loadComponent: () => import('./features/welcome/welcome-page').then((m) => m.WelcomePage),
+  },
+  {
+    path: 'join',
+    title: 'nav.join',
+    loadComponent: () => import('./features/recruitment/join-page').then((m) => m.JoinPage),
+  },
+  {
+    path: 'settings',
+    title: 'nav.settings',
+    loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
   },
   {
     path: 'sign-in',

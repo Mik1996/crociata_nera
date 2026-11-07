@@ -36,11 +36,13 @@
     "signIn": "Accedi",
     "signUp": "Registrati",
     "welcome": "Benvenuto",
+    "join": "Unisciti a noi",
     "forgotPassword": "Password dimenticata",
     "resetPassword": "Reimposta password",
     "verifyEmail": "Conferma email",
     "profile": "Il mio profilo",
-    "admin": "Amministrazione"
+    "admin": "Amministrazione",
+    "settings": "Impostazioni"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -70,7 +72,8 @@
     "threeStarAttacks": "Attacchi a 3 stelle",
     "participation": "Partecipazione",
     "battleSummary": "Riepilogo dello scontro",
-    "you": "Tu"
+    "you": "Tu",
+    "opensInNewTab": "si apre in una nuova scheda"
   },
   "sort": {
     "position": "Ordina per posizione",
@@ -381,7 +384,7 @@
     },
     "signUp": {
       "title": "Registrati",
-      "subtitle": "Crea il tuo account per la Crociata",
+      "subtitle": "Crea il tuo account per Crociata Nera",
       "submit": "Crea account",
       "submitting": "Creazione in corso…",
       "haveAccount": "Hai già un account?",
@@ -485,7 +488,6 @@
     "clanPoints": "Punti clan",
     "labels": "Etichette del clan",
     "unranked": "Non classificato",
-    "creed": "Il nostro credo",
     "capital": {
       "title": "Capitale del clan",
       "hall": "Municipio della Capitale",
@@ -500,6 +502,87 @@
       "ties": "Pareggi",
       "losses": "Sconfitte",
       "winRate": "% di vittorie"
+    },
+    "recruit": {
+      "kicker": "Reclutamento aperto",
+      "title": "Unisciti a Crociata Nera",
+      "text": "Cerchiamo guerrieri leali, pronti a combattere fianco a fianco. Qui ogni attacco conta, ogni stella pesa e nessuno combatte da solo: porta il tuo villaggio in Crociata Nera.",
+      "enlist": "Arruolati",
+      "openSlots": "posti liberi nelle nostre file",
+      "openSlot": "posto libero nelle nostre file",
+      "full": "Le nostre file sono al completo: torna a trovarci presto!",
+      "minTownHall": "Livello del municipio necessario",
+      "requiredLeague": "Lega richiesta",
+      "cta": "Entra nel clan",
+      "ctaHint": "Il link apre Clash of Clans sul profilo del clan: tocca «Unisciti» e attendi di essere accettato.",
+      "perks": {
+        "wars": {
+          "title": "Guerre senza sosta",
+          "text": "Guerre tra clan e Lega delle guerre ogni mese, con un piano chiaro e compagni che attaccano davvero."
+        },
+        "league": {
+          "title": "In {{league}}",
+          "text": "Competiamo ai vertici: ogni guerra è una sfida vera contro clan all'altezza."
+        },
+        "capital": {
+          "title": "Capitale livello {{n}}",
+          "text": "Assalti alla capitale ogni weekend e una capitale da far crescere insieme."
+        },
+        "clanGames": {
+          "title": "Giochi del clan sempre completati",
+          "text": "Ogni mese raggiungiamo il traguardo massimo dei Giochi del clan e non perdiamo un evento: le ricompense migliori sono di tutti."
+        },
+        "cwl": {
+          "title": "CWL organizzate e strutturate",
+          "text": "Formazioni, turni e bersagli pianificati insieme: ci coordiniamo sui nostri canali WhatsApp e Telegram, così ognuno sa sempre cosa fare e quando attaccare."
+        },
+        "redCrusade": {
+          "title": "Crociata Rossa",
+          "text": "Il nostro clan gemello, dove disputiamo la seconda CWL: più medaglie della Lega e un posto per tutti."
+        },
+        "goldCrusade": {
+          "title": "Crociata d'Oro",
+          "text": "Il clan delle guerre parallele: mentre si giocano le due CWL, lì continuiamo con le guerre tra clan e l'azione non si ferma mai."
+        },
+        "honours": {
+          "title": "Gloria a chi la merita",
+          "text": "Statistiche di ogni attacco, classifiche mensili e encomi di bronzo, argento e oro per i migliori."
+        }
+      }
+    },
+    "rules": {
+      "title": "Le regole del clan",
+      "values": {
+        "title": "I nostri valori",
+        "1": "Educazione",
+        "2": "Maturità",
+        "3": "Rispetto"
+      },
+      "war": {
+        "title": "Guerre e Lega",
+        "1": "Attacchi in guerra e in Lega (CWL) obbligatori",
+        "2": "1° attacco entro 10 ore dalla fine della guerra",
+        "3": "2° attacco entro 2 ore dalla fine della guerra"
+      },
+      "capital": {
+        "title": "Capitale del clan",
+        "1": "Assalti alla capitale obbligatori",
+        "2": "Oro della capitale prima negli edifici con priorità",
+        "3": "Picco della Capitale da potenziare per ultimo"
+      },
+      "forbidden": {
+        "title": "Vietato",
+        "1": "Eroi in potenziamento durante guerre e Lega",
+        "2": "Stress e polemiche",
+        "3": "Villaggi rushati"
+      },
+      "requirements": {
+        "title": "Per partecipare alle guerre",
+        "1": "Truppe",
+        "2": "Eroi",
+        "3": "Edifici",
+        "note": "Tutti al massimo rispetto al Municipio precedente."
+      }
     }
   },
   "profile": {
@@ -593,5 +676,15 @@
       "gold": "Sempre in Prima Linea",
       "description": "Ha attaccato in almeno il {{n}}% delle guerre del mese."
     }
+  },
+  "join": {
+    "title": "Unisciti a noi",
+    "subtitle": "Entra in Crociata Nera: perché unirti, come farlo e le regole del clan"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "subtitle": "Tema e lingua dell'app",
+    "theme": "Tema",
+    "language": "Lingua"
   }
 }

@@ -56,6 +56,7 @@ describe('coc-api mappers', () => {
       chatLanguage: { id: 75000004, name: 'Italiano', languageCode: 'IT' },
       labels: [{ id: 56000000, name: 'Clan Wars', iconUrls: { small: 's.png', medium: 'm.png' } }],
       requiredTownhallLevel: 17,
+      requiredLeagueTier: { id: 105000016, name: 'Master League I', iconUrls: { small: 'ls.png', large: 'll.png' } },
     });
     expect(clan).toMatchObject({
       capitalHallLevel: 10,
@@ -68,8 +69,10 @@ describe('coc-api mappers', () => {
       chatLanguage: 'Italiano',
       labels: [{ name: 'Clan Wars', iconUrl: 'm.png' }],
       requiredTownHall: 17,
+      requiredLeague: { name: 'Master League I', iconUrl: 'll.png' },
     });
     expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 })).toMatchObject({ capitalHallLevel: 0, labels: [] });
+    expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 }).requiredLeague).toBeUndefined();
   });
 
   it('mapWar returns null when the clan is not at war', () => {

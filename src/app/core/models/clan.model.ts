@@ -44,6 +44,8 @@ export interface Clan {
   type?: 'open' | 'inviteOnly' | 'closed';
   requiredTownHall?: number;
   requiredTrophies?: number;
+  /** Minimum league to join (`requiredLeagueTier`), with its official icon. */
+  requiredLeague?: { name: string; iconUrl?: string };
   members: ClanMember[];
 }
 
