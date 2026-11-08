@@ -5,6 +5,8 @@ import { POST as refresh } from '@/app/api/v1/auth/refresh/route';
 import { POST as signOut } from '@/app/api/v1/auth/sign-out/route';
 import { GET as me } from '@/app/api/v1/auth/me/route';
 import { UserModel } from '@/modules/auth/user.model';
+import { hashRefreshToken } from '@/lib/auth/tokens';
+import { SessionModel } from '@/modules/auth/session.model';
 import { call } from './helpers';
 
 const account = { email: 'Alice@Example.com', username: 'Alice', password: 'secret123', repeatPassword: 'secret123' };
@@ -116,6 +118,12 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect(bad.body.messages).toEqual([{ key: 'ERROR.INVALID_TOKEN' }]);
   });
 
+  /** Moves the rotation of a session into the past (beyond the reuse grace period). */
+  async function ageRotation(cookie: string, seconds: number) {
+    const token = decodeURIComponent(cookie);
+    await SessionModel.updateOne({ tokenHash: hashRefreshToken(token) }, { $set: { revokedAt: new Date(Date.now() - seconds * 1000) } });
+  }
+
   it('rotates the refresh token and revokes every session when an old one is reused', async () => {
     const first = await call(signUp, { body: account });
 
@@ -125,13 +133,39 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect(second.refreshCookie).toBeDefined();
     expect(second.refreshCookie).not.toBe(first.refreshCookie);
 
-    // Reusing the rotated token: treated as theft.
+    // Reusing the rotated token after the grace period: treated as theft.
+    await ageRotation(first.refreshCookie!, 60);
     const reused = await call(refresh, { body: {}, cookie: first.refreshCookie });
     expect(reused.status).toBe(401);
     expect(reused.body.messages).toEqual([{ key: 'ERROR.INVALID_REFRESH_TOKEN' }]);
 
     // …which also killed the legitimate, newer session.
     expect((await call(refresh, { body: {}, cookie: second.refreshCookie })).status).toBe(401);
+  });
+
+  it('tolerates the same token sent twice right away (two tabs), without revoking anything', async () => {
+    const first = await call(signUp, { body: account });
+
+    const [tabA, tabB] = await Promise.all([
+      call(refresh, { body: {}, cookie: first.refreshCookie }),
+      call(refresh, { body: {}, cookie: first.refreshCookie }),
+    ]);
+    expect([tabA.status, tabB.status]).toEqual([200, 200]);
+    expect(tabA.refreshCookie).not.toBe(tabB.refreshCookie);
+
+    // A reload that lost the new cookie sends the old one again: still fine.
+    expect((await call(refresh, { body: {}, cookie: first.refreshCookie })).status).toBe(200);
+    // Both new sessions keep working.
+    expect((await call(refresh, { body: {}, cookie: tabA.refreshCookie })).status).toBe(200);
+    expect((await call(refresh, { body: {}, cookie: tabB.refreshCookie })).status).toBe(200);
+  });
+
+  it('gives no grace after signing out: the old token stays dead', async () => {
+    const first = await call(signUp, { body: account });
+    const second = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await call(signOut, { body: {}, cookie: second.refreshCookie });
+
+    expect((await call(refresh, { body: {}, cookie: first.refreshCookie })).status).toBe(401);
   });
 
   it('rejects refresh without a cookie', async () => {

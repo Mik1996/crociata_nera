@@ -147,6 +147,8 @@ Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpire
 - **Refresh token:** valore casuale di 256 bit in un cookie `cn_refresh` con `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth` e `Secure` in produzione. JavaScript non può leggerlo.
 - **Sessioni nel database:** ogni token ha una riga nella collezione `Sessions`, salvato solo come hash SHA-256. MongoDB cancella da solo le sessioni scadute.
 - **Rotazione:** a ogni refresh il token vecchio viene annullato. Se qualcuno riusa un token già annullato (segno che è stato rubato), si chiudono **tutte** le sessioni dell'utente.
+- **Tolleranza di 30 secondi** (`REFRESH_REUSE_GRACE_MS`): un token appena sostituito da un refresh viene accettato ancora per 30 secondi e dà una nuova sessione, perché lo stesso browser può mandarlo due volte (due schede insieme, oppure una risposta persa per un ricaricamento). Vale solo se la sessione che l'ha sostituito è ancora attiva: dopo un logout, un cambio password o un cambio di ruolo il token vecchio resta rifiutato. Ogni sessione chiusa ha `revokedReason` (`rotated`, `signedOut`, `revoked`).
+- **Frontend:** disconnette solo quando il refresh riceve 401. Gli errori temporanei (backend in riavvio durante un deploy, rete assente, 429) vengono riprovati due volte e la sessione resta; le schede del browser fanno il refresh una alla volta (Web Locks API).
 - **Password:** bcrypt con costo 12; almeno 8 caratteri, con una lettera e un numero.
 - **Login:** l'errore è lo stesso per utente inesistente e password sbagliata, e anche il tempo di risposta è simile.
 - **Protezione CSRF:** sulle rotte che usano il cookie, oltre a `SameSite=Strict`, si rifiuta un `Origin` non presente in `FRONTEND_URL`.

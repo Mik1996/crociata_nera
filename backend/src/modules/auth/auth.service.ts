@@ -8,7 +8,7 @@ import { generateRefreshToken, hashRefreshToken, signAccessToken } from '@/lib/a
 import { UserRole } from '@/lib/auth/user-role';
 import { sendVerificationEmail } from './account.service';
 import { SignInInput, SignUpInput } from './auth.schemas';
-import { SessionModel } from './session.model';
+import { SessionDocument, SessionModel } from './session.model';
 import { PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
 
 /** Request metadata stored with a session (helps users recognise their devices). */
@@ -99,23 +99,28 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
   if (!session || session.expiresAt.getTime() <= Date.now()) {
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
-  if (session.revokedAt) {
-    await revokeAllSessions(session.userId);
-    throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
-  }
-
   const user = await UserModel.findById(session.userId);
   if (!user) {
     await revokeAllSessions(session.userId);
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
 
-  // Atomic claim: if two refreshes race with the same token, only one wins.
+  if (session.revokedAt) {
+    // Same token sent twice by the same browser (two tabs, a retried request): a new session.
+    if (await isRecentRotation(session)) return startSession(user, client);
+    // An old token coming back: treated as theft, every session of the user is revoked.
+    await revokeAllSessions(session.userId);
+    throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
+  }
+
+  // Atomic claim: if two refreshes race with the same token, only one rotates it.
   const claimed = await SessionModel.updateOne(
     { _id: session._id, revokedAt: null },
-    { $set: { revokedAt: new Date() } },
+    { $set: { revokedAt: new Date(), revokedReason: 'rotated' } },
   );
   if (claimed.modifiedCount === 0) {
+    const latest = await SessionModel.findById(session._id);
+    if (latest && (await isRecentRotation(latest))) return startSession(user, client);
     await revokeAllSessions(session.userId);
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
@@ -125,12 +130,32 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
   return next;
 }
 
+/**
+ * How long a token just replaced by a refresh is still accepted. Browsers legitimately send the
+ * same token twice: two tabs refreshing at the same moment, or a refresh whose response (with the
+ * new cookie) was lost to a reload. Common practice ("reuse interval"); outside this window a
+ * reused token is treated as stolen.
+ */
+export const REFRESH_REUSE_GRACE_MS = 30_000;
+
+/**
+ * The session was rotated less than {@link REFRESH_REUSE_GRACE_MS} ago and its successor is still
+ * alive (or rotated in turn): signing out or revoking the successor ends the tolerance at once.
+ */
+async function isRecentRotation(session: SessionDocument): Promise<boolean> {
+  if (session.revokedReason !== 'rotated' || !session.revokedAt) return false;
+  if (Date.now() - session.revokedAt.getTime() > REFRESH_REUSE_GRACE_MS) return false;
+  if (!session.replacedBy) return true; // the concurrent refresh is still creating it
+  const successor = await SessionModel.findById(session.replacedBy).select('revokedAt revokedReason');
+  return !!successor && (!successor.revokedAt || successor.revokedReason === 'rotated');
+}
+
 /** Revokes the session of the given refresh token. Idempotent: unknown tokens are ignored. */
 export async function signOut(refreshToken: string | null): Promise<void> {
   if (!refreshToken) return;
   await SessionModel.updateOne(
     { tokenHash: hashRefreshToken(refreshToken), revokedAt: null },
-    { $set: { revokedAt: new Date() } },
+    { $set: { revokedAt: new Date(), revokedReason: 'signedOut' } },
   );
 }
 
@@ -171,7 +196,7 @@ async function grantConfiguredAdmin(user: UserDocument): Promise<void> {
 }
 
 async function revokeAllSessions(userId: Types.ObjectId): Promise<void> {
-  await SessionModel.updateMany({ userId, revokedAt: null }, { $set: { revokedAt: new Date() } });
+  await SessionModel.updateMany({ userId, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
 }
 
 function isDuplicateKey(error: unknown): boolean {

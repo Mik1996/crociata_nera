@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { authInterceptor } from './auth.interceptor';
-import { AuthService } from './auth.service';
+import { AuthService, REFRESH_RETRY_DELAY_MS } from './auth.service';
 import { AuthResult, BaseResult } from './backend-api.types';
 
 const ok = <T>(result: T): BaseResult<T> => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
@@ -53,6 +53,47 @@ describe('AuthService and authInterceptor', () => {
     auth.restoreSession();
     httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t2')));
     expect(auth.accessToken()).toBe('t2');
+  });
+
+  it('retries a refresh that fails for a temporary reason (backend restarting)', async () => {
+    vi.useFakeTimers();
+    try {
+      let token: string | null | undefined;
+      auth.refresh().subscribe((t) => (token = t));
+      httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 502, statusText: 'Bad Gateway' });
+      await vi.advanceTimersByTimeAsync(REFRESH_RETRY_DELAY_MS);
+      httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      await vi.advanceTimersByTimeAsync(2 * REFRESH_RETRY_DELAY_MS);
+      httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t6')));
+      expect(token).toBe('t6');
+      expect(auth.isAuthenticated()).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the session when the refresh keeps failing temporarily, signs out only on 401', async () => {
+    auth.restoreSession();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t7')));
+
+    vi.useFakeTimers();
+    try {
+      let token: string | null | undefined;
+      auth.refresh().subscribe((t) => (token = t));
+      for (let attempt = 0; attempt <= 2; attempt++) {
+        httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 503, statusText: 'Unavailable' });
+        await vi.advanceTimersByTimeAsync((attempt + 1) * REFRESH_RETRY_DELAY_MS);
+      }
+      expect(token).toBeNull();
+      expect(auth.isAuthenticated()).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    // The backend rejects the cookie: now the session is over (no retry).
+    auth.refresh().subscribe();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+    expect(auth.isAuthenticated()).toBe(false);
   });
 
   it('shares one refresh request between concurrent callers', () => {

@@ -94,7 +94,7 @@ export async function changePassword(
   const keep = currentRefreshToken ? hashRefreshToken(currentRefreshToken) : null;
   await SessionModel.updateMany(
     { userId: user._id, revokedAt: null, ...(keep ? { tokenHash: { $ne: keep } } : {}) },
-    { $set: { revokedAt: new Date() } },
+    { $set: { revokedAt: new Date(), revokedReason: 'revoked' } },
   );
 }
 
@@ -135,7 +135,7 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
       },
     },
   );
-  await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
+  await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
 }
 
 /** Sends the email confirmation link. Returns `false` when email is not configured. */

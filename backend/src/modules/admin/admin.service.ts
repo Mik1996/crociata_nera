@@ -63,7 +63,7 @@ export async function updateUser(actorId: string, userId: string, input: UpdateU
   await user.save();
 
   if (rolesChanged && actorId !== userId) {
-    await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
+    await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
   }
   return { ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() };
 }

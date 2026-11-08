@@ -1,6 +1,21 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, finalize, map, Observable, of, shareReplay, take, tap } from 'rxjs';
+import {
+  catchError,
+  defer,
+  finalize,
+  firstValueFrom,
+  from,
+  map,
+  Observable,
+  of,
+  retry,
+  shareReplay,
+  take,
+  tap,
+  throwError,
+  timer,
+} from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { LanguageService } from '../i18n/language.service';
 import {
@@ -115,19 +130,29 @@ export class AuthService {
   }
 
   /**
-   * New access token from the refresh cookie. Concurrent callers share a single request
-   * (the backend rotates the cookie: two parallel refreshes would look like token reuse).
-   * Emits `null` when there is no valid session.
+   * New access token from the refresh cookie. Emits `null` when no token could be obtained.
+   *
+   * - Concurrent callers of this tab share a single request, and the tabs of the browser take
+   *   turns (Web Locks): the backend rotates the cookie at every refresh, so the next tab sends
+   *   the new one.
+   * - Only a 401 (session rejected by the backend) signs out. Temporary failures (backend
+   *   restarting during a deploy, no network, rate limit) are retried, then the session is kept:
+   *   the next request tries again.
    */
   refresh(): Observable<string | null> {
-    this.refreshing$ ??= this.http
-      .post<BaseResult<AuthResult>>(`${this.baseUrl}/refresh`, {}, { withCredentials: true })
+    const request = this.http.post<BaseResult<AuthResult>>(`${this.baseUrl}/refresh`, {}, { withCredentials: true });
+    this.refreshing$ ??= underRefreshLock(request)
       .pipe(
+        retry({
+          count: REFRESH_RETRIES,
+          delay: (error: unknown, attempt) =>
+            isSessionRejected(error) ? throwError(() => error) : timer(attempt * REFRESH_RETRY_DELAY_MS),
+        }),
         map((response) => response.result),
         tap((result) => this.session.set(result)),
         map((result) => result?.accessToken ?? null),
-        catchError(() => {
-          this.session.set(null);
+        catchError((error: unknown) => {
+          if (isSessionRejected(error)) this.session.set(null);
           return of(null);
         }),
         finalize(() => (this.refreshing$ = null)),
@@ -162,4 +187,25 @@ export class AuthService {
       map((response) => response.result!.user),
     );
   }
+}
+
+/** Extra attempts of a refresh that failed for a temporary reason. */
+const REFRESH_RETRIES = 2;
+/** Wait before the n-th retry: n × this delay (1 s, then 2 s). */
+export const REFRESH_RETRY_DELAY_MS = 1000;
+
+/** The backend rejected the refresh cookie (expired, revoked, missing): the session is over. */
+function isSessionRejected(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && error.status === 401;
+}
+
+/**
+ * Runs the refresh request while holding a lock shared by every tab of the site (Web Locks API),
+ * so two tabs never send the same refresh cookie at once. Browsers without the API (or tests)
+ * run the request directly.
+ */
+function underRefreshLock<T>(request: Observable<T>): Observable<T> {
+  const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
+  if (!locks) return request;
+  return defer(() => from(locks.request('cn-session-refresh', () => firstValueFrom(request))));
 }
