@@ -42,15 +42,18 @@
   }
 }
 
+// As wide as the cell: the bar takes the extra space when the column is widened.
 .attendance {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .attendance__bar {
   display: inline-block;
-  width: 48px;
+  // 48px at the automatic width, then grows with the column.
+  flex: 1 0 48px;
   height: 6px;
   border-radius: 3px;
   background: var(--cn-surface-3);

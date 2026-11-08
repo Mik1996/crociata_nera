@@ -21,7 +21,7 @@ import { matchesText, sortRows, SortState } from '../../core/utils/sort';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { CLAN_ROLES, roleKey } from '../../shared/labels';
 
@@ -39,7 +39,7 @@ function leagueSortKey(m: PlayerStats): number {
 @Component({
   selector: 'app-players-page',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     LocalNumberPipe,
     TranslatePipe,
     FormsModule,

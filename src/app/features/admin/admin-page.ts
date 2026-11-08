@@ -17,13 +17,13 @@ import { LocalDatePipe } from '../../core/i18n/locale-pipes';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 
 /** Administration: registered users, ADMIN role and linked player tags. */
 @Component({
   selector: 'app-admin-page',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     FormsModule,
     MatButtonModule,
     MatFormFieldModule,

@@ -96,8 +96,9 @@ tr.former-row {
   color: var(--cn-red-text);
 }
 
+// As wide as the cell: the bar takes the extra space when the column is widened.
 .average {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
 
@@ -110,7 +111,8 @@ tr.former-row {
 
 .average__bar {
   display: inline-block;
-  width: 64px;
+  // 64px at the automatic width, then grows with the column.
+  flex: 1 0 64px;
   height: 6px;
   border-radius: 3px;
   background: var(--cn-surface-3);

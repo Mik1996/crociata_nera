@@ -788,5 +788,9 @@
     "allIn": "Every member took part.",
     "noMembersTitle": "Member detail not available",
     "noMembersText": "Clash of Clans shows who attacked only while the weekend is in progress: the site saves it since it went live, so only the totals are available for this weekend."
+  },
+  "table": {
+    "resizeColumn": "Resize the {{name}} column",
+    "resizeHint": "Drag to resize, double-click for automatic widths"
   }
 }

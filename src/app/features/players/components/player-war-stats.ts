@@ -19,13 +19,13 @@ import {
 } from '../../../shared/charts/chart-theme';
 import { KpiCard } from '../../../shared/components/kpi-card';
 import { ResultBadge } from '../../../shared/components/result-badge';
-import { StickyTableHeader } from '../../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
 
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
 @Component({
   selector: 'app-player-war-stats',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     LocalDatePipe,
     LocalNumberPipe,
     TranslatePipe,

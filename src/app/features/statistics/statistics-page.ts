@@ -26,7 +26,7 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 
 /** Ranking row: stats + rank + current clan membership. */
 export interface RankingRow extends HistoryPlayerStats {
@@ -40,7 +40,7 @@ const MAX_STARS_PER_WAR = 6;
 @Component({
   selector: 'app-statistics-page',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     LocalDatePipe,
     LocalNumberPipe,
     TranslatePipe,

@@ -16,13 +16,13 @@ import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { matchesText, sortRows, SortState } from '../../../core/utils/sort';
 import { ParticipantRow } from '../../../core/utils/war-stats';
 import { Stars } from '../../../shared/components/stars';
-import { StickyTableHeader } from '../../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
 
 /** War participants table with filters and sorting. */
 @Component({
   selector: 'app-war-participants-table',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     LocalNumberPipe,
     TranslatePipe,
     FormsModule,

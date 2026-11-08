@@ -594,6 +594,57 @@ table tr.cn-row-me.mat-mdc-row {
   box-shadow: 0 6px 8px -4px rgba(0, 0, 0, 0.45);
 }
 
+/*
+ * Column resize handle (directive `ResizableColumns`) on the right edge of every header cell:
+ * a thin line, gold while hovered, focused or dragged.
+ */
+.cn-col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  // Inside the cell: never widens the table or gets cut by `overflow: hidden`.
+  width: 10px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    right: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--cn-border);
+    transition: background-color 120ms ease;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    top: 0;
+    bottom: 0;
+    background: var(--cn-gold);
+  }
+}
+
+// No handle after the last column: nothing to its right.
+.cn-table-wrap th:last-child > .cn-col-resizer::after {
+  display: none;
+}
+
+// While dragging: no text selection, resize cursor everywhere.
+.cn-table-wrap--resizing {
+  cursor: col-resize;
+  user-select: none;
+
+  .cn-col-resizer::after {
+    background: var(--cn-gold);
+  }
+}
+
 // Responsive tables: horizontal scrolling on narrow screens.
 .cn-table-wrap {
   overflow-x: auto;
@@ -608,6 +659,8 @@ table tr.cn-row-me.mat-mdc-row {
   th.mat-mdc-header-cell {
     position: relative;
     z-index: 2;
+    // Header labels on one line, never cut: they set the automatic width of the column.
+    white-space: nowrap;
     font-weight: 600;
     text-transform: uppercase;
     font-size: var(--cn-fs-xs);

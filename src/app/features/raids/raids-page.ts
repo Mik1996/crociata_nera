@@ -15,7 +15,7 @@ import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
+import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 
 /**
  * Raid Weekends of the Clan Capital: totals of the weekend, Capital Gold and attacks of every
@@ -24,7 +24,7 @@ import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 @Component({
   selector: 'app-raids-page',
   imports: [
-    StickyTableHeader,
+    TABLE_WRAP,
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,

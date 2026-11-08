@@ -788,5 +788,9 @@
     "allIn": "Todos los miembros participaron.",
     "noMembersTitle": "Detalle de los miembros no disponible",
     "noMembersText": "Clash of Clans muestra quién atacó solo mientras el fin de semana está en curso: el sitio lo guarda desde que está activo, así que para este fin de semana solo hay totales."
+  },
+  "table": {
+    "resizeColumn": "Cambiar el ancho de la columna {{name}}",
+    "resizeHint": "Arrastra para cambiar el ancho, doble clic para anchos automáticos"
   }
 }
