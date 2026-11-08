@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ClanBadge } from '../../core/api/clan-badge';
 import { isTranslatableError } from '../../core/i18n/translatable-error';
 import { LanguageService } from '../../core/i18n/language.service';
 
@@ -35,10 +36,15 @@ export class LoadState {
   /** Already translated texts; when missing, the generic messages of the current language are used. */
   readonly loadingMessage = input<string>();
   readonly emptyMessage = input<string>();
+  /** Shown in the empty state only when the clan badge is not available. */
   readonly emptyIcon = input('inbox');
   readonly retry = output<void>();
 
   private readonly language = inject(LanguageService);
+
+  /** The empty states show the clan badge (the icon is the fallback). */
+  protected readonly badgeUrl = inject(ClanBadge).url;
+  protected readonly badgeFailed = signal(false);
   protected readonly errorText = computed(() =>
     errorMessage(this.error(), (key, params) => this.language.t(key, params as Record<string, unknown>)),
   );

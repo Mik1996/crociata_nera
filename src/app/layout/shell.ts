@@ -20,8 +20,8 @@ import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, filter, map, of } from 'rxjs';
-import { CocApiService } from '../core/api/coc-api';
+import { filter, map } from 'rxjs';
+import { ClanBadge } from '../core/api/clan-badge';
 import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
@@ -73,18 +73,8 @@ export class Shell {
   protected readonly clanTag = this.config.clanTag;
   protected readonly useMock = this.config.useMockApi;
 
-  protected readonly clan = toSignal(
-    inject(CocApiService)
-      .getClan()
-      .pipe(
-        map((clan) => clan ?? null),
-        catchError(() => of(null)),
-      ),
-    { initialValue: null },
-  );
-
   /** Official clan badge (badgeUrls.large); if missing or failing to load, the SVG crest is shown. */
-  protected readonly badgeUrl = computed(() => this.clan()?.badgeUrl ?? null);
+  protected readonly badgeUrl = inject(ClanBadge).url;
   protected readonly badgeFailed = signal(false);
 
   protected readonly language = inject(LanguageService);

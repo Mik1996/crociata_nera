@@ -16,7 +16,11 @@
   </div>
 } @else if (empty()) {
   <div class="state state--empty" role="status">
-    <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
+    @if (badgeUrl() && !badgeFailed()) {
+      <img class="badge" [src]="badgeUrl()" alt="" width="96" height="96" (error)="badgeFailed.set(true)" />
+    } @else {
+      <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
+    }
     <p>{{ emptyMessage() ?? ('status.noData' | translate) }}</p>
   </div>
 } @else {

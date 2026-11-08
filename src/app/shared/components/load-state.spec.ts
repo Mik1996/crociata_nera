@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
+import { ClanBadge } from '../../core/api/clan-badge';
 import { errorMessage, LoadState } from './load-state';
 
 @Component({
@@ -50,11 +51,28 @@ describe('LoadState', () => {
     expect(f.componentInstance.retries).toBe(1);
   });
 
-  it('shows the empty message', async () => {
+  it('shows the empty message with the icon when the clan badge is not available', async () => {
     const f = await create();
     f.componentInstance.empty.set(true);
     await f.whenStable();
     expect(text(f)).toContain('Vuoto!');
+    expect(f.nativeElement.querySelector('.state--empty mat-icon')).not.toBeNull();
+    expect(f.nativeElement.querySelector('.state--empty img')).toBeNull();
+  });
+
+  it('shows the clan badge in the empty state, the icon if it fails to load', async () => {
+    TestBed.overrideProvider(ClanBadge, { useValue: { url: signal('https://cdn.test/badge.png') } });
+    const f = await create();
+    f.componentInstance.empty.set(true);
+    await f.whenStable();
+    const img = f.nativeElement.querySelector('.state--empty img') as HTMLImageElement;
+    expect(img.getAttribute('src')).toBe('https://cdn.test/badge.png');
+    expect(f.nativeElement.querySelector('.state--empty mat-icon')).toBeNull();
+
+    img.dispatchEvent(new Event('error'));
+    await f.whenStable();
+    expect(f.nativeElement.querySelector('.state--empty img')).toBeNull();
+    expect(f.nativeElement.querySelector('.state--empty mat-icon')).not.toBeNull();
   });
 
   it('errorMessage handles errors of different types', () => {
