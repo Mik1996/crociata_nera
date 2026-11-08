@@ -17,6 +17,7 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
@@ -25,6 +26,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 @Component({
   selector: 'app-cwl-page',
   imports: [
+    StickyTableHeader,
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
@@ -49,7 +51,9 @@ export class CwlPage {
   protected readonly myTag = inject(AuthService).playerTag;
 
   protected readonly seasons = rxResource({ stream: () => this.api.getCwlSeasons() });
-  protected readonly seasonList = computed(() => (this.seasons.hasValue() ? this.seasons.value() : []));
+  protected readonly seasonList = computed(() =>
+    this.seasons.hasValue() ? this.seasons.value() : [],
+  );
 
   /** Season chosen in the selector; the most recent one until the user picks another. */
   private readonly chosen = signal<string | null>(null);
@@ -62,7 +66,16 @@ export class CwlPage {
   protected readonly season = computed(() => (this.data.hasValue() ? this.data.value() : null));
 
   protected readonly standingColumns = ['rank', 'clan', 'wins', 'stars', 'destruction'];
-  protected readonly playerColumns = ['index', 'name', 'townHall', 'attacks', 'stars', 'averageStars', 'threeStars', 'destruction'];
+  protected readonly playerColumns = [
+    'index',
+    'name',
+    'townHall',
+    'attacks',
+    'stars',
+    'averageStars',
+    'threeStars',
+    'destruction',
+  ];
 
   protected readonly periodLabel = (season: string) => periodLabel(season, this.language.current());
   protected readonly result = (round: CwlRound) => (round.war ? warResult(round.war) : 'ongoing');

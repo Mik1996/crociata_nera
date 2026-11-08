@@ -45,7 +45,8 @@
   --cn-panel-highlight: rgba(255, 255, 255, 0.1);
   --cn-panel-bevel: rgba(0, 0, 0, 0.3);
   --cn-heading: #ffffff;
-  --cn-heading-shadow: 0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
+  --cn-heading-shadow:
+    0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
   --cn-gold: #f4c542;
   --cn-gold-light: #ffd862; // gold used for text (values, links)
   --cn-gold-dark: #c99a2e;
@@ -65,7 +66,8 @@
   --cn-header-shadow: 0 3px 0 #0a1020, 0 6px 14px rgba(0, 0, 0, 0.5);
   --cn-card-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
   --cn-glow: rgba(244, 197, 66, 0.35);
-  --cn-brand-shadow: 0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
+  --cn-brand-shadow:
+    0 2px 0 #0a1020, 1px 1px 0 #0a1020, -1px 1px 0 #0a1020, 1px -1px 0 #0a1020, -1px -1px 0 #0a1020;
   --cn-hover: rgba(244, 197, 66, 0.08);
   --cn-nav-active: rgba(244, 197, 66, 0.18);
   --cn-row-alert: rgba(192, 57, 43, 0.2);
@@ -159,7 +161,8 @@
   --cn-game-tile: linear-gradient(180deg, #4a5d82 0%, #2c3a57 100%);
   --cn-game-tile-border: #1a2236;
   --cn-game-gold: #f4c542;
-  --cn-game-text-outline: 0 2px 0 #0b1220, 1px 1px 0 #0b1220, -1px 1px 0 #0b1220, 1px -1px 0 #0b1220, -1px -1px 0 #0b1220;
+  --cn-game-text-outline:
+    0 2px 0 #0b1220, 1px 1px 0 #0b1220, -1px 1px 0 #0b1220, 1px -1px 0 #0b1220, -1px -1px 0 #0b1220;
 
   @include light-tokens;
 }
@@ -342,7 +345,9 @@ h2 {
 
   &:active:not([disabled]) {
     transform: translateY(2px);
-    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25);
   }
 
   &[disabled] {
@@ -482,14 +487,22 @@ h2 {
   &::before {
     top: 0;
     margin-bottom: calc(-1 * var(--cn-fade-size));
-    background: linear-gradient(to bottom, color-mix(in srgb, var(--cn-bg) 70%, transparent), transparent);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--cn-bg) 70%, transparent),
+      transparent
+    );
     mask-image: linear-gradient(to bottom, #000 35%, transparent);
   }
 
   &::after {
     bottom: 0;
     margin-top: calc(-1 * var(--cn-fade-size));
-    background: linear-gradient(to top, color-mix(in srgb, var(--cn-bg) 70%, transparent), transparent);
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--cn-bg) 70%, transparent),
+      transparent
+    );
     mask-image: linear-gradient(to top, #000 35%, transparent);
   }
 
@@ -576,6 +589,11 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+// Header stuck at the top of the scrolling area: a shadow separates it from the rows below.
+.cn-table-wrap--stuck th.mat-mdc-header-cell {
+  box-shadow: 0 6px 8px -4px rgba(0, 0, 0, 0.45);
+}
+
 // Responsive tables: horizontal scrolling on narrow screens.
 .cn-table-wrap {
   overflow-x: auto;
@@ -586,7 +604,10 @@ table tr.cn-row-me.mat-mdc-row {
     min-width: 640px;
   }
 
+  // Header cells follow the scroll (directive `StickyTableHeader`): above the rows they cover.
   th.mat-mdc-header-cell {
+    position: relative;
+    z-index: 2;
     font-weight: 600;
     text-transform: uppercase;
     font-size: var(--cn-fs-xs);

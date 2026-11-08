@@ -16,11 +16,13 @@ import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { matchesText, sortRows, SortState } from '../../../core/utils/sort';
 import { ParticipantRow } from '../../../core/utils/war-stats';
 import { Stars } from '../../../shared/components/stars';
+import { StickyTableHeader } from '../../../shared/directives/sticky-table-header';
 
 /** War participants table with filters and sorting. */
 @Component({
   selector: 'app-war-participants-table',
   imports: [
+    StickyTableHeader,
     LocalNumberPipe,
     TranslatePipe,
     FormsModule,
@@ -49,7 +51,15 @@ export class WarParticipantsTable {
   /** Tag of the signed-in user's player: their row is highlighted. */
   protected readonly myTag = inject(AuthService).playerTag;
 
-  protected readonly columns = ['mapPosition', 'name', 'townHall', 'attacks', 'stars', 'averageDestruction', 'targets'];
+  protected readonly columns = [
+    'mapPosition',
+    'name',
+    'townHall',
+    'attacks',
+    'stars',
+    'averageDestruction',
+    'targets',
+  ];
 
   // Filters
   protected readonly search = signal('');
@@ -83,10 +93,16 @@ export class WarParticipantsTable {
   });
 
   protected readonly filtersActive = computed(
-    () => !!this.search() || this.townHall() !== null || this.stars() !== null || this.onlyWithoutAttacks(),
+    () =>
+      !!this.search() ||
+      this.townHall() !== null ||
+      this.stars() !== null ||
+      this.onlyWithoutAttacks(),
   );
 
-  protected readonly withoutAttacks = computed(() => this.rows().filter((r) => !r.hasAttacked).length);
+  protected readonly withoutAttacks = computed(
+    () => this.rows().filter((r) => !r.hasAttacked).length,
+  );
 
   protected updateSort(sort: Sort): void {
     this.sort.set({ field: sort.active, direction: sort.direction });

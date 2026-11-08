@@ -20,6 +20,7 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
 interface HistoryRow {
   id: string;
@@ -56,6 +57,7 @@ function rowFromWar(w: War): HistoryRow {
 @Component({
   selector: 'app-war-history-page',
   imports: [
+    StickyTableHeader,
     LocalDatePipe,
     LocalNumberPipe,
     TranslatePipe,

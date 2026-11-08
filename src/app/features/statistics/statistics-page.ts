@@ -16,16 +16,17 @@ import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { HistoryPlayerStats } from '../../core/models';
-import { PlayerService } from '../../core/services/player.service';
 import { ALL_PERIODS, HistoryService } from '../../core/services/history.service';
-import { matchesText, sortRows, SortState } from '../../core/utils/sort';
+import { PlayerService } from '../../core/services/player.service';
 import { compareForRanking, periodLabel } from '../../core/utils/monthly-history';
+import { matchesText, sortRows, SortState } from '../../core/utils/sort';
 import { percentage } from '../../core/utils/war-stats';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
 /** Ranking row: stats + rank + current clan membership. */
 export interface RankingRow extends HistoryPlayerStats {
@@ -39,6 +40,7 @@ const MAX_STARS_PER_WAR = 6;
 @Component({
   selector: 'app-statistics-page',
   imports: [
+    StickyTableHeader,
     LocalDatePipe,
     LocalNumberPipe,
     TranslatePipe,
@@ -92,16 +94,23 @@ export class StatisticsPage {
       ),
   });
 
-  protected readonly monthList = computed(() => (this.months.hasValue() ? this.months.value() : []));
+  protected readonly monthList = computed(() =>
+    this.months.hasValue() ? this.months.value() : [],
+  );
   protected readonly periodData = computed(() => (this.data.hasValue() ? this.data.value() : null));
-  protected readonly isHistoryEmpty = computed(() => this.months.hasValue() && this.months.value().length === 0);
+  protected readonly isHistoryEmpty = computed(
+    () => this.months.hasValue() && this.months.value().length === 0,
+  );
 
   // --- Filters --------------------------------------------------------------
   protected readonly search = signal('');
   protected readonly minWars = signal(1);
   protected readonly currentMembersOnly = signal(false);
   protected readonly minWarsOptions = [1, 2, 3, 5, 10];
-  private readonly sortState = signal<SortState>({ field: 'averageStarsPerWar', direction: 'desc' });
+  private readonly sortState = signal<SortState>({
+    field: 'averageStarsPerWar',
+    direction: 'desc',
+  });
 
   protected readonly columns = [
     'rank',
@@ -135,7 +144,11 @@ export class StatisticsPage {
     const filtered = this.ranking().filter(
       (r) => !search || matchesText(r.name, search) || matchesText(r.tag, search),
     );
-    return sortRows(filtered, this.sortState(), (r, field) => r[field as keyof RankingRow] as number | string);
+    return sortRows(
+      filtered,
+      this.sortState(),
+      (r, field) => r[field as keyof RankingRow] as number | string,
+    );
   });
 
   // --- Period KPIs ----------------------------------------------------------
@@ -155,8 +168,14 @@ export class StatisticsPage {
         losses: count('defeat'),
       }),
       averageStarsPerWar: appearances ? sum((p) => p.stars) / appearances : 0,
-      threeStarRate: percentage(sum((p) => p.threeStars), attacksUsed),
-      participation: percentage(attacksUsed, sum((p) => p.attacksAvailable)),
+      threeStarRate: percentage(
+        sum((p) => p.threeStars),
+        attacksUsed,
+      ),
+      participation: percentage(
+        attacksUsed,
+        sum((p) => p.attacksAvailable),
+      ),
       attacksMissed: sum((p) => p.attacksMissed),
     };
   });

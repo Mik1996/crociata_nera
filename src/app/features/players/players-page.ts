@@ -20,9 +20,10 @@ import { emblemOf } from '../../core/utils/commendations';
 import { matchesText, sortRows, SortState } from '../../core/utils/sort';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
-import { CLAN_ROLES, roleKey } from '../../shared/labels';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
+import { CLAN_ROLES, roleKey } from '../../shared/labels';
 
 const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2, member: 3 };
 
@@ -38,6 +39,7 @@ function leagueSortKey(m: PlayerStats): number {
 @Component({
   selector: 'app-players-page',
   imports: [
+    StickyTableHeader,
     LocalNumberPipe,
     TranslatePipe,
     FormsModule,
@@ -69,7 +71,9 @@ export class PlayersPage {
 
   protected readonly resource = rxResource({ stream: () => this.players.getMembersStats() });
   /** Monthly commendations shown next to the names (a bonus: none while loading or on error). */
-  private readonly commendationsResource = rxResource({ stream: () => this.commendationService.forClan() });
+  private readonly commendationsResource = rxResource({
+    stream: () => this.commendationService.forClan(),
+  });
   protected readonly commendations = computed(() =>
     this.commendationsResource.hasValue() ? this.commendationsResource.value().byTag : new Map(),
   );
@@ -95,7 +99,9 @@ export class PlayersPage {
   /** Default: highest league first (Legend → Unranked), then most trophies. */
   private readonly sort = signal<SortState>({ field: 'league', direction: 'desc' });
 
-  private readonly members = computed(() => (this.resource.hasValue() ? this.resource.value() : []));
+  private readonly members = computed(() =>
+    this.resource.hasValue() ? this.resource.value() : [],
+  );
 
   /** No war with details available yet: individual statistics are still empty. */
   protected readonly noArchivedWars = computed(

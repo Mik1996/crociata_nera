@@ -19,11 +19,22 @@ import {
 } from '../../../shared/charts/chart-theme';
 import { KpiCard } from '../../../shared/components/kpi-card';
 import { ResultBadge } from '../../../shared/components/result-badge';
+import { StickyTableHeader } from '../../../shared/directives/sticky-table-header';
 
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
 @Component({
   selector: 'app-player-war-stats',
-  imports: [LocalDatePipe, LocalNumberPipe, TranslatePipe, RouterLink, MatTableModule, BaseChartDirective, KpiCard, ResultBadge],
+  imports: [
+    StickyTableHeader,
+    LocalDatePipe,
+    LocalNumberPipe,
+    TranslatePipe,
+    RouterLink,
+    MatTableModule,
+    BaseChartDirective,
+    KpiCard,
+    ResultBadge,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-war-stats.html',
   styleUrl: './player-war-stats.scss',
@@ -37,21 +48,40 @@ export class PlayerWarStats {
 
   protected readonly efficiency = computed(() => efficiency(this.stats()));
 
-  protected readonly columns = ['date', 'opponent', 'result', 'mapPosition', 'attacks', 'stars', 'averageDestruction'];
+  protected readonly columns = [
+    'date',
+    'opponent',
+    'result',
+    'mapPosition',
+    'attacks',
+    'stars',
+    'averageDestruction',
+  ];
   /** Table ordered from the most recent war. */
-  protected readonly recentWars = computed(() => [...(this.stats().history)].reverse());
+  protected readonly recentWars = computed(() => [...this.stats().history].reverse());
 
   private readonly labels = computed(() =>
-    (this.stats().history).map((p) => `${shortDateLabel(p.date, this.language.current())} · ${p.opponent}`),
+    this.stats().history.map(
+      (p) => `${shortDateLabel(p.date, this.language.current())} · ${p.opponent}`,
+    ),
   );
 
   /** Chart colours of the current theme. */
   private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
 
-  protected readonly starsOptions = computed(() => baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 6, legend: false }));
+  protected readonly starsOptions = computed(() =>
+    baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 6, legend: false }),
+  );
   protected readonly starsData = computed<ChartData<'bar', number[]>>(() => ({
     labels: this.labels(),
-    datasets: [barSeries(this.language.t('player.seriesStars'), (this.stats().history).map((p) => p.stars), CHART_COLORS.gold, this.chrome())],
+    datasets: [
+      barSeries(
+        this.language.t('player.seriesStars'),
+        this.stats().history.map((p) => p.stars),
+        CHART_COLORS.gold,
+        this.chrome(),
+      ),
+    ],
   }));
 
   protected readonly destructionOptions = computed(() =>
@@ -62,7 +92,7 @@ export class PlayerWarStats {
     datasets: [
       lineSeries(
         this.language.t('player.seriesDestruction'),
-        (this.stats().history).map((p) => p.averageDestruction),
+        this.stats().history.map((p) => p.averageDestruction),
         CHART_COLORS.gold,
         this.chrome(),
         CHART_COLORS.goldTransparent,

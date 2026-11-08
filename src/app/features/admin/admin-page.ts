@@ -17,6 +17,7 @@ import { LocalDatePipe } from '../../core/i18n/locale-pipes';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
 const TAG_PATTERN = /^#?[0-9A-Za-z]{3,15}$/;
 
@@ -24,6 +25,7 @@ const TAG_PATTERN = /^#?[0-9A-Za-z]{3,15}$/;
 @Component({
   selector: 'app-admin-page',
   imports: [
+    StickyTableHeader,
     FormsModule,
     MatButtonModule,
     MatFormFieldModule,

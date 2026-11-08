@@ -15,6 +15,7 @@ import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
 /**
  * Raid Weekends of the Clan Capital: totals of the weekend, Capital Gold and attacks of every
@@ -23,6 +24,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 @Component({
   selector: 'app-raids-page',
   imports: [
+    StickyTableHeader,
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
@@ -67,7 +69,11 @@ export class RaidsPage {
 
   /** "6 – 9 nov", in the current language. */
   protected label(weekend: RaidSeason): string {
-    const day = new Intl.DateTimeFormat(this.language.current(), { day: 'numeric', month: 'short', timeZone: 'Europe/Rome' });
+    const day = new Intl.DateTimeFormat(this.language.current(), {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Europe/Rome',
+    });
     return `${day.format(new Date(weekend.startTime))} – ${day.format(new Date(weekend.endTime))}`;
   }
 
