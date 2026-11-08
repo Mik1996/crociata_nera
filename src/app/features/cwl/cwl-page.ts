@@ -62,7 +62,7 @@ export class CwlPage {
   protected readonly season = computed(() => (this.data.hasValue() ? this.data.value() : null));
 
   protected readonly standingColumns = ['rank', 'clan', 'wins', 'stars', 'destruction'];
-  protected readonly playerColumns = ['name', 'townHall', 'attacks', 'stars', 'averageStars', 'threeStars', 'destruction'];
+  protected readonly playerColumns = ['index', 'name', 'townHall', 'attacks', 'stars', 'averageStars', 'threeStars', 'destruction'];
 
   protected readonly periodLabel = (season: string) => periodLabel(season, this.language.current());
   protected readonly result = (round: CwlRound) => (round.war ? warResult(round.war) : 'ongoing');

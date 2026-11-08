@@ -31,7 +31,7 @@
 
 .cwl-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
   margin-bottom: 0.9rem;
   align-items: start;
@@ -47,6 +47,11 @@
 
 .players {
   min-width: 720px;
+}
+
+.index-cell {
+  width: 1%;
+  color: var(--cn-text-muted);
 }
 
 .pos {
@@ -146,6 +151,13 @@
 
 .missing {
   color: var(--cn-red-text);
+}
+
+/* Tablets and smaller: one column. */
+@media (max-width: 1279.98px) {
+  .cwl-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 599.98px) {
