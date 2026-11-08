@@ -20,6 +20,8 @@ $scene-muted: #cfd7e8;
 // ---------------------------------------------------------------------------
 
 .hero {
+  // Container of the clan name: the title fits the card, not the screen (pinned sidebar).
+  container-type: inline-size;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -94,7 +96,8 @@ $scene-muted: #cfd7e8;
   padding: 0 0.15em;
   font-family: var(--cn-font-display);
   font-weight: 700;
-  font-size: clamp(2.3rem, 1rem + 5.6vw, 5.4rem);
+  // As before on wide cards, never wider than the card (11% of its width).
+  font-size: min(clamp(2.3rem, 1rem + 5.6vw, 5.4rem), 11cqi);
   line-height: 1.05;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -282,6 +285,8 @@ $scene-muted: #cfd7e8;
   list-style: none;
 
   li {
+    // Container of the value: long numbers shrink to fit the tile.
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     gap: 0.1rem;
@@ -295,7 +300,9 @@ $scene-muted: #cfd7e8;
 
 .hero__stat-value {
   font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-xl);
+  // Full size when there is room, smaller in narrow tiles: numbers cannot wrap.
+  font-size: min(var(--cn-fs-xl), 18cqi);
+  white-space: nowrap;
   color: #ffffff;
   text-shadow: 0 2px 0 #000;
 

@@ -44,6 +44,8 @@
 }
 
 .banner__identity {
+  // Container of the player name: long names shrink before wrapping.
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -67,7 +69,9 @@
   margin: 0;
   font-family: var(--cn-font-display);
   font-weight: 700;
-  font-size: var(--cn-fs-2xl);
+  // Full size when there is room, smaller for long names in narrow banners; below the minimum
+  // the name wraps as a last resort.
+  font-size: max(var(--cn-fs-lg), min(var(--cn-fs-2xl), 8cqi));
   color: var(--cn-game-panel-text);
   text-shadow: var(--cn-game-text-outline);
   overflow-wrap: anywhere;

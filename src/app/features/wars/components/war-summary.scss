@@ -32,6 +32,8 @@
 }
 
 .side {
+  // Container of the clan name: long names shrink before wrapping.
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -51,7 +53,8 @@
 
 .side__name {
   margin: 0.15rem 0;
-  font-size: var(--cn-fs-xl);
+  // Full size when there is room, smaller in narrow columns; below the minimum it wraps.
+  font-size: max(var(--cn-fs-md), min(var(--cn-fs-xl), 11cqi));
   color: var(--cn-text);
   overflow-wrap: anywhere;
 }

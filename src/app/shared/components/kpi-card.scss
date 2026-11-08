@@ -14,8 +14,11 @@
   color: var(--cn-gold);
 }
 
+// Container of the value: its width sets how large the value can be.
 .kpi__text {
+  container-type: inline-size;
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
 }
@@ -29,7 +32,10 @@
 
 .kpi__value {
   font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-2xl);
+  // Full size when there is room; smaller in narrow cards, so long numbers (e.g. 1.329.444,
+  // which cannot wrap) never overflow the card.
+  font-size: min(var(--cn-fs-2xl), 15cqi);
+  white-space: nowrap;
   font-weight: 700;
   color: var(--cn-gold-light);
   line-height: 1.2;

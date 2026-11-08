@@ -6,7 +6,8 @@
     "cache",
     "services",
     "images",
-    "commendation"
+    "commendation",
+    "style"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",
