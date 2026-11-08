@@ -63,7 +63,7 @@
                   <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
                   <td mat-cell *matCellDef="let m">
                     <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
-                    @if (m.tag === myTag()) {
+                    @if (isMine(m.tag)) {
                       <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
                     }
                   </td>
@@ -79,7 +79,7 @@
                   <td mat-cell *matCellDef="let m" class="cn-num">{{ m.looted | localNumber }}</td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="columns"></tr>
-                <tr mat-row *matRowDef="let m; columns: columns" [class.cn-row-me]="m.tag === myTag()"></tr>
+                <tr mat-row *matRowDef="let m; columns: columns" [class.cn-row-me]="isMine(m.tag)"></tr>
               </table>
             </div>
           </section>

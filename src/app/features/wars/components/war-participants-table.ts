@@ -49,7 +49,7 @@ export class WarParticipantsTable {
   readonly inProgress = input(false);
 
   /** Tag of the signed-in user's player: their row is highlighted. */
-  protected readonly myTag = inject(AuthService).playerTag;
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly columns = [
     'mapPosition',

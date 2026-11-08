@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroupDirective, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +17,9 @@ import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { roleKey } from '../../shared/labels';
 import { applyServerErrors, errorKey, passwordsMatch, PLAYER_TAG_PATTERN, strongPassword } from '../auth/auth-form';
+
+/** Most accounts a user can link (same limit as the backend). */
+const MAX_LINKED_PLAYERS = 10;
 
 type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null;
 
@@ -48,13 +51,17 @@ export class ProfilePage {
   protected readonly user = this.auth.user;
   protected readonly roleKey = roleKey;
 
-  /** Clan members, to show which member the linked tag belongs to. */
+  /** Clan members, to show which member each linked account belongs to. */
   private readonly clan = rxResource({ stream: () => this.api.getClan().pipe(catchError(() => of(null))) });
-  protected readonly linkedMember = computed(() => {
-    const tag = this.auth.linkedTag();
-    const clan = this.clan.hasValue() ? this.clan.value() : null;
-    return tag && clan ? (clan.members.find((m) => m.tag === tag) ?? null) : null;
+  /** Linked accounts with the clan member they belong to (`null` if not in the clan now). */
+  protected readonly linkedPlayers = computed(() => {
+    const members = this.clan.hasValue() ? (this.clan.value()?.members ?? []) : [];
+    return this.auth.linkedPlayers().map((player) => ({
+      ...player,
+      member: members.find((m) => m.tag === player.tag) ?? null,
+    }));
   });
+  protected readonly maxPlayers = MAX_LINKED_PLAYERS;
 
   // --- Email verification ------------------------------------------------------------
   protected readonly resending = signal(false);
@@ -71,11 +78,15 @@ export class ProfilePage {
 
   // --- Player link -------------------------------------------------------------------
   /**
-   * The account is linked only with its in-game API token (Settings → More Settings), which only
-   * its owner can read: nobody can claim someone else's player.
+   * Each account is linked only with its in-game API token (Settings → More Settings), which only
+   * its owner can read: nobody can claim someone else's player. The form starts with an old
+   * unverified link, if any, so only the token is missing.
    */
   protected readonly tagForm = this.fb.group({
-    playerTag: [this.auth.playerTag() ? '' : (this.auth.linkedTag() ?? ''), [Validators.required, Validators.pattern(PLAYER_TAG_PATTERN)]],
+    playerTag: [
+      this.auth.linkedPlayers().find((p) => !p.verified)?.tag ?? '',
+      [Validators.required, Validators.pattern(PLAYER_TAG_PATTERN)],
+    ],
     token: ['', Validators.required],
   });
   protected readonly savingTag = signal(false);
@@ -86,7 +97,7 @@ export class ProfilePage {
     token: { required: 'ERROR.PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY' },
   };
 
-  protected linkPlayer(): void {
+  protected linkPlayer(formDirective: FormGroupDirective): void {
     this.tagFeedback.set(null);
     if (this.tagForm.invalid || this.savingTag()) {
       this.tagForm.markAllAsTouched();
@@ -96,7 +107,8 @@ export class ProfilePage {
     this.savingTag.set(true);
     this.auth.linkPlayer(playerTag.trim().toUpperCase().replace(/^#?/, '#'), token.trim()).subscribe({
       next: () => {
-        this.tagForm.reset({ playerTag: '', token: '' });
+        // Clean form: empty, untouched, pristine and not "submitted" (no red required errors).
+        formDirective.resetForm({ playerTag: '', token: '' });
         this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PLAYER_LINKED' }] });
       },
       error: (error: unknown) => {
@@ -107,12 +119,12 @@ export class ProfilePage {
     });
   }
 
-  protected unlinkPlayer(): void {
+  protected unlinkPlayer(tag: string): void {
     if (this.savingTag()) return;
     this.tagFeedback.set(null);
     this.savingTag.set(true);
-    this.auth.updateProfile({ playerTag: null }).subscribe({
-      next: () => this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PROFILE_UPDATED' }] }),
+    this.auth.unlinkPlayer(tag).subscribe({
+      next: () => this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PLAYER_UNLINKED', params: { tag } }] }),
       error: (error: unknown) => this.finish(this.savingTag, this.tagFeedback, { kind: 'error', messages: this.allMessages(error) }),
     });
   }

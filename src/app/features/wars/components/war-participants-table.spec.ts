@@ -72,22 +72,30 @@ describe('WarParticipantsTable', () => {
     expect(fixture.nativeElement.textContent).toContain('Nessun partecipante corrisponde');
   });
 
-  it('highlights the row of the signed-in player, with a "You" badge', async () => {
+  it('highlights the rows of all the signed-in user\'s verified accounts, with a "You" badge', async () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('tr.cn-row-me')).toBeNull();
 
     TestBed.inject(AuthService).restoreSession();
     TestBed.inject(HttpTestingController)
       .expectOne('/api/v1/auth/refresh')
       .flush({
-        result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'b', playerTag: '#b', playerTagVerified: true } },
+        result: { accessToken: 't', accessTokenExpiresAt: '', user: {
+            username: 'b',
+            players: [
+              { tag: '#B', verified: true },
+              { tag: '#C', verified: true },
+              // Old unverified link: not marked as "you".
+              { tag: '#A', verified: false },
+            ],
+          },
+        },
         messages: [],
         status: { code: 200, name: 'HTTP_STATUS.OK' },
       });
     await fixture.whenStable();
 
     const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tr.cn-row-me');
-    expect(rows).toHaveLength(1);
-    expect(rows[0].querySelector('.cn-link-cell')!.textContent!.trim()).toBe('Player #B');
+    expect([...rows].map((r) => r.querySelector('.cn-link-cell')!.textContent!.trim())).toEqual(['Player #B', 'Player #C']);
     expect(rows[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
   });
 });

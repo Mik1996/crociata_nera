@@ -443,7 +443,8 @@
     "EMAIL_VERIFIED": "Email confirmed",
     "VERIFICATION_EMAIL_SENT": "Confirmation email sent: check your inbox (and spam).",
     "USER_UPDATED": "{{name}} updated",
-    "PLAYER_LINKED": "Game account verified and linked."
+    "PLAYER_LINKED": "Game account verified and linked.",
+    "PLAYER_UNLINKED": "Account {{tag}} unlinked."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -490,7 +491,8 @@
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Enter the API token shown in the game.",
     "PLAYER_TOKEN_IS_NOT_VALID": "Invalid or expired token: get the current one in the game and try again.",
     "PLAYER_TAG_ALREADY_LINKED": "This game account is already linked and verified by another user.",
-    "PLAYER_VERIFICATION_UNAVAILABLE": "The token cannot be checked right now: the Clash of Clans API is not responding. Try again later."
+    "PLAYER_VERIFICATION_UNAVAILABLE": "The token cannot be checked right now: the Clash of Clans API is not responding. Try again later.",
+    "PLAYER_LIMIT_REACHED": "You can link up to {{max}} accounts."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -619,8 +621,8 @@
       "ADMIN": "Administrator"
     },
     "player": {
-      "title": "Clash of Clans player",
-      "hint": "Link your game account to have your row highlighted in the tables. It needs the game's API token: only the account owner can see it, so nobody can link someone else's player.",
+      "title": "Clash of Clans accounts",
+      "hint": "Link your game accounts, even more than one: their rows will be highlighted in the tables. Each account needs the game's API token, which only its owner can see, so nobody can link someone else's player.",
       "linkedTo": "Linked to {{name}} ({{role}})",
       "notInClan": "This tag is not among the current clan members.",
       "linkedTag": "Linked to tag {{tag}}",
@@ -634,7 +636,11 @@
       },
       "token": "Game API token",
       "tokenHint": "E.g. a1b2c3d4 · only used for the check, never stored",
-      "verify": "Verify and link"
+      "verify": "Verify and link",
+      "none": "No account linked.",
+      "add": "Link an account",
+      "addAnother": "Link another account",
+      "unlinkTag": "Unlink the {{tag}} account"
     },
     "password": {
       "title": "Change password",
@@ -659,7 +665,7 @@
     "tagVerified": "Verified with the game token",
     "tagUnverified": "Not verified",
     "unlinkTag": "Unlink the player",
-    "unlinkTagOf": "Unlink {{name}}'s player"
+    "unlinkTagOf": "Unlink {{tag}} from {{name}}"
   },
   "commendations": {
     "title": "Commendations",

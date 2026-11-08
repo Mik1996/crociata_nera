@@ -20,9 +20,17 @@ export class AdminService {
       .pipe(map((response) => response.result!));
   }
 
-  updateUser(id: string, changes: { roles?: ('USER' | 'ADMIN')[]; playerTag?: null }): Observable<AdminUser> {
+  updateUser(id: string, changes: { roles?: ('USER' | 'ADMIN')[] }): Observable<AdminUser> {
     return this.http
       .patch<BaseResult<AdminUser>>(`${this.url}/${encodeURIComponent(id)}`, changes)
+      .pipe(map((response) => response.result!));
+  }
+
+  /** Unlinks one Clash of Clans account of a user (administrators cannot link accounts). */
+  unlinkPlayer(id: string, tag: string): Observable<AdminUser> {
+    const path = `${encodeURIComponent(id)}/players/${encodeURIComponent(tag.replace(/^#/, ''))}`;
+    return this.http
+      .delete<BaseResult<AdminUser>>(`${this.url}/${path}`)
       .pipe(map((response) => response.result!));
   }
 }

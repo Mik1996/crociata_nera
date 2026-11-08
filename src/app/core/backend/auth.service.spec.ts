@@ -11,7 +11,7 @@ const ok = <T>(result: T): BaseResult<T> => ({ result, messages: [], status: { c
 const session = (token: string): AuthResult => ({
   accessToken: token,
   accessTokenExpiresAt: '2026-11-06T12:00:00.000Z',
-  user: { id: '1', email: 'a@b.io', username: 'alice', roles: ['USER'], playerTag: null, playerTagVerified: false, emailVerified: false, createdAt: '' },
+  user: { id: '1', email: 'a@b.io', username: 'alice', roles: ['USER'], players: [], emailVerified: false, createdAt: '' },
 });
 
 describe('AuthService and authInterceptor', () => {

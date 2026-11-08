@@ -8,7 +8,8 @@ import { linkPlayerSchema } from '@/modules/auth/auth.schemas';
 
 /**
  * `POST /api/v1/auth/me/player` `{ playerTag, token }`: links the Clash of Clans account, proven
- * by the API token shown in the game (Settings → More Settings). Unlink with `PATCH /me`.
+ * by the API token shown in the game (Settings → More Settings). A user can link several
+ * accounts; unlink one with `DELETE /me/player/{tag}`.
  */
 export const POST = apiHandler({ apiName: ApiName.PLAYER_LINK, auth: true }, async ({ request, user }) => {
   const input = await parseBody(request, linkPlayerSchema);

@@ -7,7 +7,7 @@ import { parseBody } from '@/lib/validation/parse';
 import { updateUserSchema } from '@/modules/admin/admin.schemas';
 import { updateUser } from '@/modules/admin/admin.service';
 
-/** `PATCH /api/v1/admin/users/{id}` `{ roles?, playerTag? }` (ADMIN only). */
+/** `PATCH /api/v1/admin/users/{id}` `{ roles? }` (ADMIN only). */
 export const PATCH = apiHandler<{ id: string }, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },
   async ({ request, params, user }) => {

@@ -9,13 +9,16 @@ const userSchema = new Schema(
     usernameKey: { type: String, required: true, unique: true, select: false },
     passwordHash: { type: String, required: true, select: false },
     roles: { type: [String], enum: Object.values(UserRole), default: [UserRole.USER] },
-    /** Linked Clash of Clans account (optional, e.g. `#ABC123`). */
-    playerTag: { type: String, default: null },
     /**
-     * The link was proven with the player's in-game API token (`verifytoken` endpoint). Links
-     * made before the check existed stay, unverified, until the user verifies them.
+     * Linked Clash of Clans accounts (e.g. `#ABC123`), each proven with the player's in-game API
+     * token (`verifytoken` endpoint). A user can link several accounts.
      */
-    playerTagVerified: { type: Boolean, default: false },
+    playerTags: { type: [String], default: [] },
+    /**
+     * Account linked before the token check existed: kept, unverified, until the user verifies it
+     * (it then moves to `playerTags`). Never set by new links.
+     */
+    pendingPlayerTag: { type: String, default: null },
     emailVerified: { type: Boolean, default: false },
     // One-time tokens sent by email: only their SHA-256 is stored, with an expiry.
     verifyEmailTokenHash: { type: String, default: null, select: false },
@@ -26,13 +29,23 @@ const userSchema = new Schema(
   { collection: 'Users', timestamps: true, versionKey: false },
 );
 
-// A Clash of Clans account can be verified by one user only.
-userSchema.index({ playerTag: 1 }, { unique: true, partialFilterExpression: { playerTagVerified: true } });
+// A Clash of Clans account can be verified by one user only. Users without linked accounts
+// (empty array) are left out of the index.
+userSchema.index({ playerTags: 1 }, { unique: true, partialFilterExpression: { playerTags: { $type: 'string' } } });
+
+/** Most Clash of Clans accounts a user can link. */
+export const MAX_LINKED_PLAYERS = 10;
 
 export type User = InferSchemaType<typeof userSchema>;
 export type UserDocument = HydratedDocument<User>;
 
 export const UserModel: Model<User> = (models.User as Model<User>) ?? model('User', userSchema);
+
+export interface LinkedPlayer {
+  tag: string;
+  /** Proven with the in-game API token. */
+  verified: boolean;
+}
 
 /** Public shape of a user: never includes the password hash. */
 export interface PublicUser {
@@ -40,9 +53,8 @@ export interface PublicUser {
   email: string;
   username: string;
   roles: UserRole[];
-  playerTag: string | null;
-  /** `playerTag` proven with the in-game API token. */
-  playerTagVerified: boolean;
+  /** Linked Clash of Clans accounts; `verified: false` only for links made before the token check. */
+  players: LinkedPlayer[];
   emailVerified: boolean;
   createdAt: string;
 }
@@ -53,9 +65,32 @@ export function toPublicUser(user: UserDocument): PublicUser {
     email: user.email,
     username: user.username,
     roles: [...user.roles] as UserRole[],
-    playerTag: user.playerTag ?? null,
-    playerTagVerified: Boolean(user.playerTag && user.playerTagVerified),
+    players: [
+      ...user.playerTags.map((tag) => ({ tag, verified: true })),
+      ...(user.pendingPlayerTag ? [{ tag: user.pendingPlayerTag, verified: false }] : []),
+    ],
     emailVerified: user.emailVerified,
     createdAt: user.createdAt.toISOString(),
   };
+}
+
+/**
+ * One-time migration from the single linked account (`playerTag` + `playerTagVerified`) to the
+ * list of accounts: verified tags move to `playerTags`, unverified ones to `pendingPlayerTag`,
+ * and the old unique index is dropped. No-op once done; safe to run on every start.
+ */
+export async function migrateLinkedPlayers(): Promise<void> {
+  const users = UserModel.collection;
+  const unsetOld = { $unset: ['playerTag', 'playerTagVerified'] };
+  await users.updateMany({ playerTag: { $type: 'string' }, playerTagVerified: true }, [
+    { $set: { playerTags: { $setUnion: [{ $ifNull: ['$playerTags', []] }, ['$playerTag']] } } },
+    unsetOld,
+  ]);
+  await users.updateMany({ playerTag: { $type: 'string' } }, [{ $set: { pendingPlayerTag: '$playerTag' } }, unsetOld]);
+  await users.updateMany({ $or: [{ playerTag: { $exists: true } }, { playerTagVerified: { $exists: true } }] }, [unsetOld]);
+  try {
+    await users.dropIndex('playerTag_1');
+  } catch {
+    // Already dropped (or never created).
+  }
 }

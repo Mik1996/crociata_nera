@@ -9,6 +9,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
 import { AdminService } from '../../core/backend/admin.service';
 import { AuthService } from '../../core/backend/auth.service';
 import { AdminUser, BackendMessage } from '../../core/backend/backend-api.types';
@@ -69,9 +70,9 @@ export class AdminPage {
     this.query.set(this.searchText());
   }
 
-  /** Administrators can only unlink a player: linking needs the player's in-game token. */
-  protected unlinkTag(user: AdminUser): void {
-    this.update(user, { playerTag: null });
+  /** Administrators can only unlink an account: linking needs the player's in-game token. */
+  protected unlinkTag(user: AdminUser, tag: string): void {
+    this.apply(user, this.admin.unlinkPlayer(user.id, tag));
   }
 
   protected toggleAdmin(user: AdminUser, admin: boolean): void {
@@ -79,9 +80,14 @@ export class AdminPage {
   }
 
   private update(user: AdminUser, changes: Parameters<AdminService['updateUser']>[1]): void {
+    this.apply(user, this.admin.updateUser(user.id, changes));
+  }
+
+  /** Runs a change of a user and puts the updated user in the table. */
+  private apply(user: AdminUser, request: Observable<AdminUser>): void {
     this.busy.set(user.id);
     this.feedback.set(null);
-    this.admin.updateUser(user.id, changes).subscribe({
+    request.subscribe({
       next: (updated) => {
         this.users.update(
           (page) =>

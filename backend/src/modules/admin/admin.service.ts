@@ -22,7 +22,7 @@ const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$
 export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
   const filter = query.search
     ? {
-        $or: ['email', 'username', 'playerTag'].map((field) => ({
+        $or: ['email', 'username', 'playerTags', 'pendingPlayerTag'].map((field) => ({
           [field]: { $regex: escapeRegex(query.search!), $options: 'i' },
         })),
       }
@@ -43,7 +43,7 @@ export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
 }
 
 /**
- * Changes roles and/or unlinks the player tag of a user. An administrator cannot remove
+ * Changes the roles of a user. An administrator cannot remove
  * their own ADMIN role (no lock-out). When roles change, the user's sessions are revoked
  * so the new roles apply at the next sign-in instead of up to 15 minutes later.
  */
@@ -60,11 +60,25 @@ export async function updateUser(actorId: string, userId: string, input: UpdateU
     rolesChanged = roles.length !== user.roles.length || roles.some((role) => !user.roles.includes(role));
     user.set('roles', roles);
   }
-  if (input.playerTag === null) user.set({ playerTag: null, playerTagVerified: false });
   await user.save();
 
   if (rolesChanged && actorId !== userId) {
     await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
+  }
+  return { ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() };
+}
+
+/**
+ * Unlinks one Clash of Clans account of a user. Administrators can only unlink: linking needs
+ * the player's in-game token.
+ */
+export async function unlinkUserPlayer(userId: string, tag: string): Promise<AdminUser> {
+  if (!Types.ObjectId.isValid(userId)) throwException(404, MessageKey.USER_NOT_FOUND);
+  const user = await UserModel.findOneAndUpdate({ _id: userId }, { $pull: { playerTags: tag } }, { new: true });
+  if (!user) throwException(404, MessageKey.USER_NOT_FOUND);
+  if (user.pendingPlayerTag === tag) {
+    user.pendingPlayerTag = null;
+    await user.save();
   }
   return { ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() };
 }

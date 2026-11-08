@@ -7,13 +7,13 @@ import { AuthService } from '../../core/backend/auth.service';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { ProfilePage } from './profile-page';
 
-const user = { id: '1', email: 'knight@crociata.it', username: 'Knight', roles: ['USER'], playerTag: null as string | null, emailVerified: false, createdAt: '2026-11-01T10:00:00Z' };
+const user = { id: '1', email: 'knight@crociata.it', username: 'Knight', roles: ['USER'], players: [] as { tag: string; verified: boolean }[], emailVerified: false, createdAt: '2026-11-01T10:00:00Z' };
 const ok = <T>(result: T) => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
 
 describe('ProfilePage', () => {
   let httpMock: HttpTestingController;
 
-  async function render(changes: Partial<typeof user & { playerTagVerified: boolean }> = {}) {
+  async function render(changes: Partial<typeof user> = {}) {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -46,46 +46,65 @@ describe('ProfilePage', () => {
     expect(el.textContent).toContain('Email di conferma inviata');
   });
 
-  it('links the player only with the in-game token, then unlinks it', async () => {
+  it('links accounts only with the in-game token, several of them, and unlinks one', async () => {
     const { fixture, el } = await render();
     const field = (name: string) => el.querySelector<HTMLInputElement>(`input[formcontrolname="${name}"]`)!;
-    const form = field('playerTag').closest('form')!;
+    const submit = () => field('playerTag').closest('form')!.dispatchEvent(new Event('submit'));
+    const type = (name: string, value: string) => {
+      field(name).value = value;
+      field(name).dispatchEvent(new Event('input'));
+    };
+    expect(el.textContent).toContain('Nessun account collegato.');
 
     // Tag without token: not sent.
-    field('playerTag').value = 'abc123';
-    field('playerTag').dispatchEvent(new Event('input'));
-    form.dispatchEvent(new Event('submit'));
+    type('playerTag', 'abc123');
+    submit();
     await fixture.whenStable();
     httpMock.expectNone('/api/v1/auth/me/player');
     expect(el.textContent).toContain('Inserisci il token API mostrato nel gioco.');
 
-    field('token').value = ' tok123 ';
-    field('token').dispatchEvent(new Event('input'));
-    form.dispatchEvent(new Event('submit'));
-    const req = httpMock.expectOne('/api/v1/auth/me/player');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ playerTag: '#ABC123', token: 'tok123' });
-    req.flush(ok({ ...user, playerTag: '#ABC123', playerTagVerified: true }));
+    type('token', ' tok123 ');
+    submit();
+    const first = httpMock.expectOne('/api/v1/auth/me/player');
+    expect(first.request.method).toBe('POST');
+    expect(first.request.body).toEqual({ playerTag: '#ABC123', token: 'tok123' });
+    first.flush(ok({ ...user, players: [{ tag: '#ABC123', verified: true }] }));
     await fixture.whenStable();
-
-    expect(TestBed.inject(AuthService).playerTag()).toBe('#ABC123');
     expect(el.textContent).toContain('Account di gioco verificato e collegato.');
-    // Verified: the form is gone, the unlink button remains.
-    expect(el.querySelector('input[formcontrolname="token"]')).toBeNull();
+    // Clean form after linking: empty, untouched, pristine, no errors shown.
+    const form = fixture.componentInstance['tagForm'];
+    expect(form.getRawValue()).toEqual({ playerTag: '', token: '' });
+    expect(form.touched || form.dirty).toBe(false);
+    expect(el.querySelectorAll('mat-error')).toHaveLength(0);
+    expect(el.querySelectorAll('.mat-form-field-invalid')).toHaveLength(0);
 
-    [...el.querySelectorAll('button')].find((b) => b.textContent!.includes('Scollega'))!.click();
-    const unlink = httpMock.expectOne('/api/v1/auth/me');
-    expect(unlink.request.body).toEqual({ playerTag: null });
-    unlink.flush(ok({ ...user, playerTag: null, playerTagVerified: false }));
+    // The form stays, to link another account.
+    expect(el.textContent).toContain('Collega un altro account');
+    type('playerTag', '#DEF456');
+    type('token', 'tok456');
+    submit();
+    httpMock.expectOne('/api/v1/auth/me/player').flush(
+      ok({ ...user, players: [{ tag: '#ABC123', verified: true }, { tag: '#DEF456', verified: true }] }),
+    );
     await fixture.whenStable();
-    expect(TestBed.inject(AuthService).linkedTag()).toBeNull();
+    const auth = TestBed.inject(AuthService);
+    expect([...auth.playerTags()]).toEqual(['#ABC123', '#DEF456']);
+    expect(el.querySelectorAll('.linked-list > li')).toHaveLength(2);
+
+    el.querySelector<HTMLButtonElement>('button[aria-label="Scollega l\'account #ABC123"]')!.click();
+    const unlink = httpMock.expectOne('/api/v1/auth/me/player/ABC123');
+    expect(unlink.request.method).toBe('DELETE');
+    unlink.flush(ok({ ...user, players: [{ tag: '#DEF456', verified: true }] }));
+    await fixture.whenStable();
+    expect([...auth.playerTags()]).toEqual(['#DEF456']);
+    expect(el.textContent).toContain('Account #ABC123 scollegato.');
   });
 
-  it('keeps an old unverified tag, not treated as the signed-in player until verified', async () => {
-    const { el } = await render({ playerTag: '#OLD123', playerTagVerified: false });
+  it('keeps an old unverified link, not treated as the signed-in player until verified', async () => {
+    const { el } = await render({ players: [{ tag: '#OLD123', verified: false }] });
     const auth = TestBed.inject(AuthService);
-    expect(auth.linkedTag()).toBe('#OLD123');
-    expect(auth.playerTag()).toBeNull();
+    expect(auth.linkedPlayers()).toEqual([{ tag: '#OLD123', verified: false }]);
+    expect(auth.isMyPlayer('#OLD123')).toBe(false);
     expect(el.textContent).toContain('Non verificato');
     // The form is pre-filled with the old tag: only the token is missing.
     expect(el.querySelector<HTMLInputElement>('input[formcontrolname="playerTag"]')!.value).toBe('#OLD123');

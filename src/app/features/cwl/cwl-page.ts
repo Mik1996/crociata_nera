@@ -48,7 +48,7 @@ export class CwlPage {
   private readonly api = inject(CocApiService);
   private readonly language = inject(LanguageService);
   /** Tag of the signed-in user's player: their row is highlighted. */
-  protected readonly myTag = inject(AuthService).playerTag;
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly seasons = rxResource({ stream: () => this.api.getCwlSeasons() });
   protected readonly seasonList = computed(() =>

@@ -15,14 +15,19 @@ export interface BaseResult<T> {
   status: { code: number; name: string };
 }
 
+export interface LinkedPlayer {
+  tag: string;
+  /** Proven with the in-game API token. */
+  verified: boolean;
+}
+
 export interface BackendUser {
   id: string;
   email: string;
   username: string;
   roles: ('USER' | 'ADMIN')[];
-  playerTag: string | null;
-  /** `playerTag` proven with the in-game API token. */
-  playerTagVerified: boolean;
+  /** Linked Clash of Clans accounts; `verified: false` only for links made before the token check. */
+  players: LinkedPlayer[];
   emailVerified: boolean;
   createdAt: string;
 }

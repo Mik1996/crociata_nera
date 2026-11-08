@@ -70,7 +70,7 @@ export class StatisticsPage {
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);
   /** Tag of the signed-in user's player: their row is highlighted. */
-  protected readonly myTag = inject(AuthService).playerTag;
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly allPeriods = ALL_PERIODS;
   protected readonly maxStars = MAX_STARS_PER_WAR;

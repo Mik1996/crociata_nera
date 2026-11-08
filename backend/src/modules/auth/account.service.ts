@@ -7,9 +7,9 @@ import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { isMailConfigured, sendMail } from '@/lib/mail/mailer';
 import { MailLanguage, passwordResetMail, verifyEmailMail } from '@/lib/mail/templates';
-import { ChangePasswordInput, LinkPlayerInput, ResetPasswordInput, UpdateProfileInput } from './auth.schemas';
+import { ChangePasswordInput, LinkPlayerInput, ResetPasswordInput } from './auth.schemas';
 import { SessionModel } from './session.model';
-import { PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
+import { MAX_LINKED_PLAYERS, PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -26,28 +26,25 @@ async function findUser(userId: string): Promise<UserDocument> {
   return user;
 }
 
-/** Profile changes: `playerTag: null` unlinks the Clash of Clans account. */
-export async function updateProfile(userId: string, input: UpdateProfileInput): Promise<PublicUser> {
-  const user = await findUser(userId);
-  if (input.playerTag === null) user.set({ playerTag: null, playerTagVerified: false });
-  await user.save();
-  return toPublicUser(user);
-}
-
 /**
- * Links a Clash of Clans account after proving it is the user's: the API token shown in the game
- * (Settings → More Settings) must match, which only the account owner can read. A verified
- * account belongs to one user only; unverified copies of the same tag on other users (links made
- * before the check existed) are removed.
+ * Links one more Clash of Clans account after proving it is the user's: the API token shown in
+ * the game (Settings → More Settings) must match, which only the account owner can read. A user
+ * can link up to {@link MAX_LINKED_PLAYERS} accounts; a verified account belongs to one user only,
+ * and unverified copies of the same tag (links made before the check existed) are removed.
  */
 export async function linkPlayer(userId: string, input: LinkPlayerInput): Promise<PublicUser> {
   const user = await findUser(userId);
-  const taken = await UserModel.exists({ _id: { $ne: user._id }, playerTag: input.playerTag, playerTagVerified: true });
+  const tag = input.playerTag;
+  const taken = await UserModel.exists({ _id: { $ne: user._id }, playerTags: tag });
   if (taken) throwException(409, [{ key: MessageKey.PLAYER_TAG_ALREADY_LINKED, field: 'playerTag' }]);
+  const alreadyMine = user.playerTags.includes(tag);
+  if (!alreadyMine && user.playerTags.length >= MAX_LINKED_PLAYERS) {
+    throwException(409, [{ key: MessageKey.PLAYER_LIMIT_REACHED, params: { max: MAX_LINKED_PLAYERS } }]);
+  }
 
   let valid: boolean;
   try {
-    valid = await verifyPlayerToken(input.playerTag, input.token);
+    valid = await verifyPlayerToken(tag, input.token);
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;
     if (error.status === 404) throwException(404, [{ key: MessageKey.PLAYER_NOT_FOUND, field: 'playerTag' }]);
@@ -55,9 +52,10 @@ export async function linkPlayer(userId: string, input: LinkPlayerInput): Promis
   }
   if (!valid) throwException(400, [{ key: MessageKey.PLAYER_TOKEN_IS_NOT_VALID, field: 'token' }]);
 
-  user.set({ playerTag: input.playerTag, playerTagVerified: true });
+  // Unverified copies of this tag (this user's or others') give way to the verified link.
+  await UserModel.updateMany({ pendingPlayerTag: tag }, { $set: { pendingPlayerTag: null } });
   try {
-    await user.save();
+    await UserModel.updateOne({ _id: user._id }, { $addToSet: { playerTags: tag } });
   } catch (error) {
     // Another user verified the same account in the meantime (unique index).
     if ((error as { code?: number }).code === 11000) {
@@ -65,11 +63,15 @@ export async function linkPlayer(userId: string, input: LinkPlayerInput): Promis
     }
     throw error;
   }
-  await UserModel.updateMany(
-    { _id: { $ne: user._id }, playerTag: input.playerTag, playerTagVerified: { $ne: true } },
-    { $set: { playerTag: null, playerTagVerified: false } },
-  );
-  return toPublicUser(user);
+  return toPublicUser(await findUser(userId));
+}
+
+/** Unlinks one Clash of Clans account (verified or not) from the user. */
+export async function unlinkPlayer(userId: string, tag: string): Promise<PublicUser> {
+  const user = await findUser(userId);
+  await UserModel.updateOne({ _id: user._id }, { $pull: { playerTags: tag } });
+  await UserModel.updateOne({ _id: user._id, pendingPlayerTag: tag }, { $set: { pendingPlayerTag: null } });
+  return toPublicUser(await findUser(userId));
 }
 
 /**

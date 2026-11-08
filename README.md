@@ -227,9 +227,9 @@ vengono richiamate.
   cima e in fondo alle aree scorrevoli una leggera fascia sfocata, visibile solo se in quella direzione c'è altro
   contenuto. Vale per le pagine e per le schede del giocatore. Si aggiorna quando si scorre, quando cambiano le
   dimensioni e quando arrivano i dati. Gli stili `.cn-scroll-fade` sono in `styles.scss`.
-- **La tua riga:** se l'account ha un `playerTag` **verificato** uguale al tag di un giocatore restituito dall'API, la sua riga è verde
+- **Le tue righe:** se uno degli account di Clash of Clans **verificati** collegati all'utente ha lo stesso tag di un giocatore restituito dall'API, la sua riga è verde
   e accanto al nome compare il badge "Tu". Succede nelle tabelle Giocatori, Statistiche e partecipanti alla guerra. Il
-  tag viene da `AuthService.playerTag`.
+  controllo è `AuthService.isMyPlayer(tag)`.
 
 ## Pagina di benvenuto
 
@@ -384,9 +384,9 @@ Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si
   dati mock è nascosto.
 
 - **Account:**
-  - `/profile`: dati dell'account, conferma dell'email, collegamento del giocatore (verificato con il token API mostrato nel gioco, in Impostazioni → Altre impostazioni: chi non è il proprietario dell'account non può leggerlo) e cambio password;
+  - `/profile`: dati dell'account, conferma dell'email, collegamento di uno o più account di gioco (fino a 10, ciascuno verificato con il token API mostrato nel gioco, in Impostazioni → Altre impostazioni: chi non è il proprietario dell'account non può leggerlo) e cambio password;
   - `/forgot-password`, `/reset-password` e `/verify-email`: pagine pubbliche raggiunte dai link delle email;
-  - `/admin`: elenco utenti, ruolo amministratore e tag giocatore (verificato o no; l'admin può solo scollegarlo); protetta da `adminGuard`.
+  - `/admin`: elenco utenti, ruolo amministratore e account di gioco collegati (verificati o no; l'admin può solo scollegarli, uno alla volta); protetta da `adminGuard`.
 
   Profilo e amministrazione si aprono dal menu account nell'header.
 - **Storico e statistiche:** arrivano dal backend (`/api/v1/wars/archive`, `/api/v1/history`), cioè dalle guerre

@@ -12,14 +12,15 @@ vi.mock('@/lib/mail/mailer', () => ({
 
 import { POST as changePassword } from '@/app/api/v1/auth/change-password/route';
 import { POST as forgotPassword } from '@/app/api/v1/auth/forgot-password/route';
-import { GET as me, PATCH as updateMe } from '@/app/api/v1/auth/me/route';
+import { GET as me } from '@/app/api/v1/auth/me/route';
+import { DELETE as unlinkPlayer } from '@/app/api/v1/auth/me/player/[tag]/route';
 import { POST as refresh } from '@/app/api/v1/auth/refresh/route';
 import { POST as resetPassword } from '@/app/api/v1/auth/reset-password/route';
 import { POST as signIn } from '@/app/api/v1/auth/sign-in/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { POST as resend } from '@/app/api/v1/auth/verify-email/resend/route';
 import { POST as verifyEmail } from '@/app/api/v1/auth/verify-email/route';
-import { UserModel } from '@/modules/auth/user.model';
+import { migrateLinkedPlayers, UserModel } from '@/modules/auth/user.model';
 import { POST as linkPlayer } from '@/app/api/v1/auth/me/player/route';
 import { mockCocApi } from './coc-mock';
 import { call } from './helpers';
@@ -72,54 +73,106 @@ describe('email verification', () => {
 });
 
 describe('profile', () => {
-  it('links the player tag only with a valid in-game token, then unlinks it', async () => {
-    const { token } = await register();
+  /** Fake `verifytoken`: `good-token` is valid for every tag. */
+  function mockVerifyToken() {
     const coc = mockCocApi({
       '/verifytoken': () => {
         const sent = JSON.parse(String(coc.mock.calls.at(-1)![1]!.body)) as { token: string };
-        return { body: { tag: '#ABC123', token: sent.token, status: sent.token === 'good-token' ? 'ok' : 'invalid' } };
+        return { body: { status: sent.token === 'good-token' ? 'ok' : 'invalid' } };
       },
     });
+    return coc;
+  }
 
-    // A tag alone is not enough anymore.
-    const plain = await call(updateMe, { method: 'PATCH', body: { playerTag: '#ABC123' }, token });
-    expect(plain.status).toBe(400);
+  it('links several accounts, each with a valid in-game token, and unlinks them one by one', async () => {
+    const { token } = await register();
+    const coc = mockVerifyToken();
 
     const wrong = await call(linkPlayer, { body: { playerTag: '#abc123', token: 'bad-token' }, token });
     expect(wrong.status).toBe(400);
     expect(wrong.body.messages).toEqual([{ key: 'ERROR.PLAYER_TOKEN_IS_NOT_VALID', field: 'token' }]);
 
-    const linked = await call(linkPlayer, { body: { playerTag: ' #abc123 ', token: ' good-token ' }, token });
-    expect(linked.status).toBe(200);
-    expect(linked.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_LINKED' }]);
-    expect(linked.body.result).toMatchObject({ playerTag: '#ABC123', playerTagVerified: true });
+    const first = await call(linkPlayer, { body: { playerTag: ' #abc123 ', token: ' good-token ' }, token });
+    expect(first.status).toBe(200);
+    expect(first.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_LINKED' }]);
     const [url, init] = coc.mock.calls.at(-1)!;
     expect(String(url)).toBe('https://coc.test/v1/players/%23ABC123/verifytoken');
     expect(init).toMatchObject({ method: 'POST' });
     expect(JSON.parse(String(init!.body))).toEqual({ token: 'good-token' });
 
-    const unlinked = await call(updateMe, { method: 'PATCH', body: { playerTag: '' }, token });
-    expect(unlinked.body.result).toMatchObject({ playerTag: null, playerTagVerified: false });
+    await call(linkPlayer, { body: { playerTag: '#DEF456', token: 'good-token' }, token });
+    // Linking an account again is harmless.
+    const again = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 'good-token' }, token });
+    expect(again.body.result.players).toEqual([
+      { tag: '#ABC123', verified: true },
+      { tag: '#DEF456', verified: true },
+    ]);
+
+    // The tag goes in the path without `#`.
+    const unlinked = await call(unlinkPlayer, { method: 'DELETE', token, params: { tag: 'abc123' } });
+    expect(unlinked.status).toBe(200);
+    expect(unlinked.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_UNLINKED' }]);
+    expect(unlinked.body.result.players).toEqual([{ tag: '#DEF456', verified: true }]);
+
+    const invalid = await call(unlinkPlayer, { method: 'DELETE', token, params: { tag: 'no!' } });
+    expect(invalid.status).toBe(400);
+    expect(invalid.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_IS_NOT_VALID', field: 'playerTag' }]);
   });
 
   it('keeps a verified account to one user and frees unverified copies', async () => {
-    mockCocApi({ '/verifytoken': { body: { status: 'ok' } } });
+    mockVerifyToken();
     const owner = await register();
     const other = await call(signUp, {
       body: { email: 'squire@crociata.it', username: 'Squire', password: 'secret123', repeatPassword: 'secret123' },
     });
     const otherToken = other.body.result.accessToken as string;
     // Link made before verification existed: stays, unverified.
-    await UserModel.updateOne({ email: 'squire@crociata.it' }, { $set: { playerTag: '#ABC123' } });
-    expect((await call(me, { token: otherToken })).body.result).toMatchObject({ playerTag: '#ABC123', playerTagVerified: false });
+    await UserModel.updateOne({ email: 'squire@crociata.it' }, { $set: { pendingPlayerTag: '#ABC123' } });
+    expect((await call(me, { token: otherToken })).body.result.players).toEqual([{ tag: '#ABC123', verified: false }]);
 
-    expect((await call(linkPlayer, { body: { playerTag: '#ABC123', token: 't' }, token: owner.token })).status).toBe(200);
+    expect((await call(linkPlayer, { body: { playerTag: '#ABC123', token: 'good-token' }, token: owner.token })).status).toBe(200);
     // The verified owner wins: the unverified copy is removed.
-    expect((await call(me, { token: otherToken })).body.result.playerTag).toBeNull();
+    expect((await call(me, { token: otherToken })).body.result.players).toEqual([]);
 
-    const taken = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 't' }, token: otherToken });
+    const taken = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 'good-token' }, token: otherToken });
     expect(taken.status).toBe(409);
     expect(taken.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_ALREADY_LINKED', field: 'playerTag' }]);
+  });
+
+  it('verifies an old unverified link, and stops at the maximum number of accounts', async () => {
+    mockVerifyToken();
+    const { token } = await register();
+    await UserModel.updateOne({ email: account.email }, { $set: { pendingPlayerTag: '#OLD111' } });
+    const verified = await call(linkPlayer, { body: { playerTag: '#OLD111', token: 'good-token' }, token });
+    expect(verified.body.result.players).toEqual([{ tag: '#OLD111', verified: true }]);
+
+    // One IP per attempt: the rate limit (10 attempts per IP) is not what is tested here.
+    for (let i = 2; i <= 10; i++) {
+      await call(linkPlayer, { body: { playerTag: `#ACC${i}00`, token: 'good-token' }, token, ip: `10.9.0.${i}` });
+    }
+    const tooMany = await call(linkPlayer, { body: { playerTag: '#ONEMORE', token: 'good-token' }, token, ip: '10.9.1.1' });
+    expect(tooMany.status).toBe(409);
+    expect(tooMany.body.messages).toEqual([{ key: 'ERROR.PLAYER_LIMIT_REACHED', params: { max: 10 } }]);
+  });
+
+  it('moves the single linked account of the old format to the list of accounts', async () => {
+    await register();
+    await call(signUp, { body: { email: 'b@crociata.it', username: 'Bee', password: 'secret123', repeatPassword: 'secret123' } });
+    await call(signUp, { body: { email: 'c@crociata.it', username: 'Cee', password: 'secret123', repeatPassword: 'secret123' } });
+    const users = UserModel.collection;
+    await users.updateOne({ email: account.email }, { $set: { playerTag: '#VER111', playerTagVerified: true } });
+    await users.updateOne({ email: 'b@crociata.it' }, { $set: { playerTag: '#OLD222', playerTagVerified: false } });
+    await users.updateOne({ email: 'c@crociata.it' }, { $set: { playerTag: null, playerTagVerified: false } });
+
+    await migrateLinkedPlayers();
+    await migrateLinkedPlayers(); // no-op the second time
+
+    const saved = await users.find({}, { projection: { _id: 0, email: 1, playerTags: 1, pendingPlayerTag: 1, playerTag: 1, playerTagVerified: 1 } }).sort({ email: 1 }).toArray();
+    expect(saved).toEqual([
+      { email: 'b@crociata.it', playerTags: [], pendingPlayerTag: '#OLD222' },
+      { email: 'c@crociata.it', playerTags: [], pendingPlayerTag: null },
+      { email: account.email, playerTags: ['#VER111'], pendingPlayerTag: null },
+    ]);
   });
 
   it('reports unknown players and an unreachable Clash of Clans API', async () => {

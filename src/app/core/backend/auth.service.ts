@@ -34,13 +34,14 @@ export class AuthService {
   readonly user = computed<BackendUser | null>(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
-  /** Clash of Clans tag linked to the signed-in account (e.g. `#ABC123`), verified or not. */
-  readonly linkedTag = computed(() => this.session()?.user.playerTag?.toUpperCase() ?? null);
-  /**
-   * The signed-in user's player, only once proven with the in-game API token: it marks "your"
-   * rows in the tables.
-   */
-  readonly playerTag = computed(() => (this.session()?.user.playerTagVerified ? this.linkedTag() : null));
+  /** Clash of Clans accounts linked to the signed-in user, verified or not. */
+  readonly linkedPlayers = computed(() => this.session()?.user.players ?? []);
+  /** Tags of the signed-in user's accounts proven with the in-game API token. */
+  readonly playerTags = computed(
+    () => new Set(this.linkedPlayers().filter((p) => p.verified).map((p) => p.tag.toUpperCase())),
+  );
+  /** `true` for one of the signed-in user's verified accounts: marks "your" rows in the tables. */
+  readonly isMyPlayer = (tag: string): boolean => this.playerTags().has(tag.toUpperCase());
   readonly isAdmin = computed(() => this.session()?.user.roles?.includes('ADMIN') ?? false);
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
@@ -48,8 +49,8 @@ export class AuthService {
   }
 
   /**
-   * Links the Clash of Clans account after the backend verified it with the API token shown in
-   * the game (Settings → More Settings).
+   * Links one more Clash of Clans account, after the backend verified it with the API token shown
+   * in the game (Settings → More Settings).
    */
   linkPlayer(playerTag: string, token: string): Observable<BackendUser> {
     return this.http.post<BaseResult<BackendUser>>(`${this.baseUrl}/me/player`, { playerTag, token }).pipe(
@@ -58,9 +59,10 @@ export class AuthService {
     );
   }
 
-  /** Unlinks the Clash of Clans player tag of the signed-in user (`playerTag: null`). */
-  updateProfile(changes: { playerTag: null }): Observable<BackendUser> {
-    return this.http.patch<BaseResult<BackendUser>>(`${this.baseUrl}/me`, changes).pipe(
+  /** Unlinks one Clash of Clans account of the signed-in user. */
+  unlinkPlayer(tag: string): Observable<BackendUser> {
+    const path = encodeURIComponent(tag.replace(/^#/, ''));
+    return this.http.delete<BaseResult<BackendUser>>(`${this.baseUrl}/me/player/${path}`).pipe(
       map((response) => response.result!),
       tap((user) => this.patchUser(user)),
     );

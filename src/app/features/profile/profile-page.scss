@@ -1,11 +1,69 @@
+/*
+ * Account and Password side by side (same height), the Clash of Clans accounts below at full
+ * width; one column when the content area is narrow. Container queries: the layout follows the
+ * real width of the page area (pinned sidebar or not), not the screen. The container is the
+ * scrolling area around the grid: a container query never applies to the container itself.
+ */
+.page__scroll {
+  container-type: inline-size;
+}
+
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
-  align-items: start;
 
   .cn-section {
     margin-bottom: 0;
+  }
+}
+
+// One column by default (base rules before the container query, which overrides them).
+.players-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
+@container (min-width: 760px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    // Same height for the cards of a row.
+    align-items: stretch;
+  }
+
+  .players-card {
+    grid-column: 1 / -1;
+  }
+
+  // Full width card: linked accounts on the left, "link another account" on the right.
+  .players-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    // The left column takes the height of the form on the right.
+    align-items: stretch;
+  }
+
+  // The list does not set the height of the row: it fills the left column and scrolls inside.
+  .players-linked {
+    position: relative;
+    min-height: 12rem;
+  }
+
+  .players-scroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    .linked-list {
+      margin-bottom: 0;
+    }
+  }
+
+  .players-add .add-title {
+    margin-top: 0;
   }
 }
 
@@ -146,6 +204,33 @@ h2 {
 
 .linked__unlink {
   flex: none;
+}
+
+.linked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+
+  .linked {
+    margin: 0;
+  }
+}
+
+// No account linked yet.
+.linked--none {
+  background: var(--cn-tint-neutral);
+
+  > mat-icon {
+    color: var(--cn-text-muted);
+  }
+}
+
+.add-title {
+  margin: 1rem 0 0.5rem;
+  font-size: var(--cn-fs-md);
 }
 
 .token-steps {

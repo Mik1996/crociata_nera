@@ -67,7 +67,7 @@ export class PlayersPage {
   private readonly commendationService = inject(CommendationService);
   protected readonly statsWindow = inject(APP_CONFIG).statsWindow;
   /** Tag of the signed-in user's player: their row is highlighted. */
-  protected readonly myTag = inject(AuthService).playerTag;
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly resource = rxResource({ stream: () => this.players.getMembersStats() });
   /** Monthly commendations shown next to the names (a bonus: none while loading or on error). */

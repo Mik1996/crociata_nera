@@ -1,4 +1,7 @@
-<app-page-header [title]="'profile.title' | translate" [subtitle]="'profile.subtitle' | translate" />
+<app-page-header
+  [title]="'profile.title' | translate"
+  [subtitle]="'profile.subtitle' | translate"
+/>
 
 <div appScrollFade class="page__scroll">
   @if (user(); as u) {
@@ -7,10 +10,14 @@
       <section class="cn-card cn-section" aria-labelledby="account-title">
         <h2 id="account-title">{{ 'profile.account.title' | translate }}</h2>
         <div class="identity">
-          <span class="identity__avatar" aria-hidden="true">{{ u.username.charAt(0).toUpperCase() }}</span>
+          <span class="identity__avatar" aria-hidden="true">{{
+            u.username.charAt(0).toUpperCase()
+          }}</span>
           <div>
             <p class="identity__name">{{ u.username }}</p>
-            <p class="cn-muted identity__since">{{ 'profile.account.memberSince' | translate: { date: (u.createdAt | localDate) } }}</p>
+            <p class="cn-muted identity__since">
+              {{ 'profile.account.memberSince' | translate: { date: (u.createdAt | localDate) } }}
+            </p>
           </div>
         </div>
         <dl class="facts">
@@ -19,9 +26,15 @@
             <dd>
               <span class="email">{{ u.email }}</span>
               @if (u.emailVerified) {
-                <span class="badge badge--ok"><mat-icon aria-hidden="true">verified</mat-icon>{{ 'profile.account.verified' | translate }}</span>
+                <span class="badge badge--ok"
+                  ><mat-icon aria-hidden="true">verified</mat-icon
+                  >{{ 'profile.account.verified' | translate }}</span
+                >
               } @else {
-                <span class="badge badge--warn"><mat-icon aria-hidden="true">mark_email_unread</mat-icon>{{ 'profile.account.notVerified' | translate }}</span>
+                <span class="badge badge--warn"
+                  ><mat-icon aria-hidden="true">mark_email_unread</mat-icon
+                  >{{ 'profile.account.notVerified' | translate }}</span
+                >
               }
             </dd>
           </div>
@@ -29,86 +42,30 @@
             <dt>{{ 'profile.account.roles' | translate }}</dt>
             <dd>
               @for (role of u.roles; track role) {
-                <span class="badge" [class.badge--gold]="role === 'ADMIN'">{{ 'profile.roles.' + role | translate }}</span>
+                <span class="badge" [class.badge--gold]="role === 'ADMIN'">{{
+                  'profile.roles.' + role | translate
+                }}</span>
               }
             </dd>
           </div>
         </dl>
         @if (!u.emailVerified) {
           <p class="cn-muted hint">{{ 'profile.account.verifyHint' | translate }}</p>
-          <button mat-stroked-button type="button" (click)="resendVerification()" [disabled]="resending()">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resendVerification()"
+            [disabled]="resending()"
+          >
             <mat-icon aria-hidden="true">send</mat-icon> {{ 'profile.account.resend' | translate }}
           </button>
         }
         @if (verifyFeedback(); as f) {
-          <div class="feedback" [class.feedback--error]="f.kind === 'error'" [attr.role]="f.kind === 'error' ? 'alert' : 'status'">
-            @for (m of f.messages; track m.key) {
-              <p>{{ m.key | translate: m.params }}</p>
-            }
-          </div>
-        }
-      </section>
-
-      <!-- Clash of Clans link -->
-      <section class="cn-card cn-section" aria-labelledby="tag-title">
-        <h2 id="tag-title">{{ 'profile.player.title' | translate }}</h2>
-        <p class="cn-muted hint">{{ 'profile.player.hint' | translate }}</p>
-        @if (u.playerTag) {
-          <div class="linked" [class.linked--unverified]="!u.playerTagVerified" role="status">
-            <mat-icon aria-hidden="true">{{ u.playerTagVerified ? 'verified' : 'gpp_maybe' }}</mat-icon>
-            <span class="linked__text">
-              @if (linkedMember(); as m) {
-                {{ 'profile.player.linkedTo' | translate: { name: m.name, role: (roleKey(m.role) | translate) } }}
-              } @else {
-                {{ 'profile.player.linkedTag' | translate: { tag: u.playerTag } }}
-              }
-              <small>
-                {{ (u.playerTagVerified ? 'profile.player.verified' : 'profile.player.unverified') | translate }}
-                @if (!linkedMember()) {
-                  · {{ 'profile.player.notInClan' | translate }}
-                }
-              </small>
-            </span>
-            <button mat-button type="button" class="linked__unlink" [disabled]="savingTag()" (click)="unlinkPlayer()">
-              <mat-icon aria-hidden="true">link_off</mat-icon>{{ 'profile.player.unlink' | translate }}
-            </button>
-          </div>
-        }
-
-        @if (!u.playerTagVerified) {
-          <ol class="token-steps">
-            <li>{{ 'profile.player.steps.open' | translate }}</li>
-            <li>{{ 'profile.player.steps.show' | translate }}</li>
-            <li>{{ 'profile.player.steps.paste' | translate }}</li>
-          </ol>
-          <form [formGroup]="tagForm" (ngSubmit)="linkPlayer()" novalidate class="form">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>{{ 'auth.fields.playerTag' | translate }}</mat-label>
-              <mat-icon matPrefix aria-hidden="true">tag</mat-icon>
-              <input matInput formControlName="playerTag" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="#ABC123" />
-              @if (errorKey(tagForm.controls.playerTag, tagErrors.playerTag); as key) {
-                <mat-error>{{ key | translate }}</mat-error>
-              }
-            </mat-form-field>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>{{ 'profile.player.token' | translate }}</mat-label>
-              <mat-icon matPrefix aria-hidden="true">key</mat-icon>
-              <input matInput formControlName="token" autocomplete="off" autocapitalize="off" spellcheck="false" />
-              <mat-hint>{{ 'profile.player.tokenHint' | translate }}</mat-hint>
-              @if (errorKey(tagForm.controls.token, tagErrors.token); as key) {
-                <mat-error>{{ key | translate }}</mat-error>
-              }
-            </mat-form-field>
-            <button mat-flat-button type="submit" [disabled]="savingTag()">
-              @if (savingTag()) {
-                <mat-progress-spinner diameter="18" mode="indeterminate" aria-hidden="true" />
-              }
-              {{ 'profile.player.verify' | translate }}
-            </button>
-          </form>
-        }
-        @if (tagFeedback(); as f) {
-          <div class="feedback" [class.feedback--error]="f.kind === 'error'" [attr.role]="f.kind === 'error' ? 'alert' : 'status'">
+          <div
+            class="feedback"
+            [class.feedback--error]="f.kind === 'error'"
+            [attr.role]="f.kind === 'error' ? 'alert' : 'status'"
+          >
             @for (m of f.messages; track m.key) {
               <p>{{ m.key | translate: m.params }}</p>
             }
@@ -120,11 +77,21 @@
       <section class="cn-card cn-section" aria-labelledby="password-title">
         <h2 id="password-title">{{ 'profile.password.title' | translate }}</h2>
         <p class="cn-muted hint">{{ 'profile.password.hint' | translate }}</p>
-        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate class="form form--stacked">
+        <form
+          [formGroup]="passwordForm"
+          (ngSubmit)="changePassword()"
+          novalidate
+          class="form form--stacked"
+        >
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.currentPassword' | translate }}</mat-label>
             <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
-            <input matInput formControlName="currentPassword" autocomplete="current-password" [type]="showPassword() ? 'text' : 'password'" />
+            <input
+              matInput
+              formControlName="currentPassword"
+              autocomplete="current-password"
+              [type]="showPassword() ? 'text' : 'password'"
+            />
             <button
               mat-icon-button
               matSuffix
@@ -134,16 +101,26 @@
               [attr.aria-pressed]="showPassword()"
               (click)="showPassword.set(!showPassword())"
             >
-              <mat-icon aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              <mat-icon aria-hidden="true">{{
+                showPassword() ? 'visibility_off' : 'visibility'
+              }}</mat-icon>
             </button>
-            @if (errorKey(passwordForm.controls.currentPassword, passwordErrors.currentPassword); as key) {
+            @if (
+              errorKey(passwordForm.controls.currentPassword, passwordErrors.currentPassword);
+              as key
+            ) {
               <mat-error>{{ key | translate }}</mat-error>
             }
           </mat-form-field>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.newPassword' | translate }}</mat-label>
             <mat-icon matPrefix aria-hidden="true">key</mat-icon>
-            <input matInput formControlName="password" autocomplete="new-password" [type]="showPassword() ? 'text' : 'password'" />
+            <input
+              matInput
+              formControlName="password"
+              autocomplete="new-password"
+              [type]="showPassword() ? 'text' : 'password'"
+            />
             <mat-hint>{{ 'auth.hints.password' | translate }}</mat-hint>
             @if (errorKey(passwordForm.controls.password, passwordErrors.password); as key) {
               <mat-error>{{ key | translate }}</mat-error>
@@ -152,8 +129,16 @@
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.repeatPassword' | translate }}</mat-label>
             <mat-icon matPrefix aria-hidden="true">lock_reset</mat-icon>
-            <input matInput formControlName="repeatPassword" autocomplete="new-password" [type]="showPassword() ? 'text' : 'password'" />
-            @if (errorKey(passwordForm.controls.repeatPassword, passwordErrors.repeatPassword); as key) {
+            <input
+              matInput
+              formControlName="repeatPassword"
+              autocomplete="new-password"
+              [type]="showPassword() ? 'text' : 'password'"
+            />
+            @if (
+              errorKey(passwordForm.controls.repeatPassword, passwordErrors.repeatPassword);
+              as key
+            ) {
               <mat-error>{{ key | translate }}</mat-error>
             }
           </mat-form-field>
@@ -165,7 +150,146 @@
           </button>
         </form>
         @if (passwordFeedback(); as f) {
-          <div class="feedback" [class.feedback--error]="f.kind === 'error'" [attr.role]="f.kind === 'error' ? 'alert' : 'status'">
+          <div
+            class="feedback"
+            [class.feedback--error]="f.kind === 'error'"
+            [attr.role]="f.kind === 'error' ? 'alert' : 'status'"
+          >
+            @for (m of f.messages; track m.key) {
+              <p>{{ m.key | translate: m.params }}</p>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Clash of Clans link -->
+      <section class="cn-card cn-section players-card" aria-labelledby="tag-title">
+        <h2 id="tag-title">{{ 'profile.player.title' | translate }}</h2>
+        <p class="cn-muted hint">{{ 'profile.player.hint' | translate }}</p>
+        <div class="players-layout">
+          <div class="players-linked">
+            @if (linkedPlayers().length) {
+              <!-- Large screens: as tall as the form next to it, the list scrolls inside. -->
+              <div class="players-scroll" appScrollFade>
+                <ul class="linked-list">
+                  @for (p of linkedPlayers(); track p.tag) {
+                    <li class="linked" [class.linked--unverified]="!p.verified">
+                      <mat-icon aria-hidden="true">{{
+                        p.verified ? 'verified' : 'gpp_maybe'
+                      }}</mat-icon>
+                      <span class="linked__text">
+                        @if (p.member; as m) {
+                          {{
+                            'profile.player.linkedTo'
+                              | translate: { name: m.name, role: (roleKey(m.role) | translate) }
+                          }}
+                        } @else {
+                          {{ 'profile.player.linkedTag' | translate: { tag: p.tag } }}
+                        }
+                        <small>
+                          {{ p.tag }} ·
+                          {{
+                            (p.verified ? 'profile.player.verified' : 'profile.player.unverified')
+                              | translate
+                          }}
+                          @if (!p.member) {
+                            · {{ 'profile.player.notInClan' | translate }}
+                          }
+                        </small>
+                      </span>
+                      <button
+                        mat-button
+                        type="button"
+                        class="linked__unlink"
+                        [disabled]="savingTag()"
+                        (click)="unlinkPlayer(p.tag)"
+                        [attr.aria-label]="'profile.player.unlinkTag' | translate: { tag: p.tag }"
+                      >
+                        <mat-icon aria-hidden="true">link_off</mat-icon
+                        >{{ 'profile.player.unlink' | translate }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            } @else {
+              <p class="linked linked--none">
+                <mat-icon aria-hidden="true">link_off</mat-icon
+                >{{ 'profile.player.none' | translate }}
+              </p>
+            }
+          </div>
+
+          <div class="players-add">
+            @if (linkedPlayers().length < maxPlayers) {
+              <h3 class="add-title">
+                {{
+                  (linkedPlayers().length ? 'profile.player.addAnother' : 'profile.player.add')
+                    | translate
+                }}
+              </h3>
+              <ol class="token-steps">
+                <li>{{ 'profile.player.steps.open' | translate }}</li>
+                <li>{{ 'profile.player.steps.show' | translate }}</li>
+                <li>{{ 'profile.player.steps.paste' | translate }}</li>
+              </ol>
+              <form
+                [formGroup]="tagForm"
+                #tagFormDirective="ngForm"
+                (ngSubmit)="linkPlayer(tagFormDirective)"
+                novalidate
+                class="form form--stacked"
+              >
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'auth.fields.playerTag' | translate }}</mat-label>
+                  <mat-icon matPrefix aria-hidden="true">tag</mat-icon>
+                  <input
+                    matInput
+                    formControlName="playerTag"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                    placeholder="#ABC123"
+                  />
+                  @if (errorKey(tagForm.controls.playerTag, tagErrors.playerTag); as key) {
+                    <mat-error>{{ key | translate }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'profile.player.token' | translate }}</mat-label>
+                  <mat-icon matPrefix aria-hidden="true">key</mat-icon>
+                  <input
+                    matInput
+                    formControlName="token"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                  />
+                  <mat-hint>{{ 'profile.player.tokenHint' | translate }}</mat-hint>
+                  @if (errorKey(tagForm.controls.token, tagErrors.token); as key) {
+                    <mat-error>{{ key | translate }}</mat-error>
+                  }
+                </mat-form-field>
+                <button mat-flat-button type="submit" [disabled]="savingTag()">
+                  @if (savingTag()) {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" aria-hidden="true" />
+                  }
+                  {{ 'profile.player.verify' | translate }}
+                </button>
+              </form>
+            } @else {
+              <p class="cn-muted">
+                {{ 'ERROR.PLAYER_LIMIT_REACHED' | translate: { max: maxPlayers } }}
+              </p>
+            }
+          </div>
+        </div>
+        @if (tagFeedback(); as f) {
+          <div
+            class="feedback"
+            [class.feedback--error]="f.kind === 'error'"
+            [attr.role]="f.kind === 'error' ? 'alert' : 'status'"
+          >
             @for (m of f.messages; track m.key) {
               <p>{{ m.key | translate: m.params }}</p>
             }

@@ -443,7 +443,8 @@
     "EMAIL_VERIFIED": "Email confermata",
     "VERIFICATION_EMAIL_SENT": "Email di conferma inviata: controlla la posta (anche lo spam).",
     "USER_UPDATED": "{{name}} aggiornato",
-    "PLAYER_LINKED": "Account di gioco verificato e collegato."
+    "PLAYER_LINKED": "Account di gioco verificato e collegato.",
+    "PLAYER_UNLINKED": "Account {{tag}} scollegato."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -490,7 +491,8 @@
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Inserisci il token API mostrato nel gioco.",
     "PLAYER_TOKEN_IS_NOT_VALID": "Token non valido o scaduto: genera quello attuale nel gioco e riprova.",
     "PLAYER_TAG_ALREADY_LINKED": "Questo account di gioco è già collegato e verificato da un altro utente.",
-    "PLAYER_VERIFICATION_UNAVAILABLE": "Non è possibile verificare il token adesso: l'API di Clash of Clans non risponde. Riprova più tardi."
+    "PLAYER_VERIFICATION_UNAVAILABLE": "Non è possibile verificare il token adesso: l'API di Clash of Clans non risponde. Riprova più tardi.",
+    "PLAYER_LIMIT_REACHED": "Puoi collegare al massimo {{max}} account."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -619,8 +621,8 @@
       "ADMIN": "Amministratore"
     },
     "player": {
-      "title": "Giocatore di Clash of Clans",
-      "hint": "Collega il tuo account di gioco per avere la tua riga evidenziata nelle tabelle. Serve il token API del gioco: lo vede solo il proprietario dell'account, così nessuno può collegare il giocatore di un altro.",
+      "title": "Account di Clash of Clans",
+      "hint": "Collega i tuoi account di gioco, anche più di uno: le loro righe saranno evidenziate nelle tabelle. Per ogni account serve il token API del gioco, che vede solo il proprietario, così nessuno può collegare il giocatore di un altro.",
       "linkedTo": "Collegato a {{name}} ({{role}})",
       "notInClan": "Questo tag non risulta tra i membri attuali del clan.",
       "linkedTag": "Collegato al tag {{tag}}",
@@ -634,7 +636,11 @@
       },
       "token": "Token API del gioco",
       "tokenHint": "Es. a1b2c3d4 · usato solo per la verifica, non viene salvato",
-      "verify": "Verifica e collega"
+      "verify": "Verifica e collega",
+      "none": "Nessun account collegato.",
+      "add": "Collega un account",
+      "addAnother": "Collega un altro account",
+      "unlinkTag": "Scollega l'account {{tag}}"
     },
     "password": {
       "title": "Cambia password",
@@ -659,7 +665,7 @@
     "tagVerified": "Verificato con il token del gioco",
     "tagUnverified": "Non verificato",
     "unlinkTag": "Scollega il giocatore",
-    "unlinkTagOf": "Scollega il giocatore di {{name}}"
+    "unlinkTagOf": "Scollega {{tag}} da {{name}}"
   },
   "commendations": {
     "title": "Encomi",

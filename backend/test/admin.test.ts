@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { DELETE as unlinkUserPlayer } from '@/app/api/v1/admin/users/[id]/players/[tag]/route';
 import { PATCH as updateUser } from '@/app/api/v1/admin/users/[id]/route';
 import { GET as listUsers } from '@/app/api/v1/admin/users/route';
 import { POST as refresh } from '@/app/api/v1/auth/refresh/route';
@@ -50,23 +51,21 @@ describe('administration', () => {
     expect(promoted.status).toBe(200);
     expect(promoted.body.result).toMatchObject({ roles: ['USER', 'ADMIN'] });
 
-    // Linking needs the player's in-game token: administrators can only unlink.
-    await UserModel.updateOne({ _id: member.user.id }, { $set: { playerTag: '#MEM123', playerTagVerified: true } });
-    const link = await call(updateUser, {
-      method: 'PATCH',
-      body: { playerTag: '#OTHER1' },
+    // Linking needs the player's in-game token: administrators can only unlink, one account at a time.
+    await UserModel.updateOne({ _id: member.user.id }, { $set: { playerTags: ['#MEM123', '#MEM456'] } });
+    const unlinked = await call(unlinkUserPlayer, {
+      method: 'DELETE',
       token: boss.token,
-      params: { id: member.user.id },
+      params: { id: member.user.id, tag: 'MEM123' },
     });
-    expect(link.status).toBe(400);
-    expect(link.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_IS_NOT_VALID', field: 'playerTag' }]);
-    const unlinked = await call(updateUser, {
-      method: 'PATCH',
-      body: { playerTag: null },
-      token: boss.token,
-      params: { id: member.user.id },
+    expect(unlinked.status).toBe(200);
+    expect(unlinked.body.result.players).toEqual([{ tag: '#MEM456', verified: true }]);
+    const forbidden = await call(unlinkUserPlayer, {
+      method: 'DELETE',
+      token: member.token,
+      params: { id: member.user.id, tag: 'MEM456' },
     });
-    expect(unlinked.body.result).toMatchObject({ playerTag: null, playerTagVerified: false });
+    expect(forbidden.status).toBe(403);
     // New roles apply at the next sign-in: the member's sessions were revoked.
     expect((await call(refresh, { body: {}, cookie: member.cookie })).status).toBe(401);
 

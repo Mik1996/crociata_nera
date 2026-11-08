@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { UserRole } from '@/lib/auth/user-role';
 import { MessageKey } from '@/lib/http/message-key';
-import { unlinkPlayerTag } from '@/modules/auth/auth.schemas';
 
 export const listUsersQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -15,8 +14,6 @@ export const updateUserSchema = z.object({
     .array(z.enum(Object.values(UserRole) as [UserRole, ...UserRole[]]), { error: MessageKey.ROLES_ARE_NOT_VALID })
     .max(5, { error: MessageKey.ROLES_ARE_NOT_VALID })
     .optional(),
-  /** Administrators can only unlink: linking needs the player's in-game token. */
-  playerTag: unlinkPlayerTag.optional(),
 });
 
 export type ListUsersQuery = z.output<typeof listUsersQuerySchema>;

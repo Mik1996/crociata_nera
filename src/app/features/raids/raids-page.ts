@@ -45,7 +45,7 @@ import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 export class RaidsPage {
   private readonly api = inject(CocApiService);
   private readonly language = inject(LanguageService);
-  protected readonly myTag = inject(AuthService).playerTag;
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly raids = rxResource({ stream: () => this.api.getRaidSeasons() });
   private readonly clan = rxResource({ stream: () => this.api.getClan() });

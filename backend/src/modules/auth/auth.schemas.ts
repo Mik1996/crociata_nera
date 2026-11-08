@@ -76,15 +76,11 @@ export const signInSchema = z.object({
     .max(1024, { error: MessageKey.INVALID_CREDENTIALS }),
 });
 
-/** Unlinks the Clash of Clans account: `null` or empty. Linking needs the in-game token. */
-export const unlinkPlayerTag = z.union([z.literal('').transform(() => null), z.null()], {
-  error: MessageKey.PLAYER_TAG_IS_NOT_VALID,
-});
-
-/** `PATCH /auth/me`: `playerTag: null` (or empty) unlinks the Clash of Clans account. */
-export const updateProfileSchema = z.object({
-  playerTag: unlinkPlayerTag.optional(),
-});
+/** Tag in a URL path, where `#` cannot be written: `ABC123` or `%23ABC123` → `#ABC123`. */
+export const playerTagParam = z
+  .string()
+  .transform((value) => decodeURIComponent(value).trim().replace(/^#?/, '#'))
+  .pipe(playerTag);
 
 /** `POST /auth/me/player`: links the account proven by its in-game API token. */
 export const linkPlayerSchema = z.object({
@@ -124,7 +120,6 @@ export const verifyEmailSchema = z.object({ token });
 export const resendVerificationSchema = z.object({ language });
 
 export type SignUpInput = z.output<typeof signUpSchema>;
-export type UpdateProfileInput = z.output<typeof updateProfileSchema>;
 export type LinkPlayerInput = z.output<typeof linkPlayerSchema>;
 export type ChangePasswordInput = z.output<typeof changePasswordSchema>;
 export type ResetPasswordInput = z.output<typeof resetPasswordSchema>;

@@ -7,8 +7,8 @@ import { AuthService } from '../../core/backend/auth.service';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { AdminPage } from './admin-page';
 
-const me = { id: 'me', email: 'boss@x.io', username: 'Boss', roles: ['USER', 'ADMIN'], playerTag: null, emailVerified: true, createdAt: '2026-11-01T10:00:00Z', updatedAt: '' };
-const member = { id: 'm1', email: 'm@x.io', username: 'Member', roles: ['USER'], playerTag: null, emailVerified: false, createdAt: '2026-11-02T10:00:00Z', updatedAt: '' };
+const me = { id: 'me', email: 'boss@x.io', username: 'Boss', roles: ['USER', 'ADMIN'], players: [], emailVerified: true, createdAt: '2026-11-01T10:00:00Z', updatedAt: '' };
+const member = { id: 'm1', email: 'm@x.io', username: 'Member', roles: ['USER'], players: [], emailVerified: false, createdAt: '2026-11-02T10:00:00Z', updatedAt: '' };
 const ok = <T>(result: T) => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
 
 describe('AdminPage', () => {
@@ -57,13 +57,14 @@ describe('AdminPage', () => {
 
     // Administrators cannot type a tag: they can only unlink one.
     expect(el.querySelector('.tag-input')).toBeNull();
-    const linked = { ...member, playerTag: '#MEM123', playerTagVerified: true };
+    const linked = { ...member, players: [{ tag: '#MEM123', verified: true }, { tag: '#MEM456', verified: false }] };
     fixture.componentInstance['users'].update((page) => page && ({ ...page, items: [me, linked] } as typeof page));
     await fixture.whenStable();
-    const unlink = el.querySelectorAll('tr.mat-mdc-row')[1]!.querySelector<HTMLButtonElement>('.tag-cell button')!;
-    unlink.click();
-    const tag = httpMock.expectOne('/api/v1/admin/users/m1');
-    expect(tag.request.body).toEqual({ playerTag: null });
-    tag.flush(ok({ ...member, roles: ['USER', 'ADMIN'], playerTag: null, playerTagVerified: false }));
+    const cells = el.querySelectorAll('tr.mat-mdc-row')[1]!.querySelectorAll('.tag-cell');
+    expect([...cells].map((c) => c.querySelector('.cn-num')!.textContent!.trim())).toEqual(['#MEM123', '#MEM456']);
+    cells[0]!.querySelector<HTMLButtonElement>('button')!.click();
+    const tag = httpMock.expectOne('/api/v1/admin/users/m1/players/MEM123');
+    expect(tag.request.method).toBe('DELETE');
+    tag.flush(ok({ ...member, roles: ['USER', 'ADMIN'], players: [{ tag: '#MEM456', verified: false }] }));
   });
 });

@@ -102,7 +102,7 @@
               <td mat-cell *matCellDef="let r">
                 @if (r.isCurrentMember) {
                   <a class="cn-link-cell" [routerLink]="['/players', r.tag]">{{ r.name }}</a>
-                  @if (r.tag === myTag()) {
+                  @if (isMine(r.tag)) {
                     <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
                   }
                 } @else {
@@ -189,7 +189,7 @@
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="columns"></tr>
-            <tr mat-row *matRowDef="let r; columns: columns" [class.former-row]="!r.isCurrentMember" [class.cn-row-me]="r.tag === myTag()"></tr>
+            <tr mat-row *matRowDef="let r; columns: columns" [class.former-row]="!r.isCurrentMember" [class.cn-row-me]="isMine(r.tag)"></tr>
             <tr class="mat-row" *matNoDataRow>
               <td class="mat-cell no-results" [attr.colspan]="columns.length">{{ 'statistics.noResults' | translate }}</td>
             </tr>
