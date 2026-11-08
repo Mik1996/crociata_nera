@@ -6,6 +6,7 @@ export enum ApiName {
   SIGN_OUT = 'sign-out',
   ME = 'me',
   PROFILE_UPDATE = 'profile-update',
+  PLAYER_LINK = 'player-link',
   CHANGE_PASSWORD = 'change-password',
   FORGOT_PASSWORD = 'forgot-password',
   RESET_PASSWORD = 'reset-password',
@@ -30,6 +31,8 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.SIGN_OUT]: { limit: 30, windowMs: 15 * MINUTE },
   [ApiName.ME]: { limit: 120, windowMs: MINUTE },
   [ApiName.PROFILE_UPDATE]: { limit: 20, windowMs: 15 * MINUTE },
+  // Each attempt calls the Clash of Clans API: few tries, so tokens cannot be guessed.
+  [ApiName.PLAYER_LINK]: { limit: 10, windowMs: 15 * MINUTE },
   [ApiName.CHANGE_PASSWORD]: { limit: 5, windowMs: 15 * MINUTE },
   [ApiName.FORGOT_PASSWORD]: { limit: 5, windowMs: 15 * MINUTE },
   [ApiName.RESET_PASSWORD]: { limit: 10, windowMs: 15 * MINUTE },

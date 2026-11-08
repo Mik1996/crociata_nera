@@ -123,11 +123,38 @@ h2 {
   }
 }
 
-.linked--missing {
-  background: var(--cn-tint-neutral);
+// Linked but not proven with the in-game token yet: not used to mark "your" rows.
+.linked--unverified {
+  background: color-mix(in srgb, var(--cn-gold) 14%, transparent);
 
-  mat-icon {
+  > mat-icon {
+    color: var(--cn-gold);
+  }
+}
+
+.linked__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+
+  small {
+    font-size: var(--cn-fs-xs);
     color: var(--cn-text-muted);
+  }
+}
+
+.linked__unlink {
+  flex: none;
+}
+
+.token-steps {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  font-size: var(--cn-fs-sm);
+
+  li + li {
+    margin-top: 0.2rem;
   }
 }
 

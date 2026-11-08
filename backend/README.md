@@ -115,19 +115,20 @@ I messaggi sono chiavi (`SUCCESS.*` / `ERROR.*`), non testo: il frontend le trad
 | --- | --- | --- | --- |
 | GET | `/api/v1/health` | pubblica | stato del servizio, del database (503 se MongoDB non risponde) e della sincronizzazione |
 | POST | `/api/v1/cron/war-sync` | `Bearer CRON_SECRET` | esegue una sincronizzazione (attiva solo con `CRON_SECRET`) |
-| POST | `/api/v1/auth/sign-up` | pubblica | `{ email, username, password, repeatPassword, playerTag? }`: crea l'account e fa login |
+| POST | `/api/v1/auth/sign-up` | pubblica | `{ email, username, password, repeatPassword }`: crea l'account e fa login (il giocatore si collega dopo, dal profilo) |
 | POST | `/api/v1/auth/sign-in` | pubblica | `{ identifier, password }`: `identifier` è l'email o lo username |
 | POST | `/api/v1/auth/refresh` | cookie | nuovo access token; il refresh token viene sostituito |
 | POST | `/api/v1/auth/sign-out` | cookie | chiude la sessione e cancella il cookie; si può ripetere senza effetti |
 | GET | `/api/v1/auth/me` | Bearer | utente corrente |
-| PATCH | `/api/v1/auth/me` | Bearer | `{ playerTag }`: collega il tag giocatore, oppure lo scollega con `null` o `''` |
+| PATCH | `/api/v1/auth/me` | Bearer | `{ playerTag: null }` (o `''`): scollega il giocatore. Per collegarlo serve `POST /auth/me/player` |
+| POST | `/api/v1/auth/me/player` | Bearer | `{ playerTag, token }`: collega l'account di Clash of Clans dopo averne verificato la proprietà con il token API mostrato nel gioco (Impostazioni → Altre impostazioni), tramite `POST /players/{tag}/verifytoken` dell'API ufficiale. Un account verificato appartiene a un solo utente (409 `PLAYER_TAG_ALREADY_LINKED`); le copie non verificate dello stesso tag su altri utenti vengono rimosse. Token errato o scaduto: 400 `PLAYER_TOKEN_IS_NOT_VALID`. Massimo 10 tentativi ogni 15 minuti. I collegamenti fatti prima della verifica restano con `playerTagVerified: false` |
 | POST | `/api/v1/auth/change-password` | Bearer + cookie | `{ currentPassword, password, repeatPassword }`: chiude le altre sessioni |
 | POST | `/api/v1/auth/forgot-password` | pubblica | `{ email, language? }`: manda per email un link di reset valido 1 ora; la risposta è la stessa anche se l'email non è registrata |
 | POST | `/api/v1/auth/reset-password` | pubblica | `{ token, password, repeatPassword }`: imposta la nuova password e chiude tutte le sessioni |
 | POST | `/api/v1/auth/verify-email` | pubblica | `{ token }`: conferma l'email (il link vale 24 ore e viene inviato alla registrazione) |
 | POST | `/api/v1/auth/verify-email/resend` | Bearer | `{ language? }`: rimanda l'email di conferma |
 | GET | `/api/v1/admin/users?page&limit&search` | ADMIN | utenti registrati |
-| PATCH | `/api/v1/admin/users/{id}` | ADMIN | `{ roles?, playerTag? }`: un admin non può togliersi il ruolo da solo; se i ruoli cambiano, le sessioni dell'utente vengono chiuse |
+| PATCH | `/api/v1/admin/users/{id}` | ADMIN | `{ roles?, playerTag: null? }`: un admin non può togliersi il ruolo da solo e può solo scollegare un giocatore, non collegarlo; se i ruoli cambiano, le sessioni dell'utente vengono chiuse |
 | GET | `/api/v1/wars/archive?limit=60` | Bearer | guerre salvate complete, nel formato `currentwar` dell'API di Clash of Clans: è la fonte dello storico nel frontend |
 | GET | `/api/v1/history` · `/api/v1/history/{YYYY-MM\|all}` | Bearer | mesi registrati e classifiche, calcolati da MongoDB con lo stesso formato del proxy |
 | GET | `/api/v1/cwl/seasons` · `/api/v1/cwl/seasons/{YYYY-MM}` | Bearer | stagioni della Lega (CWL) salvate e dettaglio di una stagione: girone e tutte le guerre, nel formato dell'API di Clash of Clans. Lo scheduler delle guerre salva anche la CWL (gruppo e guerre; quelle concluse si leggono una volta sola) |

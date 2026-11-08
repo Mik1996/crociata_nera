@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { CocApiError, verifyPlayerToken } from '@/lib/coc/coc-client';
 import { env } from '@/lib/config/env';
 import { generateRefreshToken, hashRefreshToken } from '@/lib/auth/tokens';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
@@ -6,7 +7,7 @@ import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { isMailConfigured, sendMail } from '@/lib/mail/mailer';
 import { MailLanguage, passwordResetMail, verifyEmailMail } from '@/lib/mail/templates';
-import { ChangePasswordInput, ResetPasswordInput, UpdateProfileInput } from './auth.schemas';
+import { ChangePasswordInput, LinkPlayerInput, ResetPasswordInput, UpdateProfileInput } from './auth.schemas';
 import { SessionModel } from './session.model';
 import { PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
 
@@ -25,11 +26,49 @@ async function findUser(userId: string): Promise<UserDocument> {
   return user;
 }
 
-/** Links (or unlinks, with `null`) the Clash of Clans player tag. */
+/** Profile changes: `playerTag: null` unlinks the Clash of Clans account. */
 export async function updateProfile(userId: string, input: UpdateProfileInput): Promise<PublicUser> {
   const user = await findUser(userId);
-  if (input.playerTag !== undefined) user.playerTag = input.playerTag;
+  if (input.playerTag === null) user.set({ playerTag: null, playerTagVerified: false });
   await user.save();
+  return toPublicUser(user);
+}
+
+/**
+ * Links a Clash of Clans account after proving it is the user's: the API token shown in the game
+ * (Settings → More Settings) must match, which only the account owner can read. A verified
+ * account belongs to one user only; unverified copies of the same tag on other users (links made
+ * before the check existed) are removed.
+ */
+export async function linkPlayer(userId: string, input: LinkPlayerInput): Promise<PublicUser> {
+  const user = await findUser(userId);
+  const taken = await UserModel.exists({ _id: { $ne: user._id }, playerTag: input.playerTag, playerTagVerified: true });
+  if (taken) throwException(409, [{ key: MessageKey.PLAYER_TAG_ALREADY_LINKED, field: 'playerTag' }]);
+
+  let valid: boolean;
+  try {
+    valid = await verifyPlayerToken(input.playerTag, input.token);
+  } catch (error) {
+    if (!(error instanceof CocApiError)) throw error;
+    if (error.status === 404) throwException(404, [{ key: MessageKey.PLAYER_NOT_FOUND, field: 'playerTag' }]);
+    throwException(502, MessageKey.PLAYER_VERIFICATION_UNAVAILABLE);
+  }
+  if (!valid) throwException(400, [{ key: MessageKey.PLAYER_TOKEN_IS_NOT_VALID, field: 'token' }]);
+
+  user.set({ playerTag: input.playerTag, playerTagVerified: true });
+  try {
+    await user.save();
+  } catch (error) {
+    // Another user verified the same account in the meantime (unique index).
+    if ((error as { code?: number }).code === 11000) {
+      throwException(409, [{ key: MessageKey.PLAYER_TAG_ALREADY_LINKED, field: 'playerTag' }]);
+    }
+    throw error;
+  }
+  await UserModel.updateMany(
+    { _id: { $ne: user._id }, playerTag: input.playerTag, playerTagVerified: { $ne: true } },
+    { $set: { playerTag: null, playerTagVerified: false } },
+  );
   return toPublicUser(user);
 }
 

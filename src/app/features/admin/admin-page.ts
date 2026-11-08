@@ -19,8 +19,6 @@ import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { StickyTableHeader } from '../../shared/directives/sticky-table-header';
 
-const TAG_PATTERN = /^#?[0-9A-Za-z]{3,15}$/;
-
 /** Administration: registered users, ADMIN role and linked player tags. */
 @Component({
   selector: 'app-admin-page',
@@ -61,35 +59,19 @@ export class AdminPage {
   protected readonly rows = computed(() => (this.users.hasValue() ? this.users.value().items : []));
   protected readonly total = computed(() => (this.users.hasValue() ? this.users.value().total : 0));
 
-  /** Tag being edited per user id. */
-  protected readonly tagDrafts = signal<Record<string, string>>({});
   protected readonly busy = signal<string | null>(null);
-  protected readonly feedback = signal<{ kind: 'success' | 'error'; messages: BackendMessage[] } | null>(null);
+  protected readonly feedback = signal<{
+    kind: 'success' | 'error';
+    messages: BackendMessage[];
+  } | null>(null);
 
   protected search(): void {
     this.query.set(this.searchText());
   }
 
-  protected draft(user: AdminUser): string {
-    return this.tagDrafts()[user.id] ?? user.playerTag ?? '';
-  }
-
-  protected setDraft(user: AdminUser, value: string): void {
-    this.tagDrafts.update((drafts) => ({ ...drafts, [user.id]: value }));
-  }
-
-  protected tagChanged(user: AdminUser): boolean {
-    return this.draft(user).trim().toUpperCase() !== (user.playerTag ?? '');
-  }
-
-  protected tagValid(user: AdminUser): boolean {
-    const value = this.draft(user).trim();
-    return !value || TAG_PATTERN.test(value);
-  }
-
-  protected saveTag(user: AdminUser): void {
-    const raw = this.draft(user).trim();
-    this.update(user, { playerTag: raw ? raw.toUpperCase().replace(/^#?/, '#') : null });
+  /** Administrators can only unlink a player: linking needs the player's in-game token. */
+  protected unlinkTag(user: AdminUser): void {
+    this.update(user, { playerTag: null });
   }
 
   protected toggleAdmin(user: AdminUser, admin: boolean): void {
@@ -101,9 +83,14 @@ export class AdminPage {
     this.feedback.set(null);
     this.admin.updateUser(user.id, changes).subscribe({
       next: (updated) => {
-        this.users.update((page) => page && { ...page, items: page.items.map((u) => (u.id === updated.id ? updated : u)) });
-        this.tagDrafts.update(({ [user.id]: _dropped, ...rest }) => rest);
-        this.feedback.set({ kind: 'success', messages: [{ key: 'SUCCESS.USER_UPDATED', params: { name: updated.username } }] });
+        this.users.update(
+          (page) =>
+            page && { ...page, items: page.items.map((u) => (u.id === updated.id ? updated : u)) },
+        );
+        this.feedback.set({
+          kind: 'success',
+          messages: [{ key: 'SUCCESS.USER_UPDATED', params: { name: updated.username } }],
+        });
         this.busy.set(null);
       },
       error: (error: unknown) => {

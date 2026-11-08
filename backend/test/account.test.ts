@@ -19,6 +19,9 @@ import { POST as signIn } from '@/app/api/v1/auth/sign-in/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { POST as resend } from '@/app/api/v1/auth/verify-email/resend/route';
 import { POST as verifyEmail } from '@/app/api/v1/auth/verify-email/route';
+import { UserModel } from '@/modules/auth/user.model';
+import { POST as linkPlayer } from '@/app/api/v1/auth/me/player/route';
+import { mockCocApi } from './coc-mock';
 import { call } from './helpers';
 
 const account = { email: 'knight@crociata.it', username: 'Knight', password: 'secret123', repeatPassword: 'secret123' };
@@ -32,7 +35,10 @@ async function register(extra: Record<string, unknown> = {}) {
 beforeEach(() => {
   sent.length = 0;
 });
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe('email verification', () => {
   it('sends a confirmation link at sign-up, in the chosen language, and confirms the address', async () => {
@@ -66,20 +72,67 @@ describe('email verification', () => {
 });
 
 describe('profile', () => {
-  it('links, normalises and unlinks the player tag', async () => {
+  it('links the player tag only with a valid in-game token, then unlinks it', async () => {
     const { token } = await register();
+    const coc = mockCocApi({
+      '/verifytoken': () => {
+        const sent = JSON.parse(String(coc.mock.calls.at(-1)![1]!.body)) as { token: string };
+        return { body: { tag: '#ABC123', token: sent.token, status: sent.token === 'good-token' ? 'ok' : 'invalid' } };
+      },
+    });
 
-    const linked = await call(updateMe, { method: 'PATCH', body: { playerTag: ' #abc123 ' }, token });
+    // A tag alone is not enough anymore.
+    const plain = await call(updateMe, { method: 'PATCH', body: { playerTag: '#ABC123' }, token });
+    expect(plain.status).toBe(400);
+
+    const wrong = await call(linkPlayer, { body: { playerTag: '#abc123', token: 'bad-token' }, token });
+    expect(wrong.status).toBe(400);
+    expect(wrong.body.messages).toEqual([{ key: 'ERROR.PLAYER_TOKEN_IS_NOT_VALID', field: 'token' }]);
+
+    const linked = await call(linkPlayer, { body: { playerTag: ' #abc123 ', token: ' good-token ' }, token });
     expect(linked.status).toBe(200);
-    expect(linked.body.messages).toEqual([{ key: 'SUCCESS.PROFILE_UPDATED' }]);
-    expect(linked.body.result.playerTag).toBe('#ABC123');
-
-    const invalid = await call(updateMe, { method: 'PATCH', body: { playerTag: 'nope!' }, token });
-    expect(invalid.status).toBe(400);
-    expect(invalid.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_IS_NOT_VALID', field: 'playerTag' }]);
+    expect(linked.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_LINKED' }]);
+    expect(linked.body.result).toMatchObject({ playerTag: '#ABC123', playerTagVerified: true });
+    const [url, init] = coc.mock.calls.at(-1)!;
+    expect(String(url)).toBe('https://coc.test/v1/players/%23ABC123/verifytoken');
+    expect(init).toMatchObject({ method: 'POST' });
+    expect(JSON.parse(String(init!.body))).toEqual({ token: 'good-token' });
 
     const unlinked = await call(updateMe, { method: 'PATCH', body: { playerTag: '' }, token });
-    expect(unlinked.body.result.playerTag).toBeNull();
+    expect(unlinked.body.result).toMatchObject({ playerTag: null, playerTagVerified: false });
+  });
+
+  it('keeps a verified account to one user and frees unverified copies', async () => {
+    mockCocApi({ '/verifytoken': { body: { status: 'ok' } } });
+    const owner = await register();
+    const other = await call(signUp, {
+      body: { email: 'squire@crociata.it', username: 'Squire', password: 'secret123', repeatPassword: 'secret123' },
+    });
+    const otherToken = other.body.result.accessToken as string;
+    // Link made before verification existed: stays, unverified.
+    await UserModel.updateOne({ email: 'squire@crociata.it' }, { $set: { playerTag: '#ABC123' } });
+    expect((await call(me, { token: otherToken })).body.result).toMatchObject({ playerTag: '#ABC123', playerTagVerified: false });
+
+    expect((await call(linkPlayer, { body: { playerTag: '#ABC123', token: 't' }, token: owner.token })).status).toBe(200);
+    // The verified owner wins: the unverified copy is removed.
+    expect((await call(me, { token: otherToken })).body.result.playerTag).toBeNull();
+
+    const taken = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 't' }, token: otherToken });
+    expect(taken.status).toBe(409);
+    expect(taken.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_ALREADY_LINKED', field: 'playerTag' }]);
+  });
+
+  it('reports unknown players and an unreachable Clash of Clans API', async () => {
+    const { token } = await register();
+    mockCocApi({});
+    const unknown = await call(linkPlayer, { body: { playerTag: '#NOPE99', token: 't' }, token });
+    expect(unknown.status).toBe(404);
+    expect(unknown.body.messages).toEqual([{ key: 'ERROR.PLAYER_NOT_FOUND', field: 'playerTag' }]);
+
+    mockCocApi({ '/verifytoken': { status: 503, body: { reason: 'inMaintenance' } } });
+    const down = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 't' }, token });
+    expect(down.status).toBe(502);
+    expect(down.body.messages).toEqual([{ key: 'ERROR.PLAYER_VERIFICATION_UNAVAILABLE' }]);
   });
 
   it('changes the password, keeping only the current session', async () => {

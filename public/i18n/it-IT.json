@@ -370,14 +370,13 @@
       "username": "Username",
       "password": "Password",
       "repeatPassword": "Ripeti la password",
-      "playerTag": "Tag giocatore (facoltativo)",
+      "playerTag": "Tag giocatore",
       "currentPassword": "Password attuale",
       "newPassword": "Nuova password"
     },
     "hints": {
       "username": "3–24 caratteri: lettere, numeri e . - _",
-      "password": "Almeno 8 caratteri, con una lettera e un numero",
-      "playerTag": "Il tuo tag in Clash of Clans, es. #ABC123"
+      "password": "Almeno 8 caratteri, con una lettera e un numero"
     },
     "showPassword": "Mostra la password",
     "signIn": {
@@ -443,7 +442,8 @@
     "PASSWORD_RESET": "Password reimpostata",
     "EMAIL_VERIFIED": "Email confermata",
     "VERIFICATION_EMAIL_SENT": "Email di conferma inviata: controlla la posta (anche lo spam).",
-    "USER_UPDATED": "{{name}} aggiornato"
+    "USER_UPDATED": "{{name}} aggiornato",
+    "PLAYER_LINKED": "Account di gioco verificato e collegato."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -486,7 +486,11 @@
     "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo.",
     "CWL_SEASON_NOT_FOUND": "Stagione della Lega non trovata.",
     "PLAYER_NOT_FOUND": "Giocatore non trovato.",
-    "PLAYERS_SYNC_FAILED": "Lettura dei membri da Clash of Clans non riuscita."
+    "PLAYERS_SYNC_FAILED": "Lettura dei membri da Clash of Clans non riuscita.",
+    "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Inserisci il token API mostrato nel gioco.",
+    "PLAYER_TOKEN_IS_NOT_VALID": "Token non valido o scaduto: genera quello attuale nel gioco e riprova.",
+    "PLAYER_TAG_ALREADY_LINKED": "Questo account di gioco è già collegato e verificato da un altro utente.",
+    "PLAYER_VERIFICATION_UNAVAILABLE": "Non è possibile verificare il token adesso: l'API di Clash of Clans non risponde. Riprova più tardi."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -616,10 +620,21 @@
     },
     "player": {
       "title": "Giocatore di Clash of Clans",
-      "hint": "Collega il tuo tag: la tua riga sarà evidenziata in verde nelle tabelle.",
+      "hint": "Collega il tuo account di gioco per avere la tua riga evidenziata nelle tabelle. Serve il token API del gioco: lo vede solo il proprietario dell'account, così nessuno può collegare il giocatore di un altro.",
       "linkedTo": "Collegato a {{name}} ({{role}})",
       "notInClan": "Questo tag non risulta tra i membri attuali del clan.",
-      "clearHint": "Lascia vuoto per scollegare"
+      "linkedTag": "Collegato al tag {{tag}}",
+      "verified": "Verificato con il token del gioco",
+      "unverified": "Non verificato: inserisci il token qui sotto per confermare che è tuo",
+      "unlink": "Scollega",
+      "steps": {
+        "open": "In Clash of Clans apri Impostazioni → Altre impostazioni.",
+        "show": "Alla voce «Token API» tocca «Mostra» e copia il token.",
+        "paste": "Incollalo qui sotto insieme al tuo tag. Il token cambia periodicamente: usalo subito."
+      },
+      "token": "Token API del gioco",
+      "tokenHint": "Es. a1b2c3d4 · usato solo per la verifica, non viene salvato",
+      "verify": "Verifica e collega"
     },
     "password": {
       "title": "Cambia password",
@@ -633,8 +648,6 @@
     "search": "Cerca per nome, email o tag",
     "searchButton": "Cerca",
     "empty": "Nessun utente trovato",
-    "tagLabel": "Tag giocatore di {{name}}",
-    "saveTag": "Salva il tag",
     "adminToggle": "Amministratore: {{name}}",
     "columns": {
       "user": "Utente",
@@ -642,7 +655,11 @@
       "admin": "Admin",
       "verified": "Email",
       "createdAt": "Registrato"
-    }
+    },
+    "tagVerified": "Verificato con il token del gioco",
+    "tagUnverified": "Non verificato",
+    "unlinkTag": "Scollega il giocatore",
+    "unlinkTagOf": "Scollega il giocatore di {{name}}"
   },
   "commendations": {
     "title": "Encomi",

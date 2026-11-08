@@ -11,6 +11,11 @@ const userSchema = new Schema(
     roles: { type: [String], enum: Object.values(UserRole), default: [UserRole.USER] },
     /** Linked Clash of Clans account (optional, e.g. `#ABC123`). */
     playerTag: { type: String, default: null },
+    /**
+     * The link was proven with the player's in-game API token (`verifytoken` endpoint). Links
+     * made before the check existed stay, unverified, until the user verifies them.
+     */
+    playerTagVerified: { type: Boolean, default: false },
     emailVerified: { type: Boolean, default: false },
     // One-time tokens sent by email: only their SHA-256 is stored, with an expiry.
     verifyEmailTokenHash: { type: String, default: null, select: false },
@@ -20,6 +25,9 @@ const userSchema = new Schema(
   },
   { collection: 'Users', timestamps: true, versionKey: false },
 );
+
+// A Clash of Clans account can be verified by one user only.
+userSchema.index({ playerTag: 1 }, { unique: true, partialFilterExpression: { playerTagVerified: true } });
 
 export type User = InferSchemaType<typeof userSchema>;
 export type UserDocument = HydratedDocument<User>;
@@ -33,6 +41,8 @@ export interface PublicUser {
   username: string;
   roles: UserRole[];
   playerTag: string | null;
+  /** `playerTag` proven with the in-game API token. */
+  playerTagVerified: boolean;
   emailVerified: boolean;
   createdAt: string;
 }
@@ -44,6 +54,7 @@ export function toPublicUser(user: UserDocument): PublicUser {
     username: user.username,
     roles: [...user.roles] as UserRole[],
     playerTag: user.playerTag ?? null,
+    playerTagVerified: Boolean(user.playerTag && user.playerTagVerified),
     emailVerified: user.emailVerified,
     createdAt: user.createdAt.toISOString(),
   };

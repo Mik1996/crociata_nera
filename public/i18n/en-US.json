@@ -370,14 +370,13 @@
       "username": "Username",
       "password": "Password",
       "repeatPassword": "Repeat password",
-      "playerTag": "Player tag (optional)",
+      "playerTag": "Player tag",
       "currentPassword": "Current password",
       "newPassword": "New password"
     },
     "hints": {
       "username": "3–24 characters: letters, digits and . - _",
-      "password": "At least 8 characters, with a letter and a digit",
-      "playerTag": "Your Clash of Clans tag, e.g. #ABC123"
+      "password": "At least 8 characters, with a letter and a digit"
     },
     "showPassword": "Show password",
     "signIn": {
@@ -443,7 +442,8 @@
     "PASSWORD_RESET": "Password reset",
     "EMAIL_VERIFIED": "Email confirmed",
     "VERIFICATION_EMAIL_SENT": "Confirmation email sent: check your inbox (and spam).",
-    "USER_UPDATED": "{{name}} updated"
+    "USER_UPDATED": "{{name}} updated",
+    "PLAYER_LINKED": "Game account verified and linked."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -486,7 +486,11 @@
     "HISTORY_NOT_FOUND": "No wars recorded in the period.",
     "CWL_SEASON_NOT_FOUND": "League season not found.",
     "PLAYER_NOT_FOUND": "Player not found.",
-    "PLAYERS_SYNC_FAILED": "Reading the members from Clash of Clans failed."
+    "PLAYERS_SYNC_FAILED": "Reading the members from Clash of Clans failed.",
+    "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Enter the API token shown in the game.",
+    "PLAYER_TOKEN_IS_NOT_VALID": "Invalid or expired token: get the current one in the game and try again.",
+    "PLAYER_TAG_ALREADY_LINKED": "This game account is already linked and verified by another user.",
+    "PLAYER_VERIFICATION_UNAVAILABLE": "The token cannot be checked right now: the Clash of Clans API is not responding. Try again later."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -616,10 +620,21 @@
     },
     "player": {
       "title": "Clash of Clans player",
-      "hint": "Link your tag: your row will be highlighted in green in the tables.",
+      "hint": "Link your game account to have your row highlighted in the tables. It needs the game's API token: only the account owner can see it, so nobody can link someone else's player.",
       "linkedTo": "Linked to {{name}} ({{role}})",
       "notInClan": "This tag is not among the current clan members.",
-      "clearHint": "Leave empty to unlink"
+      "linkedTag": "Linked to tag {{tag}}",
+      "verified": "Verified with the game token",
+      "unverified": "Not verified: enter the token below to confirm it is yours",
+      "unlink": "Unlink",
+      "steps": {
+        "open": "In Clash of Clans open Settings → More Settings.",
+        "show": "Under “API Token” tap “Show” and copy the token.",
+        "paste": "Paste it below together with your tag. The token changes regularly: use it right away."
+      },
+      "token": "Game API token",
+      "tokenHint": "E.g. a1b2c3d4 · only used for the check, never stored",
+      "verify": "Verify and link"
     },
     "password": {
       "title": "Change password",
@@ -633,8 +648,6 @@
     "search": "Search by name, email or tag",
     "searchButton": "Search",
     "empty": "No users found",
-    "tagLabel": "Player tag of {{name}}",
-    "saveTag": "Save tag",
     "adminToggle": "Administrator: {{name}}",
     "columns": {
       "user": "User",
@@ -642,7 +655,11 @@
       "admin": "Admin",
       "verified": "Email",
       "createdAt": "Registered"
-    }
+    },
+    "tagVerified": "Verified with the game token",
+    "tagUnverified": "Not verified",
+    "unlinkTag": "Unlink the player",
+    "unlinkTagOf": "Unlink {{name}}'s player"
   },
   "commendations": {
     "title": "Commendations",

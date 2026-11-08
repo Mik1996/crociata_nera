@@ -59,7 +59,6 @@ export const signUpSchema = z
     username,
     password: newPassword,
     repeatPassword,
-    playerTag: playerTag.optional(),
     language,
   })
   .refine((data) => data.password === data.repeatPassword, passwordsMatch);
@@ -77,11 +76,24 @@ export const signInSchema = z.object({
     .max(1024, { error: MessageKey.INVALID_CREDENTIALS }),
 });
 
+/** Unlinks the Clash of Clans account: `null` or empty. Linking needs the in-game token. */
+export const unlinkPlayerTag = z.union([z.literal('').transform(() => null), z.null()], {
+  error: MessageKey.PLAYER_TAG_IS_NOT_VALID,
+});
+
 /** `PATCH /auth/me`: `playerTag: null` (or empty) unlinks the Clash of Clans account. */
 export const updateProfileSchema = z.object({
-  playerTag: z
-    .union([z.literal('').transform(() => null), z.null(), playerTag], { error: MessageKey.PLAYER_TAG_IS_NOT_VALID })
-    .optional(),
+  playerTag: unlinkPlayerTag.optional(),
+});
+
+/** `POST /auth/me/player`: links the account proven by its in-game API token. */
+export const linkPlayerSchema = z.object({
+  playerTag: z.string({ error: MessageKey.PLAYER_TAG_IS_NOT_VALID }).pipe(playerTag),
+  token: z
+    .string({ error: MessageKey.PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY })
+    .trim()
+    .min(1, { error: MessageKey.PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY })
+    .max(64, { error: MessageKey.PLAYER_TOKEN_IS_NOT_VALID }),
 });
 
 export const changePasswordSchema = z
@@ -113,6 +125,7 @@ export const resendVerificationSchema = z.object({ language });
 
 export type SignUpInput = z.output<typeof signUpSchema>;
 export type UpdateProfileInput = z.output<typeof updateProfileSchema>;
+export type LinkPlayerInput = z.output<typeof linkPlayerSchema>;
 export type ChangePasswordInput = z.output<typeof changePasswordSchema>;
 export type ResetPasswordInput = z.output<typeof resetPasswordSchema>;
 export type SignInInput = z.output<typeof signInSchema>;

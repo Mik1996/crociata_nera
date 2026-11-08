@@ -23,14 +23,29 @@ const TIMEOUT_MS = 10_000;
  * Minimal server-side client of the official API. The token is read from the environment
  * and never leaves the backend. Responses are returned as `unknown`: callers validate them.
  */
-export async function cocGet(path: string): Promise<unknown> {
+export function cocGet(path: string): Promise<unknown> {
+  return cocRequest(path);
+}
+
+/** `POST` with a JSON body (only `verifytoken` needs it). */
+export function cocPost(path: string, body: unknown): Promise<unknown> {
+  return cocRequest(path, body);
+}
+
+async function cocRequest(path: string, body?: unknown): Promise<unknown> {
   const { COC_API_TOKEN, COC_API_BASE_URL } = env();
   if (!COC_API_TOKEN) throw new CocApiError(0, 'config.missingToken', 'COC_API_TOKEN is not set');
 
   let response: Response;
   try {
     response = await fetch(`${COC_API_BASE_URL}${path}`, {
-      headers: { Authorization: `Bearer ${COC_API_TOKEN}`, Accept: 'application/json' },
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        Authorization: `Bearer ${COC_API_TOKEN}`,
+        Accept: 'application/json',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
       cache: 'no-store',
     });
@@ -38,12 +53,12 @@ export async function cocGet(path: string): Promise<unknown> {
     throw new CocApiError(0, 'network', `Clash of Clans API unreachable: ${(error as Error).message}`);
   }
 
-  const body: unknown = await response.json().catch(() => null);
+  const result: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const { reason = 'unknown', message = response.statusText } = (body ?? {}) as { reason?: string; message?: string };
+    const { reason = 'unknown', message = response.statusText } = (result ?? {}) as { reason?: string; message?: string };
     throw new CocApiError(response.status, reason, message);
   }
-  return body;
+  return result;
 }
 
 const clanPath = (clanTag: string) => `/clans/${encodeURIComponent(clanTag)}`;
@@ -79,4 +94,16 @@ export function fetchLeagueWar(warTag: string): Promise<unknown> {
  */
 export function fetchRaidSeasons(clanTag: string, limit = 5): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/capitalraidseasons?limit=${limit}`);
+}
+
+/**
+ * `POST /players/{tag}/verifytoken`: checks the player's API token, shown in the game under
+ * Settings → More Settings. Only the owner of the account can read it, and it changes
+ * regularly, so a match proves ownership. Throws {@link CocApiError} (404: unknown player).
+ */
+export async function verifyPlayerToken(playerTag: string, token: string): Promise<boolean> {
+  const result = (await cocPost(`/players/${encodeURIComponent(playerTag)}/verifytoken`, { token })) as {
+    status?: string;
+  } | null;
+  return result?.status === 'ok';
 }

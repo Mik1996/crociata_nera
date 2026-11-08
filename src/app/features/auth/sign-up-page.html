@@ -70,15 +70,6 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>{{ 'auth.fields.playerTag' | translate }}</mat-label>
-      <mat-icon matPrefix aria-hidden="true">tag</mat-icon>
-      <input matInput formControlName="playerTag" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="#ABC123" />
-      <mat-hint>{{ 'auth.hints.playerTag' | translate }}</mat-hint>
-      @if (errorKey(form.controls.playerTag, errors.playerTag); as key) {
-        <mat-error>{{ key | translate }}</mat-error>
-      }
-    </mat-form-field>
 
     <button mat-flat-button type="submit" class="auth-form__submit" [disabled]="submitting()">
       @if (submitting()) {

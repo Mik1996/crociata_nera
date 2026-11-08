@@ -34,16 +34,32 @@ export class AuthService {
   readonly user = computed<BackendUser | null>(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
-  /** Clash of Clans tag linked to the signed-in account (e.g. `#ABC123`), if any. */
-  readonly playerTag = computed(() => this.session()?.user.playerTag?.toUpperCase() ?? null);
+  /** Clash of Clans tag linked to the signed-in account (e.g. `#ABC123`), verified or not. */
+  readonly linkedTag = computed(() => this.session()?.user.playerTag?.toUpperCase() ?? null);
+  /**
+   * The signed-in user's player, only once proven with the in-game API token: it marks "your"
+   * rows in the tables.
+   */
+  readonly playerTag = computed(() => (this.session()?.user.playerTagVerified ? this.linkedTag() : null));
   readonly isAdmin = computed(() => this.session()?.user.roles?.includes('ADMIN') ?? false);
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
     return this.post('sign-up', { ...request, language: this.language.current() });
   }
 
-  /** Links (or unlinks, with `null`) the Clash of Clans player tag of the signed-in user. */
-  updateProfile(changes: { playerTag: string | null }): Observable<BackendUser> {
+  /**
+   * Links the Clash of Clans account after the backend verified it with the API token shown in
+   * the game (Settings → More Settings).
+   */
+  linkPlayer(playerTag: string, token: string): Observable<BackendUser> {
+    return this.http.post<BaseResult<BackendUser>>(`${this.baseUrl}/me/player`, { playerTag, token }).pipe(
+      map((response) => response.result!),
+      tap((user) => this.patchUser(user)),
+    );
+  }
+
+  /** Unlinks the Clash of Clans player tag of the signed-in user (`playerTag: null`). */
+  updateProfile(changes: { playerTag: null }): Observable<BackendUser> {
     return this.http.patch<BaseResult<BackendUser>>(`${this.baseUrl}/me`, changes).pipe(
       map((response) => response.result!),
       tap((user) => this.patchUser(user)),

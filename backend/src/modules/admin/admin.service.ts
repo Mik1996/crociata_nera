@@ -43,7 +43,7 @@ export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
 }
 
 /**
- * Changes roles and/or the linked player tag of a user. An administrator cannot remove
+ * Changes roles and/or unlinks the player tag of a user. An administrator cannot remove
  * their own ADMIN role (no lock-out). When roles change, the user's sessions are revoked
  * so the new roles apply at the next sign-in instead of up to 15 minutes later.
  */
@@ -60,7 +60,7 @@ export async function updateUser(actorId: string, userId: string, input: UpdateU
     rolesChanged = roles.length !== user.roles.length || roles.some((role) => !user.roles.includes(role));
     user.set('roles', roles);
   }
-  if (input.playerTag !== undefined) user.playerTag = input.playerTag;
+  if (input.playerTag === null) user.set({ playerTag: null, playerTagVerified: false });
   await user.save();
 
   if (rolesChanged && actorId !== userId) {

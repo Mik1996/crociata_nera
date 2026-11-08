@@ -4,6 +4,7 @@ import { GET as listUsers } from '@/app/api/v1/admin/users/route';
 import { POST as refresh } from '@/app/api/v1/auth/refresh/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { resetEnvCache } from '@/lib/config/env';
+import { UserModel } from '@/modules/auth/user.model';
 import { call } from './helpers';
 
 async function register(name: string, ip: string) {
@@ -27,7 +28,7 @@ describe('administration', () => {
     expect(res.body.messages).toEqual([{ key: 'ERROR.FORBIDDEN' }]);
   });
 
-  it('grants ADMIN to ADMIN_EMAILS, lists and searches users, edits roles and tags', async () => {
+  it('grants ADMIN to ADMIN_EMAILS, lists and searches users, edits roles and unlinks tags', async () => {
     process.env.ADMIN_EMAILS = 'boss@crociata.it';
     resetEnvCache();
     const boss = await register('boss', '10.0.0.2');
@@ -42,12 +43,30 @@ describe('administration', () => {
 
     const promoted = await call(updateUser, {
       method: 'PATCH',
-      body: { roles: ['ADMIN'], playerTag: '#mem123' },
+      body: { roles: ['ADMIN'] },
       token: boss.token,
       params: { id: member.user.id },
     });
     expect(promoted.status).toBe(200);
-    expect(promoted.body.result).toMatchObject({ roles: ['USER', 'ADMIN'], playerTag: '#MEM123' });
+    expect(promoted.body.result).toMatchObject({ roles: ['USER', 'ADMIN'] });
+
+    // Linking needs the player's in-game token: administrators can only unlink.
+    await UserModel.updateOne({ _id: member.user.id }, { $set: { playerTag: '#MEM123', playerTagVerified: true } });
+    const link = await call(updateUser, {
+      method: 'PATCH',
+      body: { playerTag: '#OTHER1' },
+      token: boss.token,
+      params: { id: member.user.id },
+    });
+    expect(link.status).toBe(400);
+    expect(link.body.messages).toEqual([{ key: 'ERROR.PLAYER_TAG_IS_NOT_VALID', field: 'playerTag' }]);
+    const unlinked = await call(updateUser, {
+      method: 'PATCH',
+      body: { playerTag: null },
+      token: boss.token,
+      params: { id: member.user.id },
+    });
+    expect(unlinked.body.result).toMatchObject({ playerTag: null, playerTagVerified: false });
     // New roles apply at the next sign-in: the member's sessions were revoked.
     expect((await call(refresh, { body: {}, cookie: member.cookie })).status).toBe(401);
 

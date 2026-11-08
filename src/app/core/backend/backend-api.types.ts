@@ -21,6 +21,8 @@ export interface BackendUser {
   username: string;
   roles: ('USER' | 'ADMIN')[];
   playerTag: string | null;
+  /** `playerTag` proven with the in-game API token. */
+  playerTagVerified: boolean;
   emailVerified: boolean;
   createdAt: string;
 }
@@ -37,7 +39,6 @@ export interface SignUpRequest {
   username: string;
   password: string;
   repeatPassword: string;
-  playerTag?: string;
   /** Language of the confirmation email. */
   language?: string;
 }

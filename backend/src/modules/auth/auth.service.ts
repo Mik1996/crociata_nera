@@ -57,8 +57,7 @@ export async function signUp(input: SignUpInput, client: ClientInfo): Promise<Au
       usernameKey,
       passwordHash: await hashPassword(input.password),
       roles: [UserRole.USER],
-      playerTag: input.playerTag ?? null,
-    });
+      });
   } catch (error) {
     // Two concurrent sign-ups with the same email/username: the unique index decides.
     if (isDuplicateKey(error)) {

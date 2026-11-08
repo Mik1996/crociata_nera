@@ -11,7 +11,7 @@ import { safeReturnUrl } from '../../core/backend/auth.guards';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage, SignUpRequest } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
-import { applyServerErrors, errorKey, passwordsMatch, PLAYER_TAG_PATTERN, strongPassword, USERNAME_PATTERN } from './auth-form';
+import { applyServerErrors, errorKey, passwordsMatch, strongPassword, USERNAME_PATTERN } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
 
 /** Account creation; on success the user is signed in. */
@@ -45,7 +45,6 @@ export class SignUpPage {
       username: ['', [Validators.required, Validators.pattern(USERNAME_PATTERN)]],
       password: ['', [Validators.required, strongPassword]],
       repeatPassword: ['', Validators.required],
-      playerTag: ['', Validators.pattern(PLAYER_TAG_PATTERN)],
     },
     { validators: passwordsMatch },
   );
@@ -64,7 +63,6 @@ export class SignUpPage {
       tooLong: 'ERROR.PASSWORD_IS_TOO_LONG',
     },
     repeatPassword: { required: 'ERROR.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY', mismatch: 'ERROR.PASSWORDS_DO_NOT_MATCH' },
-    playerTag: { pattern: 'ERROR.PLAYER_TAG_IS_NOT_VALID' },
   };
 
   protected submit(): void {
@@ -85,14 +83,7 @@ export class SignUpPage {
   }
 
   private request(): SignUpRequest {
-    const { email, username, password, repeatPassword, playerTag } = this.form.getRawValue();
-    const tag = playerTag.trim().toUpperCase().replace(/^#?/, '#');
-    return {
-      email: email.trim(),
-      username: username.trim(),
-      password,
-      repeatPassword,
-      ...(playerTag.trim() ? { playerTag: tag } : {}),
-    };
+    const { email, username, password, repeatPassword } = this.form.getRawValue();
+    return { email: email.trim(), username: username.trim(), password, repeatPassword };
   }
 }

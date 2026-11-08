@@ -20,7 +20,7 @@ export class AdminService {
       .pipe(map((response) => response.result!));
   }
 
-  updateUser(id: string, changes: { roles?: ('USER' | 'ADMIN')[]; playerTag?: string | null }): Observable<AdminUser> {
+  updateUser(id: string, changes: { roles?: ('USER' | 'ADMIN')[]; playerTag?: null }): Observable<AdminUser> {
     return this.http
       .patch<BaseResult<AdminUser>>(`${this.url}/${encodeURIComponent(id)}`, changes)
       .pipe(map((response) => response.result!));

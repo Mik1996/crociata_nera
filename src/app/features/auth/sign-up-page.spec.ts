@@ -32,7 +32,7 @@ describe('SignUpPage', () => {
 
   it('checks the same rules as the backend before sending', async () => {
     const { fixture, el } = await render();
-    fill(el, { email: 'nope', username: 'a b', password: 'short', repeatPassword: 'other', playerTag: '#!' });
+    fill(el, { email: 'nope', username: 'a b', password: 'short', repeatPassword: 'other' });
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
@@ -41,15 +41,14 @@ describe('SignUpPage', () => {
       'Da 3 a 24 caratteri: lettere, numeri, punto, trattino e trattino basso.',
       'Almeno 8 caratteri, con una lettera e un numero.',
       'Le password non coincidono.',
-      'Tag non valido: # seguito da 3–15 lettere o numeri.',
     ]);
     httpMock.expectNone('/api/v1/auth/sign-up');
   });
 
-  it('normalises the player tag, signs up and shows backend field errors', async () => {
+  it('signs up without a player tag and shows backend field errors', async () => {
     const { fixture, el } = await render();
     vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
-    fill(el, { email: 'a@b.io', username: 'alice', password: 'secret123', repeatPassword: 'secret123', playerTag: 'abc123' });
+    fill(el, { email: 'a@b.io', username: 'alice', password: 'secret123', repeatPassword: 'secret123' });
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
 
     const req = httpMock.expectOne('/api/v1/auth/sign-up');
@@ -58,7 +57,6 @@ describe('SignUpPage', () => {
       username: 'alice',
       password: 'secret123',
       repeatPassword: 'secret123',
-      playerTag: '#ABC123',
       language: 'it-IT',
     });
     req.flush(
@@ -73,16 +71,5 @@ describe('SignUpPage', () => {
 
     expect(errorTexts(el)).toEqual(['Questa email è già registrata.']);
     expect(el.querySelector('[role="alert"]')).toBeNull();
-  });
-
-  it('omits an empty player tag', async () => {
-    const { fixture, el } = await render();
-    vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
-    fill(el, { email: 'a@b.io', username: 'alice', password: 'secret123', repeatPassword: 'secret123' });
-    el.querySelector('form')!.dispatchEvent(new Event('submit'));
-    const req = httpMock.expectOne('/api/v1/auth/sign-up');
-    expect(req.request.body).not.toHaveProperty('playerTag');
-    req.flush({ result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'alice' } }, messages: [], status: { code: 201, name: '' } });
-    await fixture.whenStable();
   });
 });

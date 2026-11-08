@@ -51,7 +51,7 @@ export class ProfilePage {
   /** Clan members, to show which member the linked tag belongs to. */
   private readonly clan = rxResource({ stream: () => this.api.getClan().pipe(catchError(() => of(null))) });
   protected readonly linkedMember = computed(() => {
-    const tag = this.auth.playerTag();
+    const tag = this.auth.linkedTag();
     const clan = this.clan.hasValue() ? this.clan.value() : null;
     return tag && clan ? (clan.members.find((m) => m.tag === tag) ?? null) : null;
   });
@@ -69,35 +69,51 @@ export class ProfilePage {
     });
   }
 
-  // --- Player tag --------------------------------------------------------------------
+  // --- Player link -------------------------------------------------------------------
+  /**
+   * The account is linked only with its in-game API token (Settings → More Settings), which only
+   * its owner can read: nobody can claim someone else's player.
+   */
   protected readonly tagForm = this.fb.group({
-    playerTag: [this.auth.playerTag() ?? '', Validators.pattern(PLAYER_TAG_PATTERN)],
+    playerTag: [this.auth.playerTag() ? '' : (this.auth.linkedTag() ?? ''), [Validators.required, Validators.pattern(PLAYER_TAG_PATTERN)]],
+    token: ['', Validators.required],
   });
   protected readonly savingTag = signal(false);
   protected readonly tagFeedback = signal<Feedback>(null);
   protected readonly errorKey = errorKey;
-  protected readonly tagErrors = { pattern: 'ERROR.PLAYER_TAG_IS_NOT_VALID' };
+  protected readonly tagErrors = {
+    playerTag: { required: 'ERROR.PLAYER_TAG_IS_NOT_VALID', pattern: 'ERROR.PLAYER_TAG_IS_NOT_VALID' },
+    token: { required: 'ERROR.PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY' },
+  };
 
-  protected saveTag(): void {
+  protected linkPlayer(): void {
     this.tagFeedback.set(null);
     if (this.tagForm.invalid || this.savingTag()) {
       this.tagForm.markAllAsTouched();
       return;
     }
-    const raw = this.tagForm.getRawValue().playerTag.trim();
-    const playerTag = raw ? raw.toUpperCase().replace(/^#?/, '#') : null;
+    const { playerTag, token } = this.tagForm.getRawValue();
     this.savingTag.set(true);
-    this.auth.updateProfile({ playerTag }).subscribe({
-      next: (user) => {
-        this.tagForm.setValue({ playerTag: user.playerTag ?? '' });
-        this.tagForm.markAsPristine();
-        this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PROFILE_UPDATED' }] });
+    this.auth.linkPlayer(playerTag.trim().toUpperCase().replace(/^#?/, '#'), token.trim()).subscribe({
+      next: () => {
+        this.tagForm.reset({ playerTag: '', token: '' });
+        this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PLAYER_LINKED' }] });
       },
       error: (error: unknown) => {
         const { fields, general } = backendErrors(error);
         const rest = [...applyServerErrors(this.tagForm, fields), ...general];
         this.finish(this.savingTag, this.tagFeedback, rest.length ? { kind: 'error', messages: rest } : null);
       },
+    });
+  }
+
+  protected unlinkPlayer(): void {
+    if (this.savingTag()) return;
+    this.tagFeedback.set(null);
+    this.savingTag.set(true);
+    this.auth.updateProfile({ playerTag: null }).subscribe({
+      next: () => this.finish(this.savingTag, this.tagFeedback, { kind: 'success', messages: [{ key: 'SUCCESS.PROFILE_UPDATED' }] }),
+      error: (error: unknown) => this.finish(this.savingTag, this.tagFeedback, { kind: 'error', messages: this.allMessages(error) }),
     });
   }
 

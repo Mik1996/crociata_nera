@@ -79,7 +79,7 @@ describe('WarParticipantsTable', () => {
     TestBed.inject(HttpTestingController)
       .expectOne('/api/v1/auth/refresh')
       .flush({
-        result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'b', playerTag: '#b' } },
+        result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'b', playerTag: '#b', playerTagVerified: true } },
         messages: [],
         status: { code: 200, name: 'HTTP_STATUS.OK' },
       });

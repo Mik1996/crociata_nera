@@ -43,7 +43,7 @@ describe('AdminPage', () => {
     expect(rows[0].querySelector('button[role="switch"]')!.hasAttribute('disabled')).toBe(true);
   });
 
-  it('promotes a user to admin and saves a player tag', async () => {
+  it('promotes a user to admin and unlinks a player tag', async () => {
     const { fixture, el } = await render();
     const row = el.querySelectorAll('tr.mat-mdc-row')[1]!;
 
@@ -55,13 +55,15 @@ describe('AdminPage', () => {
     await fixture.whenStable();
     expect(el.textContent).toContain('Member aggiornato');
 
-    const input = el.querySelectorAll('tr.mat-mdc-row')[1]!.querySelector<HTMLInputElement>('.tag-input')!;
-    input.value = 'mem123';
-    input.dispatchEvent(new Event('input'));
+    // Administrators cannot type a tag: they can only unlink one.
+    expect(el.querySelector('.tag-input')).toBeNull();
+    const linked = { ...member, playerTag: '#MEM123', playerTagVerified: true };
+    fixture.componentInstance['users'].update((page) => page && ({ ...page, items: [me, linked] } as typeof page));
     await fixture.whenStable();
-    input.closest('form')!.dispatchEvent(new Event('submit'));
+    const unlink = el.querySelectorAll('tr.mat-mdc-row')[1]!.querySelector<HTMLButtonElement>('.tag-cell button')!;
+    unlink.click();
     const tag = httpMock.expectOne('/api/v1/admin/users/m1');
-    expect(tag.request.body).toEqual({ playerTag: '#MEM123' });
-    tag.flush(ok({ ...member, roles: ['USER', 'ADMIN'], playerTag: '#MEM123' }));
+    expect(tag.request.body).toEqual({ playerTag: null });
+    tag.flush(ok({ ...member, roles: ['USER', 'ADMIN'], playerTag: null, playerTagVerified: false }));
   });
 });
