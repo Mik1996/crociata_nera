@@ -1,18 +1,16 @@
 <button type="button" class="skip-link" (click)="content.focus()">{{ 'app.skipToContent' | translate }}</button>
 
 <mat-toolbar class="header" role="banner">
-  @if (mobile()) {
-    <button
-      mat-icon-button
-      type="button"
-      [attr.aria-label]="'app.toggleNavigation' | translate"
-      [attr.aria-expanded]="navOpen()"
-      aria-controls="navigation"
-      (click)="toggleNav()"
-    >
-      <mat-icon>menu</mat-icon>
-    </button>
-  }
+  <button
+    mat-icon-button
+    type="button"
+    [attr.aria-label]="'app.toggleNavigation' | translate"
+    [attr.aria-expanded]="navOpen()"
+    aria-controls="navigation"
+    (click)="toggleNav()"
+  >
+    <mat-icon>{{ navOpen() ? 'menu_open' : 'menu' }}</mat-icon>
+  </button>
 
   <a routerLink="/" class="brand" [attr.aria-label]="'app.goToHome' | translate: { name: clanName }">
     @if (badgeUrl(); as url) {
@@ -154,11 +152,26 @@
     (openedChange)="navOpen.set($event)"
     id="navigation"
     class="sidenav"
-    [mode]="mode()"
-    [opened]="!mobile()"
-    [fixedInViewport]="mobile()"
+    [mode]="pinned() ? 'side' : 'over'"
+    [opened]="pinned()"
+    [fixedInViewport]="!pinned()"
     fixedTopGap="64"
   >
+    @if (canPin()) {
+      <div class="sidenav__pin">
+        <button
+          mat-icon-button
+          type="button"
+          [class.active]="pinned()"
+          [attr.aria-pressed]="pinned()"
+          [attr.aria-label]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
+          [title]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
+          (click)="togglePin()"
+        >
+          <mat-icon aria-hidden="true">push_pin</mat-icon>
+        </button>
+      </div>
+    }
     <nav [attr.aria-label]="'app.mainNavigation' | translate">
       <mat-nav-list>
         @for (item of menu(); track item.path) {
@@ -166,14 +179,10 @@
         }
       </mat-nav-list>
     </nav>
-    @if (clan()?.description; as description) {
-      <p class="sidenav__clan_description">{{ description }}</p>
-    }
     <!-- Settings (theme and language) at the bottom, for everyone -->
     <mat-nav-list class="sidenav__bottom" [attr.aria-label]="'nav.settings' | translate">
       <ng-container *ngTemplateOutlet="navItem; context: { $implicit: settingsItem }" />
     </mat-nav-list>
-    <p class="sidenav__fan-content" [innerHTML]="'app.fanContent' | translate"></p>
   </mat-sidenav>
 
   <ng-template #navItem let-item>
@@ -185,7 +194,7 @@
       #rla="routerLinkActive"
       [activated]="rla.isActive"
       [attr.aria-current]="rla.isActive ? 'page' : null"
-      (click)="closeIfMobile()"
+      (click)="closeIfFloating()"
     >
       <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
       <span matListItemTitle>{{ item.label | translate }}</span>
@@ -196,5 +205,7 @@
     <main id="content" #content tabindex="-1" class="content">
       <router-outlet />
     </main>
+    <!-- Notice required by the Supercell Fan Content Policy: always visible, on every page. -->
+    <footer class="footer" [innerHTML]="'app.fanContent' | translate"></footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

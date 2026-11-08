@@ -403,11 +403,14 @@ h2 {
  * scrolls. On very short screens normal page scrolling is kept.
  */
 @media (min-height: 560px) {
-  .content:has(> .page--fill) {
+  // Element in front: must beat the shell's own `.content` rule (`flex: 1 0 auto`).
+  mat-sidenav-content > .content:has(> .page--fill) {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100%;
+    // Takes the height left by the footer (the content area is a column, see the shell).
+    flex: 1 1 0;
+    min-height: 0;
     padding-bottom: 0.75rem;
   }
 

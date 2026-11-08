@@ -159,7 +159,31 @@ export class Shell {
     { initialValue: false },
   );
 
-  protected readonly mode = computed(() => (this.mobile() ? 'over' : 'side'));
+  /** Phones: the navigation always floats over the page and cannot be pinned. */
+  private readonly phone = toSignal(
+    inject(BreakpointObserver)
+      .observe('(max-width: 599.98px)')
+      .pipe(map((state) => state.matches)),
+    { initialValue: false },
+  );
+
+  /** Tablets and computers can keep the navigation pinned open next to the page. */
+  protected readonly canPin = computed(() => !this.phone());
+
+  /** Saved choice of the user; `null` means the default (pinned on wide screens only). */
+  private readonly pinPreference = signal<boolean | null>(readPinPreference());
+
+  /**
+   * Pinned: the navigation sits next to the page and stays open. Otherwise it floats over the
+   * page and closes with a click outside, on Escape or after choosing a page.
+   */
+  protected readonly pinned = computed(() => this.canPin() && (this.pinPreference() ?? !this.mobile()));
+
+  protected togglePin(): void {
+    const pinned = !this.pinned();
+    this.pinPreference.set(pinned);
+    savePinPreference(pinned);
+  }
 
   protected signOut(): void {
     this.auth.signOut().subscribe();
@@ -169,9 +193,28 @@ export class Shell {
     void this.sidenav()?.toggle();
   }
 
-  protected closeIfMobile(): void {
-    if (this.mobile()) {
+  protected closeIfFloating(): void {
+    if (!this.pinned()) {
       void this.sidenav()?.close();
     }
+  }
+}
+
+const PIN_STORAGE_KEY = 'cn.navigationPinned';
+
+function readPinPreference(): boolean | null {
+  try {
+    const value = localStorage.getItem(PIN_STORAGE_KEY);
+    return value === null ? null : value === 'true';
+  } catch {
+    return null;
+  }
+}
+
+function savePinPreference(pinned: boolean): void {
+  try {
+    localStorage.setItem(PIN_STORAGE_KEY, String(pinned));
+  } catch {
+    // Storage unavailable (private mode, blocked): the choice lasts for this visit only.
   }
 }

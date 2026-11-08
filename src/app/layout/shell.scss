@@ -144,14 +144,6 @@
   }
 }
 
-.sidenav__clan_description {
-  margin: 1rem 0.75rem;
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-sm);
-  color: var(--cn-gold-dark);
-  text-align: center;
-}
-
 // Settings: pinned to the bottom of the side navigation, above the notice.
 .sidenav__bottom {
   margin-top: auto;
@@ -159,22 +151,57 @@
   border-top: 1px solid var(--cn-border);
 }
 
+// Pin button at the top of the navigation (tablets and computers).
+.sidenav__pin {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.25rem 0.5rem 0;
+
+  // Unpinned: muted and tilted; pinned: gold and upright.
+  button {
+    color: var(--cn-text-muted);
+
+    mat-icon {
+      transform: rotate(45deg);
+      transition: transform 150ms ease;
+    }
+  }
+
+  button.active mat-icon {
+    transform: none;
+  }
+
+  button.active {
+    color: var(--cn-gold);
+  }
+}
+
+// Page and footer in a column: the footer stays at the bottom, also on short pages.
+mat-sidenav-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1 0 auto;
+  // Every page uses the whole width of the content area, also on large screens.
+  padding: 1rem clamp(0.75rem, 2.5vw, 1.5rem) 1rem;
+  outline: none;
+}
+
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */
-.sidenav__fan-content {
-  margin: 0.5rem 0.75rem 0.75rem;
-  font-size: var(--cn-fs-2xs);
+.footer {
+  flex: none;
+  padding: 0.5rem clamp(0.75rem, 2.5vw, 1.5rem);
+  border-top: 1px solid var(--cn-border);
+  font-size: var(--cn-fs-xs);
   line-height: 1.4;
+  text-align: center;
   color: var(--cn-text-muted);
 
   ::ng-deep a {
     color: inherit;
   }
-}
-
-.content {
-  // Every page uses the whole width of the content area, also on large screens.
-  padding: 1rem clamp(0.75rem, 2.5vw, 1.5rem) 1rem;
-  outline: none;
 }
 
 .picker {

@@ -4,6 +4,8 @@
     "dateTime": "d MMM y, HH:mm"
   },
   "app": {
+    "pinNavigation": "Fissa il menu aperto",
+    "unpinNavigation": "Sblocca il menu (si chiude cliccando fuori)",
     "skipToContent": "Vai al contenuto principale",
     "toggleNavigation": "Apri o chiudi il menu di navigazione",
     "brandSubtitle": "Clan {{tag}}",
