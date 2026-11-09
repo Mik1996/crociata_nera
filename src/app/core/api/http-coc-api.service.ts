@@ -4,7 +4,7 @@ import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
 import { CocApiService } from './coc-api';
 import { CocApiClient } from './coc-api-client';
@@ -45,6 +45,8 @@ const RANKING_SIZE = 200;
 
 /** Raid Weekends requested from the API (about 2 months). */
 const RAID_SEASONS = 10;
+/** Game seasons read by default (one year). */
+const DONATION_SEASONS = 12;
 
 /** Saved wars requested from the backend for the history (the war log covers older ones). */
 const ARCHIVE_LIMIT = 60;
@@ -180,6 +182,16 @@ export class HttpCocApiService extends CocApiService {
         // 404 = season not recorded.
         catchError((err: HttpErrorResponse) => (err.status === 404 && isBackendError(err) ? of(null) : toApiError(err))),
       );
+  }
+
+  /** Only the backend has them: the API knows the current counters, reset when a player leaves. */
+  getDonationSeasons(limit = DONATION_SEASONS): Observable<DonationSeason[]> {
+    return this.http
+      .get<BaseResult<DonationSeason[]>>(`${this.config.backendBaseUrl}/donations/seasons`, {
+        params: { limit },
+        context: CACHE.archive,
+      })
+      .pipe(map((response) => response.result ?? []));
   }
 
   /**

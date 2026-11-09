@@ -4,10 +4,11 @@ import { CocApiService } from '../api/coc-api';
 import { EarnedCommendation } from '../backend/backend-api.types';
 import { PlayerRecordsService } from '../backend/player-records.service';
 import { APP_CONFIG } from '../config/app-config';
-import { Commendation, CommendationEmblem, CommendationPeriods, CwlSeason, PlayerCommendations, RaidSeason } from '../models';
+import { Commendation, CommendationEmblem, CommendationPeriods, CwlSeason, DonationSeason, PlayerCommendations, RaidSeason } from '../models';
 import {
   awardCommendations,
   awardCwlCommendations,
+  awardDonationCommendations,
   awardRaidCommendations,
   CommendationCounts,
   countCommendations,
@@ -18,6 +19,8 @@ import { HistoryService } from './history.service';
 
 /** Raid Weekends read for the history (one year; the backend keeps them all). */
 const HISTORY_RAID_WEEKENDS = 52;
+/** Game seasons in the history (the backend serves up to 36). */
+const HISTORY_DONATION_SEASONS = 36;
 
 /** Commendations of the whole clan, with the period of each kind. */
 export interface ClanCommendations extends CommendationPeriods {
@@ -29,7 +32,8 @@ export interface ClanCommendations extends CommendationPeriods {
  * Commendations of the clan:
  * - war commendations from the history of the last completed month;
  * - `capitalRaider` from the last ended Raid Weekend;
- * - `cwlStriker` from the last ended Clan War League season.
+ * - `cwlStriker` from the last ended Clan War League season;
+ * - `donor` from the last ended game season (donations counted by the backend).
  * Each source is optional: if one cannot be loaded, the others are still shown.
  */
 @Injectable({ providedIn: 'root' })
@@ -49,15 +53,22 @@ export class CommendationService {
         catchError(() => of<RaidSeason | null>(null)),
       ),
       cwl: this.lastEndedCwl(),
+      // The season in progress and the last ended one.
+      donations: this.api.getDonationSeasons(2).pipe(
+        map((seasons) => seasons.find((s) => s.state === 'ended') ?? null),
+        catchError(() => of<DonationSeason | null>(null)),
+      ),
     }).pipe(
-      map(({ period, raid, cwl }) => ({
+      map(({ period, raid, cwl, donations }) => ({
         month,
         raidWeekend: raid ? { startTime: raid.startTime, endTime: raid.endTime } : undefined,
         cwlSeason: cwl?.season,
+        donationSeason: donations?.season,
         byTag: mergeCommendations(
           period ? awardCommendations(period) : new Map(),
           raid ? awardRaidCommendations(raid) : new Map(),
           cwl ? awardCwlCommendations(cwl) : new Map(),
+          donations ? awardDonationCommendations(donations) : new Map(),
         ),
       })),
     );
@@ -71,7 +82,7 @@ export class CommendationService {
   /**
    * History of the whole clan: how many times each player earned each medal, recomputed with
    * the current rules over every completed period saved in the database (completed months,
-   * Raid Weekends with their members, ended CWL seasons). Each source is optional.
+   * Raid Weekends with their members, ended CWL seasons, ended game seasons). Each source is optional.
    */
   historyForClan(now = new Date()): Observable<CommendationCounts> {
     const lastMonth = previousMonth(now);
@@ -95,7 +106,11 @@ export class CommendationService {
       map((seasons) => seasons.flatMap((s) => (s ? [awardCwlCommendations(s)] : []))),
       catchError(() => of([])),
     );
-    return forkJoin([months$, raids$, cwl$]).pipe(map((sources) => countCommendations(sources.flat())));
+    const donations$ = this.api.getDonationSeasons(HISTORY_DONATION_SEASONS).pipe(
+      map((seasons) => seasons.filter((s) => s.state === 'ended').map(awardDonationCommendations)),
+      catchError(() => of([])),
+    );
+    return forkJoin([months$, raids$, cwl$, donations$]).pipe(map((sources) => countCommendations(sources.flat())));
   }
 
   /**

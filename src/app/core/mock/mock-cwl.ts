@@ -1,9 +1,9 @@
 import { CocCapitalRaidSeason, CocCwlSeasonRecord, CocWar, CocWarAttack, CocWarClan, CocWarMember } from '../api/coc-api.types';
-import { ClanMember } from '../models';
+import { ClanMember, DonationSeason } from '../models';
 import { Random } from './random';
 
 /**
- * Mock Clan War League seasons and Raid Weekends, in the formats of the backend and of the
+ * Mock Clan War League seasons, Raid Weekends and donation seasons, in the formats of the backend and of the
  * official API: the same conversion code runs in demo mode and with real data.
  */
 
@@ -246,5 +246,47 @@ export function generateMockRaidSeasons(
       attackLog: [],
       defenseLog: [],
     } satisfies CocCapitalRaidSeason;
+  });
+}
+
+/** Players with a fixed amount of donations per season, so the `donor` medals have something to show. */
+const DONATIONS: Record<string, [min: number, max: number]> = {
+  'Templare Nero': [10_200, 12_000],
+  Excalibur: [7_600, 9_500],
+  Ragnar: [5_100, 7_000],
+};
+
+/**
+ * Game seasons (calendar months from the 1st 08:00 UTC), most recent first, with the troops
+ * donated by the members, in the backend format. The first one is in progress.
+ */
+export function generateMockDonationSeasons(
+  options: { members: ClanMember[]; now: Date; seed?: number; count?: number },
+): DonationSeason[] {
+  const rnd = new Random(options.seed ?? 77);
+  const now = options.now.getTime();
+  const first = new Date(Date.UTC(options.now.getUTCFullYear(), options.now.getUTCMonth(), 1, 8));
+  if (first.getTime() > now) first.setUTCMonth(first.getUTCMonth() - 1);
+
+  return Array.from({ length: options.count ?? 6 }, (_, i) => {
+    const start = new Date(first);
+    start.setUTCMonth(start.getUTCMonth() - i);
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + 1);
+    const ongoing = now < end.getTime();
+    const progress = ongoing ? Math.max(0.1, (now - start.getTime()) / (end.getTime() - start.getTime())) : 1;
+    const players = options.members
+      .map((m) => {
+        const [min, max] = DONATIONS[m.name] ?? [200, 6_000];
+        return { tag: m.tag, name: m.name, donations: Math.round(rnd.int(min, max) * progress) };
+      })
+      .sort((a, b) => b.donations - a.donations);
+    return {
+      season: `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      state: ongoing ? 'ongoing' : 'ended',
+      players,
+    };
   });
 }

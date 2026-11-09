@@ -1,7 +1,7 @@
-import { awardCwlCommendations, awardRaidCommendations } from '../utils/commendations';
+import { awardCwlCommendations, awardDonationCommendations, awardRaidCommendations } from '../utils/commendations';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
 import { generateMockData } from './mock-data';
-import { generateMockCwlSeasons, generateMockRaidSeasons } from './mock-cwl';
+import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from './mock-cwl';
 
 describe('mock Clan War League and Raid Weekends', () => {
   // Saturday 7 November: CWL of November in progress, Raid Weekend in progress.
@@ -59,6 +59,29 @@ describe('mock Clan War League and Raid Weekends', () => {
     it('some current members did not take part', () => {
       const attacked = new Set(weekends[1].members.map((m) => m.tag));
       expect(clan.members.some((m) => !attacked.has(m.tag))).toBe(true);
+    });
+  });
+
+  describe('donation seasons', () => {
+    const seasons = generateMockDonationSeasons({ members: clan.members, now });
+
+    it('starts with the season in progress, then the ended ones, one per month', () => {
+      expect(seasons[0]).toMatchObject({ season: '2026-11', state: 'ongoing', startTime: '2026-11-01T08:00:00.000Z' });
+      expect(seasons[1]).toMatchObject({
+        season: '2026-10',
+        state: 'ended',
+        startTime: '2026-10-01T08:00:00.000Z',
+        endTime: '2026-11-01T08:00:00.000Z',
+      });
+      expect(seasons[1].players).toHaveLength(clan.members.length);
+    });
+
+    it('Templare Nero earns the gold donor; others reach silver and bronze', () => {
+      const awards = awardDonationCommendations(seasons[1]);
+      expect(awards.get(leader.tag)).toEqual([{ type: 'donor', tier: 'gold' }]);
+      const tiers = [...awards.values()].map(([c]) => c.tier);
+      expect(tiers).toContain('silver');
+      expect(tiers).toContain('bronze');
     });
   });
 });

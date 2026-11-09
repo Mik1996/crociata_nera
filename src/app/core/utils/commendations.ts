@@ -4,6 +4,7 @@ import {
   CommendationTier,
   CommendationType,
   CwlSeason,
+  DonationSeason,
   HistoryPeriod,
   HistoryPlayerStats,
   RaidSeason,
@@ -17,6 +18,7 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
   'giantSlayer',
   'cwlStriker',
   'capitalRaider',
+  'donor',
   'wall',
   'tireless',
   'present',
@@ -34,7 +36,8 @@ export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver'
  * - tireless: wars played without missing any attack;
  * - present: share (%) of the clan's wars of the month with at least one attack (months with at least {@link MIN_WARS} wars);
  * - cwlStriker: average stars per attack in the last ended Clan War League (at least {@link CWL_MIN_ATTACKS} attacks);
- * - capitalRaider: Capital Gold looted in the last ended Raid Weekend (more than the threshold).
+ * - capitalRaider: Capital Gold looted in the last ended Raid Weekend (more than the threshold);
+ * - donor: troops donated in the last ended game season, as counted by the backend.
  */
 export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Record<CommendationTier, number>>>> = {
   champion: { bronze: 3, silver: 2, gold: 1 },
@@ -45,6 +48,7 @@ export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly
   present: { bronze: 50, silver: 75, gold: 100 },
   cwlStriker: { bronze: 2.5, silver: 2.75, gold: 3 },
   capitalRaider: { bronze: 25_000, silver: 27_500, gold: 30_000 },
+  donor: { bronze: 5_000, silver: 7_500, gold: 10_000 },
 };
 
 /** `cwlStriker` needs at least this many attacks (one per war). */
@@ -145,6 +149,16 @@ export function awardCwlCommendations(season: CwlSeason): Map<string, Commendati
     if (p.attacks < CWL_MIN_ATTACKS) continue;
     const tier = tierFor('cwlStriker', p.stars / p.attacks);
     if (tier) awards.set(p.tag, [{ type: 'cwlStriker', tier }]);
+  }
+  return awards;
+}
+
+/** Commendations of a game season (`donor`), by troops donated. */
+export function awardDonationCommendations(season: DonationSeason): Map<string, Commendation[]> {
+  const awards = new Map<string, Commendation[]>();
+  for (const p of season.players) {
+    const tier = tierFor('donor', p.donations);
+    if (tier) awards.set(p.tag, [{ type: 'donor', tier }]);
   }
   return awards;
 }

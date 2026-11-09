@@ -2,11 +2,13 @@ import { z } from 'zod';
 import { env } from '@/lib/config/env';
 import { CocApiError, fetchClan } from '@/lib/coc/coc-client';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
+import { endedSeasons, recordDonations } from '@/modules/donations/donation.service';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { getPeriod, listMonths, monthOf } from '@/modules/wars/history.service';
 import { CommendationAwardModel, CommendationPeriodModel } from './commendation-award.model';
 import {
   awardCwlCommendations,
+  awardDonationCommendations,
   awardMonthCommendations,
   awardRaidCommendations,
   Commendation,
@@ -23,6 +25,8 @@ export interface CommendationSyncReport {
   /** Periods whose commendations were awarded in this run. */
   periodsProcessed: string[];
   awards: number;
+  /** Read the members again just before the game season ends, to count the last donations. */
+  nextCheckAt: string | null;
   error: { status: number; reason: string; message: string } | null;
 }
 
@@ -41,6 +45,7 @@ const memberSchema = z
     role: z.string().optional(),
     townHallLevel: z.number().optional(),
     expLevel: z.number().optional(),
+    donations: z.number().default(0),
     trophies: z.number().optional(),
     leagueTier: z
       .object({ id: z.number(), name: z.string(), iconUrls: z.object({ small: z.string().optional(), large: z.string().optional() }).optional() })
@@ -59,20 +64,21 @@ export function previousMonth(now: Date): string {
 /**
  * 1. Updates the Clash of Clans data of the current members (`Players`).
  * 2. Awards the commendations of every period closed since the last run (completed months,
- *    ended Raid Weekends with their members, ended CWL seasons), once: the period is then
+ *    ended Raid Weekends with their members, ended CWL seasons, ended game seasons), once: the period is then
  *    marked as processed and never recomputed, so the history survives rule changes.
  *
  * Safe to interrupt and to run twice: awards are unique per period, player and commendation,
  * the players' totals are recounted from the awards, and the period is marked last.
  */
 export async function syncCommendations(now = new Date()): Promise<CommendationSyncReport> {
-  const report: CommendationSyncReport = { membersUpdated: 0, periodsProcessed: [], awards: 0, error: null };
+  const report: CommendationSyncReport = { membersUpdated: 0, periodsProcessed: [], awards: 0, nextCheckAt: null, error: null };
   const clanTag = env().CLAN_TAG;
   if (!clanTag) return report;
 
   try {
     const members = await syncMembers(now);
     report.membersUpdated = members.created.length + members.updated;
+    report.nextCheckAt = members.nextCheckAt;
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;
     // The commendations do not depend on the API: keep going with the saved data.
@@ -121,18 +127,21 @@ export interface MembersSyncResult {
   updated: number;
   /** Saved players no longer in the clan (marked `inClan: false`). */
   left: number;
+  /** Last read of the donations before the game season ends (ISO 8601), if known. */
+  nextCheckAt: string | null;
 }
 
 /**
  * Saves the current members of the clan in `Players`: creates the missing ones and refreshes the
- * Clash of Clans data of the others; players no longer listed are marked as gone. Commendations
- * are left untouched. Throws {@link CocApiError} if the clan cannot be read.
+ * Clash of Clans data of the others; players no longer listed are marked as gone. Also counts
+ * the troops donated since the last read (`recordDonations`). Commendations are left untouched.
+ * Throws {@link CocApiError} if the clan cannot be read.
  */
 export async function syncMembers(now = new Date()): Promise<MembersSyncResult> {
   const clanTag = env().CLAN_TAG;
   if (!clanTag) throw new CocApiError(0, 'config.missingClanTag', 'CLAN_TAG is not set');
   const { memberList } = clanSchema.parse(await fetchClan(clanTag));
-  const result: MembersSyncResult = { created: [], updated: 0, left: 0 };
+  const result: MembersSyncResult = { created: [], updated: 0, left: 0, nextCheckAt: null };
   for (const m of memberList) {
     const write = await PlayerModel.updateOne(
       { tag: m.tag },
@@ -160,6 +169,7 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
     { $set: { inClan: false } },
   );
   result.left = gone.modifiedCount;
+  result.nextCheckAt = (await recordDonations(memberList, now))?.toISOString() ?? null;
   return result;
 }
 
@@ -195,6 +205,17 @@ async function closedPeriods(now: Date, processed: Set<string>): Promise<ClosedP
     if (processed.has(key)) continue;
     const players = cwlPlayers(season.wars.map((w) => w.war as LeagueWar), clanTag);
     periods.push({ key, awards: awardCwlCommendations(players), names: new Map(players.map((p) => [p.tag, p.name])) });
+  }
+
+  // Ended game seasons, with the donations counted by the backend.
+  for (const season of await endedSeasons(now)) {
+    const key = `donations:${season.season}`;
+    if (processed.has(key)) continue;
+    periods.push({
+      key,
+      awards: awardDonationCommendations(season.players),
+      names: new Map(season.players.map((p) => [p.tag, p.name])),
+    });
   }
   return periods;
 }

@@ -97,6 +97,14 @@ export function fetchRaidSeasons(clanTag: string, limit = 5): Promise<unknown> {
 }
 
 /**
+ * `GET /goldpass/seasons/current`: start and end of the game season in progress. Donations of
+ * the clan members count over the season.
+ */
+export function fetchGoldPassSeason(): Promise<unknown> {
+  return cocGet('/goldpass/seasons/current');
+}
+
+/**
  * `POST /players/{tag}/verifytoken`: checks the player's API token, shown in the game under
  * Settings → More Settings. Only the owner of the account can read it, and it changes
  * regularly, so a match proves ownership. Throws {@link CocApiError} (404: unknown player).

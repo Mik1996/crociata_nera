@@ -200,7 +200,7 @@ describe('POST /api/v1/admin/players/sync', () => {
 
     const res = await call(syncPlayers, { token: admin, method: 'POST' });
     expect(res.status).toBe(200);
-    expect(res.body.result).toEqual({ created: [{ tag: '#AAA111', name: 'Alice' }], updated: 1, left: 1 });
+    expect(res.body.result).toEqual({ created: [{ tag: '#AAA111', name: 'Alice' }], updated: 1, left: 1, nextCheckAt: null });
     expect(await PlayerModel.findOne({ tag: '#AAA222' })).toMatchObject({
       name: 'Bob', inClan: true, commendations: [expect.objectContaining({ id: '95000024', name: 'present-gold', quantity: 1 })],
     });

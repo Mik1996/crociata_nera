@@ -21,12 +21,12 @@ describe('PlayerCommendations', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
-    expect(medals).toHaveLength(24);
+    expect(medals).toHaveLength(27);
     const champion = medals.find((m) => m.querySelector('app-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
-    expect(el.querySelectorAll('li.medal--none')).toHaveLength(22);
+    expect(el.querySelectorAll('li.medal--none')).toHaveLength(25);
     expect(el.querySelector('.summary__total')!.textContent).toContain('4');
   });
 

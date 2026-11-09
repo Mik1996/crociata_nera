@@ -703,6 +703,12 @@
       "gold": "Conquistador de Capitales",
       "description": "Más de {{n}} de oro de la capital saqueado en el último Raid Weekend."
     },
+    "donor": {
+      "bronze": "Portador de Refuerzos",
+      "silver": "Señor de las Legiones",
+      "gold": "Padre de los Ejércitos",
+      "description": "Al menos {{n}} tropas donadas en la última temporada."
+    },
     "wall": {
       "bronze": "Escudo Firme",
       "silver": "Bastión de Acero",
@@ -724,7 +730,7 @@
     "history": {
       "earned": "distinciones conseguidas",
       "earnedOne": "distinción conseguida",
-      "hint": "Contadas al terminar cada periodo (mes de guerra, Raid Weekend, temporada de Liga) y guardadas: no cambian aunque cambien las reglas.",
+      "hint": "Contadas al terminar cada periodo (mes de guerra, Raid Weekend, temporada de Liga, temporada del juego) y guardadas: no cambian aunque cambien las reglas.",
       "times": "{{n}} veces",
       "others": "Otras distinciones"
     },

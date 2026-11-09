@@ -12,6 +12,7 @@ export type CommendationType =
   | 'giantSlayer'
   | 'cwlStriker'
   | 'capitalRaider'
+  | 'donor'
   | 'wall'
   | 'tireless'
   | 'present';
@@ -28,6 +29,7 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
   'giantSlayer',
   'cwlStriker',
   'capitalRaider',
+  'donor',
   'wall',
   'tireless',
   'present',
@@ -43,6 +45,7 @@ export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly
   present: { bronze: 50, silver: 75, gold: 100 },
   cwlStriker: { bronze: 2.5, silver: 2.75, gold: 3 },
   capitalRaider: { bronze: 25_000, silver: 27_500, gold: 30_000 },
+  donor: { bronze: 5_000, silver: 7_500, gold: 10_000 },
 };
 
 export const MIN_WARS = 3;
@@ -66,6 +69,7 @@ export const COMMENDATION_IDS: Readonly<Record<CommendationType, Readonly<Record
   wall: { bronze: '95000016', silver: '95000017', gold: '95000018' },
   tireless: { bronze: '95000019', silver: '95000020', gold: '95000021' },
   present: { bronze: '95000022', silver: '95000023', gold: '95000024' },
+  donor: { bronze: '95000025', silver: '95000026', gold: '95000027' },
 };
 
 /** Unique id of a commendation (see {@link COMMENDATION_IDS}). */
@@ -142,6 +146,13 @@ export function awardMonthCommendations(period: HistoryPeriod): Awards {
 export function awardRaidCommendations(members: { tag: string; capitalResourcesLooted: number }[]): Awards {
   const awards: Awards = new Map();
   for (const m of members) give(awards, m.tag, 'capitalRaider', m.capitalResourcesLooted);
+  return awards;
+}
+
+/** `donor` of an ended game season, from the troops donated as counted by the backend. */
+export function awardDonationCommendations(players: { tag: string; donations: number }[]): Awards {
+  const awards: Awards = new Map();
+  for (const p of players) give(awards, p.tag, 'donor', p.donations);
   return awards;
 }
 

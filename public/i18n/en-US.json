@@ -703,6 +703,12 @@
       "gold": "Conqueror of Capitals",
       "description": "More than {{n}} Capital Gold looted in the last Raid Weekend."
     },
+    "donor": {
+      "bronze": "Bearer of Reinforcements",
+      "silver": "Lord of Legions",
+      "gold": "Father of Armies",
+      "description": "At least {{n}} troops donated in the last season."
+    },
     "wall": {
       "bronze": "Steady Shield",
       "silver": "Steel Bastion",
@@ -724,7 +730,7 @@
     "history": {
       "earned": "commendations earned",
       "earnedOne": "commendation earned",
-      "hint": "Counted when each period ended (war month, Raid Weekend, League season) and saved: they stay the same even if the rules change.",
+      "hint": "Counted when each period ended (war month, Raid Weekend, League season, game season) and saved: they stay the same even if the rules change.",
       "times": "{{n}} times",
       "others": "Other commendations"
     },

@@ -15,7 +15,7 @@ import { openCommendationDialog } from './open-commendation-dialog';
 
 /**
  * Game-style profile header: Town Hall, experience level, name, clan, league, trophies and
- * the commendations (last completed month, last Raid Weekend, last Clan War League).
+ * the commendations (last completed month, last Raid Weekend, last Clan War League, last season).
  */
 @Component({
   selector: 'app-player-banner',
@@ -46,6 +46,7 @@ export class PlayerBanner {
         ? `${day.format(new Date(c.raidWeekend.startTime))} – ${day.format(new Date(c.raidWeekend.endTime))}`
         : undefined,
       cwlStriker: c.cwlSeason ? `CWL ${periodLabel(c.cwlSeason, locale)}` : undefined,
+      donor: c.donationSeason ? periodLabel(c.donationSeason, locale) : undefined,
     };
     const month = periodLabel(c.month, locale);
     return c.items.map((item) => ({

@@ -5,6 +5,7 @@ export type CommendationType =
   | 'giantSlayer'
   | 'cwlStriker'
   | 'capitalRaider'
+  | 'donor'
   | 'wall'
   | 'tireless'
   | 'present';
@@ -29,6 +30,8 @@ export interface CommendationPeriods {
   raidWeekend?: { startTime: string; endTime: string };
   /** Last ended Clan War League season, `YYYY-MM` (`cwlStriker`). */
   cwlSeason?: string;
+  /** Last ended game season, `YYYY-MM` (`donor`). */
+  donationSeason?: string;
 }
 
 /** Commendations earned by a player. */

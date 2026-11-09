@@ -1,7 +1,8 @@
-import { CommendationTier, CommendationType, CwlSeason, HistoryAttack, HistoryPeriod, HistoryWar, HistoryWarPlayer, RaidSeason } from '../models';
+import { CommendationTier, CommendationType, CwlSeason, DonationSeason, HistoryAttack, HistoryPeriod, HistoryWar, HistoryWarPlayer, RaidSeason } from '../models';
 import {
   awardCommendations,
   awardCwlCommendations,
+  awardDonationCommendations,
   awardRaidCommendations,
   compareCommendations,
   countCommendations,
@@ -161,7 +162,7 @@ describe('awardCommendations', () => {
   });
 });
 
-describe('Raid Weekend and CWL commendations', () => {
+describe('Raid Weekend, CWL and donation commendations', () => {
   it('capital raiders need MORE than 25 000, 27 500 and 30 000 Capital Gold', () => {
     expect(tierFor('capitalRaider', 25_000)).toBeNull();
     expect(tierFor('capitalRaider', 25_001)).toBe('bronze');
@@ -198,6 +199,23 @@ describe('Raid Weekend and CWL commendations', () => {
     expect(awards.get('#ALMOST')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
     expect(awards.has('#LUCKY')).toBe(false);
     expect(awards.get('#GOOD')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+  });
+
+  it('donors need at least 5 000, 7 500 and 10 000 troops', () => {
+    expect(tierFor('donor', 4_999)).toBeNull();
+    expect(tierFor('donor', 5_000)).toBe('bronze');
+    expect(tierFor('donor', 7_499)).toBe('bronze');
+    expect(tierFor('donor', 7_500)).toBe('silver');
+    expect(tierFor('donor', 10_000)).toBe('gold');
+  });
+
+  it('awards the donors of a season', () => {
+    const player = (tag: string, donations: number) => ({ tag, name: tag, donations });
+    const season = { players: [player('#GOLD', 12_000), player('#BRONZE', 5_000), player('#NONE', 900)] } as DonationSeason;
+    const awards = awardDonationCommendations(season);
+    expect(awards.get('#GOLD')).toEqual([{ type: 'donor', tier: 'gold' }]);
+    expect(awards.get('#BRONZE')).toEqual([{ type: 'donor', tier: 'bronze' }]);
+    expect(awards.has('#NONE')).toBe(false);
   });
 
   it('merges the commendations of different periods, most valuable first', () => {

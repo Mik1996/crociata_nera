@@ -6,7 +6,7 @@ import { InferSchemaType, model, models, Model, Schema } from 'mongoose';
  */
 const commendationAwardSchema = new Schema(
   {
-    /** `month:2026-10`, `raid:2026-10-30T07:00:00.000Z` or `cwl:2026-10`. */
+    /** `month:2026-10`, `raid:2026-10-30T07:00:00.000Z`, `cwl:2026-10` or `donations:2026-10`. */
     periodKey: { type: String, required: true },
     playerTag: { type: String, required: true },
     playerName: { type: String, required: true },

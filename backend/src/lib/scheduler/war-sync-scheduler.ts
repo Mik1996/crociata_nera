@@ -13,6 +13,8 @@ interface SchedulerState {
   nextRunAt: Date | null;
   /** Last read before the end of the Raid Weekend in progress. */
   raidCheckAt: Date | null;
+  /** Last read of the donations before the end of the game season. */
+  seasonCheckAt: Date | null;
 }
 
 // One scheduler per process, even if the module is evaluated again (dev hot reload).
@@ -24,6 +26,7 @@ const state: SchedulerState = (globalState.__warSync ??= {
   lastReport: null,
   nextRunAt: null,
   raidCheckAt: null,
+  seasonCheckAt: null,
 });
 
 /** Shortest wait between two runs, whatever the end time of the current war. */
@@ -94,10 +97,11 @@ async function runRaidSync(): Promise<void> {
   }
 }
 
-/** Members' data and commendations of the closed periods (saved once, never recomputed). */
+/** Members' data and donations, commendations of the closed periods (saved once, never recomputed). */
 async function runCommendationSync(): Promise<void> {
   try {
     const result = await syncCommendations();
+    state.seasonCheckAt = result.nextCheckAt ? new Date(result.nextCheckAt) : null;
     if (result.error) console.warn(`[commendations] members not updated: ${result.error.reason} (${result.error.status})`);
     if (result.periodsProcessed.length) {
       console.info(`[commendations] ${result.awards} awarded for ${result.periodsProcessed.join(', ')}`);
@@ -129,7 +133,8 @@ async function runAndReschedule(): Promise<void> {
   const interval = env().WAR_SYNC_INTERVAL_MINUTES * 60_000;
   const untilEnd = report?.nextCheckAt ? new Date(report.nextCheckAt).getTime() - Date.now() : Infinity;
   const untilRaidEnd = state.raidCheckAt ? state.raidCheckAt.getTime() - Date.now() : Infinity;
-  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd, untilRaidEnd));
+  const untilSeasonEnd = state.seasonCheckAt ? state.seasonCheckAt.getTime() - Date.now() : Infinity;
+  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd, untilRaidEnd, untilSeasonEnd));
   state.nextRunAt = new Date(Date.now() + delay);
   state.timer = setTimeout(() => void runAndReschedule(), delay);
   state.timer.unref();

@@ -9,3 +9,4 @@ export * from './player-profile.model';
 export * from './commendation.model';
 export * from './cwl.model';
 export * from './raid.model';
+export * from './donation.model';

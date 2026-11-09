@@ -2,9 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { generateMockData, MockDataset } from '../mock/mock-data';
-import { generateMockCwlSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
+import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
 import { mockPlayer } from '../mock/mock-player';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
 import { historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
 import { CocApiService } from './coc-api';
@@ -19,6 +19,7 @@ export class MockCocApiService extends CocApiService {
 
   private cwl?: CocCwlSeasonRecord[];
   private raids?: CocCapitalRaidSeason[];
+  private donations?: DonationSeason[];
 
   private get data(): MockDataset {
     this.dataset ??= generateMockData({ clanTag: this.config.clanTag, clanName: this.config.clanName });
@@ -36,6 +37,12 @@ export class MockCocApiService extends CocApiService {
   private get raidSeasons(): CocCapitalRaidSeason[] {
     this.raids ??= generateMockRaidSeasons({ members: this.data.clan.members, now: new Date() });
     return this.raids;
+  }
+
+  /** Game seasons with the donations, in the backend format. */
+  private get donationSeasons(): DonationSeason[] {
+    this.donations ??= generateMockDonationSeasons({ members: this.data.clan.members, now: new Date() });
+    return this.donations;
   }
 
   private respond<T>(value: T): Observable<T> {
@@ -94,6 +101,10 @@ export class MockCocApiService extends CocApiService {
 
   getRaidSeasons(limit = 10): Observable<RaidSeason[]> {
     return this.respond(this.raidSeasons.slice(0, limit).map(mapRaidSeason));
+  }
+
+  getDonationSeasons(limit = 12): Observable<DonationSeason[]> {
+    return this.respond(this.donationSeasons.slice(0, limit));
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {

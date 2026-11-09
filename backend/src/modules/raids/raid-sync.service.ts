@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { env } from '@/lib/config/env';
 import { CocApiError, fetchRaidSeasons } from '@/lib/coc/coc-client';
+import { cocDate } from '@/lib/coc/coc-date';
 import { RaidSeasonModel } from './raid.model';
 
 export interface RaidSyncReport {
@@ -17,17 +18,6 @@ export interface RaidSyncReport {
 const SEASONS_PER_RUN = 3;
 /** The last read happens this long before the end of the weekend. */
 const BEFORE_END_MS = 60_000;
-
-/** `20261030T070000.000Z` -> Date. */
-const cocDate = z.string().transform((value, ctx) => {
-  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/.exec(value);
-  const date = m ? new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`) : new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    ctx.addIssue({ code: 'custom', message: `Invalid date: ${value}` });
-    return z.NEVER;
-  }
-  return date;
-});
 
 const seasonSchema = z
   .object({ state: z.string(), startTime: cocDate, endTime: cocDate, members: z.array(z.unknown()).optional() })

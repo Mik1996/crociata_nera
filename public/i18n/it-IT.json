@@ -703,6 +703,12 @@
       "gold": "Conquistatore di Capitali",
       "description": "Più di {{n}} di oro della capitale saccheggiato nell'ultimo Raid Weekend."
     },
+    "donor": {
+      "bronze": "Portatore di Rinforzi",
+      "silver": "Signore delle Legioni",
+      "gold": "Padre degli Eserciti",
+      "description": "Almeno {{n}} truppe donate nella scorsa stagione."
+    },
     "wall": {
       "bronze": "Scudo Saldo",
       "silver": "Bastione d'Acciaio",
@@ -724,7 +730,7 @@
     "history": {
       "earned": "encomi conquistati",
       "earnedOne": "encomio conquistato",
-      "hint": "Contati quando ogni periodo si è concluso (mese di guerra, Raid Weekend, stagione della Lega) e salvati: restano invariati anche se le regole cambiano.",
+      "hint": "Contati quando ogni periodo si è concluso (mese di guerra, Raid Weekend, stagione della Lega, stagione del gioco) e salvati: restano invariati anche se le regole cambiano.",
       "times": "{{n}} volte",
       "others": "Altri encomi"
     },

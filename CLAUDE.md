@@ -81,6 +81,10 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   successor is still alive. The frontend signs out only on a 401 from refresh.
 - Scheduler (`backend/src/lib/scheduler/war-sync-scheduler.ts`) syncs wars, CWL, raids and
   commendations. Commendations are awarded once per closed period and frozen.
+- Donations (`donor` commendation): the in-game `memberList[].donations` counter resets when a
+  player leaves the clan and at season end, so the backend adds up the counter's growth between
+  reads (`DonationCounters` → `DonationTotals`, per Gold Pass season from `/goldpass/seasons/current`,
+  `backend/src/modules/donations/`) and reads once more a minute before the season ends.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the

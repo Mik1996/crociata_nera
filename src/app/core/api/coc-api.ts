@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -41,6 +41,12 @@ export abstract class CocApiService {
 
   /** Raid Weekends of the Clan Capital, most recent first (`limit`: how many, default about 2 months). */
   abstract getRaidSeasons(limit?: number): Observable<RaidSeason[]>;
+
+  /**
+   * Game seasons with the troops donated by each player (counted by the backend, which keeps
+   * the donations made before leaving the clan), most recent first, the one in progress included.
+   */
+  abstract getDonationSeasons(limit?: number): Observable<DonationSeason[]>;
 
   /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
   abstract getPlayer(tag: string): Observable<PlayerProfile | null>;
