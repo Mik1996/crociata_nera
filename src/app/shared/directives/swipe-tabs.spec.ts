@@ -33,11 +33,29 @@ describe('SwipeTabs', () => {
     const bar = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.mat-mdc-tab-label-container')!;
     const scrollTo = vi.fn();
     bar.scrollTo = scrollTo as unknown as typeof bar.scrollTo;
-    window.matchMedia ??= (() => ({ matches: false })) as unknown as typeof window.matchMedia;
+    // jsdom has no matchMedia. The test files share one window: the stub must be a complete
+    // MediaQueryList (ThemeService listens to it) and must be removed afterwards.
+    const stubbed = typeof window.matchMedia !== 'function';
+    if (stubbed) {
+      window.matchMedia = ((media: string) => ({
+        matches: false,
+        media,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+      })) as unknown as typeof window.matchMedia;
+    }
 
-    (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.mat-mdc-tab')[1].click();
-    await fixture.whenStable();
+    try {
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.mat-mdc-tab')[1].click();
+      await fixture.whenStable();
 
-    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: expect.any(Number) }));
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: expect.any(Number) }));
+    } finally {
+      if (stubbed) delete (window as { matchMedia?: unknown }).matchMedia;
+    }
   });
 });
