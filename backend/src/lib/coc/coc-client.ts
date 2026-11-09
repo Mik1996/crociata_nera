@@ -96,6 +96,16 @@ export function fetchRaidSeasons(clanTag: string, limit = 5): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/capitalraidseasons?limit=${limit}`);
 }
 
+/** `GET /locations/{id}/rankings/clans`: clan trophy rankings of a location (top 200). */
+export function fetchClanRankings(locationId: number, limit = 200): Promise<unknown> {
+  return cocGet(`/locations/${locationId}/rankings/clans?limit=${limit}`);
+}
+
+/** `GET /locations/{id}/rankings/capitals`: Clan Capital rankings of a location (top 200). */
+export function fetchCapitalRankings(locationId: number, limit = 200): Promise<unknown> {
+  return cocGet(`/locations/${locationId}/rankings/capitals?limit=${limit}`);
+}
+
 /**
  * `GET /goldpass/seasons/current`: start and end of the game season in progress. Donations of
  * the clan members count over the season.

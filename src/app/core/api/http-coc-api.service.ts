@@ -4,7 +4,7 @@ import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
 import { CocApiService } from './coc-api';
 import { CocApiClient } from './coc-api-client';
@@ -84,6 +84,13 @@ export class HttpCocApiService extends CocApiService {
         }),
       ),
     );
+  }
+
+  /** Only the backend has them: it keeps the best values ever read from the API. */
+  getClanRecords(): Observable<ClanRecords> {
+    return this.http
+      .get<BaseResult<ClanRecords>>(`${this.config.backendBaseUrl}/clan/records`, { context: CACHE.archive })
+      .pipe(map((response) => response.result!));
   }
 
   /** Position of the clan in a location ranking: `null` beyond the top 200, `undefined` on errors. */

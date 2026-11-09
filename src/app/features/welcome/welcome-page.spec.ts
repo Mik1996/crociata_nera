@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
 import { APP_CONFIG, AppConfig } from '../../core/config/app-config';
-import { Clan, ClanRanks } from '../../core/models';
+import { Clan, ClanRanks, ClanRecords } from '../../core/models';
 import { WelcomePage } from './welcome-page';
 
 const clan: Clan = {
@@ -26,11 +26,27 @@ const clan: Clan = {
   members: [],
 };
 
+const records: ClanRecords = {
+  perfectWars: { value: 137, achievedAt: null },
+  warWinStreak: { value: 50, achievedAt: null },
+  cwlLeague: { id: 48000015, name: 'Master League I', achievedAt: null },
+  localRank: { value: 37, achievedAt: null },
+  localCapitalRank: { value: 12, achievedAt: null },
+  capitalPoints: { value: 5380, achievedAt: '2026-11-08T18:00:00.000Z' },
+};
+
 describe('WelcomePage', () => {
-  async function render(data: Clan, ranks: ClanRanks = { local: 12, global: null }) {
+  async function render(
+    data: Clan,
+    ranks: ClanRanks = { local: 12, global: null },
+    clanRecords: Observable<ClanRecords> = of(records),
+  ) {
     TestBed.configureTestingModule({
       providers: [
-        { provide: CocApiService, useValue: { getClan: () => of(data), getClanRanks: () => of(ranks) } },
+        {
+          provide: CocApiService,
+          useValue: { getClan: () => of(data), getClanRanks: () => of(ranks), getClanRecords: () => clanRecords },
+        },
         { provide: APP_CONFIG, useValue: { clanTag: '#2J8JVVCLC' } as AppConfig },
       ],
     });
@@ -87,6 +103,40 @@ describe('WelcomePage', () => {
   it('hides the rankings that are not available', async () => {
     const el = await render(clan, { local: undefined, global: undefined });
     expect(el.querySelectorAll('.hero__stat--rank')).toHaveLength(0);
+  });
+
+  it('shows the clan records', async () => {
+    const el = await render({ ...clan, countryCode: 'IT' });
+    const tiles = Array.from(el.querySelectorAll('.record')).map((li) => [
+      li.querySelector('.record__value')?.textContent?.trim(),
+      li.querySelector('.record__label')?.textContent?.trim(),
+    ]);
+    expect(el.querySelector('#records-title')!.textContent).toContain('Record del clan');
+    expect(tiles).toEqual([
+      ['137', 'Guerre perfette'],
+      ['50', 'Serie di vittorie guerra'],
+      ['Master League I', 'Miglior lega CWL'],
+      ['#37', 'Miglior posizione Italia'],
+      ['#12', 'Miglior posizione capitale Italia'],
+      ['5.380', 'Record trofei capitale'],
+    ]);
+    expect(el.querySelector<HTMLImageElement>('[data-record="cwlLeague"] img')!.getAttribute('src')).toBe(
+      'game/war-leagues/master-1.webp',
+    );
+    // Waving Italian flag for the country ranking, Legend League for the capital one.
+    expect(el.querySelectorAll('[data-record="localRank"] .flag__slice').length).toBeGreaterThan(1);
+    expect(el.querySelector<HTMLImageElement>('[data-record="localCapitalRank"] img')!.getAttribute('src')).toBe(
+      'game/leagues/legend.webp',
+    );
+    // Only records reached while tracked by the backend have a date.
+    expect(el.querySelectorAll('.record__date')).toHaveLength(1);
+    expect(el.querySelector('[data-record="capitalPoints"] .record__date')!.textContent).toContain('Raggiunto il');
+  });
+
+  it('hides the records when the backend cannot answer', async () => {
+    const el = await render(clan, undefined, throwError(() => new Error('offline')));
+    expect(el.querySelector('.records')).toBeNull();
+    expect(el.querySelector('.clan-name__metal')).not.toBeNull();
   });
 
   it('invites players to join, with the in-game link and the open spots', async () => {

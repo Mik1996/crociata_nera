@@ -4,7 +4,7 @@ import { APP_CONFIG } from '../config/app-config';
 import { generateMockData, MockDataset } from '../mock/mock-data';
 import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
 import { mockPlayer } from '../mock/mock-player';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
 import { historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
 import { CocApiService } from './coc-api';
@@ -57,6 +57,17 @@ export class MockCocApiService extends CocApiService {
   /** In the top 200 of its country, not worldwide. */
   getClanRanks(): Observable<ClanRanks> {
     return this.respond({ local: 27, global: null });
+  }
+
+  getClanRecords(): Observable<ClanRecords> {
+    return this.respond({
+      perfectWars: { value: 137, achievedAt: null },
+      warWinStreak: { value: 50, achievedAt: null },
+      cwlLeague: { id: 48000015, name: 'Master League I', achievedAt: null },
+      localRank: { value: 37, achievedAt: null },
+      localCapitalRank: { value: 12, achievedAt: null },
+      capitalPoints: { value: 5380, achievedAt: '2026-11-08T18:00:00.000Z' },
+    });
   }
 
   getCurrentWar(): Observable<War | null> {

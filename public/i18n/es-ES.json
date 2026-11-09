@@ -519,6 +519,18 @@
       "losses": "Derrotas",
       "winRate": "% de victorias"
     },
+    "records": {
+      "title": "Récords del clan",
+      "perfectWars": "Guerras perfectas",
+      "winStreak": "Racha de victorias en guerra",
+      "cwlLeague": "Mejor liga de la CWL",
+      "localRank": "Mejor puesto en {{country}}",
+      "localRankNoCountry": "Mejor puesto nacional",
+      "capitalRank": "Mejor puesto de capital en {{country}}",
+      "capitalRankNoCountry": "Mejor puesto nacional de capital",
+      "capitalPoints": "Récord de trofeos de capital",
+      "achievedAt": "Alcanzado el {{date}}"
+    },
     "recruit": {
       "kicker": "Reclutamiento abierto",
       "title": "Únete a Crociata Nera",

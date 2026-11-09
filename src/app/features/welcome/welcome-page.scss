@@ -505,6 +505,147 @@ $scene-muted: #cfd7e8;
 }
 
 // ---------------------------------------------------------------------------
+// Records
+// ---------------------------------------------------------------------------
+
+.records {
+  // Container of the grid: the columns follow the card's width, not the screen's.
+  container: records / inline-size;
+  overflow: hidden;
+  margin-top: 0.9rem;
+}
+
+.records__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.9rem 1rem 1rem;
+  list-style: none;
+}
+
+// Six records: three rows of two, then two rows of three.
+@container records (min-width: 520px) {
+  .records__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container records (min-width: 800px) {
+  .records__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.record {
+  // Container of the value: long league names shrink to fit the tile.
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'icon value'
+    'icon label'
+    'icon date';
+  align-items: center;
+  column-gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--cn-border);
+  border-radius: 10px;
+  background: var(--cn-tint-gold);
+}
+
+.record__icon {
+  grid-area: icon;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.3));
+  }
+
+  mat-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 44px;
+    color: var(--cn-game-gold);
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+  }
+}
+
+// Italian flag waving in the wind: vertical slices of the same picture, moving up and down
+// one after the other, with a light that follows the wave.
+.flag {
+  --slices: 26;
+  display: flex;
+  width: 52px;
+  height: 36px;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.3));
+}
+
+.flag__slice {
+  flex: 1;
+  background: linear-gradient(90deg, #009246 0 33.34%, #f4f5f0 33.34% 66.67%, #ce2b37 66.67%);
+  background-size: calc(var(--slices) * 100%) 100%;
+  background-position: calc(var(--i) / (var(--slices) - 1) * 100%) 0;
+  animation: flag-wave 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.06s);
+
+  &:first-child {
+    border-radius: 2px 0 0 2px;
+  }
+
+  &:last-child {
+    border-radius: 0 2px 2px 0;
+  }
+}
+
+@keyframes flag-wave {
+  0%,
+  100% {
+    transform: translateY(-3px);
+    filter: brightness(1.05);
+  }
+  50% {
+    transform: translateY(3px);
+    filter: brightness(0.88);
+  }
+}
+
+.record__value {
+  grid-area: value;
+  font-family: var(--cn-font-display);
+  font-size: min(var(--cn-fs-xl), 14cqi);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--cn-heading);
+}
+
+// League name: smaller than a number, may wrap on two lines.
+.record__value--text {
+  font-size: max(var(--cn-fs-sm), min(var(--cn-fs-lg), 9cqi));
+  white-space: normal;
+}
+
+.record__label {
+  grid-area: label;
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cn-text-muted);
+}
+
+.record__date {
+  grid-area: date;
+  font-size: var(--cn-fs-2xs);
+  color: var(--cn-text-muted);
+}
+
+// ---------------------------------------------------------------------------
 // Small screens and reduced motion
 // ---------------------------------------------------------------------------
 
@@ -523,7 +664,8 @@ $scene-muted: #cfd7e8;
   .clan-name__metal,
   .badge-stage__rays,
   .badge-stage__glow,
-  .badge-stage__badge {
+  .badge-stage__badge,
+  .flag__slice {
     animation: none;
   }
 

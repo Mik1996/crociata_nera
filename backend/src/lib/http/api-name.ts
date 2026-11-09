@@ -13,6 +13,7 @@ export enum ApiName {
   VERIFY_EMAIL = 'verify-email',
   RESEND_VERIFICATION = 'resend-verification',
   WARS_READ = 'wars-read',
+  CLAN_RECORDS = 'clan-records',
   ADMIN = 'admin',
 }
 
@@ -39,5 +40,7 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.VERIFY_EMAIL]: { limit: 20, windowMs: 15 * MINUTE },
   [ApiName.RESEND_VERIFICATION]: { limit: 3, windowMs: 15 * MINUTE },
   [ApiName.WARS_READ]: { limit: 120, windowMs: MINUTE },
+  // Public (welcome page).
+  [ApiName.CLAN_RECORDS]: { limit: 60, windowMs: MINUTE },
   [ApiName.ADMIN]: { limit: 120, windowMs: MINUTE },
 };

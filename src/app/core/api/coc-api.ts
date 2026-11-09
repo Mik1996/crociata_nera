@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Clan, ClanRanks, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -14,6 +14,9 @@ export abstract class CocApiService {
 
   /** Position of the clan in its country's and in the worldwide trophy rankings. */
   abstract getClanRanks(): Observable<ClanRanks>;
+
+  /** All-time records of the clan (perfect wars, win streak, best league and rankings), kept by the backend. */
+  abstract getClanRecords(): Observable<ClanRecords>;
 
   /** War in progress or in preparation; `null` if the clan is not at war. */
   abstract getCurrentWar(): Observable<War | null>;

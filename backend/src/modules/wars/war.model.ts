@@ -74,6 +74,8 @@ const warSchema = new Schema(
     endedAt: { type: Date, default: null },
     /** `true` once final stars, destruction, result and XP were checked against the war log. */
     warLogMatched: { type: Boolean, default: false },
+    /** `true` once the war, won with every star, was added to the perfect wars record. */
+    perfectCounted: { type: Boolean, default: false },
     /** Last time the war was read from the Clash of Clans API. */
     lastSyncedAt: { type: Date, required: true },
   },

@@ -172,6 +172,47 @@
         </section>
       </div>
 
+      <!-- All-time records, kept by the backend -->
+      @if (records(); as list) {
+        <section class="records cn-card" aria-labelledby="records-title">
+          <h2 id="records-title" class="pillar__title">{{ 'welcome.records.title' | translate }}</h2>
+          <ul class="records__grid">
+            @for (r of list; track r.id) {
+              <li class="record" [attr.data-record]="r.id">
+                <span class="record__icon" aria-hidden="true">
+                  @if (r.image) {
+                    <img [src]="r.image" alt="" width="56" height="56" />
+                  } @else if (r.flag) {
+                    <span class="flag">
+                      @for (i of flagSlices; track i) {
+                        <span class="flag__slice" [style.--i]="i"></span>
+                      }
+                    </span>
+                  } @else {
+                    <mat-icon>{{ r.icon }}</mat-icon>
+                  }
+                </span>
+                <span class="record__value cn-num" [class.record__value--text]="r.text">
+                  @if (r.rank !== undefined) {
+                    #{{ r.rank }}
+                  } @else if (r.text) {
+                    {{ r.text }}
+                  } @else {
+                    {{ r.value | localNumber }}
+                  }
+                </span>
+                <span class="record__label">{{ r.label | translate: { country: r.country } }}</span>
+                @if (r.achievedAt) {
+                  <span class="record__date">{{
+                    'welcome.records.achievedAt' | translate: { date: (r.achievedAt | localDate) }
+                  }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
       <app-recruitment-banner [clan]="c" />
       <app-clan-rules />
     }

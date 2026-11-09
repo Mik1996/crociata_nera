@@ -81,3 +81,25 @@ export interface ClanRanks {
   /** Worldwide ranking. */
   global?: number | null;
 }
+
+/** A best value of the clan; `achievedAt` is `null` for records reached before the backend tracked them. */
+export interface ClanRecord {
+  value: number;
+  achievedAt: string | null;
+}
+
+/** All-time records of the clan, kept by the backend (`GET /api/v1/clan/records`). */
+export interface ClanRecords {
+  /** Wars won with every star. */
+  perfectWars: ClanRecord;
+  /** Longest series of consecutive war wins. */
+  warWinStreak: ClanRecord;
+  /** Highest Clan War League reached (English name from the API). */
+  cwlLeague: { id: number; name: string; achievedAt: string | null };
+  /** Best position in the clan rankings of the clan's country. */
+  localRank: ClanRecord;
+  /** Best position in the Clan Capital rankings of the clan's country. */
+  localCapitalRank: ClanRecord;
+  /** Most Clan Capital trophies. */
+  capitalPoints: ClanRecord;
+}

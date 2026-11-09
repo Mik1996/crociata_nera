@@ -3,6 +3,7 @@ import { connectToDatabase } from '../db/mongoose';
 import { syncCommendations } from '@/modules/commendations/commendation-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
+import { syncClanRecords } from '@/modules/records/clan-records.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 
 interface SchedulerState {
@@ -67,6 +68,7 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     logReport(report);
     await runCwlSync();
     await runRaidSync();
+    await runRecordSync();
     // Last: commendations of the periods closed by the syncs above.
     await runCommendationSync();
     return report;
@@ -94,6 +96,18 @@ async function runRaidSync(): Promise<void> {
     if (raids.error) console.warn(`[raid-sync] ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
   } catch (error) {
     console.error('[raid-sync] run failed:', error);
+  }
+}
+
+/** Clan records: perfect wars of the wars saved above, best values read from the API. */
+async function runRecordSync(): Promise<void> {
+  try {
+    const result = await syncClanRecords();
+    if (result.error) console.warn(`[records] ${result.error.reason} (${result.error.status}): ${result.error.message}`);
+    if (result.perfectWars.length) console.info(`[records] perfect wars: ${result.perfectWars.join(', ')}`);
+    if (result.improved.length) console.info(`[records] new records: ${result.improved.join(', ')}`);
+  } catch (error) {
+    console.error('[records] run failed:', error);
   }
 }
 
