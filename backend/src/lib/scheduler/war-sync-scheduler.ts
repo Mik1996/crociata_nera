@@ -82,7 +82,8 @@ async function runCwlSync(): Promise<void> {
   try {
     const cwl = await syncCwl();
     if (cwl.error) console.warn(`[cwl-sync] ${cwl.error.reason} (${cwl.error.status}): ${cwl.error.message}`);
-    else if (cwl.season) console.info(`[cwl-sync] season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
+    if (cwl.closed.length) console.info(`[cwl-sync] seasons closed after the group disappeared: ${cwl.closed.join(', ')}`);
+    if (!cwl.error && cwl.season) console.info(`[cwl-sync] season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
   } catch (error) {
     console.error('[cwl-sync] run failed:', error);
   }
