@@ -7,7 +7,13 @@ import { provideCocApiTest } from '../../testing/fixtures';
 import { CommendationService } from './commendation.service';
 
 describe('CommendationService history', () => {
+  afterEach(() => vi.useRealTimers());
+
   it("counts every medal earned over the saved periods (mock: the leader's golds)", async () => {
+    // The mock seasons are generated around "now": a fixed date (a Wednesday, no Raid Weekend in
+    // progress) keeps the counts stable whatever day the tests run.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T12:00:00Z'));
     TestBed.configureTestingModule({ providers: [provideCocApiTest()] });
     const service = TestBed.inject(CommendationService);
     const clan = await firstValueFrom(TestBed.inject(CocApiService).getClan());
@@ -19,8 +25,9 @@ describe('CommendationService history', () => {
     // About a year of completed months, all gold for the leader.
     expect(counts.get('champion-gold')).toBeGreaterThanOrEqual(10);
     expect(counts.get('champion-silver')).toBeUndefined();
-    // Raid Weekends with members (the mock keeps them for all but the two oldest) and ended CWL seasons.
-    expect(counts.get('capitalRaider-gold')).toBe(7);
+    // Ended Raid Weekends with members (the mock keeps them for all but the two oldest; on a
+    // weekend one more would be in progress, not counted yet) and ended CWL seasons.
+    expect(counts.get('capitalRaider-gold')).toBe(8);
     expect(counts.get('cwlStriker-gold')).toBe(2);
   });
 
