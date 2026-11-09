@@ -33,7 +33,8 @@ export interface ClanCommendations extends CommendationPeriods {
  * - war commendations from the history of the last completed month;
  * - `capitalRaider` from the last ended Raid Weekend;
  * - `cwlStriker` from the last ended Clan War League season;
- * - `donor` from the last ended game season (donations counted by the backend).
+ * - `donor` from the game season in progress (donations counted by the backend): awarded as
+ *   soon as a tier is reached, so it starts again from nothing with every new season.
  * Each source is optional: if one cannot be loaded, the others are still shown.
  */
 @Injectable({ providedIn: 'root' })
@@ -53,9 +54,8 @@ export class CommendationService {
         catchError(() => of<RaidSeason | null>(null)),
       ),
       cwl: this.lastEndedCwl(),
-      // The season in progress and the last ended one.
-      donations: this.api.getDonationSeasons(2).pipe(
-        map((seasons) => seasons.find((s) => s.state === 'ended') ?? null),
+      donations: this.api.getDonationSeasons(1).pipe(
+        map((seasons) => seasons.find((s) => s.state === 'ongoing') ?? null),
         catchError(() => of<DonationSeason | null>(null)),
       ),
     }).pipe(
@@ -82,7 +82,8 @@ export class CommendationService {
   /**
    * History of the whole clan: how many times each player earned each medal, recomputed with
    * the current rules over every completed period saved in the database (completed months,
-   * Raid Weekends with their members, ended CWL seasons, ended game seasons). Each source is optional.
+   * Raid Weekends with their members, ended CWL seasons, game seasons including the one in
+   * progress, where `donor` is awarded as soon as a tier is reached). Each source is optional.
    */
   historyForClan(now = new Date()): Observable<CommendationCounts> {
     const lastMonth = previousMonth(now);
@@ -107,7 +108,7 @@ export class CommendationService {
       catchError(() => of([])),
     );
     const donations$ = this.api.getDonationSeasons(HISTORY_DONATION_SEASONS).pipe(
-      map((seasons) => seasons.filter((s) => s.state === 'ended').map(awardDonationCommendations)),
+      map((seasons) => seasons.map(awardDonationCommendations)),
       catchError(() => of([])),
     );
     return forkJoin([months$, raids$, cwl$, donations$]).pipe(map((sources) => countCommendations(sources.flat())));

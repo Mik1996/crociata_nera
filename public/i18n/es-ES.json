@@ -724,7 +724,7 @@
       "bronze": "Portador de Refuerzos",
       "silver": "Señor de las Legiones",
       "gold": "Padre de los Ejércitos",
-      "description": "Al menos {{n}} tropas donadas en la última temporada."
+      "description": "Al menos {{n}} tropas donadas en la temporada: se otorga en cuanto se alcanzan."
     },
     "wall": {
       "bronze": "Escudo Firme",

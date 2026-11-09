@@ -34,7 +34,7 @@ export interface CommendationPeriods {
   raidWeekend?: { startTime: string; endTime: string };
   /** Last ended Clan War League season, `YYYY-MM` (`cwlStriker`, `cwlAllAttacks`). */
   cwlSeason?: string;
-  /** Last ended game season, `YYYY-MM` (`donor`). */
+  /** Game season in progress, `YYYY-MM` (`donor`, awarded as soon as a tier is reached). */
   donationSeason?: string;
 }
 

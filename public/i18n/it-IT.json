@@ -724,7 +724,7 @@
       "bronze": "Portatore di Rinforzi",
       "silver": "Signore delle Legioni",
       "gold": "Padre degli Eserciti",
-      "description": "Almeno {{n}} truppe donate nella scorsa stagione."
+      "description": "Almeno {{n}} truppe donate nella stagione: assegnato appena raggiunte."
     },
     "wall": {
       "bronze": "Scudo Saldo",

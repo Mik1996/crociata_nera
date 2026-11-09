@@ -40,7 +40,8 @@ export const COMMENDATION_TIERS: readonly CommendationTier[] = ['legendary', 'go
  * - present: share (%) of the clan's wars of the month with at least one attack (months with at least {@link MIN_WARS} wars);
  * - cwlStriker: average stars per attack in the last ended Clan War League (at least {@link CWL_MIN_ATTACKS} attacks);
  * - capitalRaider: Capital Gold looted in the last ended Raid Weekend (more than the threshold);
- * - donor: troops donated in the last ended game season, as counted by the backend.
+ * - donor: troops donated in the game season, as counted by the backend; awarded as soon as a
+ *   tier is reached (one per season, raised to the higher tiers).
  */
 export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Partial<Record<CommendationTier, number>>>>> = {
   cwlAllAttacks: { legendary: 3 },

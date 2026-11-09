@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { env } from '@/lib/config/env';
 import { CocApiError, fetchClan } from '@/lib/coc/coc-client';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
-import { endedSeasons, recordDonations } from '@/modules/donations/donation.service';
+import { DonationSeasonRecord, endedSeasons, ongoingSeason, recordDonations } from '@/modules/donations/donation.service';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { getPeriod, listMonths, monthOf } from '@/modules/wars/history.service';
 import { CommendationAwardModel, CommendationPeriodModel } from './commendation-award.model';
@@ -15,6 +15,7 @@ import {
   commendationId,
   commendationName,
   commendationOf,
+  CommendationTier,
   CwlPlayerResult,
 } from './commendation-rules';
 import { PlayerModel } from './player.model';
@@ -64,8 +65,10 @@ export function previousMonth(now: Date): string {
 /**
  * 1. Updates the Clash of Clans data of the current members (`Players`).
  * 2. Awards the commendations of every period closed since the last run (completed months,
- *    ended Raid Weekends with their members, ended CWL seasons, ended game seasons), once: the period is then
+ *    ended Raid Weekends with their members, ended CWL seasons), once: the period is then
  *    marked as processed and never recomputed, so the history survives rule changes.
+ * 3. Awards `donor` during the game season, as soon as a tier is reached (raised later to the
+ *    higher tiers); an ended season is frozen after one last pass.
  *
  * Safe to interrupt and to run twice: awards are unique per period, player and commendation,
  * the players' totals are recounted from the awards, and the period is marked last.
@@ -92,6 +95,23 @@ export async function syncCommendations(now = new Date()): Promise<CommendationS
     report.awards += await awardPeriod(period, now);
     report.periodsProcessed.push(period.key);
   }
+
+  // `donor`: awarded during the season as soon as a tier is reached. An ended season gets one
+  // last pass (the final read before its end may raise a tier), then it is frozen.
+  for (const season of await endedSeasons(now)) {
+    const key = donationPeriodKey(season.season);
+    if (processed.has(key)) continue;
+    report.awards += await awardDonorTiers(season, now);
+    const awards = await CommendationAwardModel.countDocuments({ periodKey: key });
+    await CommendationPeriodModel.updateOne(
+      { periodKey: key },
+      { $setOnInsert: { periodKey: key, awards, processedAt: now } },
+      { upsert: true },
+    );
+    report.periodsProcessed.push(key);
+  }
+  const ongoing = await ongoingSeason(now);
+  if (ongoing) report.awards += await awardDonorTiers(ongoing, now);
   return report;
 }
 
@@ -207,17 +227,37 @@ async function closedPeriods(now: Date, processed: Set<string>): Promise<ClosedP
     periods.push({ key, awards: awardCwlCommendations(players), names: new Map(players.map((p) => [p.tag, p.name])) });
   }
 
-  // Ended game seasons, with the donations counted by the backend.
-  for (const season of await endedSeasons(now)) {
-    const key = `donations:${season.season}`;
-    if (processed.has(key)) continue;
-    periods.push({
-      key,
-      awards: awardDonationCommendations(season.players),
-      names: new Map(season.players.map((p) => [p.tag, p.name])),
-    });
-  }
   return periods;
+}
+
+const donationPeriodKey = (season: string) => `donations:${season}`;
+const TIER_RANK: Record<CommendationTier, number> = { bronze: 1, silver: 2, gold: 3, legendary: 4 };
+
+/**
+ * `donor` of a game season from the troops donated so far: one award per player and season,
+ * raised to the higher tier when one is reached (bronze, then silver, then gold), never lowered.
+ * Returns the awards created or raised.
+ */
+async function awardDonorTiers(season: DonationSeasonRecord, now: Date): Promise<number> {
+  const periodKey = donationPeriodKey(season.season);
+  const names = new Map(season.players.map((p) => [p.tag, p.name]));
+  let changed = 0;
+  for (const [playerTag, [award]] of awardDonationCommendations(season.players)) {
+    if (!award) continue;
+    const filter = { periodKey, playerTag, type: award.type };
+    const current = await CommendationAwardModel.findOne(filter).select('tier').lean();
+    if (current && TIER_RANK[current.tier as CommendationTier] >= TIER_RANK[award.tier]) continue;
+    await CommendationAwardModel.updateOne(
+      filter,
+      {
+        $set: { commendationId: commendationId(award), tier: award.tier, playerName: names.get(playerTag) ?? playerTag, awardedAt: now },
+      },
+      { upsert: true },
+    );
+    await recountPlayer(playerTag, names.get(playerTag) ?? playerTag);
+    changed++;
+  }
+  return changed;
 }
 
 /** Saves the awards of a period, recounts the totals of its players, then marks it as processed. */

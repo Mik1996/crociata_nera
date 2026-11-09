@@ -113,6 +113,12 @@ export async function endedSeasons(now: Date): Promise<DonationSeasonRecord[]> {
   return Promise.all(seasons.map((s) => seasonRecord(s, now)));
 }
 
+/** The season in progress with its totals so far, `null` if none is saved. */
+export async function ongoingSeason(now: Date): Promise<DonationSeasonRecord | null> {
+  const season = await DonationSeasonModel.findOne({ startTime: { $lte: now }, endTime: { $gt: now } }).lean();
+  return season ? seasonRecord(season, now) : null;
+}
+
 /** Saved seasons, most recent first (the one in progress included), with their totals. */
 export async function listDonationSeasons(limit: number, now = new Date()): Promise<DonationSeasonRecord[]> {
   const seasons = await DonationSeasonModel.find().sort({ startTime: -1 }).limit(limit).lean();

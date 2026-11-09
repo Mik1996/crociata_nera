@@ -105,21 +105,73 @@ describe('donation tracking', () => {
 });
 
 describe('donor commendations', () => {
-  it('are awarded once, when the season has ended', async () => {
-    api({ '#A': 10_500, '#B': 5_200, '#C': 100 });
-    expect((await syncCommendations(at('30'))).periodsProcessed).toEqual([]);
+  const donor = async (tag: string) =>
+    (await PlayerModel.findOne({ tag }))?.commendations.filter((c) => c.type === 'donor').map((c) => [c.tier, c.quantity]) ?? [];
+
+  it('are awarded during the season as soon as a tier is reached, then raised (one per season)', async () => {
+    api({ '#A': 4_000 });
+    await syncCommendations(at('05'));
+    expect(await donor('#A')).toEqual([]);
+
+    api({ '#A': 5_000 });
+    expect((await syncCommendations(at('10'))).awards).toBe(1);
+    expect(await donor('#A')).toEqual([['bronze', 1]]);
+
+    // Nothing new while the tier stays the same.
+    api({ '#A': 6_000 });
+    expect((await syncCommendations(at('11'))).awards).toBe(0);
+
+    api({ '#A': 7_600 });
+    await syncCommendations(at('15'));
+    expect(await donor('#A')).toEqual([['silver', 1]]);
+
+    api({ '#A': 12_000 });
+    await syncCommendations(at('20'));
+    expect(await donor('#A')).toEqual([['gold', 1]]);
+    expect(await CommendationAwardModel.find({ periodKey: 'donations:2026-11' }).lean()).toEqual([
+      expect.objectContaining({ playerTag: '#A', commendationId: '95000027', tier: 'gold' }),
+    ]);
+  });
+
+  it('keep counting the donations of a player who leaves the clan and comes back', async () => {
+    api({ '#A': 4_000, '#B': 10 });
+    await syncCommendations(at('05'));
+    // #A leaves: the in-game counter restarts from 0 when they come back.
+    api({ '#B': 10 });
+    await syncCommendations(at('06'));
+    api({ '#A': 1_000, '#B': 10 });
+    await syncCommendations(at('08'));
+
+    expect(await total('#A')).toBe(5_000);
+    expect(await donor('#A')).toEqual([['bronze', 1]]);
+  });
+
+  it('get one last pass when the season ends, then the new season starts from zero', async () => {
+    api({ '#A': 7_000, '#B': 5_200, '#C': 100 });
+    await syncCommendations(at('30'));
+    expect(await donor('#A')).toEqual([['bronze', 1]]);
+
+    // Last read before the end: #A reaches silver.
+    api({ '#A': 7_600, '#B': 5_200, '#C': 100 });
+    await syncCommendations(new Date('2026-12-01T07:59:00Z'));
 
     api({ '#A': 0, '#B': 0, '#C': 0 }, DECEMBER);
     const report = await syncCommendations(new Date('2026-12-01T09:00:00Z'));
     expect(report.periodsProcessed).toEqual(['donations:2026-11']);
-    expect((await PlayerModel.findOne({ tag: '#A' }))!.commendations).toEqual([
-      expect.objectContaining({ id: '95000027', name: 'donor-gold', type: 'donor', tier: 'gold', quantity: 1 }),
-    ]);
-    expect((await PlayerModel.findOne({ tag: '#B' }))!.commendations[0]).toMatchObject({ id: '95000025' });
-    expect((await PlayerModel.findOne({ tag: '#C' }))!.commendations).toEqual([]);
-
-    expect((await syncCommendations(new Date('2026-12-02T09:00:00Z'))).periodsProcessed).toEqual([]);
+    expect(await donor('#A')).toEqual([['silver', 1]]);
+    expect(await donor('#B')).toEqual([['bronze', 1]]);
+    expect(await donor('#C')).toEqual([]);
     expect(await CommendationAwardModel.countDocuments({ periodKey: 'donations:2026-11' })).toBe(2);
+
+    // December: a new award for the new season, November stays as it was.
+    api({ '#A': 5_000, '#B': 0, '#C': 0 }, DECEMBER);
+    await syncCommendations(new Date('2026-12-05T09:00:00Z'));
+    expect(await total('#A', '2026-12')).toBe(5_000);
+    expect(await donor('#A')).toEqual([
+      ['bronze', 1],
+      ['silver', 1],
+    ]);
+    expect((await syncCommendations(new Date('2026-12-06T09:00:00Z'))).periodsProcessed).toEqual([]);
   });
 
   it('report when to read for the last time before the season ends', async () => {

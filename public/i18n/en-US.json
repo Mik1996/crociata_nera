@@ -724,7 +724,7 @@
       "bronze": "Bearer of Reinforcements",
       "silver": "Lord of Legions",
       "gold": "Father of Armies",
-      "description": "At least {{n}} troops donated in the last season."
+      "description": "At least {{n}} troops donated in the season: awarded as soon as they are reached."
     },
     "wall": {
       "bronze": "Steady Shield",
