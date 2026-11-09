@@ -6,22 +6,15 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { CommendationTier, CommendationType } from '../../../core/models';
 import { CommendationService } from '../../../core/services/commendation.service';
-import {
-  COMMENDATION_THRESHOLDS,
-  COMMENDATION_TIERS,
-  COMMENDATION_TYPES,
-  emblemOf,
-} from '../../../core/utils/commendations';
+import { COMMENDATION_THRESHOLDS, COMMENDATION_TYPES, emblemOf, tiersOf } from '../../../core/utils/commendations';
 import { LoadState } from '../../../shared/components/load-state';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { openCommendationDialog } from './open-commendation-dialog';
 
-/** Tiers from the lowest, as they are read from left to right. */
-const TIERS_ASCENDING: readonly CommendationTier[] = [...COMMENDATION_TIERS].reverse();
-
 /**
- * "Commendations" tab of the player page: every medal (8 commendations × bronze, silver, gold)
- * with how many times the player earned it; medals never earned are shown in greyscale.
+ * "Commendations" tab of the player page: every medal (bronze, silver and gold of each
+ * commendation, or its single legendary medal) with how many times the player earned it;
+ * medals never earned are shown in greyscale.
  */
 @Component({
   selector: 'app-player-commendations',
@@ -46,12 +39,16 @@ export class PlayerCommendations {
 
   private readonly earned = computed(() => (this.history.hasValue() ? this.history.value() : []));
 
-  /** One row per commendation, bronze → gold, with the count of each medal. */
+  /**
+   * One row per commendation, bronze → gold (read from left to right), with the count of each
+   * medal. A one-off commendation has a single, legendary medal.
+   */
   protected readonly rows = computed(() => {
     const counts = new Map(this.earned().map((c) => [`${c.type}-${c.tier}`, c.quantity]));
     return COMMENDATION_TYPES.map((type) => ({
       type,
-      medals: TIERS_ASCENDING.map((tier) => ({
+      legendary: tiersOf(type).includes('legendary'),
+      medals: tiersOf(type).reverse().map((tier) => ({
         tier,
         emblem: emblemOf({ type, tier }),
         threshold: COMMENDATION_THRESHOLDS[type][tier],

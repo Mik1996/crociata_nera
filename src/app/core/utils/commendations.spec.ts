@@ -9,6 +9,7 @@ import {
   mergeCommendations,
   previousMonth,
   tierFor,
+  tiersOf,
 } from './commendations';
 import { aggregateHistoryPlayers } from './monthly-history';
 
@@ -194,11 +195,36 @@ describe('Raid Weekend, CWL and donation commendations', () => {
       players: [player('#PERFECT', 7, 21), player('#ALMOST', 7, 20), player('#LUCKY', 2, 6), player('#GOOD', 4, 11)],
     } as CwlSeason;
     const awards = awardCwlCommendations(season);
-    expect(awards.get('#PERFECT')).toEqual([{ type: 'cwlStriker', tier: 'gold' }]);
+    const striker = (tag: string) => awards.get(tag)?.filter((c) => c.type === 'cwlStriker');
+    expect(striker('#PERFECT')).toEqual([{ type: 'cwlStriker', tier: 'gold' }]);
     // 20 / 7 = 2.857: silver, even though it would round to 2.86.
-    expect(awards.get('#ALMOST')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+    expect(striker('#ALMOST')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
     expect(awards.has('#LUCKY')).toBe(false);
-    expect(awards.get('#GOOD')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+    expect(striker('#GOOD')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+  });
+
+  it('awards the legendary cwlAllAttacks to who attacked every day in the line-up, with at least 3 days', () => {
+    const player = (tag: string, wars: number, attacks: number) =>
+      ({ tag, name: tag, townHall: 16, wars, attacks, stars: attacks, threeStars: 0, averageStars: 0, averageDestruction: 0 });
+    const season = {
+      players: [player('#ALL7', 7, 7), player('#ALL3', 3, 3), player('#TWO', 2, 2), player('#MISSED', 7, 6)],
+    } as CwlSeason;
+    const awards = awardCwlCommendations(season);
+    const legendary = { type: 'cwlAllAttacks', tier: 'legendary' };
+    expect(awards.get('#ALL7')).toContainEqual(legendary);
+    expect(awards.get('#ALL3')).toContainEqual(legendary);
+    expect(awards.has('#TWO')).toBe(false);
+    expect(awards.get('#MISSED') ?? []).not.toContainEqual(legendary);
+    expect(tiersOf('cwlAllAttacks')).toEqual(['legendary']);
+    expect(tiersOf('donor')).toEqual(['gold', 'silver', 'bronze']);
+  });
+
+  it('a legendary commendation comes before any gold one', () => {
+    const merged = mergeCommendations(
+      new Map([['#A', [{ type: 'champion' as const, tier: 'gold' as const }]]]),
+      new Map([['#A', [{ type: 'cwlAllAttacks' as const, tier: 'legendary' as const }]]]),
+    );
+    expect(merged.get('#A')!.map((c) => c.tier)).toEqual(['legendary', 'gold']);
   });
 
   it('donors need at least 5 000, 7 500 and 10 000 troops', () => {

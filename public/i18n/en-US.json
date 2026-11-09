@@ -671,7 +671,12 @@
     "tiers": {
       "gold": "Gold",
       "silver": "Silver",
-      "bronze": "Bronze"
+      "bronze": "Bronze",
+      "legendary": "Legendary"
+    },
+    "cwlAllAttacks": {
+      "legendary": "League Certainty",
+      "description": "Every attack used in the last CWL, in the line-up for at least {{n}} days."
     },
     "champion": {
       "bronze": "Valiant",

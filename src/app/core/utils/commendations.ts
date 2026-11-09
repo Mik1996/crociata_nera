@@ -13,6 +13,7 @@ import { compareForRanking, monthOf } from './monthly-history';
 
 /** Display order of the types, from the most prestigious. */
 export const COMMENDATION_TYPES: readonly CommendationType[] = [
+  'cwlAllAttacks',
   'champion',
   'perfect',
   'giantSlayer',
@@ -25,10 +26,12 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
 ];
 
 /** From the most valuable. */
-export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver', 'bronze'];
+export const COMMENDATION_TIERS: readonly CommendationTier[] = ['legendary', 'gold', 'silver', 'bronze'];
 
 /**
- * Requirement of each tier (also shown in the descriptions as `{{n}}`):
+ * Requirement of each tier a commendation has (also shown in the descriptions as `{{n}}`):
+ * - cwlAllAttacks (single, legendary tier): the attack of every day in the line-up of the last
+ *   ended Clan War League, with at least this many days;
  * - champion: position in the monthly ranking (players with at least {@link MIN_WARS} wars);
  * - perfect: average stars per attack, with at least {@link PERFECT_MIN_ATTACKS} attacks;
  * - giantSlayer: 3-star attacks against a higher Town Hall;
@@ -39,7 +42,8 @@ export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver'
  * - capitalRaider: Capital Gold looted in the last ended Raid Weekend (more than the threshold);
  * - donor: troops donated in the last ended game season, as counted by the backend.
  */
-export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Record<CommendationTier, number>>>> = {
+export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Partial<Record<CommendationTier, number>>>>> = {
+  cwlAllAttacks: { legendary: 3 },
   champion: { bronze: 3, silver: 2, gold: 1 },
   perfect: { bronze: 2.5, silver: 2.8, gold: 3 },
   giantSlayer: { bronze: 2, silver: 5, gold: 10 },
@@ -64,15 +68,23 @@ const LOWER_IS_BETTER: ReadonlySet<CommendationType> = new Set(['champion', 'wal
 /** The value must exceed the threshold ("more than"), not just reach it. */
 const STRICTLY_ABOVE: ReadonlySet<CommendationType> = new Set(['capitalRaider']);
 
-/** Highest tier reached by a value; `null` when not even bronze. */
+/** Tiers of a commendation, most valuable first (`legendary` alone for a one-off commendation). */
+export function tiersOf(type: CommendationType): CommendationTier[] {
+  return COMMENDATION_TIERS.filter((tier) => COMMENDATION_THRESHOLDS[type][tier] !== undefined);
+}
+
+/** Highest tier reached by a value; `null` when not even the lowest one. */
 export function tierFor(type: CommendationType, value: number): CommendationTier | null {
   const thresholds = COMMENDATION_THRESHOLDS[type];
-  const reached = (tier: CommendationTier) =>
-    LOWER_IS_BETTER.has(type)
-      ? value <= thresholds[tier]
+  const reached = (tier: CommendationTier) => {
+    const threshold = thresholds[tier];
+    if (threshold === undefined) return false;
+    return LOWER_IS_BETTER.has(type)
+      ? value <= threshold
       : STRICTLY_ABOVE.has(type)
-        ? value > thresholds[tier]
-        : value >= thresholds[tier];
+        ? value > threshold
+        : value >= threshold;
+  };
   return COMMENDATION_TIERS.find(reached) ?? null;
 }
 
@@ -142,13 +154,19 @@ export function awardRaidCommendations(season: RaidSeason): Map<string, Commenda
   return awards;
 }
 
-/** Commendations of a Clan War League season (`cwlStriker`), by exact average stars per attack. */
+/**
+ * Commendations of a Clan War League season: `cwlAllAttacks` to who used the attack of every day
+ * in the line-up (at least 3 days), `cwlStriker` by exact average stars per attack.
+ */
 export function awardCwlCommendations(season: CwlSeason): Map<string, Commendation[]> {
   const awards = new Map<string, Commendation[]>();
   for (const p of season.players) {
-    if (p.attacks < CWL_MIN_ATTACKS) continue;
-    const tier = tierFor('cwlStriker', p.stars / p.attacks);
-    if (tier) awards.set(p.tag, [{ type: 'cwlStriker', tier }]);
+    const items: Commendation[] = [];
+    const allAttacks = p.attacks >= p.wars ? tierFor('cwlAllAttacks', p.wars) : null;
+    if (allAttacks) items.push({ type: 'cwlAllAttacks', tier: allAttacks });
+    const striker = p.attacks >= CWL_MIN_ATTACKS ? tierFor('cwlStriker', p.stars / p.attacks) : null;
+    if (striker) items.push({ type: 'cwlStriker', tier: striker });
+    if (items.length) awards.set(p.tag, items);
   }
   return awards;
 }

@@ -7,8 +7,8 @@
 
   <ul class="commendation-rows" [attr.aria-label]="'player.tabCommendations' | translate">
     @for (row of rows(); track row.type) {
-      <li class="commendation-row">
-        <ul class="medals">
+      <li class="commendation-row" [class.commendation-row--legendary]="row.legendary">
+        <ul class="medals" [style.--medals]="row.medals.length">
           @for (m of row.medals; track m.tier) {
             @let name = 'commendations.' + row.type + '.' + m.tier | translate;
             @let tier = 'commendations.tiers.' + m.tier | translate;
@@ -29,6 +29,9 @@
                 />
                 <span class="medal__name" aria-hidden="true">{{ name }}</span>
                 <span class="medal__count cn-num" aria-hidden="true">× {{ m.count }}</span>
+                @if (row.medals.length === 1) {
+                  <span class="medal__description" aria-hidden="true">{{ description }}</span>
+                }
               </button>
             </li>
           }

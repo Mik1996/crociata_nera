@@ -21,13 +21,35 @@ describe('PlayerCommendations', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
-    expect(medals).toHaveLength(27);
+    expect(medals).toHaveLength(28);
     const champion = medals.find((m) => m.querySelector('app-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
-    expect(el.querySelectorAll('li.medal--none')).toHaveLength(25);
+    expect(el.querySelectorAll('li.medal--none')).toHaveLength(26);
     expect(el.querySelector('.summary__total')!.textContent).toContain('4');
+  });
+
+  it('shows a one-off commendation as a single legendary medal, with its requirement', async () => {
+    const counts: EarnedCommendation[] = [
+      { id: '95000028', name: 'cwlAllAttacks-legendary', type: 'cwlAllAttacks', tier: 'legendary', quantity: 2 },
+    ];
+    TestBed.configureTestingModule({
+      providers: [{ provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } }],
+    });
+    const fixture = TestBed.createComponent(PlayerCommendations);
+    fixture.componentRef.setInput('tag', '#A');
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const legendary = el.querySelectorAll('.commendation-row--legendary');
+    expect(legendary).toHaveLength(1);
+    const medals = legendary[0].querySelectorAll('li.medal');
+    expect(medals).toHaveLength(1);
+    expect(medals[0].querySelector('app-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks-legendary.svg');
+    expect(medals[0].querySelector('.medal__name')!.textContent).toContain('Certezza di Lega');
+    expect(medals[0].querySelector('.medal__count')!.textContent).toContain('2');
+    expect(medals[0].querySelector('.medal__description')!.textContent).toContain('almeno 3 giornate');
   });
 
   it('keeps showing saved commendations that are not among the current ones, translated from type and tier', async () => {

@@ -22,6 +22,7 @@ const TIER_FINISHES: Readonly<Record<CommendationTier, MedalFinish>> = {
   bronze: 'bronze',
   silver: 'silver',
   gold: 'gold',
+  legendary: 'legendary',
 };
 
 /**

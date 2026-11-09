@@ -33,9 +33,18 @@ describe('mock Clan War League and Raid Weekends', () => {
 
     it('Templare Nero earns the gold cwlStriker; other players get silver or bronze', () => {
       const awards = awardCwlCommendations(seasons[1]);
-      expect(awards.get(leader.tag)).toEqual([{ type: 'cwlStriker', tier: 'gold' }]);
-      const tiers = new Set([...awards.values()].map(([c]) => c.tier));
+      expect(awards.get(leader.tag)).toContainEqual({ type: 'cwlStriker', tier: 'gold' });
+      const tiers = new Set([...awards.values()].flat().filter((c) => c.type === 'cwlStriker').map((c) => c.tier));
       expect(tiers.has('silver') || tiers.has('bronze')).toBe(true);
+    });
+
+    it('Templare Nero never misses an attack (legendary cwlAllAttacks); some players do', () => {
+      const awards = awardCwlCommendations(seasons[1]);
+      expect(awards.get(leader.tag)).toContainEqual({ type: 'cwlAllAttacks', tier: 'legendary' });
+      const allAttacks = (tag: string) => awards.get(tag)?.some((c) => c.type === 'cwlAllAttacks') ?? false;
+      const lineUp = seasons[1].players.filter((p) => p.wars >= 3);
+      expect(lineUp.some((p) => allAttacks(p.tag))).toBe(true);
+      expect(lineUp.some((p) => !allAttacks(p.tag))).toBe(true);
     });
   });
 

@@ -11,6 +11,8 @@ const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 const TEAM_SIZE = 15;
 const ROUNDS = 7;
+/** Chance that a player uses the attack of a CWL day (`cwlAllAttacks` is not for everybody). */
+const MISSED_CWL_ATTACK = 0.94;
 
 const GROUP_CLANS = [
   'Legione Oscura', 'Dragon Slayers', 'Fenice Rossa', 'Brotherhood ITA', 'Spartans 300', 'Lupi Solitari',
@@ -98,7 +100,9 @@ function leagueWar(rnd: Random, a: GroupClan, b: GroupClan, times: { prep: numbe
     [sideB, sideA],
   ] as const) {
     for (const m of attackers) {
-      if (!rnd.chance(progress)) continue;
+      // Now and then a player forgets the attack of the day; the leader never does.
+      const reliability = m.name === 'Templare Nero' ? 1 : MISSED_CWL_ATTACK;
+      if (!rnd.chance(progress * reliability)) continue;
       const hit = attack(rnd, m, defenders, skillOf(m, rnd), order++);
       m.attacks = [hit];
       const defender = defenders.find((d) => d.tag === hit.defenderTag)!;

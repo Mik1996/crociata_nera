@@ -671,7 +671,12 @@
     "tiers": {
       "gold": "Oro",
       "silver": "Argento",
-      "bronze": "Bronzo"
+      "bronze": "Bronzo",
+      "legendary": "Leggendario"
+    },
+    "cwlAllAttacks": {
+      "legendary": "Certezza di Lega",
+      "description": "Tutti gli attacchi eseguiti nell'ultima CWL, schierato in almeno {{n}} giornate."
     },
     "champion": {
       "bronze": "Valoroso",

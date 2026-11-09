@@ -29,6 +29,8 @@ describe('CommendationService history', () => {
     // weekend one more would be in progress, not counted yet) and ended CWL seasons.
     expect(counts.get('capitalRaider-gold')).toBe(8);
     expect(counts.get('cwlStriker-gold')).toBe(2);
+    // The leader never misses a CWL attack: the legendary medal of every ended season.
+    expect(counts.get('cwlAllAttacks-legendary')).toBe(2);
     // Ended game seasons (six in the mock, November still in progress).
     expect(counts.get('donor-gold')).toBe(5);
   });

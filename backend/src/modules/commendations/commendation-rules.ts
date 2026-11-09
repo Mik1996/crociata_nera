@@ -7,6 +7,7 @@ import { compareForRanking, HistoryPeriod, HistoryPlayerStats } from '@/modules/
  */
 
 export type CommendationType =
+  | 'cwlAllAttacks'
   | 'champion'
   | 'perfect'
   | 'giantSlayer'
@@ -16,7 +17,8 @@ export type CommendationType =
   | 'wall'
   | 'tireless'
   | 'present';
-export type CommendationTier = 'bronze' | 'silver' | 'gold';
+/** `legendary`: the single tier of a one-off commendation (no bronze, silver and gold). */
+export type CommendationTier = 'bronze' | 'silver' | 'gold' | 'legendary';
 
 export interface Commendation {
   type: CommendationType;
@@ -24,6 +26,7 @@ export interface Commendation {
 }
 
 export const COMMENDATION_TYPES: readonly CommendationType[] = [
+  'cwlAllAttacks',
   'champion',
   'perfect',
   'giantSlayer',
@@ -34,9 +37,11 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
   'tireless',
   'present',
 ];
-export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver', 'bronze'];
+export const COMMENDATION_TIERS: readonly CommendationTier[] = ['legendary', 'gold', 'silver', 'bronze'];
 
-export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Record<CommendationTier, number>>>> = {
+/** Requirement of each tier a commendation has (most have bronze, silver and gold). */
+export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Partial<Record<CommendationTier, number>>>>> = {
+  cwlAllAttacks: { legendary: 3 },
   champion: { bronze: 3, silver: 2, gold: 1 },
   perfect: { bronze: 2.5, silver: 2.8, gold: 3 },
   giantSlayer: { bronze: 2, silver: 5, gold: 10 },
@@ -60,7 +65,7 @@ const STRICTLY_ABOVE: ReadonlySet<CommendationType> = new Set(['capitalRaider'])
  * changed nor reused: a new commendation gets a new id, a retired one keeps its id in the
  * saved history.
  */
-export const COMMENDATION_IDS: Readonly<Record<CommendationType, Readonly<Record<CommendationTier, string>>>> = {
+export const COMMENDATION_IDS: Readonly<Record<CommendationType, Readonly<Partial<Record<CommendationTier, string>>>>> = {
   champion: { bronze: '95000001', silver: '95000002', gold: '95000003' },
   perfect: { bronze: '95000004', silver: '95000005', gold: '95000006' },
   giantSlayer: { bronze: '95000007', silver: '95000008', gold: '95000009' },
@@ -70,11 +75,14 @@ export const COMMENDATION_IDS: Readonly<Record<CommendationType, Readonly<Record
   tireless: { bronze: '95000019', silver: '95000020', gold: '95000021' },
   present: { bronze: '95000022', silver: '95000023', gold: '95000024' },
   donor: { bronze: '95000025', silver: '95000026', gold: '95000027' },
+  cwlAllAttacks: { legendary: '95000028' },
 };
 
 /** Unique id of a commendation (see {@link COMMENDATION_IDS}). */
 export function commendationId(c: Commendation): string {
-  return COMMENDATION_IDS[c.type][c.tier];
+  const id = COMMENDATION_IDS[c.type][c.tier];
+  if (!id) throw new Error(`No catalogue id for ${commendationName(c)}`);
+  return id;
 }
 
 /** `<type>-<tier>`, e.g. `capitalRaider-gold` (also the name of the medal image). */
@@ -92,12 +100,15 @@ export function commendationOf(id: string): Commendation | null {
 
 export function tierFor(type: CommendationType, value: number): CommendationTier | null {
   const thresholds = COMMENDATION_THRESHOLDS[type];
-  const reached = (tier: CommendationTier) =>
-    LOWER_IS_BETTER.has(type)
-      ? value <= thresholds[tier]
+  const reached = (tier: CommendationTier) => {
+    const threshold = thresholds[tier];
+    if (threshold === undefined) return false;
+    return LOWER_IS_BETTER.has(type)
+      ? value <= threshold
       : STRICTLY_ABOVE.has(type)
-        ? value > thresholds[tier]
-        : value >= thresholds[tier];
+        ? value > threshold
+        : value >= threshold;
+  };
   return COMMENDATION_TIERS.find(reached) ?? null;
 }
 
@@ -160,14 +171,20 @@ export function awardDonationCommendations(players: { tag: string; donations: nu
 export interface CwlPlayerResult {
   tag: string;
   name: string;
+  /** Wars (days) in the line-up: one attack each. */
+  wars: number;
   attacks: number;
   stars: number;
 }
 
-/** `cwlStriker` of an ended CWL season, on the exact average stars per attack. */
+/**
+ * Commendations of an ended CWL season: `cwlStriker` on the exact average stars per attack,
+ * `cwlAllAttacks` to who used the attack of every day in the line-up (at least 3 days).
+ */
 export function awardCwlCommendations(players: CwlPlayerResult[]): Awards {
   const awards: Awards = new Map();
   for (const p of players) {
+    if (p.attacks >= p.wars) give(awards, p.tag, 'cwlAllAttacks', p.wars);
     if (p.attacks >= CWL_MIN_ATTACKS) give(awards, p.tag, 'cwlStriker', p.stars / p.attacks);
   }
   return awards;

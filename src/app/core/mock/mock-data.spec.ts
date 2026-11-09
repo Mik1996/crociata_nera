@@ -107,7 +107,7 @@ describe('generateMockData', () => {
       for (const month of ['2026-10', '2026-09', '2026-06']) {
         const awards = awardCommendations(historyPeriod(month, history, '')!).get(leader.tag);
         // Raid, CWL and donation commendations come from their own seasons (see mock-cwl.spec.ts).
-        const seasonal = new Set(['capitalRaider', 'cwlStriker', 'donor']);
+        const seasonal = new Set(['capitalRaider', 'cwlStriker', 'cwlAllAttacks', 'donor']);
         const monthly = COMMENDATION_TYPES.filter((type) => !seasonal.has(type));
         expect(awards, month).toEqual(monthly.map((type) => ({ type, tier: 'gold' })));
       }

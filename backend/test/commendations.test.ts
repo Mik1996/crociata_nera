@@ -5,7 +5,7 @@ import { GET as getPlayer } from '@/app/api/v1/players/[tag]/route';
 import { resetEnvCache } from '@/lib/config/env';
 import { CommendationAwardModel, CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
 import { previousMonth, syncCommendations } from '@/modules/commendations/commendation-sync.service';
-import { awardCwlCommendations, awardRaidCommendations, tierFor } from '@/modules/commendations/commendation-rules';
+import { awardCwlCommendations, awardRaidCommendations, commendationId, tierFor } from '@/modules/commendations/commendation-rules';
 import { PlayerModel } from '@/modules/commendations/player.model';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
@@ -49,7 +49,22 @@ describe('commendation rules', () => {
     expect(tierFor('champion', 1)).toBe('gold');
     expect(tierFor('wall', 1.5)).toBe('gold');
     expect(awardRaidCommendations([{ tag: '#A', capitalResourcesLooted: 28_000 }]).get('#A')).toEqual([{ type: 'capitalRaider', tier: 'silver' }]);
-    expect(awardCwlCommendations([{ tag: '#A', name: 'A', attacks: 7, stars: 20 }]).get('#A')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+    expect(awardCwlCommendations([{ tag: '#A', name: 'A', wars: 7, attacks: 6, stars: 17 }]).get('#A')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
+  });
+
+  it('awards the legendary cwlAllAttacks to who attacked every day of the CWL, with at least 3 days', () => {
+    const awards = awardCwlCommendations([
+      { tag: '#ALL7', name: 'A', wars: 7, attacks: 7, stars: 14 },
+      { tag: '#ALL3', name: 'B', wars: 3, attacks: 3, stars: 3 },
+      { tag: '#TWO', name: 'C', wars: 2, attacks: 2, stars: 6 },
+      { tag: '#MISSED', name: 'D', wars: 7, attacks: 6, stars: 18 },
+    ]);
+    expect(awards.get('#ALL7')).toEqual([{ type: 'cwlAllAttacks', tier: 'legendary' }]);
+    expect(awards.get('#ALL3')).toEqual([{ type: 'cwlAllAttacks', tier: 'legendary' }]);
+    expect(awards.has('#TWO')).toBe(false);
+    expect(awards.get('#MISSED')).toEqual([{ type: 'cwlStriker', tier: 'gold' }]);
+    expect(commendationId({ type: 'cwlAllAttacks', tier: 'legendary' })).toBe('95000028');
+    expect(tierFor('cwlAllAttacks', 2)).toBeNull();
   });
 
   it('previous month in the Italian time zone', () => {
@@ -99,7 +114,7 @@ describe('commendation sync', () => {
     ]);
   });
 
-  it('awards an ended CWL season (also to a player who left the clan)', async () => {
+  it('awards an ended CWL season (also to a player who left the clan, who attacked every day)', async () => {
     mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
     const war = (state: string, clanSide: boolean) => {
       const own = { tag: CLAN, members: [{ tag: '#GONE1', name: 'Gone', attacks: [{ stars: 3 }] }] };
@@ -112,7 +127,10 @@ describe('commendation sync', () => {
     });
     await syncCommendations(NOW);
     expect(await PlayerModel.findOne({ tag: '#GONE1' })).toMatchObject({
-      name: 'Gone', inClan: false, commendations: [expect.objectContaining({ name: 'cwlStriker-gold', type: 'cwlStriker', tier: 'gold', quantity: 1 })],
+      name: 'Gone', inClan: false, commendations: [
+        expect.objectContaining({ name: 'cwlStriker-gold', type: 'cwlStriker', tier: 'gold', quantity: 1 }),
+        expect.objectContaining({ id: '95000028', name: 'cwlAllAttacks-legendary', type: 'cwlAllAttacks', tier: 'legendary', quantity: 1 }),
+      ],
     });
   });
 

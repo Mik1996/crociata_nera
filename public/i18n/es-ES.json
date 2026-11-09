@@ -671,7 +671,12 @@
     "tiers": {
       "gold": "Oro",
       "silver": "Plata",
-      "bronze": "Bronce"
+      "bronze": "Bronce",
+      "legendary": "Legendario"
+    },
+    "cwlAllAttacks": {
+      "legendary": "Certeza de Liga",
+      "description": "Todos los ataques realizados en la última CWL, en la alineación al menos {{n}} jornadas."
     },
     "champion": {
       "bronze": "Valeroso",

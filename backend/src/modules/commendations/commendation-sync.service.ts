@@ -296,15 +296,16 @@ interface LeagueWarMember {
   attacks?: { stars: number }[];
 }
 
-/** Attacks and stars of the clan's players over the season (wars still in preparation excluded). */
+/** Days, attacks and stars of the clan's players over the season (wars still in preparation excluded). */
 function cwlPlayers(wars: LeagueWar[], clanTag: string): CwlPlayerResult[] {
   const players = new Map<string, CwlPlayerResult>();
   for (const war of wars) {
     if (war.state === 'preparation') continue;
     const side = war.clan?.tag === clanTag ? war.clan : war.opponent?.tag === clanTag ? war.opponent : null;
     for (const m of side?.members ?? []) {
-      const p = players.get(m.tag) ?? { tag: m.tag, name: m.name, attacks: 0, stars: 0 };
+      const p = players.get(m.tag) ?? { tag: m.tag, name: m.name, wars: 0, attacks: 0, stars: 0 };
       p.name = m.name;
+      p.wars += 1;
       p.attacks += m.attacks?.length ?? 0;
       p.stars += (m.attacks ?? []).reduce((s, a) => s + a.stars, 0);
       players.set(m.tag, p);

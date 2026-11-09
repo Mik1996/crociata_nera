@@ -17,7 +17,7 @@ export interface MedalFinishSpec {
 }
 
 /** Built-in finishes; any other medal (another colour, a single medal) passes its own spec. */
-export type MedalFinishName = 'bronze' | 'silver' | 'gold';
+export type MedalFinishName = 'bronze' | 'silver' | 'gold' | 'legendary';
 
 export type MedalFinish = MedalFinishName | MedalFinishSpec;
 
@@ -46,6 +46,15 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
     clearcoat: 0.9,
     clearcoatRoughness: 0.06,
     envMapIntensity: 1.05,
+  },
+  // Candy crimson metal under a mirror varnish: the one-off medals of the highest merit.
+  legendary: {
+    color: '#e8364f',
+    metalness: 1,
+    roughness: 0.16,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    envMapIntensity: 1.15,
   },
 };
 
