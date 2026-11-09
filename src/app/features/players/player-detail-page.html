@@ -15,7 +15,7 @@
   @if (profile(); as p) {
     <app-player-banner [profile]="p" [commendations]="commendations()" />
 
-    <mat-tab-group class="player-tabs" mat-stretch-tabs="false" animationDuration="200ms">
+    <mat-tab-group appSwipeTabs class="player-tabs" mat-stretch-tabs="false" animationDuration="200ms">
       <!-- Profile -->
       <mat-tab [label]="'player.tabProfile' | translate">
         <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabProfile' | translate">
@@ -117,6 +117,33 @@
         </div>
       </mat-tab>
 
+      <!-- Commendations: history of every medal earned (loaded when the tab is opened) -->
+      <mat-tab [label]="'player.tabCommendations' | translate">
+        <ng-template matTabContent>
+          <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabCommendations' | translate">
+            <app-player-commendations [tag]="p.tag" />
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Wars -->
+      <mat-tab [label]="'player.tabWars' | translate">
+        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabWars' | translate">
+          <app-load-state
+            [loading]="statsResource.isLoading()"
+            [error]="statsResource.error()"
+            [empty]="!stats()"
+            emptyIcon="shield"
+            [emptyMessage]="'player.noWars' | translate"
+            (retry)="statsResource.reload()"
+          >
+            @if (stats(); as s) {
+              <app-player-war-stats [stats]="s" />
+            }
+          </app-load-state>
+        </div>
+      </mat-tab>
+
       <!-- Army -->
       <mat-tab [label]="'player.tabArmy' | translate">
         <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabArmy' | translate">
@@ -173,33 +200,6 @@
             }
           </ul>
         </div>
-      </mat-tab>
-
-      <!-- Wars -->
-      <mat-tab [label]="'player.tabWars' | translate">
-        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabWars' | translate">
-          <app-load-state
-            [loading]="statsResource.isLoading()"
-            [error]="statsResource.error()"
-            [empty]="!stats()"
-            emptyIcon="shield"
-            [emptyMessage]="'player.noWars' | translate"
-            (retry)="statsResource.reload()"
-          >
-            @if (stats(); as s) {
-              <app-player-war-stats [stats]="s" />
-            }
-          </app-load-state>
-        </div>
-      </mat-tab>
-
-      <!-- Commendations: history of every medal earned (loaded when the tab is opened) -->
-      <mat-tab [label]="'player.tabCommendations' | translate">
-        <ng-template matTabContent>
-          <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabCommendations' | translate">
-            <app-player-commendations [tag]="p.tag" />
-          </div>
-        </ng-template>
       </mat-tab>
     </mat-tab-group>
   }

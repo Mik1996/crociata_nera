@@ -23,10 +23,10 @@ describe('PlayerDetailPage', () => {
     expect(el.querySelector('app-xp-badge')?.getAttribute('aria-label')).toBe(`Livello esperienza ${member.expLevel}`);
   });
 
-  it('offers the Profile, Army, Achievements, Wars and Commendations tabs, with heroes in the profile', async () => {
+  it('offers the Profile, Commendations, Wars, Army and Achievements tabs, with heroes in the profile', async () => {
     const { el } = await render();
     const tabs = Array.from(el.querySelectorAll('.mdc-tab')).map((t) => t.textContent?.trim());
-    expect(tabs).toEqual(['Profilo', 'Esercito', 'Obiettivi', 'Guerre', 'Encomi']);
+    expect(tabs).toEqual(['Profilo', 'Encomi', 'Guerre', 'Esercito', 'Obiettivi']);
     expect(el.querySelectorAll('.hero').length).toBeGreaterThan(0);
     expect(el.querySelector('.stat__label')?.textContent).toContain('Stelle di guerra');
   });

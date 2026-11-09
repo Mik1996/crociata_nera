@@ -18,6 +18,7 @@ import { PlayerBanner } from './components/player-banner';
 import { PlayerCommendations } from './components/player-commendations';
 import { PlayerWarStats } from './components/player-war-stats';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { SwipeTabs } from '../../shared/directives/swipe-tabs';
 
 interface ArmySection {
   /** Translation key of the section title. */
@@ -42,6 +43,7 @@ interface ArmySection {
     PlayerWarStats,
     PlayerCommendations,
     ScrollFade,
+    SwipeTabs,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
