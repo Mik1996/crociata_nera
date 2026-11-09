@@ -5,16 +5,10 @@
       <img class="banner__th-image" [src]="p.townHallImage" alt="" width="128" height="128" />
     }
     <span class="banner__th-label">{{ 'player.townHall' | translate: { n: p.townHall } }}</span>
-    @if (p.townHallWeapon) {
-      <span class="banner__weapon" role="img" [attr.aria-label]="'player.townHallWeapon' | translate: { n: p.townHallWeapon }">
-        @for (s of weaponStars(p.townHallWeapon); track $index) {
-          <span aria-hidden="true">★</span>
-        }
-      </span>
-    }
   </div>
 
-  <div class="banner__identity">
+  <!-- Name: its own container, so long names shrink before wrapping. -->
+  <div class="banner__heading">
     <div class="banner__name-row">
       <app-xp-badge [level]="p.expLevel" />
       <div class="banner__name-block">
@@ -22,57 +16,49 @@
         <span class="banner__tag">{{ p.tag }}</span>
       </div>
     </div>
+  </div>
 
-    <div class="banner__meta">
-      @if (p.role) {
-        <span class="chip chip--role">{{ roleKey(p.role) | translate }}</span>
-      }
-      @if (p.clan; as clan) {
-        <span class="chip">
-          @if (clan.badgeUrl) {
-            <img [src]="clan.badgeUrl" alt="" width="20" height="20" />
-          }
-          {{ clan.name }}
-        </span>
-      }
-      @if (p.warPreference) {
-        <span class="chip" [class.chip--in]="p.warPreference === 'in'" [class.chip--out]="p.warPreference === 'out'">
-          <mat-icon aria-hidden="true">{{ p.warPreference === 'in' ? 'check_circle' : 'do_not_disturb_on' }}</mat-icon>
-          {{ (p.warPreference === 'in' ? 'player.warIn' : 'player.warOut') | translate }}
-        </span>
-      }
-    </div>
-
-    @if (p.labels.length) {
-      <ul class="banner__labels" [attr.aria-label]="'player.labels' | translate">
-        @for (label of p.labels; track label.name) {
-          <li [matTooltip]="label.name">
-            @if (label.icon) {
-              <img [src]="label.icon" [alt]="label.name" width="32" height="32" />
-            } @else {
-              {{ label.name }}
-            }
-          </li>
+  <!-- Role, labels and medals: under the name, or full width on narrow banners (rows scroll sideways). -->
+  <div class="banner__details">
+    @if (p.role || p.labels.length) {
+      <div class="banner__meta cn-hscroll">
+        @if (p.role) {
+          <span class="chip chip--role">{{ roleKey(p.role) | translate }}</span>
         }
-      </ul>
+        @if (p.labels.length) {
+          <ul class="banner__labels" [attr.aria-label]="'player.labels' | translate">
+            @for (label of p.labels; track label.name) {
+              <li [matTooltip]="label.name">
+                @if (label.icon) {
+                  <img [src]="label.icon" [alt]="label.name" width="32" height="32" />
+                } @else {
+                  {{ label.name }}
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
     }
 
     @if (medals().length) {
-      <div class="banner__commendations">
-        <span class="banner__commendations-title">
-          {{ 'commendations.title' | translate }}
-        </span>
-        <ul class="banner__medals" [attr.aria-label]="'commendations.title' | translate">
-          @for (m of medals(); track m.type) {
-            @let name = ('commendations.' + m.type + '.' + m.tier | translate) + ' (' + ('commendations.tiers.' + m.tier | translate) + ')';
-            @let description = 'commendations.' + m.type + '.description' | translate: { n: (m.threshold | localNumber) };
-            <li class="banner__medal" tabindex="0" [attr.aria-label]="name + ': ' + description + ' (' + m.period + ')'" [matTooltip]="name + ' — ' + description + ' (' + m.period + ')'">
-              <app-commendation-medal [emblem]="m.emblem" />
-              <span class="banner__medal-name" aria-hidden="true">{{ 'commendations.' + m.type + '.' + m.tier | translate }}</span>
-            </li>
-          }
-        </ul>
-      </div>
+      <ul class="banner__medals cn-hscroll" [attr.aria-label]="'commendations.title' | translate">
+        @for (m of medals(); track m.type) {
+          @let name = ('commendations.' + m.type + '.' + m.tier | translate) + ' (' + ('commendations.tiers.' + m.tier | translate) + ')';
+          @let description = 'commendations.' + m.type + '.description' | translate: { n: (m.threshold | localNumber) };
+          <li class="banner__medal">
+            <button
+              type="button"
+              class="banner__medal-button"
+              [attr.aria-label]="name + ': ' + description + ' (' + m.period + '). ' + ('commendations.viewer.open' | translate)"
+              [matTooltip]="name + ' — ' + description + ' (' + m.period + ')'"
+              (click)="open3d(m)"
+            >
+              <app-medal-3d-image [svgUrl]="'commendations/' + m.emblem + '.svg'" [finish]="m.tier" [size]="medalSize" />
+            </button>
+          </li>
+        }
+      </ul>
     }
   </div>
 

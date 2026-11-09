@@ -77,7 +77,8 @@
     "participation": "Partecipazione",
     "battleSummary": "Riepilogo dello scontro",
     "you": "Tu",
-    "opensInNewTab": "si apre in una nuova scheda"
+    "opensInNewTab": "si apre in una nuova scheda",
+    "close": "Chiudi"
   },
   "sort": {
     "position": "Ordina per posizione",
@@ -294,13 +295,10 @@
     "tabWars": "Guerre",
     "tabCommendations": "Encomi",
     "townHall": "Municipio {{n}}",
-    "townHallWeapon": "Arma del municipio livello {{n}}",
     "expLevel": "Livello esperienza {{n}}",
     "trophies": "Trofei",
     "bestTrophies": "Record: {{n}}",
     "labels": "Etichette del giocatore",
-    "warIn": "In guerra",
-    "warOut": "Fuori dalle guerre",
     "warStars": "Stelle di guerra",
     "attackWins": "Attacchi vinti",
     "defenseWins": "Difese vinte",
@@ -729,6 +727,15 @@
       "hint": "Contati quando ogni periodo si è concluso (mese di guerra, Raid Weekend, stagione della Lega) e salvati: restano invariati anche se le regole cambiano.",
       "times": "{{n}} volte",
       "others": "Altri encomi"
+    },
+    "viewer": {
+      "open": "Guarda la medaglia in 3D",
+      "dragHint": "Trascina per ruotare la medaglia",
+      "earned": "Conquistato {{n}} volte",
+      "earnedOne": "Conquistato 1 volta",
+      "notEarned": "Non ancora conquistato",
+      "label": "Medaglia {{name}} in 3D",
+      "period": "Periodo: {{period}}"
     }
   },
   "join": {

@@ -77,7 +77,8 @@
     "participation": "Participation",
     "battleSummary": "Battle summary",
     "you": "You",
-    "opensInNewTab": "opens in a new tab"
+    "opensInNewTab": "opens in a new tab",
+    "close": "Close"
   },
   "sort": {
     "position": "Sort by position",
@@ -294,13 +295,10 @@
     "tabWars": "Wars",
     "tabCommendations": "Commendations",
     "townHall": "Town Hall {{n}}",
-    "townHallWeapon": "Town Hall weapon level {{n}}",
     "expLevel": "Experience level {{n}}",
     "trophies": "Trophies",
     "bestTrophies": "Best: {{n}}",
     "labels": "Player labels",
-    "warIn": "Opted in to war",
-    "warOut": "Opted out of war",
     "warStars": "War stars",
     "attackWins": "Attacks won",
     "defenseWins": "Defenses won",
@@ -729,6 +727,15 @@
       "hint": "Counted when each period ended (war month, Raid Weekend, League season) and saved: they stay the same even if the rules change.",
       "times": "{{n}} times",
       "others": "Other commendations"
+    },
+    "viewer": {
+      "open": "View the medal in 3D",
+      "dragHint": "Drag to rotate the medal",
+      "earned": "Earned {{n}} times",
+      "earnedOne": "Earned once",
+      "notEarned": "Not earned yet",
+      "label": "3D medal {{name}}",
+      "period": "Period: {{period}}"
     }
   },
   "join": {

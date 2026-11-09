@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  // OrbitControls handles every gesture on the canvas.
+  touch-action: none;
+  outline: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.fallback {
+  display: block;
+  width: 70%;
+  height: auto;
+  margin: 15% auto;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+.fallback--locked {
+  filter: grayscale(1) brightness(0.45);
+}

@@ -13,16 +13,23 @@
             @let name = 'commendations.' + row.type + '.' + m.tier | translate;
             @let tier = 'commendations.tiers.' + m.tier | translate;
             @let description = 'commendations.' + row.type + '.description' | translate: { n: (m.threshold | localNumber) };
-            <li
-              class="medal"
-              [class.medal--none]="m.count === 0"
-              tabindex="0"
-              [attr.aria-label]="name + ' (' + tier + '): ' + ('commendations.history.times' | translate: { n: m.count })"
-              [matTooltip]="name + ' (' + tier + ') — ' + description"
-            >
-              <app-commendation-medal [emblem]="m.emblem" />
-              <span class="medal__name" aria-hidden="true">{{ name }}</span>
-              <span class="medal__count cn-num" aria-hidden="true">× {{ m.count }}</span>
+            <li class="medal" [class.medal--none]="m.count === 0">
+              <button
+                type="button"
+                class="medal__button"
+                [attr.aria-label]="name + ' (' + tier + '): ' + ('commendations.history.times' | translate: { n: m.count }) + '. ' + ('commendations.viewer.open' | translate)"
+                [matTooltip]="name + ' (' + tier + ') — ' + description"
+                (click)="open3d(row.type, m.tier, m.count)"
+              >
+                <app-medal-3d-image
+                  [svgUrl]="'commendations/' + m.emblem + '.svg'"
+                  [finish]="m.tier"
+                  [locked]="m.count === 0"
+                  [size]="medalSize"
+                />
+                <span class="medal__name" aria-hidden="true">{{ name }}</span>
+                <span class="medal__count cn-num" aria-hidden="true">× {{ m.count }}</span>
+              </button>
             </li>
           }
         </ul>

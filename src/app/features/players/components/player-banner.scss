@@ -1,8 +1,19 @@
+// The layout follows the width of the banner, not of the window (container queries below).
+:host {
+  display: block;
+  container: banner / inline-size;
+}
+
 // Game-style header: dark slate panel with a gold frame and white outlined text (same in both themes).
+// Wide: Town Hall | name over chips and medals | league. Narrow: see the container query at the end.
 .banner {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.75rem 1.25rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'th heading league'
+    'th details league';
+  align-content: center;
+  gap: 0.45rem 1.25rem;
   align-items: center;
   margin-bottom: 0.75rem;
   padding: 0.75rem 1rem;
@@ -13,6 +24,14 @@
   background: var(--cn-game-panel);
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), var(--cn-card-shadow);
   color: var(--cn-game-panel-text);
+}
+
+.banner__town-hall {
+  grid-area: th;
+}
+
+.banner__league {
+  grid-area: league;
 }
 
 .banner__town-hall,
@@ -37,15 +56,17 @@
   text-shadow: var(--cn-game-text-outline);
 }
 
-.banner__weapon {
-  color: var(--cn-game-gold);
-  letter-spacing: 1px;
-  text-shadow: var(--cn-game-text-outline);
-}
-
-.banner__identity {
+.banner__heading {
+  grid-area: heading;
+  align-self: end;
   // Container of the player name: long names shrink before wrapping.
   container-type: inline-size;
+  min-width: 0;
+}
+
+.banner__details {
+  grid-area: details;
+  align-self: start;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -85,10 +106,12 @@
 .banner__meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.4rem;
 }
 
 .chip {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -98,12 +121,6 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   font-size: var(--cn-fs-sm);
   font-weight: 600;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
 }
 
 .chip--role {
@@ -112,15 +129,8 @@
   color: #1d1503;
 }
 
-.chip--in mat-icon {
-  color: #7ee08f;
-}
-
-.chip--out mat-icon {
-  color: #ff9a92;
-}
-
 .banner__labels {
+  flex: none;
   display: flex;
   gap: 0.4rem;
   margin: 0;
@@ -134,38 +144,31 @@
   }
 }
 
-.banner__commendations {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.banner__commendations-title {
-  font-size: var(--cn-fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--cn-game-panel-muted);
-}
-
+// A single row of medals (`.cn-hscroll`): on narrow banners it scrolls sideways instead of stacking.
 .banner__medals {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
+  gap: 0.75rem;
   margin: 0;
-  padding: 0;
+  // Room for the hover lift and the focus outline, which the scroll area would clip.
+  padding: 0.25rem 0.25rem 0.35rem;
   list-style: none;
+  // Snap to the medals, not past the padding (the row would start already scrolled).
+  scroll-padding-inline: 0.25rem;
 }
 
 .banner__medal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  min-width: 5.25rem;
-  max-width: 7.5rem;
-  border-radius: 8px;
-  cursor: default;
+  flex: none;
+  scroll-snap-align: start;
+}
+
+// The whole medal opens it in 3D.
+.banner__medal-button {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
   transition: transform 150ms ease;
 
   &:hover,
@@ -181,14 +184,11 @@
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-}
 
-.banner__medal-name {
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-xs);
-  line-height: 1.1;
-  text-align: center;
-  text-shadow: var(--cn-game-text-outline);
+  app-medal-3d-image {
+    display: block;
+    width: 80px;
+  }
 }
 
 .banner__league-icon {
@@ -217,16 +217,69 @@
   color: var(--cn-game-panel-muted);
 }
 
-@media (max-width: 719.98px) {
+// Narrow banner (phones): one compact row with Town Hall, name and league, then chips and medals
+// full width, each on a single line that scrolls sideways. Leaves the room to the tabs.
+@container banner (max-width: 640px) {
   .banner {
-    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'th heading league'
+      'details details details';
+    gap: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .banner__heading {
+    align-self: center;
+  }
+
+  .banner__th-image {
+    width: 52px;
+  }
+
+  .banner__th-label,
+  .banner__league-name {
+    font-size: var(--cn-fs-xs);
   }
 
   .banner__league {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem 1rem;
+    gap: 0;
+  }
+
+  .banner__league-icon {
+    width: 44px;
+  }
+
+  .banner__trophies {
+    font-size: var(--cn-fs-md);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .banner__meta {
+    flex-wrap: nowrap;
+    // Room for the focus outline, clipped by the scroll area.
+    padding: 2px;
+  }
+
+  .chip {
+    padding: 0.15rem 0.5rem;
+    font-size: var(--cn-fs-xs);
+  }
+
+  .banner__labels img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .banner__medals {
+    gap: 0.5rem;
+  }
+
+  .banner__medal-button app-medal-3d-image {
+    width: 60px;
   }
 }

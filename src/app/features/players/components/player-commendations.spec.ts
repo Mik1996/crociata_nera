@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
+import { CommendationDialog } from './commendation-dialog';
 import { PlayerCommendations } from './player-commendations';
 
 describe('PlayerCommendations', () => {
@@ -20,7 +22,7 @@ describe('PlayerCommendations', () => {
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
     expect(medals).toHaveLength(24);
-    const champion = medals.find((m) => m.querySelector('app-commendation-medal img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
+    const champion = medals.find((m) => m.querySelector('app-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
@@ -46,5 +48,34 @@ describe('PlayerCommendations', () => {
     expect(el.querySelector('.others')!.textContent).toContain('commendations.giantSlayer.platinum');
     expect(el.querySelector('.others')!.textContent).toContain('2');
     expect(el.querySelector('.summary__total')!.textContent).toContain('3');
+  });
+
+  it('opens the medal in 3D when it is clicked', async () => {
+    const counts: EarnedCommendation[] = [
+      { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 3 },
+    ];
+    const dialog = { open: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } },
+        { provide: MatDialog, useValue: dialog },
+      ],
+    });
+    const fixture = TestBed.createComponent(PlayerCommendations);
+    fixture.componentRef.setInput('tag', '#A');
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const button = Array.from(el.querySelectorAll<HTMLButtonElement>('.medal__button')).find(
+      (b) => b.querySelector('img')?.getAttribute('src') === 'commendations/champion-gold.svg',
+    )!;
+    expect(button.getAttribute('aria-label')).toContain('Guarda la medaglia in 3D');
+    button.click();
+    await vi.waitFor(() => expect(dialog.open).toHaveBeenCalled());
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      CommendationDialog,
+      expect.objectContaining({ data: { type: 'champion', tier: 'gold', count: 3 } }),
+    );
   });
 });

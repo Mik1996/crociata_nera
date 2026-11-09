@@ -1,0 +1,74 @@
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 1.25rem;
+  font-family: var(--cn-font-display);
+
+  // Material's baseline strut: as a column item it would be an empty 40px row above the name.
+  &::before {
+    display: none;
+  }
+}
+
+// Name centred over the medal, tier on its own line just below, on the left.
+.title__name {
+  text-align: center;
+}
+
+.title__tier {
+  align-self: flex-start;
+  line-height: 1.2;
+  font-size: var(--cn-fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tier--bronze {
+  color: #d08a5a;
+}
+
+.tier--silver {
+  color: #b8c2d2;
+}
+
+.tier--gold {
+  color: var(--cn-gold-light);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.viewer {
+  // All the width of the dialog: the medal cannot be zoomed past its canvas, so give it room.
+  width: 100%;
+  // Soft spotlight behind the medal, like a display case.
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.1), transparent 65%);
+  border-radius: 50%;
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: var(--cn-fs-xs);
+}
+
+.count {
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-lg);
+  color: var(--cn-gold-light);
+}
+
+.count--none {
+  color: var(--cn-text-muted);
+  opacity: 0.8;
+}
+
+.description {
+  max-width: 36ch;
+  margin: 0.4rem 0 0;
+}

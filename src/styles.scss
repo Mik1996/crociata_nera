@@ -519,6 +519,83 @@ h2 {
   }
 }
 
+// --- Horizontal scroll rows ----------------------------------------------------------------------
+// Rows that scroll sideways with the finger (scrollbars are hidden site-wide): the edges fade where
+// there is more content. The fade follows the scroll position itself (scroll-driven animation):
+// with nothing to scroll the timeline is inactive and nothing fades; without support, no fade.
+
+@property --cn-hfade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --cn-hfade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes cn-hfade {
+  from {
+    --cn-hfade-start: 0px;
+    --cn-hfade-end: 2rem;
+  }
+  2% {
+    --cn-hfade-start: 2rem;
+  }
+  98% {
+    --cn-hfade-end: 2rem;
+  }
+  to {
+    --cn-hfade-start: 2rem;
+    --cn-hfade-end: 0px;
+  }
+}
+
+@mixin hscroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+
+  @supports (animation-timeline: scroll()) {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--cn-hfade-start),
+      #000 calc(100% - var(--cn-hfade-end)),
+      transparent
+    );
+    animation: cn-hfade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+.cn-hscroll {
+  @include hscroll;
+}
+
+// Tab bars with `appSwipeTabs`: no pagination arrows, the labels scroll with the finger.
+.cn-swipe-tabs {
+  .mat-mdc-tab-header-pagination {
+    display: none;
+  }
+
+  .mat-mdc-tab-label-container {
+    @include hscroll;
+  }
+
+  .mat-mdc-tab-list {
+    flex-shrink: 0;
+  }
+
+  .mat-mdc-tab {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+}
+
 /*
  * Row of the signed-in user's player (tag linked to the account): green tint and bar, plus a
  * "You" badge next to the name so it is not conveyed by colour alone. Higher specificity than
@@ -779,5 +856,76 @@ table tr.cn-row-me.mat-mdc-row {
     margin-left: auto;
     font-size: 20px;
     color: var(--cn-gold);
+  }
+}
+
+// --- 3D medal dialog (overlay classes: they live outside the component) -------------------------
+
+// Opaque, blurred backdrop: all the attention goes to the medal.
+.cn-medal-backdrop {
+  background: rgba(4, 7, 15, 0.86);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.cn-medal-dialog {
+  --mat-dialog-container-shape: 24px;
+  // Metal of the medal shown (light, base, dark), as in the flat medals: gold by default.
+  --cn-medal-light: #fff6c2;
+  --cn-medal: #f1bd2c;
+  --cn-medal-dark: #9a6200;
+
+  &--bronze {
+    --cn-medal-light: #ffd9b0;
+    --cn-medal: #cd7f3e;
+    --cn-medal-dark: #7a3f12;
+  }
+
+  &--silver {
+    --cn-medal-light: #ffffff;
+    --cn-medal: #c3ccd8;
+    --cn-medal-dark: #66748a;
+  }
+
+  // Not earned yet: the dark grey of the locked medal.
+  &--locked {
+    --cn-medal-light: #9aa0ab;
+    --cn-medal: #5d626c;
+    --cn-medal-dark: #2a2d34;
+  }
+
+  .mat-mdc-dialog-surface {
+    position: relative;
+    // Spotlight from above, like a display case.
+    background: radial-gradient(120% 80% at 50% 28%, var(--cn-surface-3), var(--cn-surface) 70%);
+    // Soft halo of the medal colour, fading into the backdrop.
+    box-shadow:
+      0 0 56px 4px color-mix(in srgb, var(--cn-medal) 32%, transparent),
+      0 30px 80px rgba(0, 0, 0, 0.55);
+
+    // Faded border in the medal metal: bright at the corners, vanishing along the sides.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      padding: 2px;
+      border-radius: inherit;
+      background: linear-gradient(
+        155deg,
+        var(--cn-medal-light),
+        color-mix(in srgb, var(--cn-medal) 45%, transparent) 30%,
+        transparent 55%,
+        color-mix(in srgb, var(--cn-medal) 45%, transparent) 80%,
+        var(--cn-medal-dark)
+      );
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box exclude,
+        linear-gradient(#000 0 0);
+      pointer-events: none;
+    }
   }
 }

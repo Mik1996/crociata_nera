@@ -1,0 +1,29 @@
+@let name = nameKey | translate;
+<h2 mat-dialog-title class="title">
+  <span class="title__name">{{ name }}</span>
+  <span class="title__tier tier--{{ data.tier }}">{{ 'commendations.tiers.' + data.tier | translate }}</span>
+</h2>
+
+<mat-dialog-content class="content">
+  <app-medal-3d-viewer
+    class="viewer"
+    [svgUrl]="svgUrl"
+    [finish]="finish"
+    [locked]="locked"
+    [label]="'commendations.viewer.label' | translate: { name }"
+  />
+  <p class="hint cn-muted" aria-hidden="true">{{ 'commendations.viewer.dragHint' | translate }}</p>
+
+  @if (hasCount) {
+    <p class="count" [class.count--none]="locked">{{ countKey() | translate: { n: data.count } }}</p>
+  } @else if (data.period) {
+    <p class="count">{{ 'commendations.viewer.period' | translate: { period: data.period } }}</p>
+  }
+  <p class="description">
+    {{ 'commendations.' + data.type + '.description' | translate: { n: (threshold | localNumber) } }}
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close cdkFocusInitial>{{ 'common.close' | translate }}</button>
+</mat-dialog-actions>

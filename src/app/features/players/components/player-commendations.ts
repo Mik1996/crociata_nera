@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
-import { CommendationTier } from '../../../core/models';
+import { CommendationTier, CommendationType } from '../../../core/models';
 import { CommendationService } from '../../../core/services/commendation.service';
 import {
   COMMENDATION_THRESHOLDS,
@@ -12,7 +13,8 @@ import {
   emblemOf,
 } from '../../../core/utils/commendations';
 import { LoadState } from '../../../shared/components/load-state';
-import { CommendationMedal } from '../../../shared/game/commendation-medal';
+import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
+import { openCommendationDialog } from './open-commendation-dialog';
 
 /** Tiers from the lowest, as they are read from left to right. */
 const TIERS_ASCENDING: readonly CommendationTier[] = [...COMMENDATION_TIERS].reverse();
@@ -23,7 +25,7 @@ const TIERS_ASCENDING: readonly CommendationTier[] = [...COMMENDATION_TIERS].rev
  */
 @Component({
   selector: 'app-player-commendations',
-  imports: [TranslatePipe, LocalNumberPipe, MatTooltipModule, LoadState, CommendationMedal],
+  imports: [TranslatePipe, LocalNumberPipe, MatTooltipModule, LoadState, Medal3dImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-commendations.html',
   styleUrl: './player-commendations.scss',
@@ -31,7 +33,11 @@ const TIERS_ASCENDING: readonly CommendationTier[] = [...COMMENDATION_TIERS].rev
 export class PlayerCommendations {
   readonly tag = input.required<string>();
 
+  /** Width of a medal in CSS pixels (the 3D image is drawn for it). */
+  protected readonly medalSize = 104;
+
   private readonly commendations = inject(CommendationService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly history = rxResource({
     params: () => this.tag(),
@@ -65,4 +71,9 @@ export class PlayerCommendations {
   });
 
   protected readonly total = computed(() => this.earned().reduce((sum, c) => sum + c.quantity, 0));
+
+  /** Opens the medal in 3D. */
+  protected open3d(type: CommendationType, tier: CommendationTier, count: number): Promise<void> {
+    return openCommendationDialog(this.dialog, { type, tier, count });
+  }
 }

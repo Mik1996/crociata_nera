@@ -48,21 +48,43 @@
 
 .medal {
   display: flex;
+  justify-content: center;
+}
+
+// The whole medal opens it in 3D.
+.medal__button {
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
   border-radius: 10px;
+  background: none;
+  font: inherit;
   text-align: center;
   color: var(--cn-game-panel-text);
-  cursor: default;
+  cursor: pointer;
 
-  app-commendation-medal {
-    width: 80px;
+  app-medal-3d-image {
+    width: min(104px, 100%);
+    transition: transform 0.15s ease;
+  }
+
+  &:hover app-medal-3d-image {
+    transform: scale(1.06);
   }
 
   &:focus-visible {
     outline: 2px solid var(--cn-game-gold);
     outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    app-medal-3d-image {
+      transition: none;
+    }
   }
 }
 
@@ -80,12 +102,8 @@
   text-shadow: var(--cn-game-text-outline);
 }
 
-// Never earned: greyscale and dimmed.
+// Never earned: the 3D medal is already dark and matte; the texts are dimmed.
 .medal--none {
-  app-commendation-medal {
-    filter: grayscale(1) opacity(0.45);
-  }
-
   .medal__name,
   .medal__count {
     color: var(--cn-game-panel-muted);

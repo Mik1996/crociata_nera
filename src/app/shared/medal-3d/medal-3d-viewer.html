@@ -1,0 +1,10 @@
+@if (unsupported()) {
+  <!-- No WebGL: the flat medal, greyed out when locked. -->
+  <img class="fallback" [class.fallback--locked]="locked()" [src]="svgUrl()" alt="" />
+}
+<canvas
+  #canvas
+  [hidden]="unsupported()"
+  role="img"
+  [attr.aria-label]="label() || null"
+></canvas>
