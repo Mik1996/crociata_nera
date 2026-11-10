@@ -8,6 +8,11 @@ import { LanguageService } from './language.service';
 registerLocaleData(localeIt);
 registerLocaleData(localeEs);
 
+/** Formats a number in a supported language (`'1.0-0'` digits format, as for `formatNumber`). */
+export function formatLocalNumber(value: number, locale: string, format?: string): string {
+  return formatNumber(value, locale, format);
+}
+
 /**
  * Like `number`, but formats with the language chosen by the user and updates on language change
  * (Angular's `LOCALE_ID` is fixed for the whole app lifetime).
@@ -19,7 +24,7 @@ export class LocalNumberPipe implements PipeTransform {
 
   transform(value: number | null | undefined, format?: string): string | null {
     if (value === null || value === undefined || Number.isNaN(value)) return null;
-    return formatNumber(value, this.language.current(), format);
+    return formatLocalNumber(value, this.language.current(), format);
   }
 }
 

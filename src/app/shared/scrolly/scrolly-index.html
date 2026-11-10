@@ -1,0 +1,19 @@
+<nav class="index" [attr.aria-label]="label()">
+  <ol class="index__list">
+    @for (item of items(); track item.id) {
+      @let active = root.activeId() === item.id;
+      <li>
+        <a
+          class="index__item"
+          [class.index__item--active]="active"
+          [href]="'#' + item.id"
+          [attr.aria-current]="active ? 'step' : null"
+          (click)="$event.preventDefault(); root.scrollTo(item.id)"
+        >
+          <span class="index__mark" aria-hidden="true"><span class="index__numeral">{{ item.numeral || '✠' }}</span></span>
+          <span class="index__label">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ol>
+</nav>

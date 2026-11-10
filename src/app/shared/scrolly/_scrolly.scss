@@ -1,0 +1,69 @@
+// Scrollytelling engine (`src/app/shared/scrolly/`): layout of acts, stages and parallax layers.
+// The engine writes the custom properties (`--scrolly-vh`, `--p`, `--enter`, `--exit`, `--t`,
+// `--top`, `--h`); these rules only consume them.
+
+.scrolly {
+  // Overwritten by the engine with the real scrollport height.
+  --scrolly-vh: 100svh;
+  position: relative;
+}
+
+.scrolly-act {
+  --p: 0;
+  --enter: 0;
+  --exit: 0;
+  --t: 0;
+  position: relative;
+  display: block;
+  // Focus target of the index: no ring around a whole act.
+  outline: none;
+}
+
+// Pinned act: as tall as `--act-length` scrollports, its stage stays on screen meanwhile.
+.scrolly-act--pinned {
+  height: calc(var(--act-length) * var(--scrolly-vh));
+}
+
+// The part of an act that is on screen. A size container: effects can size themselves with
+// cqw/cqh and query the stage's width, height and orientation.
+.scrolly-stage {
+  position: sticky;
+  top: 0;
+  height: var(--scrolly-vh);
+  overflow: clip;
+  container: stage / size;
+}
+
+// Parallax layer (`appParallax`): `--depth` scrollports of travel over the act, centred.
+.scrolly-layer {
+  --layer-progress: var(--p);
+  transform: translate3d(0, calc((var(--layer-progress) - 0.5) * var(--depth, 0) * var(--scrolly-vh)), 0);
+}
+
+.scrolly-layer--t {
+  --layer-progress: var(--t);
+}
+
+.scrolly-layer--x {
+  transform: translate3d(calc((var(--layer-progress) - 0.5) * var(--depth, 0) * var(--scrolly-vh)), 0, 0);
+}
+
+// Static page (reduced motion) or a pinned act whose content does not fit the screen: plain
+// sections in their final state. Stages are still width containers.
+.scrolly-act--static.scrolly-act--pinned,
+.scrolly-act--unpinned.scrolly-act--pinned {
+  height: auto;
+}
+
+.scrolly-act--static .scrolly-stage,
+.scrolly-act--unpinned .scrolly-stage {
+  position: relative;
+  height: auto;
+  min-height: min(var(--scrolly-vh), 48rem);
+  container: stage / inline-size;
+}
+
+.scrolly-act--static .scrolly-layer,
+.scrolly-act--unpinned .scrolly-layer {
+  transform: none;
+}

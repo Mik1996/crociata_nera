@@ -1,0 +1,134 @@
+// Index of the acts: a column of marks at the right edge of the scrollport. The host is a sticky,
+// zero-height strip, so it follows the reader whichever element scrolls.
+
+:host {
+  position: sticky;
+  top: 50%;
+  z-index: 5;
+  display: block;
+  height: 0;
+  pointer-events: none;
+}
+
+.index {
+  position: absolute;
+  right: 0.35rem;
+  top: 0;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+
+.index__list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.index__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  // Touch target of at least 32px, the visible mark is smaller.
+  min-width: 32px;
+  min-height: 32px;
+  color: rgba(242, 245, 251, 0.6);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+
+    .index__label {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-game-gold);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.index__mark {
+  display: grid;
+  place-items: center;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(244, 197, 66, 0.55);
+  background: rgba(8, 10, 16, 0.6);
+  transform: rotate(45deg);
+  transition:
+    width 200ms ease,
+    height 200ms ease,
+    background 200ms ease;
+}
+
+.index__item--active {
+  color: var(--cn-game-gold);
+
+  .index__mark {
+    background: var(--cn-game-gold);
+    box-shadow: 0 0 10px rgba(244, 197, 66, 0.7);
+  }
+}
+
+// Hidden in the small diamonds of narrow screens; upright inside the rotated square.
+.index__numeral {
+  display: none;
+  transform: rotate(-45deg);
+  font-family: var(--cn-font-display);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.index__item--active .index__numeral {
+  color: #1d1503;
+}
+
+// Name of the act: shown next to the mark on hover or focus.
+.index__label {
+  order: -1;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(8, 10, 16, 0.75);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  pointer-events: none;
+}
+
+// Wide screens: numerals in the marks.
+@media (min-width: 900px) {
+  .index {
+    right: 0.75rem;
+  }
+
+  .index__mark {
+    width: 26px;
+    height: 26px;
+  }
+
+  .index__numeral {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .index__mark,
+  .index__label {
+    transition: none;
+  }
+}
