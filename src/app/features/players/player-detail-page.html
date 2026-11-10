@@ -1,206 +1,215 @@
-<div class="back">
-  <a mat-button routerLink="/players">
-    <mat-icon aria-hidden="true">arrow_back</mat-icon> {{ 'player.allPlayers' | translate }}
-  </a>
-</div>
+<div appScrollFade class="page__scroll" #scroller>
+  <div class="back">
+    <a mat-button routerLink="/players">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon> {{ 'player.allPlayers' | translate }}
+    </a>
+  </div>
 
-<app-load-state
-  [loading]="profileResource.isLoading()"
-  [error]="profileResource.error()"
-  [empty]="!profile()"
-  emptyIcon="person_off"
-  [emptyMessage]="'player.notFound' | translate"
-  (retry)="profileResource.reload()"
->
-  @if (profile(); as p) {
-    <app-player-banner [profile]="p" [commendations]="commendations()" />
+  <app-load-state
+    [loading]="profileResource.isLoading()"
+    [error]="profileResource.error()"
+    [empty]="!profile()"
+    emptyIcon="person_off"
+    [emptyMessage]="'player.notFound' | translate"
+    (retry)="profileResource.reload()"
+  >
+    @if (profile(); as p) {
+      <app-player-banner [profile]="p" [commendations]="commendations()" />
 
-    <mat-tab-group appSwipeTabs class="player-tabs" mat-stretch-tabs="false" animationDuration="200ms">
-      <!-- Profile -->
-      <mat-tab [label]="'player.tabProfile' | translate">
-        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabProfile' | translate">
-          <ul class="stat-grid" [attr.aria-label]="'player.tabProfile' | translate">
-            <li class="stat">
-              <img [src]="icons.star" alt="" width="40" height="40" />
-              <span class="stat__value">{{ p.warStars | localNumber }}</span>
-              <span class="stat__label">{{ 'player.warStars' | translate }}</span>
-            </li>
-            <li class="stat">
-              <img [src]="icons['clan-war']" alt="" width="40" height="40" />
-              <span class="stat__value">{{ p.attackWins | localNumber }}</span>
-              <span class="stat__label">{{ 'player.attackWins' | translate }}</span>
-            </li>
-            <li class="stat">
-              <mat-icon class="stat__icon" aria-hidden="true">shield</mat-icon>
-              <span class="stat__value">{{ p.defenseWins | localNumber }}</span>
-              <span class="stat__label">{{ 'player.defenseWins' | translate }}</span>
-            </li>
-            <li class="stat">
-              <mat-icon class="stat__icon" aria-hidden="true">volunteer_activism</mat-icon>
-              <span class="stat__value">{{ p.donations | localNumber }}</span>
-              <span class="stat__label">{{ 'player.donations' | translate }}</span>
-            </li>
-            <li class="stat">
-              <mat-icon class="stat__icon" aria-hidden="true">move_to_inbox</mat-icon>
-              <span class="stat__value">{{ p.donationsReceived | localNumber }}</span>
-              <span class="stat__label">{{ 'player.donationsReceived' | translate }}</span>
-            </li>
-            <li class="stat">
-              <img [src]="icons['capital-gold']" alt="" width="40" height="40" />
-              <span class="stat__value">{{ p.capitalContributions | localNumber }}</span>
-              <span class="stat__label">{{ 'player.capitalContributions' | translate }}</span>
-            </li>
-            @if (p.legendTrophies !== undefined) {
+      <mat-tab-group
+        appSwipeTabs
+        class="player-tabs"
+        mat-stretch-tabs="false"
+        animationDuration="200ms"
+        #tabs
+        (selectedIndexChange)="keepTabStart(scroller, tabs)"
+      >
+        <!-- Profile -->
+        <mat-tab [label]="'player.tabProfile' | translate">
+          <div class="tab" role="region" [attr.aria-label]="'player.tabProfile' | translate">
+            <ul class="stat-grid" [attr.aria-label]="'player.tabProfile' | translate">
               <li class="stat">
-                <mat-icon class="stat__icon" aria-hidden="true">workspace_premium</mat-icon>
-                <span class="stat__value">{{ p.legendTrophies | localNumber }}</span>
-                <span class="stat__label">
-                  {{ 'player.legendTrophies' | translate }}
-                  @if (p.legendRank) {
-                    · {{ 'player.legendRank' | translate: { n: (p.legendRank | localNumber) } }}
-                  }
-                </span>
+                <img [src]="icons.star" alt="" width="40" height="40" />
+                <span class="stat__value">{{ p.warStars | localNumber }}</span>
+                <span class="stat__label">{{ 'player.warStars' | translate }}</span>
               </li>
-            }
-            @if (p.builderHall) {
               <li class="stat">
-                <mat-icon class="stat__icon" aria-hidden="true">construction</mat-icon>
-                <span class="stat__value">{{ p.builderBaseTrophies ?? 0 | localNumber }}</span>
-                <span class="stat__label">
-                  {{ 'player.builderHall' | translate: { n: p.builderHall } }}
-                  @if (p.builderBaseLeague) {
-                    · {{ p.builderBaseLeague }}
-                  }
-                </span>
+                <img [src]="icons['clan-war']" alt="" width="40" height="40" />
+                <span class="stat__value">{{ p.attackWins | localNumber }}</span>
+                <span class="stat__label">{{ 'player.attackWins' | translate }}</span>
               </li>
-            }
-          </ul>
+              <li class="stat">
+                <mat-icon class="stat__icon" aria-hidden="true">shield</mat-icon>
+                <span class="stat__value">{{ p.defenseWins | localNumber }}</span>
+                <span class="stat__label">{{ 'player.defenseWins' | translate }}</span>
+              </li>
+              <li class="stat">
+                <mat-icon class="stat__icon" aria-hidden="true">volunteer_activism</mat-icon>
+                <span class="stat__value">{{ p.donations | localNumber }}</span>
+                <span class="stat__label">{{ 'player.donations' | translate }}</span>
+              </li>
+              <li class="stat">
+                <mat-icon class="stat__icon" aria-hidden="true">move_to_inbox</mat-icon>
+                <span class="stat__value">{{ p.donationsReceived | localNumber }}</span>
+                <span class="stat__label">{{ 'player.donationsReceived' | translate }}</span>
+              </li>
+              <li class="stat">
+                <img [src]="icons['capital-gold']" alt="" width="40" height="40" />
+                <span class="stat__value">{{ p.capitalContributions | localNumber }}</span>
+                <span class="stat__label">{{ 'player.capitalContributions' | translate }}</span>
+              </li>
+              @if (p.legendTrophies !== undefined) {
+                <li class="stat">
+                  <mat-icon class="stat__icon" aria-hidden="true">workspace_premium</mat-icon>
+                  <span class="stat__value">{{ p.legendTrophies | localNumber }}</span>
+                  <span class="stat__label">
+                    {{ 'player.legendTrophies' | translate }}
+                    @if (p.legendRank) {
+                      · {{ 'player.legendRank' | translate: { n: (p.legendRank | localNumber) } }}
+                    }
+                  </span>
+                </li>
+              }
+              @if (p.builderHall) {
+                <li class="stat">
+                  <mat-icon class="stat__icon" aria-hidden="true">construction</mat-icon>
+                  <span class="stat__value">{{ p.builderBaseTrophies ?? 0 | localNumber }}</span>
+                  <span class="stat__label">
+                    {{ 'player.builderHall' | translate: { n: p.builderHall } }}
+                    @if (p.builderBaseLeague) {
+                      · {{ p.builderBaseLeague }}
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
 
-          @if (p.heroes.length) {
-            <section class="game-section" aria-labelledby="heroes-title">
-              <h2 id="heroes-title">{{ 'player.heroes' | translate }}</h2>
-              <ul class="heroes">
-                @for (hero of p.heroes; track hero.name) {
-                  <li class="hero" [class.hero--max]="hero.level >= hero.maxLevel">
-                    <div class="hero__portrait">
-                      @if (hero.icon) {
-                        <img [src]="hero.icon" alt="" width="96" height="96" loading="lazy" />
-                      }
-                      <app-level-badge class="hero__level" [level]="hero.level" [maxed]="hero.level >= hero.maxLevel" />
-                    </div>
-                    <div class="hero__body">
-                      <h3 class="hero__name">{{ hero.name }}</h3>
+            @if (p.heroes.length) {
+              <section class="game-section" aria-labelledby="heroes-title">
+                <h2 id="heroes-title">{{ 'player.heroes' | translate }}</h2>
+                <ul class="heroes">
+                  @for (hero of p.heroes; track hero.name) {
+                    <li class="hero" [class.hero--max]="hero.level >= hero.maxLevel">
+                      <div class="hero__portrait">
+                        @if (hero.icon) {
+                          <img [src]="hero.icon" alt="" width="96" height="96" loading="lazy" />
+                        }
+                        <app-level-badge class="hero__level" [level]="hero.level" [maxed]="hero.level >= hero.maxLevel" />
+                      </div>
+                      <div class="hero__body">
+                        <h3 class="hero__name">{{ hero.name }}</h3>
+                        <div
+                          class="progress"
+                          role="progressbar"
+                          [attr.aria-valuenow]="hero.level"
+                          aria-valuemin="0"
+                          [attr.aria-valuemax]="hero.maxLevel"
+                          [attr.aria-label]="'player.level' | translate: { level: hero.level, max: hero.maxLevel }"
+                        >
+                          <span [style.width.%]="percent(hero.level, hero.maxLevel)"></span>
+                        </div>
+                        <span class="hero__levels">{{ 'player.level' | translate: { level: hero.level, max: hero.maxLevel } }}</span>
+                        @if (hero.equipment.length) {
+                          <div class="hero__equipment" role="list" [attr.aria-label]="'player.equipment' | translate">
+                            @for (item of hero.equipment; track item.name) {
+                              <app-unit-tile [unit]="item" [small]="true" />
+                            }
+                          </div>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Commendations: history of every medal earned (loaded when the tab is opened) -->
+        <mat-tab [label]="'player.tabCommendations' | translate">
+          <ng-template matTabContent>
+            <div class="tab" role="region" [attr.aria-label]="'player.tabCommendations' | translate">
+              <app-player-commendations [tag]="p.tag" />
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <!-- Wars -->
+        <mat-tab [label]="'player.tabWars' | translate">
+          <div class="tab" role="region" [attr.aria-label]="'player.tabWars' | translate">
+            <app-load-state
+              [loading]="statsResource.isLoading()"
+              [error]="statsResource.error()"
+              [empty]="!stats()"
+              emptyIcon="shield"
+              [emptyMessage]="'player.noWars' | translate"
+              (retry)="statsResource.reload()"
+            >
+              @if (stats(); as s) {
+                <app-player-war-stats [stats]="s" />
+              }
+            </app-load-state>
+          </div>
+        </mat-tab>
+
+        <!-- Army -->
+        <mat-tab [label]="'player.tabArmy' | translate">
+          <div class="tab" role="region" [attr.aria-label]="'player.tabArmy' | translate">
+            @for (section of army(); track section.title) {
+              <section class="game-section">
+                <h2>
+                  {{ section.title | translate }}
+                  <span class="section-count">{{
+                    'player.maxedCount' | translate: { maxed: maxedCount(section.units), total: section.units.length }
+                  }}</span>
+                </h2>
+                <div class="unit-grid" role="list">
+                  @for (unit of section.units; track unit.name) {
+                    <app-unit-tile [unit]="unit" [inactive]="unit.active === false" />
+                  }
+                </div>
+              </section>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Achievements -->
+        <mat-tab [label]="'player.tabAchievements' | translate">
+          <div class="tab" role="region" [attr.aria-label]="'player.tabAchievements' | translate">
+            <p class="cn-muted achievements-summary">
+              {{ 'player.achievementsDone' | translate: { done: achievementsDone(), total: p.achievements.length } }}
+            </p>
+            <ul class="achievements">
+              @for (a of achievements(); track a.name + a.village) {
+                <li class="achievement" [class.achievement--done]="a.stars >= 3">
+                  <span class="achievement__stars" role="img" [attr.aria-label]="'player.achievementStars' | translate: { n: a.stars }">
+                    @for (slot of starSlots; track slot) {
+                      <img [src]="slot < a.stars ? icons.star : icons['star-neutral']" alt="" width="22" height="22" />
+                    }
+                  </span>
+                  <div class="achievement__body">
+                    <h3 class="achievement__name">{{ a.name }}</h3>
+                    <p class="achievement__info">{{ a.stars >= 3 && a.completionInfo ? a.completionInfo : a.info }}</p>
+                    @if (a.stars < 3) {
                       <div
                         class="progress"
                         role="progressbar"
-                        [attr.aria-valuenow]="hero.level"
+                        [attr.aria-valuenow]="a.value"
                         aria-valuemin="0"
-                        [attr.aria-valuemax]="hero.maxLevel"
-                        [attr.aria-label]="'player.level' | translate: { level: hero.level, max: hero.maxLevel }"
+                        [attr.aria-valuemax]="a.target"
+                        [attr.aria-label]="a.name"
                       >
-                        <span [style.width.%]="percent(hero.level, hero.maxLevel)"></span>
+                        <span [style.width.%]="percent(a.value, a.target)"></span>
                       </div>
-                      <span class="hero__levels">{{ 'player.level' | translate: { level: hero.level, max: hero.maxLevel } }}</span>
-                      @if (hero.equipment.length) {
-                        <div class="hero__equipment" role="list" [attr.aria-label]="'player.equipment' | translate">
-                          @for (item of hero.equipment; track item.name) {
-                            <app-unit-tile [unit]="item" [small]="true" />
-                          }
-                        </div>
-                      }
-                    </div>
-                  </li>
-                }
-              </ul>
-            </section>
-          }
-        </div>
-      </mat-tab>
-
-      <!-- Commendations: history of every medal earned (loaded when the tab is opened) -->
-      <mat-tab [label]="'player.tabCommendations' | translate">
-        <ng-template matTabContent>
-          <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabCommendations' | translate">
-            <app-player-commendations [tag]="p.tag" />
+                      <span class="achievement__progress cn-num">{{ a.value | localNumber }} / {{ a.target | localNumber }}</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
           </div>
-        </ng-template>
-      </mat-tab>
-
-      <!-- Wars -->
-      <mat-tab [label]="'player.tabWars' | translate">
-        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabWars' | translate">
-          <app-load-state
-            [loading]="statsResource.isLoading()"
-            [error]="statsResource.error()"
-            [empty]="!stats()"
-            emptyIcon="shield"
-            [emptyMessage]="'player.noWars' | translate"
-            (retry)="statsResource.reload()"
-          >
-            @if (stats(); as s) {
-              <app-player-war-stats [stats]="s" />
-            }
-          </app-load-state>
-        </div>
-      </mat-tab>
-
-      <!-- Army -->
-      <mat-tab [label]="'player.tabArmy' | translate">
-        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabArmy' | translate">
-          @for (section of army(); track section.title) {
-            <section class="game-section">
-              <h2>
-                {{ section.title | translate }}
-                <span class="section-count">{{
-                  'player.maxedCount' | translate: { maxed: maxedCount(section.units), total: section.units.length }
-                }}</span>
-              </h2>
-              <div class="unit-grid" role="list">
-                @for (unit of section.units; track unit.name) {
-                  <app-unit-tile [unit]="unit" [inactive]="unit.active === false" />
-                }
-              </div>
-            </section>
-          }
-        </div>
-      </mat-tab>
-
-      <!-- Achievements -->
-      <mat-tab [label]="'player.tabAchievements' | translate">
-        <div appScrollFade class="tab" tabindex="0" role="region" [attr.aria-label]="'player.tabAchievements' | translate">
-          <p class="cn-muted achievements-summary">
-            {{ 'player.achievementsDone' | translate: { done: achievementsDone(), total: p.achievements.length } }}
-          </p>
-          <ul class="achievements">
-            @for (a of achievements(); track a.name + a.village) {
-              <li class="achievement" [class.achievement--done]="a.stars >= 3">
-                <span class="achievement__stars" role="img" [attr.aria-label]="'player.achievementStars' | translate: { n: a.stars }">
-                  @for (slot of starSlots; track slot) {
-                    <img [src]="slot < a.stars ? icons.star : icons['star-neutral']" alt="" width="22" height="22" />
-                  }
-                </span>
-                <div class="achievement__body">
-                  <h3 class="achievement__name">{{ a.name }}</h3>
-                  <p class="achievement__info">{{ a.stars >= 3 && a.completionInfo ? a.completionInfo : a.info }}</p>
-                  @if (a.stars < 3) {
-                    <div
-                      class="progress"
-                      role="progressbar"
-                      [attr.aria-valuenow]="a.value"
-                      aria-valuemin="0"
-                      [attr.aria-valuemax]="a.target"
-                      [attr.aria-label]="a.name"
-                    >
-                      <span [style.width.%]="percent(a.value, a.target)"></span>
-                    </div>
-                    <span class="achievement__progress cn-num">{{ a.value | localNumber }} / {{ a.target | localNumber }}</span>
-                  }
-                </div>
-              </li>
-            }
-          </ul>
-        </div>
-      </mat-tab>
-    </mat-tab-group>
-  }
-</app-load-state>
+        </mat-tab>
+      </mat-tab-group>
+    }
+  </app-load-state>
+</div>

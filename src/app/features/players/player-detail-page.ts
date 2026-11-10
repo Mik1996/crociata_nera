@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GAME_ICONS } from '../../core/game/game-assets';
@@ -58,6 +58,17 @@ export class PlayerDetailPage {
   readonly tag = input.required<string>();
 
   protected readonly icons = GAME_ICONS;
+
+  /**
+   * Tab changed while the tab bar is stuck to the top: brings the scroll back to the start of the
+   * new tab, which would otherwise open halfway down (at the old tab's scroll position).
+   */
+  protected keepTabStart(scroller: HTMLElement, tabs: MatTabGroup): void {
+    const group = tabs._elementRef.nativeElement as HTMLElement;
+    const tabStart =
+      scroller.scrollTop + group.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    if (scroller.scrollTop > tabStart) scroller.scrollTop = tabStart;
+  }
 
   protected readonly profileResource = rxResource({
     params: () => this.tag(),

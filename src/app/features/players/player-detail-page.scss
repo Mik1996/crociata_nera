@@ -1,38 +1,20 @@
 // The page fills the space below the header (see `.page--fill` in styles.scss): back link, banner and
-// tab bar stay visible, only the content of the active tab scrolls.
-@media (min-height: 560px) {
-  app-load-state {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
+// tabs scroll together in `.page__scroll`, the tab bar sticks to its top once scrolled past.
+.player-tabs {
+  // No `overflow` between the tab bar and the scroll area, or `position: sticky` stops working.
+  ::ng-deep .mat-mdc-tab-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--cn-bg);
   }
 
-  app-player-banner {
-    flex: none;
+  ::ng-deep .mat-mdc-tab-body-content {
+    overflow: visible;
   }
 
-  .player-tabs {
-    flex: 1;
-    min-height: 0;
-
-    ::ng-deep .mat-mdc-tab-body-wrapper {
-      flex: 1;
-      min-height: 0;
-    }
-
-    ::ng-deep .mat-mdc-tab-body-content {
-      overflow: hidden;
-    }
-
-    // Each tab panel is its own focusable scroll region (keyboard users can scroll it too).
-    .tab {
-      box-sizing: border-box;
-      height: 100%;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      padding: 0;
-    }
+  .tab {
+    padding: 0;
   }
 }
 
