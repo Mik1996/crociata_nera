@@ -12,6 +12,9 @@ export abstract class CocApiService {
   /** Clan and member information. */
   abstract getClan(): Observable<Clan>;
 
+  /** Any other clan, by tag (e.g. the sister clans on the welcome page). */
+  abstract getClanByTag(tag: string): Observable<Clan>;
+
   /** Position of the clan in its country's and in the worldwide trophy rankings. */
   abstract getClanRanks(): Observable<ClanRanks>;
 

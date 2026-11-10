@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { delay, Observable, of } from 'rxjs';
+import { delay, Observable, of, throwError } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
+import { SISTER_CLANS } from '../config/sister-clans';
 import { generateMockData, MockDataset } from '../mock/mock-data';
 import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
 import { mockPlayer } from '../mock/mock-player';
@@ -52,6 +53,31 @@ export class MockCocApiService extends CocApiService {
 
   getClan(): Observable<Clan> {
     return this.respond(this.data.clan);
+  }
+
+  /** The clan itself, or a sister clan built from it (smaller, younger). */
+  getClanByTag(tag: string): Observable<Clan> {
+    if (tag === this.data.clan.tag) return this.getClan();
+    const sister = SISTER_CLANS.find((s) => s.tag === tag);
+    if (!sister) return throwError(() => new Error(`Clan ${tag} not found`));
+    const red = sister.order === 'red';
+    const clan = this.data.clan;
+    return this.respond<Clan>({
+      ...clan,
+      tag,
+      name: sister.name,
+      level: red ? 14 : 11,
+      description: red
+        ? 'Il clan gemello di Crociata Nera: qui si gioca la seconda CWL e c’è un posto per tutti.'
+        : 'Le guerre non si fermano mai: durante le CWL qui continuiamo con le guerre tra clan.',
+      members: clan.members.slice(0, red ? 41 : 33),
+      warWins: Math.round(clan.warWins * (red ? 0.6 : 0.4)),
+      warLosses: Math.round(clan.warLosses * 0.7),
+      warTies: Math.round(clan.warTies * 0.5),
+      warWinStreak: red ? 7 : 3,
+      clanPoints: Math.round(clan.clanPoints * (red ? 0.75 : 0.6)),
+      warLeague: red ? { id: 48000012, name: 'Crystal League I' } : { id: 48000009, name: 'Gold League I' },
+    });
   }
 
   /** In the top 200 of its country, not worldwide. */

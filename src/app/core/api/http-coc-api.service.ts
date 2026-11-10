@@ -75,6 +75,12 @@ export class HttpCocApiService extends CocApiService {
     return this.http.get<CocClan>(this.clanPath).pipe(map(mapClan), catchError(toApiError));
   }
 
+  getClanByTag(tag: string): Observable<Clan> {
+    return this.http
+      .get<CocClan>(`${this.config.apiBaseUrl}/clans/${encodeURIComponent(tag)}`)
+      .pipe(map(mapClan), catchError(toApiError));
+  }
+
   getClanRanks(): Observable<ClanRanks> {
     return this.getClan().pipe(
       switchMap((clan) =>

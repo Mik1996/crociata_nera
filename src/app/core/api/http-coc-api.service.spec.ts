@@ -74,6 +74,14 @@ describe('HttpCocApiService', () => {
     expect((await response).name).toBe('Crociata Nera');
   });
 
+  it('reads any other clan by tag, through the proxy', async () => {
+    const response = firstValueFrom(api.getClanByTag('#2JU8RPR2G'));
+    const req = http.expectOne('/proxy/clans/%232JU8RPR2G');
+    expect(req.request.method).toBe('GET');
+    req.flush({ tag: '#2JU8RPR2G', name: 'Crociata Rossa', clanLevel: 14, memberList: [] });
+    expect((await response).name).toBe('Crociata Rossa');
+  });
+
   it('finds the clan in its country and worldwide rankings (null beyond the top 200)', async () => {
     const response = firstValueFrom(api.getClanRanks());
     http.expectOne(CLAN).flush({
