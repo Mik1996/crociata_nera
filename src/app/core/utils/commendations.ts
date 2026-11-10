@@ -48,7 +48,7 @@ export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly
   champion: { bronze: 3, silver: 2, gold: 1 },
   perfect: { bronze: 2.5, silver: 2.8, gold: 3 },
   giantSlayer: { bronze: 2, silver: 5, gold: 10 },
-  wall: { bronze: 2.5, silver: 2, gold: 1.5 },
+  wall: { bronze: 2.8, silver: 2.5, gold: 2 },
   tireless: { bronze: 3, silver: 5, gold: 8 },
   present: { bronze: 50, silver: 75, gold: 100 },
   cwlStriker: { bronze: 2.5, silver: 2.75, gold: 3 },

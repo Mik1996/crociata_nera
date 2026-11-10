@@ -69,8 +69,9 @@ describe('tierFor', () => {
     expect(tierFor('champion', 1)).toBe('gold');
     expect(tierFor('champion', 3)).toBe('bronze');
     expect(tierFor('champion', 4)).toBeNull();
-    expect(tierFor('wall', 1.5)).toBe('gold');
-    expect(tierFor('wall', 2.6)).toBeNull();
+    expect(tierFor('wall', 2)).toBe('gold');
+    expect(tierFor('wall', 2.5)).toBe('silver');
+    expect(tierFor('wall', 2.9)).toBeNull();
   });
 });
 
@@ -113,8 +114,8 @@ describe('awardCommendations', () => {
   it('Impassable Wall: average stars conceded per war, over at least 3 wars', () => {
     const list = wars(4, (i) => [
       { tag: '#ROCK', stars: [1], starsConceded: i < 2 ? 1 : 2 },
-      { tag: '#STONE', stars: [1], starsConceded: 2 },
-      { tag: '#WOOD', stars: [1], starsConceded: i < 2 ? 2 : 3 },
+      { tag: '#STONE', stars: [1], starsConceded: i < 2 ? 2 : 3 },
+      { tag: '#WOOD', stars: [1], starsConceded: i < 1 ? 2 : 3 },
       { tag: '#OPEN', stars: [1], starsConceded: 3 },
     ]);
     expect(tierOf(list, '#ROCK', 'wall')).toBe('gold');

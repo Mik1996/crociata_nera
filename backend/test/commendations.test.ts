@@ -47,7 +47,7 @@ describe('commendation rules', () => {
     expect(tierFor('capitalRaider', 25_000)).toBeNull();
     expect(tierFor('capitalRaider', 30_001)).toBe('gold');
     expect(tierFor('champion', 1)).toBe('gold');
-    expect(tierFor('wall', 1.5)).toBe('gold');
+    expect(tierFor('wall', 2)).toBe('gold');
     expect(awardRaidCommendations([{ tag: '#A', capitalResourcesLooted: 28_000 }]).get('#A')).toEqual([{ type: 'capitalRaider', tier: 'silver' }]);
     expect(awardCwlCommendations([{ tag: '#A', name: 'A', wars: 7, attacks: 6, stars: 17 }]).get('#A')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
   });
