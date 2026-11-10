@@ -127,9 +127,16 @@ export class ScrollyAct {
       this.setUnpinned(false);
       return;
     }
-    // Measured in the pinned layout.
-    this.element.classList.remove('scrolly-act--unpinned');
-    this.setUnpinned(content.scrollHeight > viewport + 1);
+    // Measured in the pinned layout: an unpinned act is also frozen (`scrolly-act--static`, bound
+    // to `isStatic`), and both classes switch the content to its plain layout, usually taller.
+    // Otherwise an act unpinned once (phone in landscape) would never fit again (in portrait).
+    const classes = this.element.classList;
+    const frozen = classes.contains('scrolly-act--static');
+    classes.remove('scrolly-act--unpinned', 'scrolly-act--static');
+    const unpinned = content.scrollHeight > viewport + 1;
+    // Back as the binding left it: `update()` changes it through `isStatic`.
+    if (frozen) classes.add('scrolly-act--static');
+    this.setUnpinned(unpinned);
   }
 
   private unpinned = false;

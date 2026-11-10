@@ -59,8 +59,8 @@
 .index__mark {
   display: grid;
   place-items: center;
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 20px;
   border: 1px solid rgba(244, 197, 66, 0.55);
   background: rgba(8, 10, 16, 0.6);
   transform: rotate(45deg);
@@ -79,12 +79,11 @@
   }
 }
 
-// Hidden in the small diamonds of narrow screens; upright inside the rotated square.
+// Upright inside the rotated square.
 .index__numeral {
-  display: none;
   transform: rotate(-45deg);
   font-family: var(--cn-font-display);
-  font-size: 0.68rem;
+  font-size: 0.5rem;
   line-height: 1;
 }
 
@@ -92,7 +91,8 @@
   color: #1d1503;
 }
 
-// Name of the act: shown next to the mark on hover or focus.
+// Name of the act: shown next to the mark on hover or focus, on wide screens only (on phones a
+// tap leaves it stuck while scrolling). Still read by screen readers.
 .index__label {
   order: -1;
   padding: 0.15rem 0.5rem;
@@ -110,7 +110,34 @@
   pointer-events: none;
 }
 
-// Wide screens: numerals in the marks.
+@media (max-width: 899.98px) {
+  .index__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    padding: 0;
+  }
+}
+
+// Short screens (phones in landscape): a tighter column, so every act fits.
+@media (max-height: 500px) {
+  .index__list {
+    gap: 0;
+  }
+
+  .index__item {
+    min-height: 28px;
+  }
+
+  .index__mark {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Wide screens: bigger marks.
 @media (min-width: 900px) {
   .index {
     right: 0.75rem;
@@ -122,7 +149,7 @@
   }
 
   .index__numeral {
-    display: block;
+    font-size: 0.68rem;
   }
 }
 

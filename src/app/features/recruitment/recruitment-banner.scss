@@ -90,6 +90,16 @@ $scene-muted: #cfd7e8;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
   }
+
+  // Side by side: Gold, Black in the middle, Red, like the three Crusaders. Stacked, the source
+  // order stays (Black, Red, Gold), which is also the reading order.
+  .enlist[data-order='gold'] {
+    order: -1;
+  }
+
+  .enlist[data-order='red'] {
+    order: 1;
+  }
 }
 
 // Card of one clan, in its colours (as its button, `.cn-crusade-cta`): the border, the name and

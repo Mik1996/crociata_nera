@@ -5,7 +5,7 @@ import { CrusadeOrder } from '../../../core/config/sister-clans';
  * Poses of the Black Crusader, the clan's mascot (pictures in `public/images/crusader/`). The Red
  * and the Gold Crusaders of the sister clans only have `stand`.
  */
-export type CrusaderPose = 'stand' | 'guard' | 'heart' | 'fist' | 'oath' | 'welcome';
+export type CrusaderPose = 'stand' | 'guard' | 'heart' | 'fist' | 'oath';
 
 /** Widths of the pictures (1024 × 1536 originals, 2:3). */
 const WIDTHS = [360, 640, 1024] as const;

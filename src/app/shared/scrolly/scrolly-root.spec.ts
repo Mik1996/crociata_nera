@@ -149,16 +149,26 @@ describe('Scrollytelling engine', () => {
     const content = document.createElement('div');
     content.setAttribute('data-scrolly-fit', '');
     one.append(content);
-    Object.defineProperty(content, 'scrollHeight', { configurable: true, value: 900 });
+    // Like the annals: unpinned or frozen, the content wraps and gets taller than in the pinned layout.
+    let pinnedHeight = 900;
+    Object.defineProperty(content, 'scrollHeight', {
+      configurable: true,
+      get: () =>
+        one.classList.contains('scrolly-act--unpinned') || one.classList.contains('scrolly-act--static')
+          ? 1500
+          : pinnedHeight,
+    });
 
     await refresh();
     expect(one.classList).toContain('scrolly-act--unpinned');
     expect(one.classList).toContain('scrolly-act--static');
     expect(one.style.getPropertyValue('--p')).toBe('1.0000');
 
-    Object.defineProperty(content, 'scrollHeight', { configurable: true, value: 700 });
+    // The screen changes (landscape to portrait): the pinned layout fits again.
+    pinnedHeight = 700;
     await refresh();
     expect(one.classList).not.toContain('scrolly-act--unpinned');
+    expect(one.classList).not.toContain('scrolly-act--static');
     expect(one.style.getPropertyValue('--p')).toBe('0.7500');
   });
 

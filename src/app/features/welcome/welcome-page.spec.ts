@@ -88,7 +88,11 @@ describe('WelcomePage', () => {
     expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto VIII');
     // The Black Crusader changes pose from act to act.
     const poses = Array.from(el.querySelectorAll('app-crusader')).map((c) => c.getAttribute('data-pose'));
-    expect(poses).toEqual(['stand', 'guard', 'heart', 'fist', 'oath', 'stand', 'stand', 'welcome']);
+    expect(poses).toEqual(['stand', 'guard', 'heart', 'fist', 'oath', 'stand', 'stand']);
+    // The call gathers the three Crusaders of the Crusade in one picture.
+    expect(el.querySelector<HTMLImageElement>('#call .call__figures')!.getAttribute('src')).toBe(
+      'images/crusader/crusader-trio-800.webp',
+    );
     expect(el.querySelector<HTMLImageElement>('#prologue app-crusader img')!.getAttribute('src')).toBe(
       'images/crusader/crusader-stand-640.webp',
     );

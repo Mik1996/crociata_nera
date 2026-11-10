@@ -449,6 +449,28 @@ h2 {
  */
 mat-sidenav-content > .content:has(> .page--immersive) {
   padding: 0;
+  // No page header to make room for: immersive pages fill the viewport on short screens too
+  // (phones in landscape), so the footer stays at the bottom and the scenes measure the real area.
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.page--immersive {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
+  .page__scroll {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 /*

@@ -192,6 +192,12 @@ mat-sidenav-content {
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */
 .footer {
   flex: none;
+  // Always on screen: at the bottom of the viewport also while a long page scrolls (pages that do
+  // not fill the viewport, short screens such as phones in landscape).
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--cn-bg);
   padding: 0.5rem clamp(0.75rem, 2.5vw, 1.5rem);
   border-top: 1px solid var(--cn-border);
   font-size: var(--cn-fs-xs);

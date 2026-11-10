@@ -7,7 +7,26 @@
       [heading]="false"
       [title]="'welcome.acts.call.title' | translate"
     />
-    <app-crusader class="call__crusader" pose="welcome" sizes="min(55vh, 90vw)" />
+    <!-- The three Crusaders of the Crusade: Gold, Black (centre) and Red, as the cards below. -->
+    <div class="call__trio" aria-hidden="true">
+      <div class="call__glow"></div>
+      <img
+        class="call__figures"
+        src="images/crusader/crusader-trio-800.webp"
+        srcset="
+          images/crusader/crusader-trio-480.webp   480w,
+          images/crusader/crusader-trio-800.webp   800w,
+          images/crusader/crusader-trio-1200.webp 1200w
+        "
+        sizes="min(72vh, 96vw)"
+        alt=""
+        width="1200"
+        height="1023"
+        loading="lazy"
+        decoding="async"
+      />
+      <div class="call__fog"></div>
+    </div>
   </div>
 
   <app-recruitment-banner class="call__banner" [clan]="clan()" [sisters]="sisters()" />

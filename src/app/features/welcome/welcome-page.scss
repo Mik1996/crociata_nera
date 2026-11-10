@@ -13,8 +13,6 @@
   --cn-text: #f2f5fb;
   --cn-text-muted: #cfd7e8;
   color: #f2f5fb;
-  // `clip`, not `hidden`: the area must not become a scroll container on short screens, where the
-  // page itself scrolls (the pinned acts stick to whatever scrolls).
   overflow-x: clip;
   touch-action: pan-y pinch-zoom;
 }
