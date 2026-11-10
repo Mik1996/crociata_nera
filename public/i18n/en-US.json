@@ -213,6 +213,7 @@
     "shown": "{{n}} participants shown",
     "table": "War participants",
     "notAttackedYet": "Has not attacked yet",
+    "youNotAttackedYet": "You have not attacked yet",
     "noAttacksUsed": "No attacks used",
     "attackAvailable": "Attack still available",
     "attackUnused": "Attack not used",

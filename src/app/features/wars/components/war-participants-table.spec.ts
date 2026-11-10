@@ -72,30 +72,52 @@ describe('WarParticipantsTable', () => {
     expect(fixture.nativeElement.textContent).toContain('Nessun partecipante corrisponde');
   });
 
-  it('highlights the rows of all the signed-in user\'s verified accounts, with a "You" badge', async () => {
-    expect((fixture.nativeElement as HTMLElement).querySelector('tr.cn-row-me')).toBeNull();
-
+  const signIn = async (players: { tag: string; verified: boolean }[]) => {
     TestBed.inject(AuthService).restoreSession();
     TestBed.inject(HttpTestingController)
       .expectOne('/api/v1/auth/refresh')
       .flush({
-        result: { accessToken: 't', accessTokenExpiresAt: '', user: {
-            username: 'b',
-            players: [
-              { tag: '#B', verified: true },
-              { tag: '#C', verified: true },
-              // Old unverified link: not marked as "you".
-              { tag: '#A', verified: false },
-            ],
-          },
-        },
+        result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'b', players } },
         messages: [],
         status: { code: 200, name: 'HTTP_STATUS.OK' },
       });
     await fixture.whenStable();
+  };
 
+  const nameOf = (row: Element) => row.querySelector('.cn-link-cell')!.textContent!.trim();
+
+  it('marks all the signed-in user\'s verified accounts with a "You" badge, keeping the attack colours while the war is in progress', async () => {
+    await signIn([
+      { tag: '#B', verified: true },
+      { tag: '#C', verified: true },
+      // Old unverified link: not marked as "you".
+      { tag: '#A', verified: false },
+    ]);
+
+    const el = fixture.nativeElement as HTMLElement;
+    const badged = [...el.querySelectorAll('tr.mat-mdc-row')].filter((r) => r.querySelector('.cn-me-badge'));
+    expect(badged.map(nameOf)).toEqual(['Player #B', 'Player #C']);
+    expect(badged[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
+    expect(el.querySelector('tr.cn-row-me')).toBeNull();
+
+    const without = el.querySelector('tr.row-without-attacks')!;
+    expect(nameOf(without)).toBe('Player #C');
+    expect(without.textContent).toContain('Non hai ancora attaccato');
+    expect(without.textContent).not.toContain('Non ha ancora attaccato');
+  });
+
+  it("highlights the signed-in user's rows once the war has ended", async () => {
+    fixture.componentRef.setInput('inProgress', false);
+    await signIn([{ tag: '#B', verified: true }]);
     const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tr.cn-row-me');
-    expect([...rows].map((r) => r.querySelector('.cn-link-cell')!.textContent!.trim())).toEqual(['Player #B', 'Player #C']);
-    expect(rows[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
+    expect([...rows].map(nameOf)).toEqual(['Player #B']);
+  });
+
+  it('shows no attack status during the preparation day', async () => {
+    fixture.componentRef.setInput('preparation', true);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('tr.row-without-attacks, tr.row-partial-attacks')).toBeNull();
+    expect(el.querySelector('.attack-status')).toBeNull();
   });
 });

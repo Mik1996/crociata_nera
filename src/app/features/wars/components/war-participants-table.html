@@ -60,10 +60,12 @@
         @if (isMine(r.tag)) {
           <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
         }
-        @if (!r.hasAttacked) {
+        @if (preparation()) {
+          <!-- Preparation day: nobody can attack yet. -->
+        } @else if (!r.hasAttacked) {
           <span class="attack-status attack-status--none">
             <mat-icon aria-hidden="true">{{ inProgress() ? 'hourglass_empty' : 'block' }}</mat-icon>
-            {{ (inProgress() ? 'participants.notAttackedYet' : 'participants.noAttacksUsed') | translate }}
+            {{ (inProgress() ? (isMine(r.tag) ? 'participants.youNotAttackedYet' : 'participants.notAttackedYet') : 'participants.noAttacksUsed') | translate }}
           </span>
         } @else if (r.attacksUsed < r.attacksAvailable) {
           <span class="attack-status attack-status--partial">
@@ -117,7 +119,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!r.hasAttacked" [class.row-partial-attacks]="r.hasAttacked && r.attacksUsed < r.attacksAvailable" [class.cn-row-me]="isMine(r.tag)"></tr>
+    <tr mat-row *matRowDef="let r; columns: columns" [class.row-without-attacks]="!preparation() && !r.hasAttacked" [class.row-partial-attacks]="!preparation() && r.hasAttacked && r.attacksUsed < r.attacksAvailable" [class.cn-row-me]="!inProgress() && isMine(r.tag)"></tr>
     <tr class="mat-row" *matNoDataRow>
       <td class="mat-cell no-results" [attr.colspan]="columns.length">
         {{ 'participants.noResults' | translate }}

@@ -59,6 +59,7 @@
           [rows]="rows()"
           [attacksPerMember]="w.attacksPerMember"
           [inProgress]="w.state !== 'ended'"
+          [preparation]="w.state === 'preparation'"
         />
       </section>
     }

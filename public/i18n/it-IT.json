@@ -213,6 +213,7 @@
     "shown": "{{n}} partecipanti visualizzati",
     "table": "Partecipanti alla guerra",
     "notAttackedYet": "Non ha ancora attaccato",
+    "youNotAttackedYet": "Non hai ancora attaccato",
     "noAttacksUsed": "Nessun attacco usato",
     "attackAvailable": "Attacco ancora disponibile",
     "attackUnused": "Attacco non usato",

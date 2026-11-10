@@ -47,8 +47,13 @@ export class WarParticipantsTable {
   readonly attacksPerMember = input(2);
   /** War still in progress: changes the message shown for players who have not attacked. */
   readonly inProgress = input(false);
+  /** Preparation day: no attack can be made yet, so no attack status is shown. */
+  readonly preparation = input(false);
 
-  /** Tag of the signed-in user's player: their row is highlighted. */
+  /**
+   * The signed-in user's players: marked with a "You" badge. Their row is highlighted only once
+   * the war has ended; while it is in progress it keeps the attack status colours like the others.
+   */
   protected readonly isMine = inject(AuthService).isMyPlayer;
 
   protected readonly columns = [
