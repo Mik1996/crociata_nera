@@ -3,7 +3,7 @@
 <div appScrollFade class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'join.title' | translate">
   <app-load-state [loading]="clan.isLoading() && !data()" [error]="clan.error()" [empty]="false" (retry)="clan.reload()">
     @if (data(); as c) {
-      <app-recruitment-banner class="join__banner" [clan]="c" />
+      <app-recruitment-banner class="join__banner" [clan]="c" [sisters]="sisters()" />
       <app-clan-rules />
     }
   </app-load-state>

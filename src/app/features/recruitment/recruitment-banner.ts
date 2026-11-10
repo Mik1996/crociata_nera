@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { APP_CONFIG } from '../../core/config/app-config';
+import { LoadedSisterClan } from '../../core/api/sister-clans';
+import { CrusadeOrder } from '../../core/config/sister-clans';
+import { clanProfileLink } from '../../core/game/clan-link';
 import { townHallImage } from '../../core/game/units';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Clan } from '../../core/models';
@@ -9,31 +11,21 @@ import { Clan } from '../../core/models';
 /** Clan size limit in Clash of Clans. */
 const MAX_MEMBERS = 50;
 
-interface Perk {
-  /** Translation keys `welcome.recruit.perks.<key>.title|text`. */
-  key: string;
-  icon: string;
-  /** Icon colour of the sister clans (Crociata Rossa, Crociata d'Oro). */
-  tone?: 'red' | 'gold';
+/** One clan that recruits: open spots, requirements and the in-game link. */
+interface Enlistment {
+  clan: Clan;
+  order: CrusadeOrder;
+  openSlots: number;
+  townHallImage?: string;
+  joinUrl: string;
 }
-
-/** Reasons to join, in display order. */
-const PERKS: readonly Perk[] = [
-  { key: 'wars', icon: 'local_fire_department' },
-  { key: 'league', icon: 'emoji_events' },
-  { key: 'capital', icon: 'castle' },
-  { key: 'clanGames', icon: 'celebration' },
-  { key: 'cwl', icon: 'forum' },
-  { key: 'redCrusade', icon: 'shield', tone: 'red' },
-  { key: 'goldCrusade', icon: 'shield', tone: 'gold' },
-  { key: 'honours', icon: 'military_tech' },
-];
 
 let nextId = 0;
 
 /**
- * Recruitment pitch: why join, open spots, requirements and the official in-game link that
- * opens the clan profile. Used on the welcome page and on the "Join us" page.
+ * Recruitment pitch and one card per clan of the Crusade (Crociata Nera first, then the sister
+ * clans): open spots, requirements and the official in-game link that opens the clan profile.
+ * Used on the welcome page and on the "Join us" page.
  */
 @Component({
   selector: 'app-recruitment-banner',
@@ -43,30 +35,28 @@ let nextId = 0;
   styleUrl: './recruitment-banner.scss',
 })
 export class RecruitmentBanner {
+  /** Crociata Nera. */
   readonly clan = input.required<Clan>();
+  /** Sister clans, in display order (those that could not be read are missing). */
+  readonly sisters = input<readonly LoadedSisterClan[]>([]);
 
-  private readonly clanTag = inject(APP_CONFIG).clanTag;
   private readonly language = inject(LanguageService);
 
-  /** Unique heading id: the banner may appear more than once in the app. */
+  /** Unique ids: the banner may appear more than once in the app. */
   protected readonly titleId = `recruit-title-${nextId++}`;
-  protected readonly perks = PERKS;
 
-  /** Picture of the minimum Town Hall required to join. */
-  protected readonly townHallImage = computed(() => {
-    const level = this.clan().requiredTownHall;
-    return level ? townHallImage(level) : undefined;
+  protected readonly enlistments = computed<Enlistment[]>(() => {
+    const language = this.language.current();
+    const card = (clan: Clan, order: CrusadeOrder): Enlistment => ({
+      clan,
+      order,
+      openSlots: Math.max(0, MAX_MEMBERS - clan.members.length),
+      townHallImage: clan.requiredTownHall ? townHallImage(clan.requiredTownHall) : undefined,
+      joinUrl: clanProfileLink(clan.tag, language),
+    });
+    return [card(this.clan(), 'black'), ...this.sisters().map((s) => card(s.clan, s.sister.order))];
   });
 
-  protected readonly openSlots = computed(() => Math.max(0, MAX_MEMBERS - this.clan().members.length));
-
-  /**
-   * Official Clash of Clans link that opens the clan profile in the game (with the "Join"
-   * button). The `#` of the tag must be encoded, otherwise it would start a URL fragment.
-   */
-  protected readonly joinUrl = computed(
-    () =>
-      `https://link.clashofclans.com/${this.language.current().slice(0, 2)}` +
-      `?action=OpenClanProfile&tag=${encodeURIComponent(this.clanTag)}`,
-  );
+  /** Recruitment is open while at least one of the clans has a free spot. */
+  protected readonly open = computed(() => this.enlistments().some((e) => e.openSlots > 0));
 }

@@ -1,0 +1,53 @@
+// Title of an act, on the dark scenes of the welcome page (same look in both themes).
+
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #f2f5fb;
+}
+
+.act-heading__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--cn-game-gold);
+}
+
+.act-heading__rule {
+  width: clamp(1.5rem, 6cqi, 3.5rem);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cn-game-gold));
+
+  &:last-child {
+    transform: scaleX(-1);
+  }
+}
+
+.act-heading__title {
+  margin: 0.25rem 0 0;
+  font-family: var(--cn-font-display);
+  // Height-aware: also fits a phone held sideways.
+  font-size: min(clamp(1.9rem, 1.2rem + 3.2vw, 3.6rem), 11cqi, 9cqh);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 22px rgba(255, 140, 40, 0.45);
+}
+
+.act-heading__tagline {
+  max-width: 34ch;
+  margin: 0.4rem 0 0;
+  font-size: min(var(--cn-fs-md), 4.6cqi);
+  font-style: italic;
+  line-height: 1.4;
+  color: #cfd7e8;
+}

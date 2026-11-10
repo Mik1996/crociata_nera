@@ -1,0 +1,11 @@
+<app-clan-hero
+  [clan]="clan()"
+  order="black"
+  [headingLevel]="1"
+  titleId="clan-name"
+  [ctaLabel]="'welcome.acts.enlist' | translate"
+  [ctaHref]="'#' + joinActId()"
+  [hint]="true"
+  [priority]="true"
+  (cta)="join($event)"
+/>

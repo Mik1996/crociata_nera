@@ -1,0 +1,75 @@
+// The Black Crusader: glow behind, breathing figure, fog veil in front of his feet.
+// `--crusader-in` (0–1) comes from the parent; `--crusader-glow` and `--crusader-fog` (RGB triplets) colour the halo and the fog.
+
+:host {
+  --crusader-in: 1;
+  --crusader-glow: 244, 170, 60;
+  --crusader-fog: 14, 12, 14;
+  position: relative;
+  display: block;
+  aspect-ratio: 2 / 3;
+  pointer-events: none;
+  opacity: clamp(0, var(--crusader-in) * 1.4, 1);
+  transform: translate3d(0, calc((1 - var(--crusader-in)) * 14%), 0) scale(calc(0.94 + var(--crusader-in) * 0.06));
+  transform-origin: 50% 100%;
+}
+
+.crusader__glow {
+  position: absolute;
+  inset: 4% 8% 18%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(var(--crusader-glow), 0.55) 0%,
+    rgba(var(--crusader-glow), 0.18) 45%,
+    transparent 70%
+  );
+  opacity: calc(0.4 + var(--crusader-in) * 0.6);
+  animation: crusader-halo 4.5s ease-in-out infinite;
+}
+
+.crusader__figure {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  transform-origin: 50% 100%;
+  animation: crusader-breath 6s ease-in-out infinite;
+}
+
+// The figure comes out of the fog: dense while he is hidden, a thin veil at his feet afterwards.
+.crusader__fog {
+  position: absolute;
+  inset: auto -20% -4%;
+  height: calc(22% + (1 - var(--crusader-in)) * 70%);
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--crusader-fog), 0.95) 30%, rgba(var(--crusader-fog), 0.6) 55%, transparent 75%);
+}
+
+@keyframes crusader-breath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.012, 1.008) translateY(-0.4%);
+  }
+}
+
+@keyframes crusader-halo {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crusader__figure,
+  .crusader__glow {
+    animation: none;
+  }
+}

@@ -1,0 +1,169 @@
+// Act I, the army: crusaders at dusk behind, banners with the numbers in front.
+// Portrait first (Crusader at the bottom right, behind the banners); wide stages put him on the
+// right of the numbers.
+
+$ink: #f2f5fb;
+$muted: #cfd7e8;
+$night: #0b0a0d;
+
+.army {
+  isolation: isolate;
+  display: flex;
+  background: $night;
+  color: $ink;
+}
+
+.army__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, $night 0%, rgba(11, 10, 13, 0.55) 22%, rgba(11, 10, 13, 0.7) 60%, $night 100%),
+    url('/images/welcome/army.webp') center 30% / cover no-repeat;
+  // Slow push-in towards the army.
+  transform: scale(calc(1.18 - var(--p) * 0.14));
+  transform-origin: 50% 40%;
+}
+
+.army__crusader {
+  --crusader-in: clamp(0, var(--p) / 0.3, 1);
+  --crusader-fog: 11, 10, 13;
+  position: absolute;
+  z-index: 0;
+  right: -16cqw;
+  bottom: 0;
+  height: 66cqh;
+  opacity: 0.55;
+}
+
+.army__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: min(1.1rem, 2.4cqh);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: min(2.5rem, 7cqh) 1rem min(1.5rem, 4cqh);
+}
+
+// --- Banners with the numbers ----------------------------------------------------------------
+
+.army__stats {
+  // Flex, not grid: an odd last banner stays centred.
+  --columns: 2;
+  --gap: min(0.6rem, 1.6cqh);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+  width: min(100%, 44rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+  box-sizing: border-box;
+  // Drops in after the previous one.
+  --in: clamp(0, (var(--p) - var(--i) * 0.05) / 0.22, 1);
+  container-type: inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: min(0.8rem, 2cqh) 0.4rem min(1.1rem, 2.6cqh);
+  // Swallowtail banner.
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
+  border-top: 3px solid var(--cn-game-gold);
+  background: linear-gradient(180deg, rgba(92, 16, 19, 0.92), rgba(42, 8, 10, 0.94));
+  text-align: center;
+  opacity: var(--in);
+  transform: translate3d(0, calc((1 - var(--in)) * -5cqh), 0);
+}
+
+.stat__value {
+  font-family: var(--cn-font-display);
+  font-size: min(var(--cn-fs-2xl), 17cqi, 5.4cqh);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 2px 0 #000;
+
+  small {
+    font-size: 0.6em;
+    color: $muted;
+  }
+}
+
+.stat--rank .stat__value {
+  color: var(--cn-game-gold);
+}
+
+.stat__label {
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+// --- Labels of the clan, raised at the end -----------------------------------------------------
+
+.army__labels {
+  --in: clamp(0, (var(--p) - 0.5) / 0.2, 1);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  opacity: var(--in);
+  transform: translate3d(0, calc((1 - var(--in)) * 3cqh), 0);
+}
+
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.7rem 0.2rem 0.3rem;
+  border: 1px solid rgba(255, 216, 98, 0.45);
+  border-radius: 0.25rem;
+  background: rgba(10, 14, 24, 0.75);
+  font-size: var(--cn-fs-xs);
+  color: $ink;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+// --- Wide stages ---------------------------------------------------------------------------------
+
+@container stage (min-width: 600px) {
+  .army__stats {
+    --columns: 3;
+  }
+}
+
+@container stage (min-aspect-ratio: 5 / 4) {
+  .army__crusader {
+    right: 4cqw;
+    height: 90cqh;
+    opacity: 1;
+  }
+
+  .army__content {
+    justify-content: center;
+    margin: 0;
+    width: 62%;
+    max-width: none;
+    padding-left: clamp(1rem, 5cqw, 4rem);
+  }
+}

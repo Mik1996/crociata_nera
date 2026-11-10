@@ -1,0 +1,66 @@
+// Call-to-action buttons of the clans of the Crusade, each in its clan's colours: black iron with a
+// gold edge (Crociata Nera), red lacquer with a gold edge (Crociata Rossa), polished gold (Crociata
+// d'Oro). Components set the size and layout; `--pulse` adds a slow halo to draw the eye.
+
+.cn-crusade-cta {
+  --cta-bg: linear-gradient(180deg, #5a5c63 0%, #2a2b30 48%, #111114 100%);
+  --cta-border: #d9a93f;
+  --cta-depth: #5c410c;
+  --cta-ink: #f4c542;
+  --cta-ink-shadow: #000;
+  --cta-pulse: 244, 197, 66;
+  --cta-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -4px 0 rgba(0, 0, 0, 0.3), 0 4px 0 var(--cta-depth);
+  border: 3px solid var(--cta-border);
+  background: var(--cta-bg);
+  box-shadow: var(--cta-shadow);
+  color: var(--cta-ink);
+  text-decoration: none;
+  text-shadow: 0 2px 0 var(--cta-ink-shadow);
+
+  mat-icon {
+    filter: drop-shadow(0 2px 0 var(--cta-ink-shadow));
+  }
+}
+
+.cn-crusade-cta--red {
+  --cta-bg: linear-gradient(180deg, #e0574d 0%, #a51a1a 55%, #6c0a0a 100%);
+  --cta-border: #e2b24c;
+  --cta-depth: #4a0606;
+  --cta-ink: #ffffff;
+  --cta-ink-shadow: #4a0606;
+  --cta-pulse: 230, 70, 60;
+}
+
+.cn-crusade-cta--gold {
+  --cta-bg: linear-gradient(180deg, #fff3b8 0%, #f2c94c 50%, #b8861f 100%);
+  --cta-border: #6a4508;
+  --cta-depth: #5a3a06;
+  --cta-ink: #3a2404;
+  --cta-ink-shadow: rgba(255, 255, 255, 0.55);
+  --cta-pulse: 255, 224, 140;
+}
+
+.cn-crusade-cta--pulse {
+  animation: crusade-cta-pulse 2.4s ease-out infinite;
+}
+
+@keyframes crusade-cta-pulse {
+  0% {
+    box-shadow:
+      var(--cta-shadow),
+      0 0 0 0 rgba(var(--cta-pulse), 0.55);
+  }
+  70%,
+  100% {
+    box-shadow:
+      var(--cta-shadow),
+      0 0 0 16px rgba(var(--cta-pulse), 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cn-crusade-cta--pulse {
+    animation: none;
+  }
+}

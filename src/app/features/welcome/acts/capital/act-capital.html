@@ -1,0 +1,52 @@
+@let c = clan();
+<section class="scrolly-stage capital" aria-labelledby="capital-title">
+  <!-- Sky and three bands of clouds sliding sideways at different speeds -->
+  <div class="capital__sky" aria-hidden="true"></div>
+  <div class="capital__clouds capital__clouds--far" aria-hidden="true"></div>
+  <div class="capital__clouds capital__clouds--mid" aria-hidden="true"></div>
+  <app-crusader class="capital__crusader" pose="heart" />
+
+  <div class="capital__content" data-scrolly-fit>
+    <app-act-heading
+      titleId="capital-title"
+      [title]="'welcome.acts.capital.title' | translate"
+      [tagline]="'welcome.acts.capital.tagline' | translate"
+    />
+
+    <figure class="capital__hero">
+      @if (hall(); as image) {
+        <img class="capital__hall" [src]="image" alt="" width="320" height="320" />
+        <figcaption class="capital__caption">
+          <span>{{ 'welcome.capital.hall' | translate }}</span>
+          <span class="capital__ribbon">{{ 'welcome.capital.hallLevel' | translate: { n: c.capitalHallLevel } }}</span>
+        </figcaption>
+      } @else {
+        <figcaption class="capital__caption capital__caption--none">{{ 'welcome.capital.none' | translate }}</figcaption>
+      }
+    </figure>
+
+    <dl class="capital__facts">
+      <div class="plaque capital__league">
+        <dt>{{ 'welcome.capital.league' | translate }}</dt>
+        <dd>
+          @if (leagueIcon(); as icon) {
+            <img [src]="icon" alt="" width="56" height="56" />
+          }
+          <span>{{ c.capitalLeague ?? ('welcome.unranked' | translate) }}</span>
+        </dd>
+      </div>
+      <div class="plaque capital__points">
+        <dt>{{ 'welcome.capital.points' | translate }}</dt>
+        <dd>
+          <img src="game/misc/capital-trophy.webp" alt="" width="40" height="40" />
+          <span class="cn-num">
+            <span class="cn-visually-hidden">{{ c.capitalPoints | localNumber }}</span>
+            <span [appScrollyCounter]="c.capitalPoints" [counterFrom]="0.35" [counterTo]="0.75"></span>
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="capital__clouds capital__clouds--near" aria-hidden="true"></div>
+</section>

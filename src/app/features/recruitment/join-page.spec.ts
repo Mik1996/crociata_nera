@@ -13,6 +13,12 @@ describe('JoinPage', () => {
     expect(el.querySelector<HTMLAnchorElement>('.enlist__cta')!.href).toBe(
       'https://link.clashofclans.com/it?action=OpenClanProfile&tag=%23TEST',
     );
+    // Crociata Nera first, then the sister clans (mock data).
+    expect(Array.from(el.querySelectorAll('.enlist__clan')).map((h) => h.textContent!.trim())).toEqual([
+      expect.any(String),
+      'Crociata Rossa',
+      "Crociata d'Oro",
+    ]);
     expect(el.querySelectorAll('.rule-group')).toHaveLength(5);
   });
 });

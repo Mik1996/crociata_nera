@@ -1,0 +1,14 @@
+<div class="call">
+  <div class="call__intro">
+    <div class="call__rays" aria-hidden="true"></div>
+    <!-- The banner brings its own title -->
+    <app-act-heading
+      class="call__heading"
+      [heading]="false"
+      [title]="'welcome.acts.call.title' | translate"
+    />
+    <app-crusader class="call__crusader" pose="welcome" sizes="min(55vh, 90vw)" />
+  </div>
+
+  <app-recruitment-banner class="call__banner" [clan]="clan()" [sisters]="sisters()" />
+</div>

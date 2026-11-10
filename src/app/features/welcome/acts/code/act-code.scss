@@ -1,0 +1,142 @@
+// Act V, the code: candlelight, the Crusader under oath and the unrolling scroll of the rules.
+//
+// The scroll (`.code__scroll`, an act of its own) is revealed down to a line at 82% of the
+// scrollport: `--reveal` is how much of it is above that line, in px, from its `--top`/`--h`.
+
+$ink: #f2f5fb;
+
+:host {
+  container: code / inline-size;
+  isolation: isolate;
+  background: linear-gradient(180deg, #0d0607 0%, #140d0a 18%, #140d0a 82%, #0b0a0f 100%);
+  color: $ink;
+}
+
+.code {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 1rem;
+  padding: min(3rem, 8vh) 1rem 4rem;
+}
+
+.code__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse 50% 30% at 50% 20%, rgba(255, 170, 80, 0.22), transparent 70%);
+  pointer-events: none;
+}
+
+// --- The Crusader under oath --------------------------------------------------------------------
+
+.code__oath {
+  display: flex;
+  justify-content: center;
+}
+
+.code__crusader {
+  --crusader-in: clamp(0, (var(--enter) - 0.15) * 2.4, 1);
+  --crusader-glow: 255, 190, 110;
+  --crusader-fog: 20, 13, 10;
+  height: calc(var(--scrolly-vh, 100svh) * 0.5);
+}
+
+.code__main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  width: min(100%, 60rem);
+}
+
+// --- The scroll ------------------------------------------------------------------------------------
+
+.code__scroll {
+  --line: calc(var(--scrolly-vh, 100svh) * 0.82);
+  --reveal: clamp(0px, var(--line) - var(--top), var(--h));
+  // Room for the overhanging rollers.
+  width: calc(100% - 24px);
+}
+
+.code__sheet {
+  // The sheet comes out from under the lower roller.
+  clip-path: inset(0 0 calc(var(--h) - var(--reveal)) 0);
+}
+
+.code__roller {
+  position: absolute;
+  z-index: 1;
+  left: -12px;
+  right: -12px;
+  height: 26px;
+  border: 2px solid #3d220e;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #5a3418 0%, #c08a4a 35%, #8a5a2a 60%, #4a2a12 100%);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.45);
+
+  // Gilded knobs at both ends.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 22px;
+    height: 34px;
+    border: 2px solid #5a3a0a;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffe08a, #c9921f 60%, #7a5208);
+    transform: translateY(-50%);
+  }
+
+  &::before {
+    left: -14px;
+  }
+
+  &::after {
+    right: -14px;
+  }
+}
+
+.code__roller--top {
+  top: -13px;
+}
+
+// Follows the reveal line; while the scroll is still closed it rests against the upper one.
+.code__roller--bottom {
+  top: max(13px, var(--reveal) - 13px);
+}
+
+// Plain page: the scroll is open.
+.code__scroll.scrolly-act--static {
+  .code__sheet {
+    clip-path: none;
+  }
+
+  .code__roller--bottom {
+    top: auto;
+    bottom: -13px;
+  }
+}
+
+// --- Wide: the Crusader keeps the oath next to the scroll --------------------------------------
+
+@container code (min-width: 900px) {
+  .code {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+    align-items: start;
+    gap: 2rem;
+    padding-inline: clamp(1rem, 4cqi, 3rem);
+  }
+
+  .code__oath {
+    position: sticky;
+    top: calc(var(--scrolly-vh, 100svh) * 0.1);
+  }
+
+  .code__crusader {
+    height: calc(var(--scrolly-vh, 100svh) * 0.8);
+    max-height: 60cqi;
+  }
+}

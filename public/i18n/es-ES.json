@@ -499,14 +499,13 @@
     "statsLabel": "El clan en cifras",
     "members": "Miembros",
     "warWins": "Guerras ganadas",
-    "winStreak": "Racha de victorias",
+    "winStreak": "Racha de victorias actual",
     "clanPoints": "Puntos de clan",
     "rankLocal": "Clasificación {{country}}",
     "rankGlobal": "Clasificación mundial",
     "labels": "Etiquetas del clan",
     "unranked": "Sin clasificar",
     "capital": {
-      "title": "Capital del clan",
       "hall": "Ayuntamiento de la Capital",
       "hallLevel": "Nivel {{n}}",
       "none": "Capital aún no fundada",
@@ -514,7 +513,6 @@
       "points": "Puntos de Capital"
     },
     "warLeague": {
-      "title": "Liga de guerras de clanes",
       "wins": "Victorias",
       "ties": "Empates",
       "losses": "Derrotas",
@@ -534,50 +532,16 @@
     },
     "recruit": {
       "kicker": "Reclutamiento abierto",
-      "title": "Únete a Crociata Nera",
+      "kickerClosed": "Reclutamiento cerrado",
+      "title": "Únete a nosotros",
       "text": "Buscamos guerreros leales, listos para luchar codo con codo. Aquí cada ataque cuenta, cada estrella pesa y nadie lucha solo: trae tu aldea a Crociata Nera.",
-      "enlist": "Alístate",
       "openSlots": "plazas libres en nuestras filas",
       "openSlot": "plaza libre en nuestras filas",
       "full": "Nuestras filas están completas: ¡vuelve pronto!",
       "minTownHall": "Nivel de ayuntamiento necesario",
       "requiredLeague": "Liga requerida",
       "cta": "Únete al clan",
-      "ctaHint": "El enlace abre Clash of Clans en el perfil del clan: toca «Unirse» y espera a que te acepten.",
-      "perks": {
-        "wars": {
-          "title": "Guerras sin descanso",
-          "text": "Guerras de clanes y Liga de guerras cada mes, con un plan claro y compañeros que atacan de verdad."
-        },
-        "league": {
-          "title": "En {{league}}",
-          "text": "Competimos en lo más alto: cada guerra es un reto real contra clanes a la altura."
-        },
-        "capital": {
-          "title": "Capital nivel {{n}}",
-          "text": "Asaltos a la capital cada fin de semana y una capital que hacer crecer juntos."
-        },
-        "clanGames": {
-          "title": "Juegos del clan siempre completados",
-          "text": "Cada mes alcanzamos el nivel máximo de los Juegos del clan y no nos perdemos ningún evento: las mejores recompensas son para todos."
-        },
-        "cwl": {
-          "title": "CWL organizadas y estructuradas",
-          "text": "Alineaciones, turnos y objetivos planificados juntos: nos coordinamos en nuestros canales de WhatsApp y Telegram, así todos saben siempre qué hacer y cuándo atacar."
-        },
-        "redCrusade": {
-          "title": "Crociata Rossa",
-          "text": "Nuestro clan hermano, donde jugamos la segunda CWL: más medallas de Liga y un sitio para todos."
-        },
-        "goldCrusade": {
-          "title": "Crociata d'Oro",
-          "text": "El clan de las guerras paralelas: mientras se juegan las dos CWL, allí seguimos con las guerras de clanes y la acción nunca se detiene."
-        },
-        "honours": {
-          "title": "Gloria para quien la merece",
-          "text": "Estadísticas de cada ataque, clasificaciones mensuales y distinciones de bronce, plata y oro para los mejores."
-        }
-      }
+      "ctaHint": "El enlace abre Clash of Clans en el perfil del clan: toca «Unirse» y espera a que te acepten."
     },
     "rules": {
       "title": "Las reglas del clan",
@@ -611,6 +575,41 @@
         "2": "Héroes",
         "3": "Edificios",
         "note": "Todo al máximo respecto al Ayuntamiento anterior."
+      }
+    },
+    "acts": {
+      "index": "Actos de la historia",
+      "act": "Acto {{n}}",
+      "prologue": "Prólogo",
+      "prologueTitle": "La Cruzada",
+      "scrollHint": "Desliza",
+      "enlist": "Alístate",
+      "army": {
+        "title": "El Ejército",
+        "tagline": "Cincuenta puestos, un solo estandarte."
+      },
+      "capital": {
+        "title": "La Capital",
+        "tagline": "Ladrillo a ladrillo, un fin de semana tras otro."
+      },
+      "war": {
+        "title": "La Guerra",
+        "tagline": "Cada estrella pesa, cada ataque cuenta."
+      },
+      "annals": {
+        "title": "Los Anales",
+        "tagline": "Lo que hemos conquistado queda grabado en la piedra."
+      },
+      "code": {
+        "title": "El Código",
+        "tagline": "Quien entra, jura. Quien jura, cumple."
+      },
+      "sister": {
+        "kicker": "Clan hermano",
+        "cta": "Abrir el clan en el juego"
+      },
+      "call": {
+        "title": "La Llamada"
       }
     }
   },

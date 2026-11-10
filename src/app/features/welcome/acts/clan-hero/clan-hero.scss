@@ -1,0 +1,559 @@
+// Hero scene of a clan of the Crusade (the prologue and the sister clans): dusk over the ruins, the
+// clan badge as the centrepiece. Each clan has its tones (`clan-hero--black|red|gold`, custom
+// properties on `.hero`). Portrait layout first: the
+// badge shrinks into a crest between the title and the Crusader's helmet. Wide stages (landscape
+// phones, tablets, desktop) keep the badge in the middle, the Crusader on the right and the motto
+// with the call to join on the left.
+//
+// Timeline (`--p`, 0–1 while pinned): the title rises to the top and the badge becomes a halo
+// (`--lift`), the Crusader comes out of the fog (`--rise`), the motto and the call to join appear
+// (`--finale`).
+
+$ink: #f2f5fb;
+$muted: #cfd7e8;
+$night: #0a0709;
+
+// No box of its own: the stage must be a direct child of the act to stay pinned.
+:host {
+  display: contents;
+}
+
+.hero {
+  // Tones: Crociata Nera (black iron, fire). Triplets are RGB, for rgba().
+  --tint: linear-gradient(transparent, transparent);
+  --flame-1: 255, 196, 61;
+  --flame-2: 255, 128, 20;
+  --flame-3: 255, 72, 0;
+  --flame-4: 200, 30, 0;
+  --rays: 255, 210, 110;
+  --glow-1: 255, 170, 60;
+  --glow-2: 255, 90, 20;
+  --ember-core: #ffe08a;
+  --ember-edge: #ff8a1f;
+  --ember-light: 255, 130, 30;
+  --crusader-light: 244, 170, 60;
+  --sweep: 255, 222, 160;
+  // Blackened iron: dark bands, darkest in the middle, with a gold edge.
+  --metal: linear-gradient(180deg, #6b6e76 0%, #3a3c42 30%, #17181c 52%, #0b0b0d 60%, #26272c 82%, #4a4c53 100%);
+  --metal-edge: #d9a93f;
+  --lift: clamp(0, var(--p) / 0.45, 1);
+  --rise: clamp(0, (var(--p) - 0.12) / 0.5, 1);
+  --finale: clamp(0, (var(--p) - 0.55) / 0.3, 1);
+  isolation: isolate;
+  background: $night;
+  color: $ink;
+}
+
+.hero__sky,
+.hero__fog,
+.hero__embers {
+  position: absolute;
+  pointer-events: none;
+}
+
+.hero__sky {
+  inset: -6% 0 0;
+  background:
+    var(--tint),
+    linear-gradient(180deg, rgba(5, 6, 10, 0.55) 0%, transparent 35%, rgba(10, 7, 9, 0.15) 65%, $night 100%),
+    url('/images/welcome/sky.webp') center 70% / cover no-repeat;
+  transform: translate3d(0, calc(var(--p) * 4cqh), 0) scale(calc(1.15 - var(--p) * 0.15));
+}
+
+.hero__ruins {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.hero__ruins--far {
+  bottom: 9cqh;
+  height: 40cqh;
+  fill: #1d1115;
+  transform: translate3d(0, calc(var(--p) * -3cqh), 0);
+}
+
+.hero__ruins--near {
+  z-index: 2;
+  bottom: -2cqh;
+  height: 30cqh;
+  fill: #070506;
+  transform: translate3d(0, calc((1 - var(--p)) * 5cqh), 0);
+}
+
+.hero__pole {
+  fill: none;
+  stroke: #070506;
+  stroke-width: 5;
+}
+
+.hero__banner {
+  fill: #5c1013;
+}
+
+// --- Badge, then halo behind the Crusader's head ----------------------------------------
+
+.hero__halo {
+  --halo-x: 0cqw;
+  --halo-y: -3cqh;
+  // Final size of the badge, relative to its size at the start.
+  --halo-scale: 0.68;
+  position: absolute;
+  left: 50%;
+  top: 36cqh;
+  display: grid;
+  place-items: center;
+  width: min(64cqw, 40cqh);
+  aspect-ratio: 1;
+  transform: translate(calc(-50% + var(--lift) * var(--halo-x)), calc(-50% + var(--lift) * var(--halo-y)))
+    scale(calc(1 + var(--lift) * (var(--halo-scale) - 1)));
+  // Stays fully visible: it is the clan's emblem.
+  opacity: calc(1 - var(--lift) * 0.05);
+}
+
+.hero__rays {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(var(--rays), 0.28) 0deg 6deg, transparent 6deg 18deg);
+  mask: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: rays-spin 40s linear infinite;
+}
+
+.hero__glow {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--glow-1), 0.55) 0%, rgba(var(--glow-2), 0.25) 45%, transparent 70%);
+  animation: glow-pulse 3.2s ease-in-out infinite;
+}
+
+.badge-stage__badge {
+  position: relative;
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.45));
+  animation: badge-float 5s ease-in-out infinite;
+}
+
+@keyframes rays-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes badge-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3%);
+  }
+}
+
+// --- The Crusader -------------------------------------------------------------------------
+
+.hero__crusader {
+  --crusader-in: var(--rise);
+  --crusader-glow: var(--crusader-light);
+  --crusader-fog: 10, 7, 9;
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  // Large, feet in the fog behind the wall: the head stays under the badge.
+  bottom: -12cqh;
+  height: 76cqh;
+  // The host has its own transform (entrance): centred with the separate `translate`.
+  translate: -50% 0;
+}
+
+.hero__fog {
+  z-index: 2;
+  inset: auto -10% 0;
+  height: 42cqh;
+  background:
+    radial-gradient(ellipse 45% 40% at 20% 85%, rgba(60, 44, 46, 0.45), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 78% 90%, rgba(60, 44, 46, 0.4), transparent 70%),
+    linear-gradient(to top, $night 0%, rgba(10, 7, 9, 0.88) 28%, transparent 100%);
+  animation: fog-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes fog-drift {
+  to {
+    transform: translateX(6%);
+  }
+}
+
+// Rising embers.
+.hero__embers {
+  z-index: 2;
+  inset: 0;
+}
+
+.ember {
+  position: absolute;
+  bottom: -10px;
+  left: calc(var(--i) * 7%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ember-core) 0%, var(--ember-edge) 55%, transparent 70%);
+  box-shadow: 0 0 8px 2px rgba(var(--ember-light), 0.6);
+  opacity: 0;
+  animation: ember-rise calc(5s + var(--i) * 0.37s) linear infinite;
+  animation-delay: calc(var(--i) * -0.9s);
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(calc(sin(var(--i)) * 40px), -70cqh) scale(0.3);
+    opacity: 0;
+  }
+}
+
+// --- Clan name: metal letters (iron, red lacquer, gold), flames rising from them -----------
+
+.hero__title {
+  --title-x: 0cqw;
+  --title-y: 52cqh;
+  position: absolute;
+  z-index: 3;
+  top: 5cqh;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1rem;
+  text-align: center;
+  transform: translate(calc((1 - var(--lift)) * var(--title-x)), calc((1 - var(--lift)) * var(--title-y)))
+    scale(calc(1 + (1 - var(--lift)) * 0.1));
+}
+
+// The fire and the metal are two copies of the name in the same grid cell.
+.clan-name {
+  display: grid;
+  margin: 0;
+  padding: 0 0.15em;
+  // Engraved Roman capitals (loaded in index.html), only for the clan name.
+  font-family: 'Cinzel Decorative', var(--cn-font-display);
+  font-weight: 900;
+  font-size: min(clamp(2.3rem, 1rem + 5.6vw, 5.4rem), 10cqi, 12cqh);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-wrap: balance;
+  // The `h2` of the sister clans: none of the global section-title look.
+  color: inherit;
+  text-shadow: none;
+
+  > span {
+    grid-area: 1 / 1;
+  }
+}
+
+.clan-name__fire {
+  color: transparent;
+  text-shadow:
+    0 -0.04em 0.06em rgba(var(--flame-1), 0.9),
+    0 -0.1em 0.16em rgba(var(--flame-2), 0.85),
+    0 -0.18em 0.28em rgba(var(--flame-3), 0.7),
+    0 -0.28em 0.42em rgba(var(--flame-4), 0.45);
+  animation: flames 1.4s ease-in-out infinite alternate;
+  user-select: none;
+}
+
+.clan-name__metal {
+  background:
+    linear-gradient(105deg, transparent 40%, rgba(var(--sweep), 0.45) 50%, transparent 60%) 0 0 / 260% 100% no-repeat,
+    var(--metal);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  // No shadow inherited from the global `h2` rule: it would be painted over the metal.
+  text-shadow: none;
+  // Edge like the trims of the Crusader's armour.
+  -webkit-text-stroke: 1.5px var(--metal-edge);
+  filter: drop-shadow(0 3px 0 #000) drop-shadow(0 0 1px #000);
+  animation: metal-sweep 5.5s ease-in-out infinite;
+}
+
+@keyframes flames {
+  0% {
+    text-shadow:
+      0 -0.03em 0.05em rgba(var(--flame-1), 0.85),
+      0 -0.08em 0.14em rgba(var(--flame-2), 0.8),
+      0 -0.15em 0.24em rgba(var(--flame-3), 0.6),
+      0 -0.22em 0.36em rgba(var(--flame-4), 0.35);
+  }
+  50% {
+    text-shadow:
+      0.01em -0.06em 0.07em rgba(var(--flame-1), 0.95),
+      -0.01em -0.14em 0.18em rgba(var(--flame-2), 0.9),
+      0.02em -0.24em 0.3em rgba(var(--flame-3), 0.75),
+      -0.02em -0.36em 0.46em rgba(var(--flame-4), 0.5);
+  }
+  100% {
+    text-shadow:
+      -0.01em -0.04em 0.06em rgba(var(--flame-1), 0.9),
+      0.01em -0.11em 0.16em rgba(var(--flame-2), 0.85),
+      -0.01em -0.2em 0.27em rgba(var(--flame-3), 0.7),
+      0.01em -0.3em 0.4em rgba(var(--flame-4), 0.42);
+  }
+}
+
+@keyframes metal-sweep {
+  0%,
+  35% {
+    background-position:
+      130% 0,
+      0 0;
+  }
+  70%,
+  100% {
+    background-position:
+      -30% 0,
+      0 0;
+  }
+}
+
+// "Act VI · Sister clan", above the name of a sister clan.
+.hero__kicker {
+  margin: 0 0 0.35rem;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--cn-game-gold);
+  text-shadow: 0 1px 2px #000;
+}
+
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin: 0.5rem 0 0;
+  font-size: var(--cn-fs-sm);
+  letter-spacing: 0.06em;
+  color: $muted;
+  text-shadow: 0 1px 2px #000;
+}
+
+.hero__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+// --- Motto and call to join ----------------------------------------------------------------
+
+.hero__finale {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 5cqh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: min(1rem, 2.5cqh);
+  padding: 0 1.25rem;
+  text-align: center;
+  opacity: var(--finale);
+  transform: translate3d(0, calc((1 - var(--finale)) * 4cqh), 0);
+}
+
+.hero__motto {
+  display: -webkit-box;
+  max-width: 46ch;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  font-size: min(var(--cn-fs-lg), 4.6cqi, 3.4cqh);
+  font-style: italic;
+  line-height: 1.45;
+  color: $ink;
+  text-shadow:
+    0 2px 4px #000,
+    0 0 18px rgba(0, 0, 0, 0.8);
+
+  &::before {
+    content: '“';
+  }
+
+  &::after {
+    content: '”';
+  }
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: min(0.7rem, 1.8cqh) 1.4rem;
+  // Colours of the clan: `.cn-crusade-cta` (global).
+  border-radius: 14px;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-lg);
+  white-space: nowrap;
+  transition: transform 120ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--cn-game-gold);
+    outline-offset: 3px;
+  }
+}
+
+.hero__hint {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 2.5cqh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $muted;
+  opacity: clamp(0, 1 - var(--p) * 6, 1);
+
+  mat-icon {
+    color: var(--cn-game-gold);
+    animation: hint-bounce 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes hint-bounce {
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+// --- Wide stages: badge and name in the middle, Crusader on the right, motto on the left ---
+
+@container stage (min-aspect-ratio: 5 / 4) {
+  .hero__halo {
+    --halo-y: -6cqh;
+    --halo-scale: 1.1;
+    top: 34cqh;
+    width: min(34cqw, 40cqh);
+  }
+
+  .hero__crusader {
+    left: 85%;
+    bottom: -6cqh;
+    height: 88cqh;
+  }
+
+  // The name stays under the badge, in the middle column.
+  .hero__title {
+    --title-y: 0cqh;
+    top: 57cqh;
+    left: 22%;
+    right: 22%;
+  }
+
+  .clan-name {
+    font-size: min(clamp(2.3rem, 1rem + 5.6vw, 5.4rem), 6.4cqi, 11cqh);
+  }
+
+  .hero__finale {
+    top: 36cqh;
+    right: 70%;
+    bottom: auto;
+  }
+}
+
+// --- Tones of the sister clans ------------------------------------------------------------------
+
+// Crociata Rossa: crimson dusk, red lacquered letters with a gold edge.
+:host(.clan-hero--red) .hero {
+  --tint: linear-gradient(180deg, rgba(90, 0, 0, 0.4), rgba(150, 12, 12, 0.3));
+  --flame-1: 255, 110, 80;
+  --flame-2: 235, 40, 25;
+  --flame-3: 180, 0, 0;
+  --flame-4: 110, 0, 0;
+  --rays: 255, 130, 110;
+  --glow-1: 255, 70, 50;
+  --glow-2: 170, 0, 0;
+  --ember-core: #ffc0b0;
+  --ember-edge: #e02010;
+  --ember-light: 230, 40, 20;
+  --crusader-light: 255, 70, 50;
+  --sweep: 255, 210, 180;
+  --metal: linear-gradient(180deg, #d85050 0%, #941616 30%, #500707 52%, #2c0303 60%, #700d0d 82%, #b02c2c 100%);
+  --metal-edge: #e2b24c;
+}
+
+// Crociata d'Oro: golden morning, polished gold letters with a bronze edge, a holy light instead of fire.
+:host(.clan-hero--gold) .hero {
+  --tint: linear-gradient(180deg, rgba(255, 200, 90, 0.16), rgba(255, 170, 40, 0.3));
+  --flame-1: 255, 250, 225;
+  --flame-2: 255, 232, 150;
+  --flame-3: 255, 200, 80;
+  --flame-4: 230, 160, 30;
+  --rays: 255, 240, 190;
+  --glow-1: 255, 232, 150;
+  --glow-2: 255, 190, 60;
+  --ember-core: #fffbe8;
+  --ember-edge: #ffd860;
+  --ember-light: 255, 220, 120;
+  --crusader-light: 255, 225, 140;
+  --sweep: 255, 255, 255;
+  // The gold of the edges of the Crociata Rossa letters, as the body of the letters.
+  --metal: linear-gradient(180deg, #f6d77e 0%, #e2b24c 30%, #b8862a 52%, #9a6c1c 60%, #e2b24c 82%, #f2cf6a 100%);
+  --metal-edge: #3a2404;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__rays,
+  .hero__glow,
+  .badge-stage__badge,
+  .hero__fog,
+  .clan-name__fire,
+  .clan-name__metal,
+  .hero__hint mat-icon {
+    animation: none;
+  }
+
+  .hero__embers {
+    display: none;
+  }
+}

@@ -1,0 +1,244 @@
+// Act IV, the annals: a stone hall lit by two torches. While pinned, the row of tablets slides
+// sideways (`--slide`) and the tablet in the middle comes forward (`--focus`).
+
+$ink: #f2f5fb;
+$muted: #c9c2b8;
+
+.annals {
+  --slide: clamp(0, (var(--p) - 0.08) / 0.84, 1);
+  isolation: isolate;
+  display: flex;
+  background: #101013;
+  color: $ink;
+}
+
+.annals__wall {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    // Courses of stone blocks.
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 128px),
+    radial-gradient(ellipse 80% 60% at 50% 55%, #2b2a30 0%, #18171b 60%, #0c0c0e 100%);
+}
+
+.annals__torch {
+  position: absolute;
+  top: 8cqh;
+  width: 60cqmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 170, 70, 0.45) 0%, rgba(255, 110, 30, 0.15) 40%, transparent 70%);
+  animation: torch-flicker 2.6s ease-in-out infinite alternate;
+}
+
+.annals__torch--left {
+  left: -24cqmin;
+}
+
+.annals__torch--right {
+  right: -24cqmin;
+  animation-delay: -1.3s;
+}
+
+@keyframes torch-flicker {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.96);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+.annals__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: min(1.5rem, 4cqh);
+  box-sizing: border-box;
+  width: 100%;
+  padding: min(2.5rem, 7cqh) 0 min(2rem, 5cqh);
+}
+
+// Clipped only sideways: the torchlight and the shadows of the tablets overflow above and below.
+.annals__viewport {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+// --- Row of tablets ----------------------------------------------------------------------------
+
+.annals__track {
+  --tablet: min(72cqw, 19rem, 48cqh);
+  display: flex;
+  align-items: center;
+  gap: min(1.25rem, 4cqw);
+  box-sizing: border-box;
+  width: max-content;
+  margin: 0;
+  // The first and the last tablet can reach the middle.
+  padding: 1rem calc((100cqw - var(--tablet)) / 2);
+  list-style: none;
+  transform: translate3d(calc(var(--slide) * var(--track-shift, 0px) * -1), 0, 0);
+}
+
+.record {
+  // Distance from the middle, in tablets, and how lit the tablet is.
+  --d: calc(var(--slide) * (var(--n) - 1) - var(--i));
+  --focus: max(0, 1 - max(var(--d), -1 * var(--d)));
+  container-type: inline-size;
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  width: var(--tablet);
+  aspect-ratio: 3 / 4;
+  // In tablet units: percentages would refer to the whole track.
+  padding: calc(var(--tablet) * 0.14) calc(var(--tablet) * 0.08) calc(var(--tablet) * 0.1);
+  // Arched stone tablet.
+  border-radius: 50% 50% 12px 12px / 22% 22% 12px 12px;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 255, 255, 0.08), transparent 70%),
+    linear-gradient(165deg, #4b4a52 0%, #34333a 45%, #232228 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 7px rgba(255, 255, 255, 0.05),
+    0 18px 30px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  opacity: calc(0.45 + var(--focus) * 0.55);
+  transform: scale(calc(0.86 + var(--focus) * 0.14));
+
+  // Torchlight on the tablet in the middle.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -6%;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 30%, rgba(255, 170, 70, 0.45), transparent 70%);
+    opacity: var(--focus);
+  }
+}
+
+.record__icon {
+  display: grid;
+  place-items: center;
+  width: min(96px, 32cqi);
+  aspect-ratio: 1;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
+  }
+
+  mat-icon {
+    width: 100%;
+    height: 100%;
+    font-size: min(60px, 26cqi);
+    color: var(--cn-game-gold);
+  }
+}
+
+// Carved gold letters.
+.record__value {
+  font-family: var(--cn-font-display);
+  font-size: min(var(--cn-fs-3xl), 18cqi);
+  line-height: 1.05;
+  white-space: nowrap;
+  color: #e8c062;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 14px rgba(255, 180, 70, 0.35);
+}
+
+// League name: smaller than a number, may wrap.
+.record__value--text {
+  font-size: max(var(--cn-fs-md), min(var(--cn-fs-xl), 11cqi));
+  white-space: normal;
+}
+
+.record__label {
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.record__date {
+  font-size: var(--cn-fs-2xs);
+  font-style: italic;
+  color: $muted;
+}
+
+// Italian flag waving in the wind: vertical slices of the same picture moving one after the other.
+.flag {
+  --slices: 26;
+  display: flex;
+  width: 80%;
+  aspect-ratio: 3 / 2;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.4));
+}
+
+.flag__slice {
+  flex: 1;
+  background: linear-gradient(90deg, #009246 0 33.34%, #f4f5f0 33.34% 66.67%, #ce2b37 66.67%);
+  background-size: calc(var(--slices) * 100%) 100%;
+  background-position: calc(var(--i) / (var(--slices) - 1) * 100%) 0;
+  animation: flag-wave 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.06s);
+}
+
+@keyframes flag-wave {
+  0%,
+  100% {
+    transform: translateY(-4%);
+    filter: brightness(1.05);
+  }
+  50% {
+    transform: translateY(4%);
+    filter: brightness(0.88);
+  }
+}
+
+// --- Plain page (reduced motion, or a screen too short): the tablets wrap in a grid ------------
+
+:host(.scrolly-act--static),
+:host(.scrolly-act--unpinned) {
+  .annals__track {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    padding: 0.5rem 1rem;
+    transform: none;
+  }
+
+  .record {
+    width: min(100%, 15rem);
+    opacity: 1;
+    transform: none;
+
+    &::before {
+      opacity: 0.4;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .annals__torch,
+  .flag__slice {
+    animation: none;
+  }
+}

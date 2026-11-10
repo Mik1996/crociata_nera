@@ -1,0 +1,61 @@
+@let c = clan();
+@let r = record();
+<section class="scrolly-stage war" aria-labelledby="war-title">
+  <div class="war__backdrop" aria-hidden="true"></div>
+  <app-crusader class="war__crusader" pose="fist" />
+
+  <div class="war__content" data-scrolly-fit>
+    <app-act-heading
+      titleId="war-title"
+      [title]="'welcome.acts.war.title' | translate"
+      [tagline]="'welcome.acts.war.tagline' | translate"
+    />
+
+    <figure class="war__trophy">
+      <div class="war__altar">
+        <img
+          class="war__trophy-image"
+          [class.war__trophy-image--aside]="altarReady()"
+          [src]="trophy()"
+          [alt]="c.warLeague?.name ?? ''"
+          width="192"
+          height="192"
+        />
+        @defer (when act.seen()) {
+          <app-altar-3d class="war__altar-3d" [imageUrl]="trophy()" (ready)="altarReady.set($event)" />
+        }
+      </div>
+      <figcaption>
+        <span class="war__ribbon">{{ c.warLeague?.name ?? ('welcome.unranked' | translate) }}</span>
+      </figcaption>
+    </figure>
+
+    <div class="war__record">
+      <div class="war__bar" aria-hidden="true">
+        @for (part of r.parts; track part.id) {
+          <span class="war__bar-part war__bar-part--{{ part.id }}" [style.flex-grow]="part.share"></span>
+        }
+      </div>
+      <dl class="war__facts">
+        @for (part of r.parts; track part.id) {
+          <div class="war__fact war__fact--{{ part.id }}">
+            <dt>{{ part.label | translate }}</dt>
+            <dd class="cn-num">
+              <span class="cn-visually-hidden">{{ part.value | localNumber }}</span>
+              <span [appScrollyCounter]="part.value" [counterFrom]="0.3" [counterTo]="0.7"></span>
+            </dd>
+          </div>
+        }
+        @if (r.winRate !== null) {
+          <div class="war__fact war__fact--rate">
+            <dt>{{ 'welcome.warLeague.winRate' | translate }}</dt>
+            <dd class="cn-num">
+              <span class="cn-visually-hidden">{{ r.winRate }}%</span>
+              <span aria-hidden="true"><span [appScrollyCounter]="r.winRate" [counterFrom]="0.3" [counterTo]="0.7"></span>%</span>
+            </dd>
+          </div>
+        }
+      </dl>
+    </div>
+  </div>
+</section>

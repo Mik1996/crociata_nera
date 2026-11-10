@@ -1,4 +1,6 @@
 @use '@angular/material' as mat;
+@use './app/shared/scrolly/scrolly';
+@use './app/shared/styles/crusade-cta';
 
 // Display font: "Clash" by Supercell (Regular 400, Bold 700), from src/assets/fonts.
 // Supercell font (all rights reserved), used as fan content: see README.
@@ -439,6 +441,14 @@ h2 {
     overscroll-behavior: contain;
     // No padding: the scroll hints (`appScrollFade`) must reach the edges of the area.
   }
+}
+
+/*
+ * Immersive pages (class "page--immersive" on the page host, e.g. the scrollytelling welcome page):
+ * the scenes reach the edges of the content area.
+ */
+mat-sidenav-content > .content:has(> .page--immersive) {
+  padding: 0;
 }
 
 /*

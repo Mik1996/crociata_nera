@@ -1,0 +1,213 @@
+// Act II, the capital: golden hour above the clouds. The bands of clouds slide sideways (horizontal
+// parallax, unlike the vertical acts around it) while the Capital Hall rises from them.
+
+$ink: #f2f5fb;
+$muted: #e2d8c4;
+
+.capital {
+  --hall-in: clamp(0, (var(--p) - 0.06) / 0.36, 1);
+  --facts-in: clamp(0, (var(--p) - 0.38) / 0.24, 1);
+  isolation: isolate;
+  display: flex;
+  background: #141a30;
+  color: $ink;
+}
+
+.capital__sky {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 70% 45% at 60% 78%, rgba(255, 196, 92, 0.55), transparent 70%),
+    linear-gradient(180deg, #0f1428 0%, #26305a 38%, #7d5640 68%, #d7974a 100%);
+}
+
+// Bands of soft clouds, three times as wide as the stage, moved sideways by the progress.
+.capital__clouds {
+  position: absolute;
+  left: 0;
+  width: 300%;
+  pointer-events: none;
+  background-repeat: repeat-x;
+}
+
+.capital__clouds--far {
+  z-index: -1;
+  top: 30cqh;
+  height: 40cqh;
+  background-image:
+    radial-gradient(ellipse 9% 40% at 10% 60%, rgba(255, 226, 180, 0.6), transparent 70%),
+    radial-gradient(ellipse 12% 50% at 32% 50%, rgba(255, 214, 160, 0.55), transparent 70%),
+    radial-gradient(ellipse 10% 45% at 58% 65%, rgba(255, 226, 180, 0.58), transparent 70%),
+    radial-gradient(ellipse 13% 50% at 84% 55%, rgba(255, 214, 160, 0.52), transparent 70%);
+  transform: translate3d(calc(var(--p) * -20%), 0, 0);
+}
+
+.capital__clouds--mid {
+  z-index: 0;
+  bottom: 6cqh;
+  height: 34cqh;
+  background-image:
+    radial-gradient(ellipse 11% 45% at 6% 60%, rgba(250, 236, 214, 0.75), transparent 70%),
+    radial-gradient(ellipse 14% 55% at 27% 70%, rgba(240, 220, 196, 0.7), transparent 70%),
+    radial-gradient(ellipse 12% 50% at 52% 55%, rgba(250, 236, 214, 0.72), transparent 70%),
+    radial-gradient(ellipse 15% 55% at 78% 68%, rgba(240, 220, 196, 0.68), transparent 70%);
+  transform: translate3d(calc(-10% - var(--p) * 30%), 0, 0);
+}
+
+.capital__clouds--near {
+  z-index: 2;
+  bottom: -10cqh;
+  height: 26cqh;
+  background-image:
+    radial-gradient(ellipse 14% 60% at 12% 60%, rgba(255, 244, 228, 0.9), transparent 70%),
+    radial-gradient(ellipse 16% 55% at 44% 70%, rgba(255, 240, 222, 0.85), transparent 70%),
+    radial-gradient(ellipse 14% 60% at 74% 62%, rgba(255, 244, 228, 0.88), transparent 70%);
+  transform: translate3d(calc(-20% - var(--p) * 45%), 0, 0);
+  // Thins out when the facts appear, so it never covers them.
+  opacity: calc(1 - var(--facts-in) * 0.6);
+}
+
+.capital__crusader {
+  --crusader-in: clamp(0, (var(--p) - 0.1) / 0.3, 1);
+  --crusader-glow: 255, 200, 110;
+  --crusader-fog: 215, 151, 74;
+  position: absolute;
+  z-index: 1;
+  left: -18cqw;
+  bottom: 0;
+  height: 52cqh;
+  opacity: 0.5;
+}
+
+.capital__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: min(1rem, 2cqh);
+  box-sizing: border-box;
+  width: 100%;
+  padding: min(2.5rem, 7cqh) 1rem min(2rem, 5cqh);
+}
+
+// --- The Capital Hall ------------------------------------------------------------------------
+
+.capital__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  opacity: var(--hall-in);
+  transform: translate3d(0, calc((1 - var(--hall-in)) * 22cqh), 0) scale(calc(0.8 + var(--hall-in) * 0.2));
+}
+
+.capital__hall {
+  width: min(62cqw, 36cqh);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px rgba(60, 30, 0, 0.55)) drop-shadow(0 0 26px rgba(255, 210, 120, 0.55));
+}
+
+.capital__caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $muted;
+  text-shadow: 0 1px 2px #000;
+}
+
+.capital__caption--none {
+  font-size: var(--cn-fs-lg);
+  text-transform: none;
+}
+
+.capital__ribbon {
+  padding: 0.25rem 0.9rem;
+  border: 2px solid #0a1020;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #3a4f86, #1f2d55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-sm);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #fff;
+}
+
+// --- League and points: two gilded plaques ----------------------------------------------------
+
+.capital__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  width: min(100%, 30rem);
+  margin: 0;
+  opacity: var(--facts-in);
+  transform: translate3d(0, calc((1 - var(--facts-in)) * 4cqh), 0);
+}
+
+.plaque {
+  container-type: inline-size;
+  padding: min(0.6rem, 1.4cqh) 0.6rem;
+  border: 2px solid rgba(244, 197, 66, 0.7);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(30, 36, 64, 0.92), rgba(16, 20, 38, 0.95));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 6px 18px rgba(0, 0, 0, 0.45);
+  text-align: center;
+
+  dt {
+    font-size: var(--cn-fs-2xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $muted;
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin: 0.25rem 0 0;
+    font-family: var(--cn-font-display);
+    font-size: min(var(--cn-fs-lg), 11cqi);
+    color: #fff;
+    text-shadow: 0 2px 0 #000;
+  }
+
+  img {
+    width: min(48px, 7cqh);
+    height: min(48px, 7cqh);
+    object-fit: contain;
+  }
+}
+
+// --- Wide stages: the Crusader on the left ------------------------------------------------------
+
+@container stage (min-aspect-ratio: 5 / 4) {
+  .capital__crusader {
+    left: 3cqw;
+    height: 88cqh;
+    opacity: 1;
+  }
+
+  .capital__content {
+    justify-content: center;
+    width: 64%;
+    margin-left: auto;
+  }
+
+  .capital__hall {
+    width: min(40cqw, 40cqh);
+  }
+}

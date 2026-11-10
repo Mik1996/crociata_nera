@@ -1,0 +1,10 @@
+<app-clan-hero
+  [clan]="clan()"
+  [order]="sister().order"
+  [headingLevel]="2"
+  [titleId]="'clan-name-' + sister().order"
+  [kicker]="('welcome.acts.act' | translate: { n: act.numeral() }) + ' · ' + ('welcome.acts.sister.kicker' | translate)"
+  [ctaLabel]="'welcome.acts.sister.cta' | translate"
+  [ctaHref]="link()"
+  [ctaExternal]="true"
+/>

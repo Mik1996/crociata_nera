@@ -1,0 +1,54 @@
+// Act VI, the call: the Crusader welcomes the reader under golden rays, then the banner to join.
+
+:host {
+  isolation: isolate;
+  background: linear-gradient(180deg, #0b0a0f 0%, #121019 40%, #0b0a0f 100%);
+  color: #f2f5fb;
+}
+
+.call {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: min(3rem, 8vh) clamp(0.75rem, 2.5vw, 1.5rem) 2rem;
+}
+
+.call__intro {
+  // The rays and the Crusader appear while the act comes up.
+  --in: clamp(0, (var(--enter) - 0.1) * 1.8, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.call__rays {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  z-index: -1;
+  width: min(140vw, 70rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 214, 130, 0.22) 0deg 5deg, transparent 5deg 15deg);
+  mask: radial-gradient(circle, #000 10%, transparent 62%);
+  opacity: var(--in);
+  transform: translate(-50%, -50%) rotate(calc(var(--enter) * 40deg)) scale(calc(0.7 + var(--in) * 0.3));
+}
+
+.call__crusader {
+  --crusader-in: var(--in);
+  --crusader-glow: 255, 214, 130;
+  --crusader-fog: 11, 10, 15;
+  height: calc(var(--scrolly-vh, 100svh) * 0.62);
+  margin-top: 0.5rem;
+}
+
+.call__banner {
+  width: 100%;
+  // The banner rises over the Crusader's feet.
+  margin-top: calc(var(--scrolly-vh, 100svh) * -0.08);
+  position: relative;
+  z-index: 1;
+}

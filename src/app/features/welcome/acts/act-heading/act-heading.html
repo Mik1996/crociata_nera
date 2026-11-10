@@ -1,0 +1,14 @@
+@let numeral = act?.numeral();
+<p class="act-heading__kicker">
+  <span class="act-heading__rule" aria-hidden="true"></span>
+  {{ numeral ? ('welcome.acts.act' | translate: { n: numeral }) : ('welcome.acts.prologue' | translate) }}
+  <span class="act-heading__rule" aria-hidden="true"></span>
+</p>
+@if (heading()) {
+  <h2 class="act-heading__title" [id]="titleId()">{{ title() }}</h2>
+} @else {
+  <p class="act-heading__title">{{ title() }}</p>
+}
+@if (tagline()) {
+  <p class="act-heading__tagline">{{ tagline() }}</p>
+}

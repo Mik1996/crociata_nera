@@ -1,0 +1,14 @@
+<div class="crusader__glow"></div>
+<img
+  class="crusader__figure"
+  [src]="src()"
+  [srcset]="srcset()"
+  [sizes]="sizes()"
+  alt=""
+  width="1024"
+  height="1536"
+  [attr.loading]="priority() ? 'eager' : 'lazy'"
+  [attr.fetchpriority]="priority() ? 'high' : null"
+  decoding="async"
+/>
+<div class="crusader__fog"></div>

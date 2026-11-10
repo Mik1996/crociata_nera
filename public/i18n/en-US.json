@@ -499,14 +499,13 @@
     "statsLabel": "The clan in numbers",
     "members": "Members",
     "warWins": "Wars won",
-    "winStreak": "Win streak",
+    "winStreak": "Current win streak",
     "clanPoints": "Clan points",
     "rankLocal": "{{country}} ranking",
     "rankGlobal": "Global ranking",
     "labels": "Clan labels",
     "unranked": "Unranked",
     "capital": {
-      "title": "Clan Capital",
       "hall": "Capital Hall",
       "hallLevel": "Level {{n}}",
       "none": "No Clan Capital yet",
@@ -514,7 +513,6 @@
       "points": "Capital points"
     },
     "warLeague": {
-      "title": "Clan War League",
       "wins": "Wins",
       "ties": "Ties",
       "losses": "Losses",
@@ -534,50 +532,16 @@
     },
     "recruit": {
       "kicker": "Now recruiting",
-      "title": "Join Crociata Nera",
+      "kickerClosed": "Recruitment closed",
+      "title": "Join us",
       "text": "We are looking for loyal warriors, ready to fight side by side. Here every attack counts, every star matters and nobody fights alone: bring your village to Crociata Nera.",
-      "enlist": "Enlist",
       "openSlots": "open spots in our ranks",
       "openSlot": "open spot in our ranks",
       "full": "Our ranks are full: come back soon!",
       "minTownHall": "Required Town Hall level",
       "requiredLeague": "Required league",
       "cta": "Join the clan",
-      "ctaHint": "The link opens Clash of Clans on the clan profile: tap “Join” and wait to be accepted.",
-      "perks": {
-        "wars": {
-          "title": "Endless wars",
-          "text": "Clan wars and Clan War League every month, with a clear plan and teammates who actually attack."
-        },
-        "league": {
-          "title": "In {{league}}",
-          "text": "We compete at the top: every war is a real challenge against worthy clans."
-        },
-        "capital": {
-          "title": "Capital level {{n}}",
-          "text": "Raid weekends every week and a capital to grow together."
-        },
-        "clanGames": {
-          "title": "Clan Games always completed",
-          "text": "Every month we reach the top Clan Games tier and never miss an event: the best rewards are for everyone."
-        },
-        "cwl": {
-          "title": "Organized, structured CWL",
-          "text": "Line-ups, turns and targets planned together: we coordinate on our WhatsApp and Telegram channels, so everyone always knows what to do and when to attack."
-        },
-        "redCrusade": {
-          "title": "Crociata Rossa",
-          "text": "Our sister clan, where we play the second CWL: more League medals and a spot for everyone."
-        },
-        "goldCrusade": {
-          "title": "Crociata d'Oro",
-          "text": "The parallel wars clan: while the two CWLs are on, we keep fighting clan wars there and the action never stops."
-        },
-        "honours": {
-          "title": "Glory to those who earn it",
-          "text": "Stats for every attack, monthly rankings and bronze, silver and gold commendations for the best."
-        }
-      }
+      "ctaHint": "The link opens Clash of Clans on the clan profile: tap “Join” and wait to be accepted."
     },
     "rules": {
       "title": "Clan rules",
@@ -611,6 +575,41 @@
         "2": "Heroes",
         "3": "Buildings",
         "note": "All maxed for the previous Town Hall."
+      }
+    },
+    "acts": {
+      "index": "Acts of the story",
+      "act": "Act {{n}}",
+      "prologue": "Prologue",
+      "prologueTitle": "The Crusade",
+      "scrollHint": "Scroll",
+      "enlist": "Enlist",
+      "army": {
+        "title": "The Army",
+        "tagline": "Fifty places, one banner."
+      },
+      "capital": {
+        "title": "The Capital",
+        "tagline": "Brick by brick, one weekend after another."
+      },
+      "war": {
+        "title": "War",
+        "tagline": "Every star counts, every attack matters."
+      },
+      "annals": {
+        "title": "The Annals",
+        "tagline": "What we have conquered stays carved in stone."
+      },
+      "code": {
+        "title": "The Code",
+        "tagline": "Whoever joins takes the oath. Whoever takes it, keeps it."
+      },
+      "sister": {
+        "kicker": "Sister clan",
+        "cta": "Open the clan in the game"
+      },
+      "call": {
+        "title": "The Call"
       }
     }
   },

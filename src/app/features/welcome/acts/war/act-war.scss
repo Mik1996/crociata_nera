@@ -1,0 +1,215 @@
+// Act III, war: a battlefield at night, red with fire. The altar is the centrepiece; portrait
+// stages keep the Crusader faded behind it, wide stages put him on the left.
+
+$ink: #f2f5fb;
+$muted: #e0cfc8;
+$night: #0d0607;
+
+.war {
+  --fill: clamp(0, (var(--p) - 0.3) / 0.4, 1);
+  isolation: isolate;
+  display: flex;
+  background: $night;
+  color: $ink;
+}
+
+.war__backdrop {
+  position: absolute;
+  inset: -5%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 70%, rgba(255, 70, 20, 0.35), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 15% 90%, rgba(255, 120, 30, 0.25), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 85% 85%, rgba(255, 90, 20, 0.22), transparent 70%),
+    linear-gradient(180deg, #050304 0%, #1c0807 55%, #3a0e08 100%);
+  animation: war-flicker 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes war-flicker {
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.war__crusader {
+  --crusader-in: clamp(0, var(--p) / 0.3, 1);
+  --crusader-glow: 255, 90, 40;
+  --crusader-fog: 58, 14, 8;
+  position: absolute;
+  z-index: 0;
+  left: -18cqw;
+  bottom: 0;
+  height: 58cqh;
+  opacity: 0.5;
+}
+
+.war__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: min(0.8rem, 1.8cqh);
+  box-sizing: border-box;
+  width: 100%;
+  padding: min(2.5rem, 7cqh) 1rem min(1.75rem, 4.5cqh);
+}
+
+// --- Trophy on the altar --------------------------------------------------------------------
+
+.war__trophy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.war__altar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(86cqw, 46cqh);
+  aspect-ratio: 1 / 1.1;
+}
+
+.war__altar-3d {
+  position: absolute;
+  // Wider and taller than the altar's box: room for the light around the trophy.
+  inset: -16% -14% -2%;
+}
+
+// Fallback and accessible picture: hidden (not removed) once the 3D altar is drawn.
+.war__trophy-image {
+  width: 52%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 24px rgba(255, 150, 60, 0.6));
+  transition: opacity 600ms ease;
+}
+
+.war__trophy-image--aside {
+  opacity: 0;
+}
+
+.war__ribbon {
+  display: inline-block;
+  padding: 0.25rem 0.9rem;
+  border: 2px solid var(--cn-panel-border);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-sm);
+  white-space: nowrap;
+  color: #1d1503;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+// --- War record: bar and numbers -----------------------------------------------------------------
+
+.war__record {
+  display: flex;
+  flex-direction: column;
+  gap: min(0.6rem, 1.4cqh);
+  width: min(100%, 30rem);
+}
+
+.war__bar {
+  display: flex;
+  overflow: hidden;
+  height: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  // Fills from the left with the progress.
+  clip-path: inset(0 calc((1 - var(--fill)) * 100%) 0 0 round 999px);
+}
+
+.war__bar-part {
+  flex-basis: 0;
+}
+
+.war__bar-part--win {
+  background: linear-gradient(180deg, #7ad94a, #3f9a1d);
+}
+
+.war__bar-part--tie {
+  background: linear-gradient(180deg, #c9cfd8, #8a919c);
+}
+
+.war__bar-part--loss {
+  background: linear-gradient(180deg, #ef5a4c, #a8231a);
+}
+
+.war__facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.war__fact {
+  container-type: inline-size;
+  padding: min(0.45rem, 1cqh) 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(10, 4, 5, 0.7);
+  text-align: center;
+
+  dt {
+    font-size: var(--cn-fs-2xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  dd {
+    margin: 0.15rem 0 0;
+    font-family: var(--cn-font-display);
+    font-size: min(var(--cn-fs-xl), 22cqi);
+    color: #fff;
+    text-shadow: 0 2px 0 #000;
+  }
+}
+
+.war__fact--win dd {
+  color: #9be86b;
+}
+
+.war__fact--loss dd {
+  color: #ff8a7a;
+}
+
+.war__fact--rate dd {
+  color: var(--cn-game-gold);
+}
+
+// --- Wide stages -----------------------------------------------------------------------------------
+
+@container stage (min-aspect-ratio: 5 / 4) {
+  .war__crusader {
+    left: 3cqw;
+    height: 90cqh;
+    opacity: 1;
+  }
+
+  .war__content {
+    justify-content: center;
+    width: 66%;
+    margin-left: auto;
+  }
+
+  .war__altar {
+    width: min(44cqw, 50cqh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .war__backdrop {
+    animation: none;
+  }
+}

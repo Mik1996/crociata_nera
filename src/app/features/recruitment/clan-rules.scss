@@ -120,3 +120,29 @@
   color: #5a3a1c;
 }
 
+
+// Sheet of the welcome page's scroll: the rollers belong to the scroll, the sheet runs edge to edge.
+:host(.clan-rules--scroll) {
+  margin: 0;
+
+  .rules {
+    padding-top: 2rem;
+    padding-bottom: 3.5rem;
+    border-width: 0 3px;
+    border-radius: 0;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.5), transparent 55%),
+      radial-gradient(ellipse 30% 20% at 15% 70%, rgba(150, 100, 40, 0.12), transparent 70%),
+      radial-gradient(ellipse 25% 18% at 85% 35%, rgba(150, 100, 40, 0.1), transparent 70%),
+      repeating-linear-gradient(0deg, rgba(120, 80, 30, 0.035) 0 1px, transparent 1px 5px),
+      linear-gradient(180deg, #f6e7c4 0%, #ecd6a8 50%, #e4c993 100%);
+    box-shadow:
+      inset 18px 0 24px -18px rgba(90, 58, 28, 0.45),
+      inset -18px 0 24px -18px rgba(90, 58, 28, 0.45);
+
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+}

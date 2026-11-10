@@ -1,0 +1,50 @@
+@let list = records();
+<section class="scrolly-stage annals" aria-labelledby="records-title">
+  <div class="annals__wall" aria-hidden="true">
+    <span class="annals__torch annals__torch--left"></span>
+    <span class="annals__torch annals__torch--right"></span>
+  </div>
+
+  <div class="annals__content" data-scrolly-fit>
+    <app-act-heading
+      titleId="records-title"
+      [title]="'welcome.acts.annals.title' | translate"
+      [tagline]="'welcome.acts.annals.tagline' | translate"
+    />
+
+    <div class="annals__viewport">
+      <ul class="annals__track" appScrollyTrack [style.--n]="list.length" [attr.aria-label]="'welcome.records.title' | translate">
+        @for (r of list; track r.id; let i = $index) {
+          <li class="record" [attr.data-record]="r.id" [style.--i]="i">
+            <span class="record__icon" aria-hidden="true">
+              @if (r.image) {
+                <img [src]="r.image" alt="" width="72" height="72" />
+              } @else if (r.flag) {
+                <span class="flag">
+                  @for (s of flagSlices; track s) {
+                    <span class="flag__slice" [style.--i]="s"></span>
+                  }
+                </span>
+              } @else {
+                <mat-icon>{{ r.icon }}</mat-icon>
+              }
+            </span>
+            <span class="record__value cn-num" [class.record__value--text]="r.text">
+              @if (r.rank !== undefined) {
+                #{{ r.rank }}
+              } @else if (r.text) {
+                {{ r.text }}
+              } @else {
+                {{ r.value | localNumber }}
+              }
+            </span>
+            <span class="record__label">{{ r.label | translate: { country: r.country } }}</span>
+            @if (r.achievedAt) {
+              <span class="record__date">{{ 'welcome.records.achievedAt' | translate: { date: (r.achievedAt | localDate) } }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</section>

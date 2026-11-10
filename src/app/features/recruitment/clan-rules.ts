@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -11,14 +11,23 @@ const RULE_GROUPS = [
   { key: 'requirements', icon: 'checklist', items: [1, 2, 3] },
 ] as const;
 
-/** The clan rules on a parchment scroll. Used on the welcome page and on the "Join us" page. */
+/** How the rules are framed: a card with rolled edges, or the bare sheet of a parchment scroll. */
+export type ClanRulesVariant = 'card' | 'scroll';
+
+/**
+ * The clan rules on parchment. Used on the "Join us" page (`card`, with rolled edges) and on the
+ * welcome page (`scroll`: the sheet inside the unrolling scroll of the "Code" act).
+ */
 @Component({
   selector: 'app-clan-rules',
   imports: [MatIconModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-rules.html',
   styleUrl: './clan-rules.scss',
+  host: { '[class.clan-rules--scroll]': "variant() === 'scroll'" },
 })
 export class ClanRules {
+  readonly variant = input<ClanRulesVariant>('card');
+
   protected readonly ruleGroups = RULE_GROUPS;
 }

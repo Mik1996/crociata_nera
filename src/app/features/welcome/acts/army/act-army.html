@@ -1,0 +1,47 @@
+@let c = clan();
+<section class="scrolly-stage army" aria-labelledby="army-title">
+  <div class="army__backdrop" aria-hidden="true"></div>
+  <app-crusader class="army__crusader" pose="guard" />
+
+  <div class="army__content" data-scrolly-fit>
+    <app-act-heading
+      titleId="army-title"
+      [title]="'welcome.acts.army.title' | translate"
+      [tagline]="'welcome.acts.army.tagline' | translate"
+    />
+
+    <ul class="army__stats" [attr.aria-label]="'welcome.statsLabel' | translate">
+      @for (stat of stats(); track stat.id; let i = $index) {
+        <li class="stat" [class.stat--rank]="stat.rank" [attr.data-stat]="stat.id" [style.--i]="i">
+          <span class="stat__value cn-num">
+            @if (stat.text) {
+              {{ stat.text }}
+            } @else {
+              <span class="cn-visually-hidden">{{ stat.prefix }}{{ stat.value | localNumber }}{{ stat.suffix }}</span>
+              <span aria-hidden="true"
+                >{{ stat.prefix }}<span [appScrollyCounter]="stat.value!" [counterFrom]="0.04 + i * 0.03" [counterTo]="0.55"></span>
+                @if (stat.suffix) {
+                  <small>{{ stat.suffix }}</small>
+                }
+              </span>
+            }
+          </span>
+          <span class="stat__label">{{ stat.label | translate: { country: stat.country } }}</span>
+        </li>
+      }
+    </ul>
+
+    @if (c.labels.length) {
+      <ul class="army__labels" [attr.aria-label]="'welcome.labels' | translate">
+        @for (label of c.labels; track label.name; let i = $index) {
+          <li class="label-chip" [style.--i]="i">
+            @if (label.iconUrl) {
+              <img [src]="label.iconUrl" alt="" width="24" height="24" />
+            }
+            {{ label.name }}
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>
