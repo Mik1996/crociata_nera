@@ -442,6 +442,23 @@ h2 {
 }
 
 /*
+ * Text fields on touch screens: iOS Safari zooms into any field whose text is smaller than 16px
+ * when it gets the focus. 16px (or more) avoids it, without blocking the user's own pinch-zoom.
+ */
+@media (pointer: coarse) {
+  html {
+    // Material form fields: their input inherits this size.
+    --mat-form-field-container-text-size: max(16px, var(--cn-fs-base));
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/*
  * Elements with a tooltip (`matTooltip`): Angular Material sets an inline `touch-action: none`
  * on them to detect the long press, which stops a scroll that starts on them (medals, league
  * icons…). Scrolling and pinch-zoom stay allowed; the long press still shows the tooltip.
