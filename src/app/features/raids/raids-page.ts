@@ -17,6 +17,7 @@ import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 
+const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
  * Raid Weekends of the Clan Capital: totals of the weekend, Capital Gold and attacks of every
  * member, and the current members who did not take part (capital raids are mandatory).
@@ -65,7 +66,14 @@ export class RaidsPage {
     return this.clan.value().members.filter((m) => !attacked.has(m.tag));
   });
 
+  protected readonly raidsCompleted = computed(() => {
+    const weekend = this.weekend();
+    return weekend?.attackLog.reduce((sum, log) => sum + (log.districtCount === log.districtsDestroyed ? 1 : 0), 0) ?? 0;
+  });
+
   protected readonly columns = ['rank', 'name', 'attacks', 'looted'];
+
+  protected readonly MAXIMUM_CAPITAL_RAIDS = MAXIMUM_CAPITAL_RAIDS;
 
   /** "6 – 9 nov", in the current language. */
   protected label(weekend: RaidSeason): string {

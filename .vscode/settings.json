@@ -8,7 +8,8 @@
     "images",
     "commendation",
     "style",
-    "auth"
+    "auth",
+    "raids"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

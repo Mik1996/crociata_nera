@@ -109,7 +109,7 @@ export function buildCwlSeason(raw: CocCwlSeasonRecord, clanTag: string): CwlSea
 export function mapRaidSeason(raw: CocCapitalRaidSeason): RaidSeason {
   return {
     id: parseCocDate(raw.startTime),
-    state: raw.state === 'ongoing' ? 'ongoing' : 'ended',
+    state: raw.state,
     startTime: parseCocDate(raw.startTime),
     endTime: parseCocDate(raw.endTime),
     totalLoot: raw.capitalTotalLoot,
@@ -119,6 +119,8 @@ export function mapRaidSeason(raw: CocCapitalRaidSeason): RaidSeason {
     offensiveReward: raw.offensiveReward,
     defensiveReward: raw.defensiveReward,
     hasMembers: Array.isArray(raw.members),
+    attackLog: raw.attackLog,
+    defenseLog: raw.defenseLog,
     members: (raw.members ?? [])
       .map((m) => ({
         tag: m.tag,

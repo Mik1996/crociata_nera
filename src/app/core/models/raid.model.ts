@@ -1,3 +1,5 @@
+import { CocCapitalRaidLog } from "../api/coc-api.types";
+
 /** A member's results in a Raid Weekend. */
 export interface RaidMember {
   tag: string;
@@ -19,6 +21,8 @@ export interface RaidSeason {
   totalLoot: number;
   raidsCompleted: number;
   totalAttacks: number;
+  attackLog: CocCapitalRaidLog[];
+  defenseLog: CocCapitalRaidLog[];
   districtsDestroyed: number;
   offensiveReward: number;
   defensiveReward: number;

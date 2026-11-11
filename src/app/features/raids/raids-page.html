@@ -38,14 +38,14 @@
         <app-kpi-card
           icon="castle"
           [label]="'raids.raidsCompleted' | translate"
-          [value]="w.raidsCompleted"
+          [value]="raidsCompleted()"
           [hint]="'raids.districts' | translate: { n: w.districtsDestroyed }"
         />
         <app-kpi-card
           icon="workspace_premium"
           [label]="'raids.rewards' | translate"
-          [value]="(w.offensiveReward + w.defensiveReward | localNumber) ?? 0"
-          [hint]="'raids.rewardsHint' | translate: { offense: w.offensiveReward, defense: w.defensiveReward }"
+          [value]="(MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0"
+          [hint]="'raids.rewardsHint' | translate: { offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward, defense: w.defensiveReward }"
         />
       </div>
 
