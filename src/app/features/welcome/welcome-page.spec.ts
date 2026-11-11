@@ -19,6 +19,11 @@ const clan: Clan = {
   warLeague: { id: 48000015, name: 'Master League I' },
   capitalLeague: 'Legend League',
   capitalHallLevel: 10,
+  capitalDistricts: [
+    { id: 70000000, name: 'Capital Peak', level: 10 },
+    { id: 70000001, name: 'Barbarian Camp', level: 5 },
+    { id: 70000007, name: 'Skeleton Park', level: 4 },
+  ],
   clanPoints: 140174,
   capitalPoints: 5365,
   location: 'Italy',
@@ -152,6 +157,21 @@ describe('WelcomePage', () => {
     expect(el.querySelector('.label-chip')!.textContent).toContain('Clan Wars');
   });
 
+  it('shows the districts of the capital around the Capital Hall, each with its name and level', async () => {
+    const el = await render(clan);
+    const districts = Array.from(el.querySelectorAll('.district')).map((li) => [
+      li.querySelector('.district__name')!.textContent!.trim(),
+      li.querySelector<HTMLImageElement>('.district__hall')!.getAttribute('src'),
+      li.querySelector('.district__level')!.textContent!.trim(),
+    ]);
+    // Capital Peak is the Capital Hall itself, not one of the islands.
+    expect(districts).toEqual([
+      ['Accampamento barbaro', 'game/capital-districts/district-hall-5.webp', 'Livello 5'],
+      ['Parco degli scheletri', 'game/capital-districts/district-hall-4.webp', 'Livello 4'],
+    ]);
+    expect(el.querySelector('.capital__districts')!.getAttribute('aria-label')).toBe('Distretti della Capitale');
+  });
+
   it('shows the clan in numbers, counted up to their final value', async () => {
     const el = await render(clan);
     const stats = Array.from(el.querySelectorAll('.stat')).map((li) => [
@@ -185,10 +205,11 @@ describe('WelcomePage', () => {
   });
 
   it('copes with an unranked clan without capital or description', async () => {
-    const el = await render({ ...clan, warLeague: undefined, capitalLeague: undefined, capitalHallLevel: 0, description: '' });
+    const el = await render({ ...clan, warLeague: undefined, capitalLeague: undefined, capitalHallLevel: 0, capitalDistricts: [], description: '' });
 
     expect(el.textContent).toContain('Capitale non ancora fondata');
     expect(el.textContent).toContain('Non classificato');
+    expect(el.querySelector('.capital__districts')).toBeNull();
     expect(el.querySelector('#prologue .hero__motto')).toBeNull();
     expect(el.querySelector<HTMLImageElement>('.war__trophy-image')!.getAttribute('src')).toBe('game/misc/clan-war.webp');
   });

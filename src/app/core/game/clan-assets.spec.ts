@@ -1,4 +1,4 @@
-import { capitalHallImage, capitalLeagueIcon, warLeagueIcon } from './clan-assets';
+import { capitalHallImage, capitalLeagueIcon, districtHallImage, warLeagueIcon } from './clan-assets';
 
 describe('clan assets', () => {
   it('picks the Capital Hall picture by level', () => {
@@ -6,6 +6,12 @@ describe('clan assets', () => {
     expect(capitalHallImage(3)).toBe('game/capital-halls/capital-hall-3.webp');
     expect(capitalHallImage(12)).toBe('game/capital-halls/capital-hall-10.webp');
     expect(capitalHallImage(0)).toBeNull();
+  });
+
+  it('picks the District Hall picture by level', () => {
+    expect(districtHallImage(4)).toBe('game/capital-districts/district-hall-4.webp');
+    expect(districtHallImage(7)).toBe('game/capital-districts/district-hall-5.webp');
+    expect(districtHallImage(0)).toBeNull();
   });
 
   it('maps Capital League names to their badge', () => {

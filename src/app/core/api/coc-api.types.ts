@@ -51,7 +51,10 @@ export interface CocClan {
   isWarLogPublic?: boolean;
   warLeague?: { id: number; name: string };
   capitalLeague?: { id: number; name: string };
-  clanCapital?: { capitalHallLevel?: number };
+  clanCapital?: {
+    capitalHallLevel?: number;
+    districts?: { id: number; name: string; districtHallLevel?: number }[];
+  };
   clanCapitalPoints?: number;
   clanBuilderBasePoints?: number;
   location?: { id: number; name: string; isCountry?: boolean; countryCode?: string };

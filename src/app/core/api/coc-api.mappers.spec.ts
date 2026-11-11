@@ -52,7 +52,13 @@ describe('coc-api mappers', () => {
       clanCapitalPoints: 5365,
       capitalLeague: { id: 85000022, name: 'Legend League' },
       warLeague: { id: 48000015, name: 'Master League I' },
-      clanCapital: { capitalHallLevel: 10 },
+      clanCapital: {
+        capitalHallLevel: 10,
+        districts: [
+          { id: 70000000, name: 'Capital Peak', districtHallLevel: 10 },
+          { id: 70000001, name: 'Barbarian Camp', districtHallLevel: 5 },
+        ],
+      },
       location: { id: 32000120, name: 'Italy', isCountry: true, countryCode: 'IT' },
       chatLanguage: { id: 75000004, name: 'Italiano', languageCode: 'IT' },
       labels: [{ id: 56000000, name: 'Clan Wars', iconUrls: { small: 's.png', medium: 'm.png' } }],
@@ -61,6 +67,10 @@ describe('coc-api mappers', () => {
     });
     expect(clan).toMatchObject({
       capitalHallLevel: 10,
+      capitalDistricts: [
+        { id: 70000000, name: 'Capital Peak', level: 10 },
+        { id: 70000001, name: 'Barbarian Camp', level: 5 },
+      ],
       capitalLeague: 'Legend League',
       warLeague: { id: 48000015, name: 'Master League I' },
       clanPoints: 140174,
@@ -72,7 +82,7 @@ describe('coc-api mappers', () => {
       requiredTownHall: 17,
       requiredLeague: { name: 'Master League I', iconUrl: 'll.png' },
     });
-    expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 })).toMatchObject({ capitalHallLevel: 0, labels: [] });
+    expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 })).toMatchObject({ capitalHallLevel: 0, capitalDistricts: [], labels: [] });
     expect(mapClan({ tag: '#X', name: 'X', clanLevel: 1 }).requiredLeague).toBeUndefined();
   });
 

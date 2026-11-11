@@ -1,83 +1,52 @@
-// Act II, the capital: golden hour above the clouds. The bands of clouds slide sideways (horizontal
-// parallax, unlike the vertical acts around it) while the Capital Hall rises from them.
+// Act II, the capital: the Clan Capital above the clouds as wallpaper, gliding sideways under the
+// camera (horizontal parallax, unlike the vertical acts around it). The Capital Hall rises, then
+// the districts fly in from both sides and keep drifting, each at the speed of its own depth.
 
 $ink: #f2f5fb;
-$muted: #e2d8c4;
+$muted: #e8edf8;
+$navy: #0a1024;
 
 .capital {
-  --hall-in: clamp(0, (var(--p) - 0.06) / 0.36, 1);
-  --facts-in: clamp(0, (var(--p) - 0.38) / 0.24, 1);
+  --hall-in: clamp(0, (var(--p) - 0.04) / 0.26, 1);
+  --facts-in: clamp(0, (var(--p) - 0.6) / 0.2, 1);
   isolation: isolate;
   display: flex;
-  background: #141a30;
+  background: #2f6fd0;
   color: $ink;
 }
 
-.capital__sky {
+// Larger than the stage on every side, so the glide never shows its edges.
+.capital__wallpaper {
+  position: absolute;
+  inset: -4cqh -18cqw;
+  z-index: -2;
+  background: url('/images/welcome/capital.jpg') 50% 50% / cover no-repeat;
+  transform: translate3d(calc((0.5 - var(--p)) * 24cqw), calc((0.5 - var(--p)) * 4cqh), 0)
+    scale(calc(1.08 - var(--p) * 0.08));
+}
+
+// Keeps the heading (top) and the plaques (bottom) readable on the bright sky.
+.capital__scrim {
   position: absolute;
   inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(ellipse 70% 45% at 60% 78%, rgba(255, 196, 92, 0.55), transparent 70%),
-    linear-gradient(180deg, #0f1428 0%, #26305a 38%, #7d5640 68%, #d7974a 100%);
-}
-
-// Bands of soft clouds, three times as wide as the stage, moved sideways by the progress.
-.capital__clouds {
-  position: absolute;
-  left: 0;
-  width: 300%;
-  pointer-events: none;
-  background-repeat: repeat-x;
-}
-
-.capital__clouds--far {
   z-index: -1;
-  top: 30cqh;
-  height: 40cqh;
-  background-image:
-    radial-gradient(ellipse 9% 40% at 10% 60%, rgba(255, 226, 180, 0.6), transparent 70%),
-    radial-gradient(ellipse 12% 50% at 32% 50%, rgba(255, 214, 160, 0.55), transparent 70%),
-    radial-gradient(ellipse 10% 45% at 58% 65%, rgba(255, 226, 180, 0.58), transparent 70%),
-    radial-gradient(ellipse 13% 50% at 84% 55%, rgba(255, 214, 160, 0.52), transparent 70%);
-  transform: translate3d(calc(var(--p) * -20%), 0, 0);
-}
-
-.capital__clouds--mid {
-  z-index: 0;
-  bottom: 6cqh;
-  height: 34cqh;
-  background-image:
-    radial-gradient(ellipse 11% 45% at 6% 60%, rgba(250, 236, 214, 0.75), transparent 70%),
-    radial-gradient(ellipse 14% 55% at 27% 70%, rgba(240, 220, 196, 0.7), transparent 70%),
-    radial-gradient(ellipse 12% 50% at 52% 55%, rgba(250, 236, 214, 0.72), transparent 70%),
-    radial-gradient(ellipse 15% 55% at 78% 68%, rgba(240, 220, 196, 0.68), transparent 70%);
-  transform: translate3d(calc(-10% - var(--p) * 30%), 0, 0);
-}
-
-.capital__clouds--near {
-  z-index: 2;
-  bottom: -10cqh;
-  height: 26cqh;
-  background-image:
-    radial-gradient(ellipse 14% 60% at 12% 60%, rgba(255, 244, 228, 0.9), transparent 70%),
-    radial-gradient(ellipse 16% 55% at 44% 70%, rgba(255, 240, 222, 0.85), transparent 70%),
-    radial-gradient(ellipse 14% 60% at 74% 62%, rgba(255, 244, 228, 0.88), transparent 70%);
-  transform: translate3d(calc(-20% - var(--p) * 45%), 0, 0);
-  // Thins out when the facts appear, so it never covers them.
-  opacity: calc(1 - var(--facts-in) * 0.6);
+  background: linear-gradient(
+    180deg,
+    rgba($navy, 0.72) 0%,
+    rgba($navy, 0.3) 26%,
+    rgba($navy, 0.08) 50%,
+    rgba($navy, 0.4) 100%
+  );
 }
 
 .capital__crusader {
   --crusader-in: clamp(0, (var(--p) - 0.1) / 0.3, 1);
-  --crusader-glow: 255, 200, 110;
-  --crusader-fog: 215, 151, 74;
+  --crusader-glow: 255, 236, 190;
+  --crusader-fog: 226, 234, 250;
+  display: none;
   position: absolute;
   z-index: 1;
-  left: -18cqw;
   bottom: 0;
-  height: 52cqh;
-  opacity: 0.5;
 }
 
 .capital__content {
@@ -87,48 +56,29 @@ $muted: #e2d8c4;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: min(1rem, 2cqh);
+  gap: min(0.8rem, 1.6cqh);
   box-sizing: border-box;
   width: 100%;
-  padding: min(2.5rem, 7cqh) 1rem min(2rem, 5cqh);
+  padding: min(2.5rem, 5cqh) 1rem min(2rem, 3.5cqh);
 }
 
-// --- The Capital Hall ------------------------------------------------------------------------
+// --- Labels shared by the Capital Hall and the districts ---------------------------------------
 
-.capital__hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-  opacity: var(--hall-in);
-  transform: translate3d(0, calc((1 - var(--hall-in)) * 22cqh), 0) scale(calc(0.8 + var(--hall-in) * 0.2));
-}
-
-.capital__hall {
-  width: min(62cqw, 36cqh);
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 12px 18px rgba(60, 30, 0, 0.55)) drop-shadow(0 0 26px rgba(255, 210, 120, 0.55));
-}
-
-.capital__caption {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
+// Name, above the picture.
+.capital__label {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba($navy, 0.78);
   font-size: var(--cn-fs-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-transform: capitalize;
   color: $muted;
-  text-shadow: 0 1px 2px #000;
 }
 
-.capital__caption--none {
-  font-size: var(--cn-fs-lg);
-  text-transform: none;
-}
-
+// Level, below it.
 .capital__ribbon {
   padding: 0.25rem 0.9rem;
   border: 2px solid #0a1020;
@@ -138,8 +88,140 @@ $muted: #e2d8c4;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-sm);
   letter-spacing: 0.02em;
-  text-transform: none;
+  line-height: 1.15;
+  white-space: nowrap;
   color: #fff;
+}
+
+// --- The Capital Hall ------------------------------------------------------------------------
+
+.capital__city {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: min(0.8rem, 1.6cqh);
+  width: 100%;
+}
+
+.capital__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  opacity: var(--hall-in);
+  transform: translate3d(0, calc((1 - var(--hall-in)) * 22cqh), 0) scale(calc(0.8 + var(--hall-in) * 0.2));
+}
+
+.capital__hall {
+  width: min(44cqw, 20cqh);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px rgba(8, 20, 60, 0.55)) drop-shadow(0 0 26px rgba(255, 236, 190, 0.6));
+}
+
+.capital__caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  // The labels sit on the foot of the picture.
+  margin-top: -0.5rem;
+  text-shadow: 0 1px 2px #000;
+  z-index: 1;
+}
+
+.capital__caption--none {
+  margin-top: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  background: rgba($navy, 0.78);
+  font-size: var(--cn-fs-lg);
+}
+
+// --- The districts ---------------------------------------------------------------------------
+
+.capital__districts {
+  // Flex, not grid: an incomplete last row stays centred.
+  --columns: 4;
+  --gap: min(0.5rem, 1.2cqh);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: min(0.8rem, 1.6cqh) var(--gap);
+  width: min(100%, 34rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.district {
+  // Flies in after the previous one, from the side of its depth (`--depth`, signed); the deeper,
+  // the further away it starts. Then it keeps sinking with the scroll, nearer islands faster
+  // (`--speed`), and settles in its place only when the act ends. Never below its place: content
+  // moved down would count as overflow, and the engine would unpin the act (`data-scrolly-fit`).
+  --in: clamp(0, (var(--p) - 0.2 - var(--i) * 0.035) / 0.2, 1);
+  --out: calc(1 - var(--in));
+  flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+  box-sizing: border-box;
+  min-width: 0;
+  container-type: inline-size;
+  opacity: var(--in);
+  transform: translate3d(
+      calc(var(--out) * var(--depth) * 70cqw),
+      calc(var(--out) * -8cqh - (1 - var(--p)) * var(--speed) * 7cqh),
+      0
+    )
+    scale(calc(0.55 + var(--in) * 0.45));
+}
+
+// A floating island: bobs gently, out of step with its neighbours.
+.district__island {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: district-float 5.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.8s);
+}
+
+.district__name {
+  // Two lines at most ("Builder's Workshop"), resting on the picture.
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 2.6em;
+  padding: 0.15em 0.6em;
+  border-radius: 0.8em;
+  font-size: clamp(0.56rem, 10.5cqi, 0.78rem);
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.district__hall {
+  width: min(84cqi, 9cqh);
+  height: auto;
+  margin: -0.15rem 0 -0.45rem;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(8, 20, 60, 0.55));
+}
+
+.district__level {
+  position: relative;
+  padding: 0.2em 0.6em;
+  border-width: 1.5px;
+  font-size: clamp(0.6rem, 12cqi, 0.85rem);
+}
+
+@keyframes district-float {
+  0%,
+  100% {
+    transform: translate3d(0, -3px, 0);
+  }
+  50% {
+    transform: translate3d(0, 3px, 0);
+  }
 }
 
 // --- League and points: two gilded plaques ----------------------------------------------------
@@ -151,7 +233,8 @@ $muted: #e2d8c4;
   width: min(100%, 30rem);
   margin: 0;
   opacity: var(--facts-in);
-  transform: translate3d(0, calc((1 - var(--facts-in)) * 4cqh), 0);
+  // Shorter than the padding below: it must not overflow the stage (see `.district`).
+  transform: translate3d(0, calc((1 - var(--facts-in)) * min(1.5rem, 3cqh)), 0);
 }
 
 .plaque {
@@ -186,28 +269,95 @@ $muted: #e2d8c4;
   }
 
   img {
-    width: min(48px, 7cqh);
-    height: min(48px, 7cqh);
+    width: min(48px, 6cqh);
+    height: min(48px, 6cqh);
     object-fit: contain;
   }
 }
 
-// --- Wide stages: the Crusader on the left ------------------------------------------------------
+// --- Short stages (small phones): a smaller Capital Hall, so the act still fits and stays pinned --
+
+@container stage (max-height: 36rem) {
+  .capital__hall {
+    width: min(40cqw, 14cqh);
+  }
+
+  .district__hall {
+    width: min(84cqi, 8.5cqh);
+  }
+}
+
+// --- Wide stages: the Crusader on the left, the districts on both sides of the Capital Hall ------
 
 @container stage (min-aspect-ratio: 5 / 4) {
   .capital__crusader {
-    left: 3cqw;
+    display: block;
+    left: 2cqw;
     height: 88cqh;
-    opacity: 1;
   }
 
   .capital__content {
-    justify-content: center;
-    width: 64%;
+    justify-content: space-evenly;
+    width: 62%;
     margin-left: auto;
+    // Clear of the index of the acts.
+    padding-right: 4rem;
+  }
+
+  // Two districts, the hall, two districts; the list itself steps aside.
+  .capital__city {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: min(0.8rem, 2cqh) 0.5rem;
+  }
+
+  .capital__districts {
+    display: contents;
+  }
+
+  .capital__hero {
+    grid-area: 1 / 3 / span 2;
   }
 
   .capital__hall {
-    width: min(40cqw, 40cqh);
+    width: min(22cqw, 30cqh);
+  }
+
+  .district {
+    transform: translate3d(
+        calc(var(--out) * var(--depth) * 45cqw),
+        calc(var(--out) * -8cqh - (1 - var(--p)) * var(--speed) * 9cqh),
+        0
+      )
+      scale(calc(0.55 + var(--in) * 0.45));
+  }
+
+  .district__hall {
+    width: min(84cqi, 13cqh);
+  }
+}
+
+// --- Static page (reduced motion) or act too tall to stay pinned: everything at rest -------------
+
+:host(.scrolly-act--static),
+:host(.scrolly-act--unpinned) {
+  .capital__wallpaper {
+    inset: 0;
+    transform: none;
+  }
+
+  .district {
+    transform: none;
+  }
+
+  .district__island {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .district__island {
+    animation: none;
   }
 }

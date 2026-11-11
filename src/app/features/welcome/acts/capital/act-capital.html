@@ -1,9 +1,8 @@
 @let c = clan();
 <section class="scrolly-stage capital" aria-labelledby="capital-title">
-  <!-- Sky and three bands of clouds sliding sideways at different speeds -->
-  <div class="capital__sky" aria-hidden="true"></div>
-  <div class="capital__clouds capital__clouds--far" aria-hidden="true"></div>
-  <div class="capital__clouds capital__clouds--mid" aria-hidden="true"></div>
+  <!-- The Clan Capital above the clouds: the camera glides over it while the act scrolls -->
+  <div class="capital__wallpaper" aria-hidden="true"></div>
+  <div class="capital__scrim" aria-hidden="true"></div>
   <app-crusader class="capital__crusader" pose="heart" />
 
   <div class="capital__content" data-scrolly-fit>
@@ -13,17 +12,43 @@
       [tagline]="'welcome.acts.capital.tagline' | translate"
     />
 
-    <figure class="capital__hero">
-      @if (hall(); as image) {
-        <img class="capital__hall" [src]="image" alt="" width="320" height="320" />
-        <figcaption class="capital__caption">
-          <span>{{ 'welcome.capital.hall' | translate }}</span>
-          <span class="capital__ribbon">{{ 'welcome.capital.hallLevel' | translate: { n: c.capitalHallLevel } }}</span>
-        </figcaption>
-      } @else {
-        <figcaption class="capital__caption capital__caption--none">{{ 'welcome.capital.none' | translate }}</figcaption>
+    <!-- The Capital Hall and, around it, the districts -->
+    <div class="capital__city">
+      <figure class="capital__hero">
+        @if (hall(); as image) {
+          <img class="capital__hall" [src]="image" alt="" width="320" height="320" />
+          <figcaption class="capital__caption">
+            <span class="capital__label">{{ 'welcome.capital.hall' | translate }}</span>
+            <span class="capital__ribbon">{{ 'welcome.capital.hallLevel' | translate: { n: c.capitalHallLevel } }}</span>
+          </figcaption>
+        } @else {
+          <figcaption class="capital__caption capital__caption--none">{{ 'welcome.capital.none' | translate }}</figcaption>
+        }
+      </figure>
+
+      <!-- The districts: floating islands, each flying in from its side and drifting at its own depth -->
+      @if (districts().length) {
+        <ul class="capital__districts" role="list" [attr.aria-label]="'welcome.capital.districts.title' | translate">
+          @for (d of districts(); track d.id) {
+            <li
+            class="district"
+            [attr.data-district]="d.id"
+            [style.--i]="$index"
+            [style.--depth]="d.depth"
+            [style.--speed]="d.speed"
+          >
+              <div class="district__island">
+                <span class="capital__label district__name">{{ ('welcome.capital.districts.' + d.name) | translate }}</span>
+                @if (d.image; as image) {
+                  <img class="district__hall" [src]="image" alt="" width="160" height="160" loading="lazy" />
+                }
+                <span class="capital__ribbon district__level">{{ 'welcome.capital.hallLevel' | translate: { n: d.level } }}</span>
+              </div>
+            </li>
+          }
+        </ul>
       }
-    </figure>
+    </div>
 
     <dl class="capital__facts">
       <div class="plaque capital__league">
@@ -41,12 +66,10 @@
           <img src="game/misc/capital-trophy.webp" alt="" width="40" height="40" />
           <span class="cn-num">
             <span class="cn-visually-hidden">{{ c.capitalPoints | localNumber }}</span>
-            <span [appScrollyCounter]="c.capitalPoints" [counterFrom]="0.35" [counterTo]="0.75"></span>
+            <span [appScrollyCounter]="c.capitalPoints" [counterFrom]="0.6" [counterTo]="0.9"></span>
           </span>
         </dd>
       </div>
     </dl>
   </div>
-
-  <div class="capital__clouds capital__clouds--near" aria-hidden="true"></div>
 </section>

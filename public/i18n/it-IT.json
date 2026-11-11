@@ -508,9 +508,20 @@
     "capital": {
       "hall": "Municipio della Capitale",
       "hallLevel": "Livello {{n}}",
+      "districts": {
+        "title": "Distretti della Capitale",
+        "barbarian_camp": "Accampamento barbaro",
+        "wizard_valley": "Valle degli stregoni",
+        "balloon_lagoon": "Laguna delle mongolfiere",
+        "builder's_workshop": "Officina del costruttore",
+        "dragon_cliffs": "Punta dragone",
+        "golem_quarry": "Cava dei golem",
+        "skeleton_park": "Parco degli scheletri",
+        "goblin_mines": "Miniere dei goblin"
+      },
       "none": "Capitale non ancora fondata",
       "league": "Lega della Capitale",
-      "points": "Punti Capitale"
+      "points": "Trofei Capitale"
     },
     "warLeague": {
       "wins": "Vittorie",

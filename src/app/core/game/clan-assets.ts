@@ -1,6 +1,6 @@
 /**
  * Images of clan-level game objects (Supercell Fan Kit, in `public/game/`):
- * Capital Hall by level, Clan Capital league badges and Clan War League trophies.
+ * Capital Hall and District Halls by level, Clan Capital league badges and Clan War League trophies.
  */
 
 const MAX_CAPITAL_HALL = 10;
@@ -9,6 +9,17 @@ const MAX_CAPITAL_HALL = 10;
 export function capitalHallImage(level: number): string | null {
   if (!level || level < 1) return null;
   return `game/capital-halls/capital-hall-${Math.min(Math.round(level), MAX_CAPITAL_HALL)}.webp`;
+}
+
+/** Id of Capital Peak, the district whose hall is the Capital Hall itself. */
+export const CAPITAL_PEAK_ID = 70000000;
+
+const MAX_DISTRICT_HALL = 5;
+
+/** District Hall picture for a level (1–5); `null` for a district without a hall level. */
+export function districtHallImage(level: number): string | null {
+  if (!level || level < 1) return null;
+  return `game/capital-districts/district-hall-${Math.min(Math.round(level), MAX_DISTRICT_HALL)}.webp`;
 }
 
 const LEAGUE_TIERS = ['legend', 'titan', 'champion', 'master', 'crystal', 'gold', 'silver', 'bronze'] as const;

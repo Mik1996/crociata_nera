@@ -508,9 +508,20 @@
     "capital": {
       "hall": "Ayuntamiento de la Capital",
       "hallLevel": "Nivel {{n}}",
+      "districts": {
+        "title": "Distritos de la Capital",
+        "barbarian_camp": "Campamento bárbaro",
+        "wizard_valley": "Valle de los magos",
+        "balloon_lagoon": "Laguna de globos",
+        "builder's_workshop": "Taller del constructor",
+        "dragon_cliffs": "Acantilados del dragón",
+        "golem_quarry": "Cantera de gólems",
+        "skeleton_park": "Parque de esqueletos",
+        "goblin_mines": "Minas de duendes"
+      },
       "none": "Capital aún no fundada",
       "league": "Liga de la Capital",
-      "points": "Puntos de Capital"
+      "points": "Trofeos de la Capital"
     },
     "warLeague": {
       "wins": "Victorias",

@@ -90,6 +90,11 @@ export function mapClan(raw: CocClan): Clan {
     warLeague: raw.warLeague && raw.warLeague.name !== 'Unranked' ? { id: raw.warLeague.id, name: raw.warLeague.name } : undefined,
     capitalLeague: rankedLeague(raw.capitalLeague),
     capitalHallLevel: raw.clanCapital?.capitalHallLevel ?? 0,
+    capitalDistricts: (raw.clanCapital?.districts ?? []).map((d) => ({
+      id: d.id,
+      name: d.name,
+      level: d.districtHallLevel ?? 0,
+    })),
     clanPoints: raw.clanPoints ?? 0,
     capitalPoints: raw.clanCapitalPoints ?? 0,
     location: raw.location?.name,

@@ -508,9 +508,20 @@
     "capital": {
       "hall": "Capital Hall",
       "hallLevel": "Level {{n}}",
-      "none": "No Clan Capital yet",
+      "districts": {
+        "title": "Capital Districts",
+        "barbarian_camp": "Barbarian camp",
+        "wizard_valley": "Wizard valley",
+        "balloon_lagoon": "Balloon lagoon",
+        "builder's_workshop": "Builder's workshop",
+        "dragon_cliffs": "Dragon cliffs",
+        "golem_quarry": "Golem quarry",
+        "skeleton_park": "Skeleton park",
+        "goblin_mines": "Goblin mines"
+      },
+      "none": "Capital not yet established",
       "league": "Capital League",
-      "points": "Capital points"
+      "points": "Capital Trophies"
     },
     "warLeague": {
       "wins": "Wins",

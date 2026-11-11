@@ -22,6 +22,15 @@ export interface MemberLeague {
   iconUrl?: string;
 }
 
+/** A district of the Clan Capital, with the level of its hall. */
+export interface CapitalDistrict {
+  id: number;
+  /** Name as the API gives it, in English ("Barbarian Camp"). */
+  name: string;
+  /** Level of the District Hall (of the Capital Hall, for Capital Peak). */
+  level: number;
+}
+
 /** General clan information. */
 export interface Clan {
   tag: string;
@@ -41,6 +50,8 @@ export interface Clan {
   capitalLeague?: string;
   /** Level of the Capital Hall (0 = no capital yet). */
   capitalHallLevel: number;
+  /** Districts of the capital the clan has unlocked, Capital Peak first. */
+  capitalDistricts: CapitalDistrict[];
   clanPoints: number;
   capitalPoints: number;
   /** Country or region (e.g. "Italy"). */
