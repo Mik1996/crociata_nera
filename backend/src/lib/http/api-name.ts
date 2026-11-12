@@ -18,6 +18,7 @@ export enum ApiName {
   BASES_READ = 'bases-read',
   BASES_WRITE = 'bases-write',
   BASE_IMAGES = 'base-images',
+  API_DOCS = 'api-docs',
 }
 
 export interface RateLimit {
@@ -51,4 +52,7 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.BASES_WRITE]: { limit: 60, windowMs: 15 * MINUTE },
   // A page of the arsenal loads one thumbnail per base (cached by the browser afterwards).
   [ApiName.BASE_IMAGES]: { limit: 600, windowMs: MINUTE },
+  // The OpenAPI document and its viewer (Swagger UI). In production a password is checked:
+  // few tries, as for the sign-in (a page view makes 2 requests).
+  [ApiName.API_DOCS]: { limit: 30, windowMs: 15 * MINUTE },
 };

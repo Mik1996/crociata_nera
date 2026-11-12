@@ -58,6 +58,12 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   (`ERROR.*` / `SUCCESS.*`) translated by the frontend. Validate input with zod (`parseBody`,
   `parseQuery`, `validate`); path params with `validate(z.object({...}), {...})`.
 - Every backend route has a rate limit (`ApiName` + `RATE_LIMITS` in `backend/src/lib/http/api-name.ts`).
+- Every backend route is documented in `backend/src/openapi/` (operations + response models as zod
+  schemas), served as OpenAPI 3.1 at `GET /api/v1/openapi.json` and shown by Swagger UI at
+  `/api/v1/docs`: public in dev; in production for administrators only (browser login dialog with
+  their site username/email and password, HTTP Basic, or a Bearer token). Tests enforce it: a route
+  without an entry fails `test/openapi.test.ts`, and every response received through `call()` must
+  match its documented status, model (strict) and message keys (`test/contract.ts`).
 - Tests: keep them green; add or update specs with every change. Backend tests call route handlers
   through `backend/test/helpers.ts` (`call(handler, { body, token, cookie, params, ip })`) and fake the
   CoC API with `mockCocApi` (`backend/test/coc-mock.ts`).

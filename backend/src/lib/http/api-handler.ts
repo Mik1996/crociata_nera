@@ -57,6 +57,14 @@ export interface ApiHandlerOptions<A extends boolean> {
 type RouteContext<P> = { params: Promise<P> };
 
 /**
+ * A Route Handler built by {@link apiHandler}. Its options stay readable, so the tests can check
+ * that the OpenAPI document (`src/openapi`) describes the access rules and rate limit it enforces.
+ */
+export type ApiRouteHandler<P> = ((request: Request, routeContext: RouteContext<P>) => Promise<Response>) & {
+  readonly apiOptions: Readonly<ApiHandlerOptions<boolean>>;
+};
+
+/**
  * Wraps a Route Handler with the cross-cutting concerns that continental-be implements as
  * middleware, guards, interceptor and exception filter: rate limit, origin check,
  * authentication, roles, database connection, response envelope and error mapping.
@@ -65,8 +73,8 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
   options: ApiHandlerOptions<A>,
   /** Returns a `BaseResult` description, or a ready `Response` for non-JSON content (images). */
   handler: (context: ApiContext<P, A>) => Promise<ApiResponse<T> | Response>,
-): (request: Request, routeContext: RouteContext<P>) => Promise<Response> {
-  return async (request, routeContext) => {
+): ApiRouteHandler<P> {
+  const route = async (request: Request, routeContext: RouteContext<P>): Promise<Response> => {
     const origin = request.headers.get('origin');
     const ip = clientIp(request);
 
@@ -98,6 +106,7 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
       return respondWithError(error, origin);
     }
   };
+  return Object.assign(route, { apiOptions: options });
 }
 
 async function authenticate(request: Request, required: boolean): Promise<AuthUser | null> {

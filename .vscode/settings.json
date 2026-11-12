@@ -11,7 +11,8 @@
     "auth",
     "raids",
     "administration",
-    "bases"
+    "bases",
+    "swagger"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

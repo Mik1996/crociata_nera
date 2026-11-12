@@ -3,6 +3,7 @@ import type { BaseResult } from '@/lib/http/base-result';
 import { crusadeClanTags } from '@/modules/access/clan-access.service';
 import { ClanRosterModel } from '@/modules/access/clan-roster.model';
 import { UserModel } from '@/modules/auth/user.model';
+import { assertContract } from './contract';
 
 export const ORIGIN = 'http://localhost:4200';
 
@@ -49,9 +50,12 @@ export async function call<T = any>(handler: Handler, options: CallOptions = {})
   });
   const response = await handler(request, { params: Promise.resolve(options.params ?? {}) });
   const setCookie = response.headers.getSetCookie().find((c) => c.startsWith('cn_refresh='));
+  const body = (await response.json()) as BaseResult<T>;
+  // Every response must match the OpenAPI document.
+  await assertContract(handler, response.status, body);
   return {
     status: response.status,
-    body: (await response.json()) as BaseResult<T>,
+    body,
     headers: response.headers,
     refreshCookie: setCookie?.split(';')[0]?.slice('cn_refresh='.length),
   };

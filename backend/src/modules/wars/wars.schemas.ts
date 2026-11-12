@@ -100,3 +100,6 @@ export const listWarsQuerySchema = z.object({
 });
 
 export type ListWarsQuery = z.output<typeof listWarsQuerySchema>;
+
+/** `GET /wars/archive?limit=60`. */
+export const listArchiveQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(200).default(60) });
