@@ -77,7 +77,8 @@
     "battleSummary": "Battle summary",
     "you": "You",
     "opensInNewTab": "opens in a new tab",
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel"
   },
   "sort": {
     "position": "Sort by position",
@@ -442,7 +443,8 @@
     "VERIFICATION_EMAIL_SENT": "Confirmation email sent: check your inbox (and spam).",
     "USER_UPDATED": "{{name}} updated",
     "PLAYER_LINKED": "Game account verified and linked.",
-    "PLAYER_UNLINKED": "Account {{tag}} unlinked."
+    "PLAYER_UNLINKED": "Account {{tag}} unlinked.",
+    "USER_DELETED": "{{name}} deleted"
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -491,7 +493,11 @@
     "PLAYER_TOKEN_IS_NOT_VALID": "Invalid or expired token: get the current one in the game and try again.",
     "PLAYER_TAG_ALREADY_LINKED": "This game account is already linked and verified by another user.",
     "PLAYER_VERIFICATION_UNAVAILABLE": "The token cannot be checked right now: the Clash of Clans API is not responding. Try again later.",
-    "PLAYER_LIMIT_REACHED": "You can link up to {{max}} accounts."
+    "PLAYER_LIMIT_REACHED": "You can link up to {{max}} accounts.",
+    "CANNOT_DELETE_OWN_ACCOUNT": "You cannot delete your own account.",
+    "USERNAME_CONFIRMATION_MISMATCH": "The name entered does not match the user's.",
+    "PLAYER_NOT_FOUND_TAG": "Player {{tag}} not found in Clash of Clans.",
+    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} is already linked to another user."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -686,12 +692,36 @@
       "playerTag": "Player tag",
       "admin": "Admin",
       "verified": "Email",
-      "createdAt": "Registered"
+      "createdAt": "Registered",
+      "actions": "Actions"
     },
-    "tagVerified": "Verified with the game token",
+    "tagVerified": "Verified (game token or administrator)",
     "tagUnverified": "Not verified",
-    "unlinkTag": "Unlink the player",
-    "unlinkTagOf": "Unlink {{tag}} from {{name}}"
+    "actions": {
+      "link": "Link",
+      "unlink": "Unlink",
+      "delete": "Delete",
+      "linkOf": "Link game accounts to {{name}}",
+      "unlinkOf": "Unlink game accounts from {{name}}",
+      "deleteOf": "Delete {{name}}"
+    },
+    "linkDialog": {
+      "title": "Link accounts to {{name}}",
+      "intro": "Enter one or more player tags. Accounts linked by an administrator count as verified.",
+      "label": "Player tags",
+      "hint": "Press Enter, space or comma after each tag",
+      "remove": "Remove {{tag}}",
+      "invalid": "Invalid tag: {{tag}}"
+    },
+    "unlinkDialog": {
+      "title": "Unlink accounts from {{name}}",
+      "intro": "Select the game accounts to unlink."
+    },
+    "deleteDialog": {
+      "title": "Delete user",
+      "intro": "The user {{name}} will be deleted permanently and signed out of every device. This cannot be undone.",
+      "label": "To confirm, type {{name}}"
+    }
   },
   "commendations": {
     "title": "Commendations",

@@ -9,7 +9,8 @@
     "commendation",
     "style",
     "auth",
-    "raids"
+    "raids",
+    "administration"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -19,8 +20,17 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { DeleteUserDialog } from './components/delete-user-dialog';
+import { AdminUserDialogData, LinkPlayersDialog } from './components/link-players-dialog';
+import { UnlinkPlayersDialog, UnlinkPlayersDialogData } from './components/unlink-players-dialog';
 
-/** Administration: registered users, ADMIN role and linked player tags. */
+const DIALOG_CONFIG = {
+  width: '28rem',
+  maxWidth: 'calc(100vw - 2rem)',
+  autoFocus: 'first-tabbable',
+} as const;
+
+/** Administration: registered users, ADMIN role, linked player tags and deletion of users. */
 @Component({
   selector: 'app-admin-page',
   imports: [
@@ -47,9 +57,10 @@ import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 export class AdminPage {
   private readonly admin = inject(AdminService);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
   protected readonly myId = computed(() => this.auth.user()?.id ?? null);
 
-  protected readonly columns = ['user', 'playerTag', 'admin', 'verified', 'createdAt'];
+  protected readonly columns = ['user', 'playerTag', 'admin', 'verified', 'createdAt', 'actions'];
 
   protected readonly searchText = signal('');
   private readonly query = signal('');
@@ -70,9 +81,52 @@ export class AdminPage {
     this.query.set(this.searchText());
   }
 
-  /** Administrators can only unlink an account: linking needs the player's in-game token. */
-  protected unlinkTag(user: AdminUser, tag: string): void {
-    this.apply(user, this.admin.unlinkPlayer(user.id, tag));
+  /** "Link": Clash of Clans accounts linked by hand, without the in-game token. */
+  protected openLink(user: AdminUser): void {
+    this.dialog
+      .open<LinkPlayersDialog, AdminUserDialogData, AdminUser>(LinkPlayersDialog, {
+        ...DIALOG_CONFIG,
+        data: { user },
+      })
+      .afterClosed()
+      .subscribe((updated) => updated && this.updated(updated));
+  }
+
+  /** "Unlink": one or more of the user's accounts. */
+  protected openUnlink(user: AdminUser): void {
+    const data: UnlinkPlayersDialogData = { user, updated: (u) => this.replace(u) };
+    this.dialog
+      .open<UnlinkPlayersDialog, UnlinkPlayersDialogData, AdminUser>(UnlinkPlayersDialog, {
+        ...DIALOG_CONFIG,
+        data,
+      })
+      .afterClosed()
+      .subscribe((updated) => updated && this.updated(updated));
+  }
+
+  /** "Delete": confirmed by typing the username. */
+  protected openDelete(user: AdminUser): void {
+    this.dialog
+      .open<DeleteUserDialog, AdminUserDialogData, boolean>(DeleteUserDialog, {
+        ...DIALOG_CONFIG,
+        data: { user },
+      })
+      .afterClosed()
+      .subscribe((deleted) => {
+        if (!deleted) return;
+        this.users.update(
+          (page) =>
+            page && {
+              ...page,
+              items: page.items.filter((u) => u.id !== user.id),
+              total: page.total - 1,
+            },
+        );
+        this.feedback.set({
+          kind: 'success',
+          messages: [{ key: 'SUCCESS.USER_DELETED', params: { name: user.username } }],
+        });
+      });
   }
 
   protected toggleAdmin(user: AdminUser, admin: boolean): void {
@@ -89,14 +143,7 @@ export class AdminPage {
     this.feedback.set(null);
     request.subscribe({
       next: (updated) => {
-        this.users.update(
-          (page) =>
-            page && { ...page, items: page.items.map((u) => (u.id === updated.id ? updated : u)) },
-        );
-        this.feedback.set({
-          kind: 'success',
-          messages: [{ key: 'SUCCESS.USER_UPDATED', params: { name: updated.username } }],
-        });
+        this.updated(updated);
         this.busy.set(null);
       },
       error: (error: unknown) => {
@@ -105,5 +152,20 @@ export class AdminPage {
         this.busy.set(null);
       },
     });
+  }
+
+  /** Puts the updated user in the table and says so. */
+  private updated(user: AdminUser): void {
+    this.replace(user);
+    this.feedback.set({
+      kind: 'success',
+      messages: [{ key: 'SUCCESS.USER_UPDATED', params: { name: user.username } }],
+    });
+  }
+
+  private replace(user: AdminUser): void {
+    this.users.update(
+      (page) => page && { ...page, items: page.items.map((u) => (u.id === user.id ? user : u)) },
+    );
   }
 }

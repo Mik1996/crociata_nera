@@ -114,6 +114,11 @@ export function fetchGoldPassSeason(): Promise<unknown> {
   return cocGet('/goldpass/seasons/current');
 }
 
+/** `GET /players/{tag}`: a player's profile. Throws {@link CocApiError} (404: unknown player). */
+export function fetchPlayer(playerTag: string): Promise<unknown> {
+  return cocGet(`/players/${encodeURIComponent(playerTag)}`);
+}
+
 /**
  * `POST /players/{tag}/verifytoken`: checks the player's API token, shown in the game under
  * Settings → More Settings. Only the owner of the account can read it, and it changes

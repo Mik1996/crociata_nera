@@ -5,7 +5,7 @@ import { APP_CONFIG } from '../config/app-config';
 import { noCache } from '../http/http-cache';
 import { AdminUser, BaseResult, Page } from './backend-api.types';
 
-/** Administration API (ADMIN role): registered users, roles and linked player tags. */
+/** Administration API (ADMIN role): registered users, roles, linked player tags and deletion. */
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
@@ -26,7 +26,21 @@ export class AdminService {
       .pipe(map((response) => response.result!));
   }
 
-  /** Unlinks one Clash of Clans account of a user (administrators cannot link accounts). */
+  /** Links one or more Clash of Clans accounts to a user (no in-game token: they count as verified). */
+  linkPlayers(id: string, playerTags: string[]): Observable<AdminUser> {
+    return this.http
+      .post<BaseResult<AdminUser>>(`${this.url}/${encodeURIComponent(id)}/players`, { playerTags })
+      .pipe(map((response) => response.result!));
+  }
+
+  /** Deletes a user; `username` must be typed again, exactly, as a confirmation. */
+  deleteUser(id: string, username: string): Observable<void> {
+    return this.http
+      .delete<BaseResult<null>>(`${this.url}/${encodeURIComponent(id)}`, { body: { username } })
+      .pipe(map(() => undefined));
+  }
+
+  /** Unlinks one Clash of Clans account of a user. */
   unlinkPlayer(id: string, tag: string): Observable<AdminUser> {
     const path = `${encodeURIComponent(id)}/players/${encodeURIComponent(tag.replace(/^#/, ''))}`;
     return this.http

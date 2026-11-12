@@ -24,6 +24,17 @@
   white-space: nowrap;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  white-space: nowrap;
+}
+
+.action-delete:not(:disabled) {
+  color: var(--cn-red-text);
+}
+
 .unverified {
   color: var(--cn-gold);
 }

@@ -77,7 +77,8 @@
     "battleSummary": "Riepilogo dello scontro",
     "you": "Tu",
     "opensInNewTab": "si apre in una nuova scheda",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "cancel": "Annulla"
   },
   "sort": {
     "position": "Ordina per posizione",
@@ -442,7 +443,8 @@
     "VERIFICATION_EMAIL_SENT": "Email di conferma inviata: controlla la posta (anche lo spam).",
     "USER_UPDATED": "{{name}} aggiornato",
     "PLAYER_LINKED": "Account di gioco verificato e collegato.",
-    "PLAYER_UNLINKED": "Account {{tag}} scollegato."
+    "PLAYER_UNLINKED": "Account {{tag}} scollegato.",
+    "USER_DELETED": "{{name}} eliminato"
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -491,7 +493,11 @@
     "PLAYER_TOKEN_IS_NOT_VALID": "Token non valido o scaduto: genera quello attuale nel gioco e riprova.",
     "PLAYER_TAG_ALREADY_LINKED": "Questo account di gioco è già collegato e verificato da un altro utente.",
     "PLAYER_VERIFICATION_UNAVAILABLE": "Non è possibile verificare il token adesso: l'API di Clash of Clans non risponde. Riprova più tardi.",
-    "PLAYER_LIMIT_REACHED": "Puoi collegare al massimo {{max}} account."
+    "PLAYER_LIMIT_REACHED": "Puoi collegare al massimo {{max}} account.",
+    "CANNOT_DELETE_OWN_ACCOUNT": "Non puoi eliminare il tuo account.",
+    "USERNAME_CONFIRMATION_MISMATCH": "Il nome inserito non corrisponde a quello dell'utente.",
+    "PLAYER_NOT_FOUND_TAG": "Giocatore {{tag}} non trovato in Clash of Clans.",
+    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} è già collegato a un altro utente."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -686,12 +692,36 @@
       "playerTag": "Tag giocatore",
       "admin": "Admin",
       "verified": "Email",
-      "createdAt": "Registrato"
+      "createdAt": "Registrato",
+      "actions": "Azioni"
     },
-    "tagVerified": "Verificato con il token del gioco",
+    "tagVerified": "Verificato (token del gioco o amministratore)",
     "tagUnverified": "Non verificato",
-    "unlinkTag": "Scollega il giocatore",
-    "unlinkTagOf": "Scollega {{tag}} da {{name}}"
+    "actions": {
+      "link": "Collega",
+      "unlink": "Scollega",
+      "delete": "Elimina",
+      "linkOf": "Collega account di gioco a {{name}}",
+      "unlinkOf": "Scollega account di gioco da {{name}}",
+      "deleteOf": "Elimina {{name}}"
+    },
+    "linkDialog": {
+      "title": "Collega account a {{name}}",
+      "intro": "Inserisci uno o più tag giocatore. Gli account collegati da un amministratore risultano verificati.",
+      "label": "Tag giocatore",
+      "hint": "Premi Invio, spazio o virgola dopo ogni tag",
+      "remove": "Rimuovi {{tag}}",
+      "invalid": "Tag non valido: {{tag}}"
+    },
+    "unlinkDialog": {
+      "title": "Scollega account da {{name}}",
+      "intro": "Seleziona gli account di gioco da scollegare."
+    },
+    "deleteDialog": {
+      "title": "Elimina utente",
+      "intro": "L'utente {{name}} verrà eliminato definitivamente e disconnesso da tutti i dispositivi. L'operazione non si può annullare.",
+      "label": "Per confermare scrivi {{name}}"
+    }
   },
   "commendations": {
     "title": "Encomi",

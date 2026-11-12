@@ -1,0 +1,22 @@
+@use 'variables' as *;
+
+.intro {
+  margin: 0 0 $space-s;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unverified {
+  margin-left: $space-s;
+  font-size: var(--cn-fs-xs);
+}
+
+.error {
+  margin: $space-xs 0 0;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+}

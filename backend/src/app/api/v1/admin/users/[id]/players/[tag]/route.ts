@@ -10,7 +10,7 @@ import { playerTagParam } from '@/modules/auth/auth.schemas';
 
 /**
  * `DELETE /api/v1/admin/users/{id}/players/{tag}` (tag without `#`, ADMIN only): unlinks one
- * Clash of Clans account of a user. Linking is only possible for the user, with the game token.
+ * Clash of Clans account of a user. Link with `POST .../players`.
  */
 export const DELETE = apiHandler<{ id: string; tag: string }, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },

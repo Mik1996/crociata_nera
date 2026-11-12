@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ 'admin.unlinkDialog.title' | translate: { name: data.user.username } }}</h2>
+
+<mat-dialog-content>
+  <p class="intro">{{ 'admin.unlinkDialog.intro' | translate }}</p>
+
+  <ul class="list">
+    @for (p of players(); track p.tag) {
+      <li>
+        <mat-checkbox
+          [checked]="selected().has(p.tag)"
+          [disabled]="busy()"
+          (change)="toggle(p.tag, $event.checked)"
+        >
+          <span class="cn-num">{{ p.tag }}</span>
+          @if (!p.verified) {
+            <span class="cn-muted unverified">{{ 'admin.tagUnverified' | translate }}</span>
+          }
+        </mat-checkbox>
+      </li>
+    }
+  </ul>
+
+  @for (m of errors(); track $index) {
+    <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="submit"
+    [disabled]="busy() || !selected().size"
+    (click)="submit()"
+  >
+    {{ 'admin.actions.unlink' | translate }}
+  </button>
+</mat-dialog-actions>

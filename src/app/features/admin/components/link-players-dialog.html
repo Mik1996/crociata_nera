@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>{{ 'admin.linkDialog.title' | translate: { name: data.user.username } }}</h2>
+
+<mat-dialog-content>
+  <p class="intro">{{ 'admin.linkDialog.intro' | translate }}</p>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>{{ 'admin.linkDialog.label' | translate }}</mat-label>
+    <mat-chip-grid #grid [attr.aria-label]="'admin.linkDialog.label' | translate">
+      @for (tag of tags(); track tag) {
+        <mat-chip-row (removed)="remove(tag)">
+          <span class="cn-num">{{ tag }}</span>
+          <button
+            matChipRemove
+            type="button"
+            [attr.aria-label]="'admin.linkDialog.remove' | translate: { tag }"
+          >
+            <mat-icon aria-hidden="true">cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      }
+      <input
+        #input
+        class="tag-input"
+        placeholder="#ABC123"
+        autocomplete="off"
+        cdkFocusInitial
+        [matChipInputFor]="grid"
+        [matChipInputSeparatorKeyCodes]="separators"
+        [matChipInputAddOnBlur]="true"
+        (matChipInputTokenEnd)="add($event)"
+        (input)="draft.set(input.value); invalid.set(null)"
+      />
+    </mat-chip-grid>
+    <mat-hint>{{ 'admin.linkDialog.hint' | translate }}</mat-hint>
+  </mat-form-field>
+
+  @if (invalid(); as wrong) {
+    <p class="error" role="alert">{{ 'admin.linkDialog.invalid' | translate: { tag: wrong } }}</p>
+  }
+  @for (m of errors(); track $index) {
+    <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="submit"
+    [disabled]="busy() || (!tags().length && !draft().trim())"
+    (click)="submit(input)"
+  >
+    {{ 'admin.actions.link' | translate }}
+  </button>
+</mat-dialog-actions>

@@ -1,4 +1,7 @@
-<app-page-header [title]="'admin.title' | translate" [subtitle]="'admin.subtitle' | translate: { n: total() }" />
+<app-page-header
+  [title]="'admin.title' | translate"
+  [subtitle]="'admin.subtitle' | translate: { n: total() }"
+/>
 
 <div appScrollFade class="page__scroll">
   <section class="cn-card cn-section">
@@ -6,14 +9,23 @@
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>{{ 'admin.search' | translate }}</mat-label>
         <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-        <input matInput name="search" [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" />
+        <input
+          matInput
+          name="search"
+          [ngModel]="searchText()"
+          (ngModelChange)="searchText.set($event)"
+        />
       </mat-form-field>
       <button mat-flat-button type="submit">{{ 'admin.searchButton' | translate }}</button>
     </form>
 
     @if (feedback(); as f) {
-      <div class="feedback" [class.feedback--error]="f.kind === 'error'" [attr.role]="f.kind === 'error' ? 'alert' : 'status'">
-        @for (m of f.messages; track m.key) {
+      <div
+        class="feedback"
+        [class.feedback--error]="f.kind === 'error'"
+        [attr.role]="f.kind === 'error' ? 'alert' : 'status'"
+      >
+        @for (m of f.messages; track $index) {
           <p>{{ m.key | translate: m.params }}</p>
         }
       </div>
@@ -47,20 +59,20 @@
                 <span class="tag-cell">
                   <span class="cn-num">{{ p.tag }}</span>
                   @if (p.verified) {
-                    <mat-icon class="ok" [matTooltip]="'admin.tagVerified' | translate" [attr.aria-label]="'admin.tagVerified' | translate">verified</mat-icon>
+                    <mat-icon
+                      class="ok"
+                      [matTooltip]="'admin.tagVerified' | translate"
+                      [attr.aria-label]="'admin.tagVerified' | translate"
+                      >verified</mat-icon
+                    >
                   } @else {
-                    <mat-icon class="unverified" [matTooltip]="'admin.tagUnverified' | translate" [attr.aria-label]="'admin.tagUnverified' | translate">gpp_maybe</mat-icon>
+                    <mat-icon
+                      class="unverified"
+                      [matTooltip]="'admin.tagUnverified' | translate"
+                      [attr.aria-label]="'admin.tagUnverified' | translate"
+                      >gpp_maybe</mat-icon
+                    >
                   }
-                  <button
-                    mat-icon-button
-                    type="button"
-                    [disabled]="busy() === u.id"
-                    (click)="unlinkTag(u, p.tag)"
-                    [matTooltip]="'admin.unlinkTag' | translate"
-                    [attr.aria-label]="'admin.unlinkTagOf' | translate: { tag: p.tag, name: u.username }"
-                  >
-                    <mat-icon aria-hidden="true">link_off</mat-icon>
-                  </button>
                 </span>
               } @empty {
                 <span class="cn-muted">—</span>
@@ -85,9 +97,15 @@
             <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.verified' | translate }}</th>
             <td mat-cell *matCellDef="let u">
               @if (u.emailVerified) {
-                <mat-icon class="ok" [attr.aria-label]="'profile.account.verified' | translate">verified</mat-icon>
+                <mat-icon class="ok" [attr.aria-label]="'profile.account.verified' | translate"
+                  >verified</mat-icon
+                >
               } @else {
-                <mat-icon class="cn-muted" [attr.aria-label]="'profile.account.notVerified' | translate">schedule</mat-icon>
+                <mat-icon
+                  class="cn-muted"
+                  [attr.aria-label]="'profile.account.notVerified' | translate"
+                  >schedule</mat-icon
+                >
               }
             </td>
           </ng-container>
@@ -95,6 +113,54 @@
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.createdAt' | translate }}</th>
             <td mat-cell *matCellDef="let u" class="cn-num">{{ u.createdAt | localDate }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.actions' | translate }}</th>
+            <td mat-cell *matCellDef="let u">
+              <div class="actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="action-link"
+                  [disabled]="busy() === u.id"
+                  (click)="openLink(u)"
+                  [matTooltip]="'admin.actions.link' | translate"
+                  [attr.aria-label]="'admin.actions.linkOf' | translate: { name: u.username }"
+                >
+                  <mat-icon aria-hidden="true">add_link</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="action-unlink"
+                  [disabled]="busy() === u.id || !u.players.length"
+                  (click)="openUnlink(u)"
+                  [matTooltip]="'admin.actions.unlink' | translate"
+                  [attr.aria-label]="'admin.actions.unlinkOf' | translate: { name: u.username }"
+                >
+                  <mat-icon aria-hidden="true">link_off</mat-icon>
+                </button>
+                <span
+                  [matTooltip]="
+                    u.id === myId()
+                      ? ('ERROR.CANNOT_DELETE_OWN_ACCOUNT' | translate)
+                      : ('admin.actions.delete' | translate)
+                  "
+                >
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="action-delete"
+                    [disabled]="busy() === u.id || u.id === myId()"
+                    (click)="openDelete(u)"
+                    [attr.aria-label]="'admin.actions.deleteOf' | translate: { name: u.username }"
+                  >
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                  </button>
+                </span>
+              </div>
+            </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>

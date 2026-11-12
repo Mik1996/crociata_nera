@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>{{ 'admin.deleteDialog.title' | translate }}</h2>
+
+<form (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <p class="intro">{{ 'admin.deleteDialog.intro' | translate: { name: data.user.username } }}</p>
+
+    <mat-form-field appearance="outline" class="field">
+      <mat-label>{{
+        'admin.deleteDialog.label' | translate: { name: data.user.username }
+      }}</mat-label>
+      <input
+        matInput
+        name="username"
+        autocomplete="off"
+        spellcheck="false"
+        cdkFocusInitial
+        [value]="typed()"
+        (input)="typed.set($any($event.target).value)"
+      />
+    </mat-form-field>
+
+    @for (m of errors(); track $index) {
+      <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" class="danger" [disabled]="!matches() || busy()">
+      {{ 'admin.actions.delete' | translate }}
+    </button>
+  </mat-dialog-actions>
+</form>
