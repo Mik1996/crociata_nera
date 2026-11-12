@@ -1,8 +1,10 @@
+@use 'color-palette' as palette;
+
 :host {
   display: inline-block;
   width: 72px;
   flex-shrink: 0;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 3px 3px palette.alpha(var(--cn-shadow), 45%));
 }
 
 img {

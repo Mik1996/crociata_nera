@@ -1,21 +1,19 @@
 import { Chart, ChartDataset, ChartOptions } from 'chart.js';
 import { ThemeName } from '../../core/theme/themes';
+import { cssColor, cssColorAlpha } from '../styles/css-color';
 
 /**
- * Chart series colours, shared by both themes.
- * The gold/blue pair is validated on the dark (#1f2b45) and light (#f8efdc) chart surfaces:
- * lightness band, contrast >= 3:1 and colour-blindness separation (ΔE > 20). Red is NOT used as a
- * series colour because it cannot be told apart from gold by people with deuteranopia.
+ * Theme-dependent chart colours, read from the palette (`--cn-chart-*` tokens in
+ * `src/styles/_color-palette.scss`): series, axis text, grid, tooltip and the surface used for mark
+ * rings. The gold/blue series pair is validated on the chart surface: lightness band, contrast
+ * >= 3:1 and colour-blindness separation (ΔE > 20). Red is NOT used as a series colour because it
+ * cannot be told apart from gold by people with deuteranopia. Axis text meets 4.5:1 on the surface.
  */
-export const CHART_COLORS = {
-  gold: '#a8791b',
-  goldTransparent: 'rgba(168, 121, 27, 0.2)',
-  blue: '#4a90c8',
-  blueTransparent: 'rgba(74, 144, 200, 0.2)',
-};
-
-/** Theme-dependent chart chrome: axis text, grid, tooltip and the surface used for mark rings. */
 export interface ChartChrome {
+  series1: string;
+  /** `series1` at 20% opacity (area fills). */
+  series1Fill: string;
+  series2: string;
   text: string;
   grid: string;
   surface: string;
@@ -24,25 +22,44 @@ export interface ChartChrome {
   tooltipText: string;
 }
 
-/** Axis text meets 4.5:1 on its card surface in both themes. */
-export const CHART_CHROME: Record<ThemeName, ChartChrome> = {
-  dark: {
-    text: '#c5cfe4',
-    grid: 'rgba(255, 255, 255, 0.1)',
-    surface: '#1f2b45',
-    tooltipBackground: '#141e34',
-    tooltipBorder: '#0a1020',
-    tooltipText: '#ffffff',
-  },
-  light: {
-    text: '#64492f',
-    grid: 'rgba(90, 58, 28, 0.12)',
-    surface: '#f8efdc',
-    tooltipBackground: '#fdf7ea',
-    tooltipBorder: '#5a3a1c',
-    tooltipText: '#3a2412',
-  },
-};
+/**
+ * Chart colours of the theme currently applied to the document. The `theme` argument is not read:
+ * it makes callers recompute (e.g. in a `computed`) when the theme changes.
+ */
+export function chartChrome(_theme: ThemeName): ChartChrome {
+  return {
+    series1: canvasColor(cssColor('--cn-chart-series-1')),
+    series1Fill: canvasColor(cssColorAlpha('--cn-chart-series-1', 0.2)),
+    series2: canvasColor(cssColor('--cn-chart-series-2')),
+    text: canvasColor(cssColor('--cn-chart-text')),
+    grid: canvasColor(cssColor('--cn-chart-grid')),
+    surface: canvasColor(cssColor('--cn-chart-surface')),
+    tooltipBackground: canvasColor(cssColor('--cn-chart-tooltip-bg')),
+    tooltipBorder: canvasColor(cssColor('--cn-chart-tooltip-border')),
+    tooltipText: canvasColor(cssColor('--cn-chart-tooltip-text')),
+  };
+}
+
+let probe: CanvasRenderingContext2D | null | undefined;
+
+/**
+ * Normalises any CSS colour (e.g. `color-mix(...)`) to the hex/rgba form the canvas serialises, which
+ * Chart.js can parse for its hover shades. Returns the value unchanged without a canvas (unit tests).
+ */
+function canvasColor(value: string): string {
+  if (!value) return value;
+  if (probe === undefined) {
+    try {
+      probe = document.createElement('canvas').getContext('2d');
+    } catch {
+      probe = null;
+    }
+  }
+  if (!probe) return value;
+  probe.fillStyle = 'transparent';
+  probe.fillStyle = value;
+  return String(probe.fillStyle);
+}
 
 /** Sets Chart.js global defaults (call only once at startup). Colours are set per chart. */
 export function configureChartTheme(): void {

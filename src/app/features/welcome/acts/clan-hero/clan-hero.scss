@@ -9,9 +9,11 @@
 // (`--lift`), the Crusader comes out of the fog (`--rise`), the motto and the call to join appear
 // (`--finale`).
 
-$ink: #f2f5fb;
-$muted: #cfd7e8;
-$night: #0a0709;
+@use 'color-palette' as palette;
+
+$ink: var(--cn-welcome-text);
+$muted: var(--cn-welcome-text-muted);
+$night: var(--cn-welcome-night);
 
 // No box of its own: the stage must be a direct child of the act to stay pinned.
 :host {
@@ -19,23 +21,22 @@ $night: #0a0709;
 }
 
 .hero {
-  // Tones: Crociata Nera (black iron, fire). Triplets are RGB, for rgba().
+  // Tones: Crociata Nera (black iron, fire). Colours of the palette, made transparent with alpha().
   --tint: linear-gradient(transparent, transparent);
-  --flame-1: 255, 196, 61;
-  --flame-2: 255, 128, 20;
-  --flame-3: 255, 72, 0;
-  --flame-4: 200, 30, 0;
-  --rays: 255, 210, 110;
-  --glow-1: 255, 170, 60;
-  --glow-2: 255, 90, 20;
-  --ember-core: #ffe08a;
-  --ember-edge: #ff8a1f;
-  --ember-light: 255, 130, 30;
-  --crusader-light: 244, 170, 60;
-  --sweep: 255, 222, 160;
+  --flame-1: var(--cn-clan-black-flame-1);
+  --flame-2: var(--cn-clan-black-flame-2);
+  --flame-3: var(--cn-clan-black-flame-3);
+  --flame-4: var(--cn-clan-black-flame-4);
+  --rays: var(--cn-clan-black-rays);
+  --glow-1: var(--cn-crusader-glow);
+  --glow-2: var(--cn-clan-black-glow-outer);
+  --ember-core: var(--cn-clan-black-ember-core);
+  --ember-edge: var(--cn-clan-black-ember);
+  --crusader-light: var(--cn-crusader-glow);
+  --sweep: var(--cn-clan-black-sweep);
   // Blackened iron: dark bands, darkest in the middle, with a gold edge.
-  --metal: linear-gradient(180deg, #6b6e76 0%, #3a3c42 30%, #17181c 52%, #0b0b0d 60%, #26272c 82%, #4a4c53 100%);
-  --metal-edge: #d9a93f;
+  --metal: var(--cn-clan-black-iron-letters);
+  --metal-edge: var(--cn-crest-rim);
   --lift: clamp(0, var(--p) / 0.45, 1);
   --rise: clamp(0, (var(--p) - 0.12) / 0.5, 1);
   --finale: clamp(0, (var(--p) - 0.55) / 0.3, 1);
@@ -55,7 +56,13 @@ $night: #0a0709;
   inset: -6% 0 0;
   background:
     var(--tint),
-    linear-gradient(180deg, rgba(5, 6, 10, 0.55) 0%, transparent 35%, rgba(10, 7, 9, 0.15) 65%, $night 100%),
+    linear-gradient(
+      180deg,
+      #{palette.alpha(var(--cn-ink), 55%)} 0%,
+      transparent 35%,
+      #{palette.alpha($night, 15%)} 65%,
+      $night 100%
+    ),
     url('/images/welcome/sky.webp') center 70% / cover no-repeat;
   transform: translate3d(0, calc(var(--p) * 4cqh), 0) scale(calc(1.15 - var(--p) * 0.15));
 }
@@ -70,7 +77,7 @@ $night: #0a0709;
 .hero__ruins--far {
   bottom: 9cqh;
   height: 40cqh;
-  fill: #1d1115;
+  fill: var(--cn-hero-ruins-far);
   transform: translate3d(0, calc(var(--p) * -3cqh), 0);
 }
 
@@ -78,18 +85,18 @@ $night: #0a0709;
   z-index: 2;
   bottom: -2cqh;
   height: 30cqh;
-  fill: #070506;
+  fill: var(--cn-hero-ruins-near);
   transform: translate3d(0, calc((1 - var(--p)) * 5cqh), 0);
 }
 
 .hero__pole {
   fill: none;
-  stroke: #070506;
+  stroke: var(--cn-hero-ruins-near);
   stroke-width: 5;
 }
 
 .hero__banner {
-  fill: #5c1013;
+  fill: var(--cn-hero-banner);
 }
 
 // --- Badge, then halo behind the Crusader's head ----------------------------------------
@@ -116,8 +123,12 @@ $night: #0a0709;
   position: absolute;
   inset: -18%;
   border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgba(var(--rays), 0.28) 0deg 6deg, transparent 6deg 18deg);
-  mask: radial-gradient(circle, #000 18%, transparent 68%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    #{palette.alpha(var(--rays), 28%)} 0deg 6deg,
+    transparent 6deg 18deg
+  );
+  mask: radial-gradient(circle, var(--cn-mask) 18%, transparent 68%);
   animation: rays-spin 40s linear infinite;
 }
 
@@ -125,7 +136,12 @@ $night: #0a0709;
   position: absolute;
   inset: 8%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--glow-1), 0.55) 0%, rgba(var(--glow-2), 0.25) 45%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    #{palette.alpha(var(--glow-1), 55%)} 0%,
+    #{palette.alpha(var(--glow-2), 25%)} 45%,
+    transparent 70%
+  );
   animation: glow-pulse 3.2s ease-in-out infinite;
 }
 
@@ -134,8 +150,22 @@ $night: #0a0709;
   width: 78%;
   height: 78%;
   object-fit: contain;
-  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 10px 0 #{palette.alpha(var(--cn-shadow), 45%)});
   animation: badge-float 5s ease-in-out infinite;
+}
+
+// Fallback crest, drawn when the badge picture does not load.
+.crest__shield {
+  fill: var(--cn-crest-shield);
+  stroke: var(--cn-crest-rim);
+}
+
+.crest__field {
+  fill: var(--cn-crest-field);
+}
+
+.crest__cross {
+  fill: var(--cn-crest-cross);
 }
 
 @keyframes rays-spin {
@@ -171,7 +201,7 @@ $night: #0a0709;
 .hero__crusader {
   --crusader-in: var(--rise);
   --crusader-glow: var(--crusader-light);
-  --crusader-fog: 10, 7, 9;
+  --crusader-fog: #{$night};
   position: absolute;
   z-index: 1;
   left: 50%;
@@ -187,9 +217,9 @@ $night: #0a0709;
   inset: auto -10% 0;
   height: 42cqh;
   background:
-    radial-gradient(ellipse 45% 40% at 20% 85%, rgba(60, 44, 46, 0.45), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 78% 90%, rgba(60, 44, 46, 0.4), transparent 70%),
-    linear-gradient(to top, $night 0%, rgba(10, 7, 9, 0.88) 28%, transparent 100%);
+    radial-gradient(ellipse 45% 40% at 20% 85%, #{palette.alpha(var(--cn-hero-fog), 45%)}, transparent 70%),
+    radial-gradient(ellipse 50% 45% at 78% 90%, #{palette.alpha(var(--cn-hero-fog), 40%)}, transparent 70%),
+    linear-gradient(to top, $night 0%, #{palette.alpha($night, 88%)} 28%, transparent 100%);
   animation: fog-drift 18s ease-in-out infinite alternate;
 }
 
@@ -213,7 +243,7 @@ $night: #0a0709;
   height: 5px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--ember-core) 0%, var(--ember-edge) 55%, transparent 70%);
-  box-shadow: 0 0 8px 2px rgba(var(--ember-light), 0.6);
+  box-shadow: 0 0 8px 2px palette.alpha(var(--ember-edge), 60%);
   opacity: 0;
   animation: ember-rise calc(5s + var(--i) * 0.37s) linear infinite;
   animation-delay: calc(var(--i) * -0.9s);
@@ -276,17 +306,17 @@ $night: #0a0709;
 .clan-name__fire {
   color: transparent;
   text-shadow:
-    0 -0.04em 0.06em rgba(var(--flame-1), 0.9),
-    0 -0.1em 0.16em rgba(var(--flame-2), 0.85),
-    0 -0.18em 0.28em rgba(var(--flame-3), 0.7),
-    0 -0.28em 0.42em rgba(var(--flame-4), 0.45);
+    0 -0.04em 0.06em palette.alpha(var(--flame-1), 90%),
+    0 -0.1em 0.16em palette.alpha(var(--flame-2), 85%),
+    0 -0.18em 0.28em palette.alpha(var(--flame-3), 70%),
+    0 -0.28em 0.42em palette.alpha(var(--flame-4), 45%);
   animation: flames 1.4s ease-in-out infinite alternate;
   user-select: none;
 }
 
 .clan-name__metal {
   background:
-    linear-gradient(105deg, transparent 40%, rgba(var(--sweep), 0.45) 50%, transparent 60%) 0 0 / 260% 100% no-repeat,
+    linear-gradient(105deg, transparent 40%, #{palette.alpha(var(--sweep), 45%)} 50%, transparent 60%) 0 0 / 260% 100% no-repeat,
     var(--metal);
   -webkit-background-clip: text;
   background-clip: text;
@@ -295,31 +325,31 @@ $night: #0a0709;
   text-shadow: none;
   // Edge like the trims of the Crusader's armour.
   -webkit-text-stroke: 1.5px var(--metal-edge);
-  filter: drop-shadow(0 3px 0 #000) drop-shadow(0 0 1px #000);
+  filter: drop-shadow(0 3px 0 var(--cn-shadow)) drop-shadow(0 0 1px var(--cn-shadow));
   animation: metal-sweep 5.5s ease-in-out infinite;
 }
 
 @keyframes flames {
   0% {
     text-shadow:
-      0 -0.03em 0.05em rgba(var(--flame-1), 0.85),
-      0 -0.08em 0.14em rgba(var(--flame-2), 0.8),
-      0 -0.15em 0.24em rgba(var(--flame-3), 0.6),
-      0 -0.22em 0.36em rgba(var(--flame-4), 0.35);
+      0 -0.03em 0.05em palette.alpha(var(--flame-1), 85%),
+      0 -0.08em 0.14em palette.alpha(var(--flame-2), 80%),
+      0 -0.15em 0.24em palette.alpha(var(--flame-3), 60%),
+      0 -0.22em 0.36em palette.alpha(var(--flame-4), 35%);
   }
   50% {
     text-shadow:
-      0.01em -0.06em 0.07em rgba(var(--flame-1), 0.95),
-      -0.01em -0.14em 0.18em rgba(var(--flame-2), 0.9),
-      0.02em -0.24em 0.3em rgba(var(--flame-3), 0.75),
-      -0.02em -0.36em 0.46em rgba(var(--flame-4), 0.5);
+      0.01em -0.06em 0.07em palette.alpha(var(--flame-1), 95%),
+      -0.01em -0.14em 0.18em palette.alpha(var(--flame-2), 90%),
+      0.02em -0.24em 0.3em palette.alpha(var(--flame-3), 75%),
+      -0.02em -0.36em 0.46em palette.alpha(var(--flame-4), 50%);
   }
   100% {
     text-shadow:
-      -0.01em -0.04em 0.06em rgba(var(--flame-1), 0.9),
-      0.01em -0.11em 0.16em rgba(var(--flame-2), 0.85),
-      -0.01em -0.2em 0.27em rgba(var(--flame-3), 0.7),
-      0.01em -0.3em 0.4em rgba(var(--flame-4), 0.42);
+      -0.01em -0.04em 0.06em palette.alpha(var(--flame-1), 90%),
+      0.01em -0.11em 0.16em palette.alpha(var(--flame-2), 85%),
+      -0.01em -0.2em 0.27em palette.alpha(var(--flame-3), 70%),
+      0.01em -0.3em 0.4em palette.alpha(var(--flame-4), 42%);
   }
 }
 
@@ -346,7 +376,7 @@ $night: #0a0709;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--cn-game-gold);
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px var(--cn-shadow);
 }
 
 .hero__meta {
@@ -359,7 +389,7 @@ $night: #0a0709;
   font-size: var(--cn-fs-sm);
   letter-spacing: 0.06em;
   color: $muted;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px var(--cn-shadow);
 }
 
 .hero__location {
@@ -404,8 +434,8 @@ $night: #0a0709;
   line-height: 1.45;
   color: $ink;
   text-shadow:
-    0 2px 4px #000,
-    0 0 18px rgba(0, 0, 0, 0.8);
+    0 2px 4px var(--cn-shadow),
+    0 0 18px palette.alpha(var(--cn-shadow), 80%);
 
   &::before {
     content: '“';
@@ -505,41 +535,39 @@ $night: #0a0709;
 
 // Crociata Rossa: crimson dusk, red lacquered letters with a gold edge.
 :host(.clan-hero--red) .hero {
-  --tint: linear-gradient(180deg, rgba(90, 0, 0, 0.4), rgba(150, 12, 12, 0.3));
-  --flame-1: 255, 110, 80;
-  --flame-2: 235, 40, 25;
-  --flame-3: 180, 0, 0;
-  --flame-4: 110, 0, 0;
-  --rays: 255, 130, 110;
-  --glow-1: 255, 70, 50;
-  --glow-2: 170, 0, 0;
-  --ember-core: #ffc0b0;
-  --ember-edge: #e02010;
-  --ember-light: 230, 40, 20;
-  --crusader-light: 255, 70, 50;
-  --sweep: 255, 210, 180;
-  --metal: linear-gradient(180deg, #d85050 0%, #941616 30%, #500707 52%, #2c0303 60%, #700d0d 82%, #b02c2c 100%);
-  --metal-edge: #e2b24c;
+  --tint: var(--cn-clan-red-sky);
+  --flame-1: var(--cn-clan-red-flame-1);
+  --flame-2: var(--cn-clan-red-flame-2);
+  --flame-3: var(--cn-clan-red-flame-3);
+  --flame-4: var(--cn-clan-red-flame-4);
+  --rays: var(--cn-clan-red-rays);
+  --glow-1: var(--cn-clan-red-glow);
+  --glow-2: var(--cn-clan-red-glow-outer);
+  --ember-core: var(--cn-clan-red-ember-core);
+  --ember-edge: var(--cn-clan-red-ember);
+  --crusader-light: var(--cn-clan-red-glow);
+  --sweep: var(--cn-clan-red-sweep);
+  --metal: var(--cn-clan-red-lacquer-letters);
+  --metal-edge: var(--cn-clan-red-edge);
 }
 
 // Crociata d'Oro: golden morning, polished gold letters with a bronze edge, a holy light instead of fire.
 :host(.clan-hero--gold) .hero {
-  --tint: linear-gradient(180deg, rgba(255, 200, 90, 0.16), rgba(255, 170, 40, 0.3));
-  --flame-1: 255, 250, 225;
-  --flame-2: 255, 232, 150;
-  --flame-3: 255, 200, 80;
-  --flame-4: 230, 160, 30;
-  --rays: 255, 240, 190;
-  --glow-1: 255, 232, 150;
-  --glow-2: 255, 190, 60;
-  --ember-core: #fffbe8;
-  --ember-edge: #ffd860;
-  --ember-light: 255, 220, 120;
-  --crusader-light: 255, 225, 140;
-  --sweep: 255, 255, 255;
+  --tint: var(--cn-clan-gold-sky);
+  --flame-1: var(--cn-clan-gold-flame-1);
+  --flame-2: var(--cn-clan-gold-flame-2);
+  --flame-3: var(--cn-clan-gold-flame-3);
+  --flame-4: var(--cn-clan-gold-flame-4);
+  --rays: var(--cn-clan-gold-rays);
+  --glow-1: var(--cn-clan-gold-flame-2);
+  --glow-2: var(--cn-clan-gold-glow-outer);
+  --ember-core: var(--cn-clan-gold-flame-1);
+  --ember-edge: var(--cn-clan-gold-ember);
+  --crusader-light: var(--cn-clan-gold-glow);
+  --sweep: var(--cn-light);
   // The gold of the edges of the Crociata Rossa letters, as the body of the letters.
-  --metal: linear-gradient(180deg, #f6d77e 0%, #e2b24c 30%, #b8862a 52%, #9a6c1c 60%, #e2b24c 82%, #f2cf6a 100%);
-  --metal-edge: #3a2404;
+  --metal: var(--cn-clan-gold-letters);
+  --metal-edge: var(--cn-clan-gold-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

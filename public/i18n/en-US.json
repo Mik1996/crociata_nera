@@ -23,7 +23,6 @@
   "theme": {
     "change": "Change theme (current: {{name}})",
     "menu": "Available themes",
-    "light": "Light",
     "dark": "Dark"
   },
   "nav": {
@@ -778,7 +777,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "App theme and language",
+    "subtitle": "App language",
     "theme": "Theme",
     "language": "Language"
   },

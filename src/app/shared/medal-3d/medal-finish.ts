@@ -1,9 +1,14 @@
+import { cssColor } from '../styles/css-color';
+
 /**
  * Surface of a 3D medal, mapped onto `MeshPhysicalMaterial`. Plain data (no Three.js import), so it
  * can be used anywhere without pulling the 3D library into the bundle.
  */
 export interface MedalFinishSpec {
-  /** Base colour (for metals: the colour of the reflections). */
+  /**
+   * Base colour (for metals: the colour of the reflections): a CSS colour or a palette token
+   * (`--cn-*`, resolved by {@link resolveFinish}).
+   */
   color: string;
   /** 0 = dielectric (plastic, enamel), 1 = metal. */
   metalness: number;
@@ -24,7 +29,7 @@ export type MedalFinish = MedalFinishName | MedalFinishSpec;
 export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> = {
   // Polished copper-brown.
   bronze: {
-    color: '#c47a4c',
+    color: '--cn-medal-3d-bronze',
     metalness: 1,
     roughness: 0.3,
     clearcoat: 0.35,
@@ -32,7 +37,7 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
   },
   // Highly reflective silver.
   silver: {
-    color: '#e8ebf0',
+    color: '--cn-medal-3d-silver',
     metalness: 1,
     roughness: 0.16,
     clearcoat: 0.4,
@@ -40,7 +45,7 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
   },
   // Gold with a glossy varnish.
   gold: {
-    color: '#f7c552',
+    color: '--cn-medal-3d-gold',
     metalness: 1,
     roughness: 0.2,
     clearcoat: 0.9,
@@ -49,7 +54,7 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
   },
   // Candy crimson metal under a mirror varnish: the one-off medals of the highest merit.
   legendary: {
-    color: '#e8364f',
+    color: '--cn-medal-legendary',
     metalness: 1,
     roughness: 0.16,
     clearcoat: 1,
@@ -60,7 +65,7 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
 
 /** A medal not earned yet: dark, matte and almost non-metallic, whatever its finish. */
 export const LOCKED_FINISH: MedalFinishSpec = {
-  color: '#2a2d34',
+  color: '--cn-medal-locked-dark',
   metalness: 0.05,
   roughness: 0.85,
   clearcoat: 0,
@@ -68,7 +73,10 @@ export const LOCKED_FINISH: MedalFinishSpec = {
   envMapIntensity: 0.4,
 };
 
-/** Finish actually rendered: the locked one wins over the medal's own. */
+/**
+ * Finish actually rendered: the locked one wins over the medal's own. A palette token is resolved
+ * to its colour ('' without the global styles, e.g. in unit tests: the material keeps its default).
+ */
 export function resolveFinish(finish: MedalFinish, locked: boolean): Required<MedalFinishSpec> {
   const spec = locked ? LOCKED_FINISH : typeof finish === 'string' ? MEDAL_FINISHES[finish] : finish;
   return {
@@ -76,5 +84,6 @@ export function resolveFinish(finish: MedalFinish, locked: boolean): Required<Me
     clearcoatRoughness: 0.1,
     envMapIntensity: 1,
     ...spec,
+    color: spec.color.startsWith('--') ? cssColor(spec.color) : spec.color,
   };
 }

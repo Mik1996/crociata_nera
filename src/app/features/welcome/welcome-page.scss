@@ -5,14 +5,14 @@
 :host {
   overflow-x: clip;
   touch-action: pan-y pinch-zoom;
-  background: #0a0709;
+  background: var(--cn-welcome-night);
 }
 
 .page__scroll {
   // Loading and error messages on the dark scene.
-  --cn-text: #f2f5fb;
-  --cn-text-muted: #cfd7e8;
-  color: #f2f5fb;
+  --cn-text: var(--cn-welcome-text);
+  --cn-text-muted: var(--cn-welcome-text-muted);
+  color: var(--cn-welcome-text);
   overflow-x: clip;
   touch-action: pan-y pinch-zoom;
 }

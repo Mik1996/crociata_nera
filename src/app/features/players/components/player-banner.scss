@@ -1,10 +1,12 @@
+@use 'color-palette' as palette;
+
 // The layout follows the width of the banner, not of the window (container queries below).
 :host {
   display: block;
   container: banner / inline-size;
 }
 
-// Game-style header: dark slate panel with a gold frame and white outlined text (same in both themes).
+// Game-style header: gunmetal panel with a gold frame and white outlined text (same in both themes).
 // Wide: Town Hall | name over chips and medals | league. Narrow: see the container query at the end.
 .banner {
   display: grid;
@@ -22,7 +24,7 @@
   outline: 2px solid var(--cn-game-gold);
   outline-offset: -6px;
   background: var(--cn-game-panel);
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), var(--cn-card-shadow);
+  box-shadow: inset 0 -4px 0 palette.alpha(var(--cn-shadow), 30%), var(--cn-card-shadow);
   color: var(--cn-game-panel-text);
 }
 
@@ -46,7 +48,7 @@
 .banner__th-image {
   width: clamp(88px, 12vw, 128px);
   height: auto;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 4px 6px palette.alpha(var(--cn-shadow), 50%));
 }
 
 .banner__th-label,
@@ -117,8 +119,8 @@
   gap: 0.35rem;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: palette.alpha(var(--cn-shadow), 35%);
+  border: 1px solid palette.alpha(var(--cn-light), 18%);
   font-size: var(--cn-fs-sm);
   font-weight: 600;
 }
@@ -126,7 +128,7 @@
 .chip--role {
   background: var(--cn-game-gold);
   border-color: transparent;
-  color: #1d1503;
+  color: var(--cn-on-gold);
 }
 
 .banner__labels {
@@ -194,7 +196,7 @@
 .banner__league-icon {
   width: clamp(64px, 8vw, 88px);
   height: auto;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 3px 5px palette.alpha(var(--cn-shadow), 50%));
 }
 
 .banner__trophies {
@@ -208,7 +210,7 @@
 
   mat-icon {
     color: var(--cn-game-gold);
-    filter: drop-shadow(0 1px 0 #0b1220);
+    filter: drop-shadow(0 1px 0 var(--cn-ink));
   }
 }
 

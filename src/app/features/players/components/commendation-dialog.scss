@@ -1,3 +1,5 @@
+@use 'color-palette' as palette;
+
 .title {
   display: flex;
   flex-direction: column;
@@ -25,11 +27,11 @@
 }
 
 .tier--bronze {
-  color: #d08a5a;
+  color: var(--cn-medal-bronze-text);
 }
 
 .tier--silver {
-  color: #b8c2d2;
+  color: var(--cn-medal-silver);
 }
 
 .tier--gold {
@@ -37,7 +39,7 @@
 }
 
 .tier--legendary {
-  color: #ff6b7d;
+  color: var(--cn-medal-legendary-light);
 }
 
 .content {
@@ -51,7 +53,7 @@
   // All the width of the dialog: the medal cannot be zoomed past its canvas, so give it room.
   width: 100%;
   // Soft spotlight behind the medal, like a display case.
-  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.1), transparent 65%);
+  background: radial-gradient(circle at 50% 45%, palette.alpha(var(--cn-light), 10%), transparent 65%);
   border-radius: 50%;
 }
 

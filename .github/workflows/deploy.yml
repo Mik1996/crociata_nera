@@ -40,6 +40,8 @@ jobs:
 
       - name: Frontend — install
         run: npm ci --no-audit --no-fund
+      - name: Frontend — colours only from the palette
+        run: npm run lint:colors
       - name: Frontend — unit tests
         run: npx ng test --watch=false
       - name: Frontend — production build

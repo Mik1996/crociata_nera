@@ -12,8 +12,7 @@ import { efficiency } from '../../../core/utils/war-stats';
 import {
   barSeries,
   baseChartOptions,
-  CHART_CHROME,
-  CHART_COLORS,
+  chartChrome,
   lineSeries,
   shortDateLabel,
 } from '../../../shared/charts/chart-theme';
@@ -67,7 +66,7 @@ export class PlayerWarStats {
   );
 
   /** Chart colours of the current theme. */
-  private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
+  private readonly chrome = computed(() => chartChrome(this.theme.current()));
 
   protected readonly starsOptions = computed(() =>
     baseChartOptions<'bar'>(this.chrome(), { min: 0, max: 6, legend: false }),
@@ -78,7 +77,7 @@ export class PlayerWarStats {
       barSeries(
         this.language.t('player.seriesStars'),
         this.stats().history.map((p) => p.stars),
-        CHART_COLORS.gold,
+        this.chrome().series1,
         this.chrome(),
       ),
     ],
@@ -93,9 +92,9 @@ export class PlayerWarStats {
       lineSeries(
         this.language.t('player.seriesDestruction'),
         this.stats().history.map((p) => p.averageDestruction),
-        CHART_COLORS.gold,
+        this.chrome().series1,
         this.chrome(),
-        CHART_COLORS.goldTransparent,
+        this.chrome().series1Fill,
       ),
     ],
   }));

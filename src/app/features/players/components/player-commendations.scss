@@ -1,3 +1,5 @@
+@use 'color-palette' as palette;
+
 .summary {
   display: flex;
   align-items: baseline;
@@ -34,7 +36,7 @@
   border: 2px solid var(--cn-game-panel-border);
   border-radius: 14px;
   background: var(--cn-game-panel);
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 -3px 0 palette.alpha(var(--cn-shadow), 25%);
 }
 
 .medals {
@@ -116,11 +118,11 @@
 .commendation-row--legendary {
   border-color: var(--cn-game-gold);
   background:
-    radial-gradient(circle at 50% 35%, rgba(255, 90, 110, 0.35), transparent 65%),
-    linear-gradient(160deg, #5a0d1c, #2a0710);
+    radial-gradient(circle at 50% 35%, palette.alpha(var(--cn-medal-legendary-light), 35%), transparent 65%),
+    var(--cn-commendation-legendary-panel);
   box-shadow:
-    inset 0 -3px 0 rgba(0, 0, 0, 0.3),
-    0 0 18px rgba(232, 54, 79, 0.35);
+    inset 0 -3px 0 palette.alpha(var(--cn-shadow), 30%),
+    0 0 18px palette.alpha(var(--cn-medal-legendary), 35%);
 
   .medal__name {
     font-size: var(--cn-fs-sm);

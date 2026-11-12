@@ -71,13 +71,13 @@
 }
 
 .pos--2 {
-  background: #c9ccd1;
-  color: #1a1a1a;
+  background: var(--cn-medal-silver);
+  color: var(--cn-ink);
 }
 
 .pos--3 {
-  background: #b5763a;
-  color: #1a1206;
+  background: var(--cn-stats-rank-bronze);
+  color: var(--cn-on-gold);
 }
 
 .clan-cell {

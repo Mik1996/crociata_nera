@@ -29,6 +29,7 @@ npm run backend           # backend on :3001 (reads backend/.env.local)
 npx ng test --watch=false                          # frontend tests (Vitest)
 npx ng test --watch=false --include <spec path>    # a single spec
 npx tsc -p tsconfig.app.json --noEmit              # frontend type check
+npm run lint:colors                                # colours only from the palette
 npm run test:server                                # proxy tests (node:test)
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
 ```
@@ -41,6 +42,11 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Every Angular component has separate `.ts` / `.html` / `.scss` files (no inline template/styles).
 - Prettier: `printWidth` 100, single quotes, Angular parser for HTML. The user's editor formats on
   save, so diffs often contain formatting changes.
+- Colours: the **only** place with colour literals is `src/styles/_color-palette.scss` (theme tokens
+  per theme + identity tokens, grouped by meaning). Elsewhere use `var(--cn-*)`, and
+  `@use 'color-palette' as palette;` + `palette.alpha(var(--cn-x), 30%)` for transparency; TS reads
+  tokens with `cssColor()` (`src/app/shared/styles/css-color.ts`). `npm run lint:colors` (in CI) fails
+  on any other literal.
 - New UI text: add the key to **all three** files `public/i18n/{it-IT,en-US,es-ES}.json`.
 - Backend responses are `BaseResult` `{ result, messages, status }`; errors are `MessageKey` values
   (`ERROR.*` / `SUCCESS.*`) translated by the frontend. Validate input with zod (`parseBody`,

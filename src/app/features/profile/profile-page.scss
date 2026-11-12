@@ -94,8 +94,8 @@ h2 {
   height: 52px;
   border: 3px solid var(--cn-panel-border);
   border-radius: 50%;
-  background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
-  color: #1d1503;
+  background: var(--cn-gold-fill);
+  color: var(--cn-on-gold);
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-xl);
 }
@@ -262,7 +262,7 @@ h2 {
     display: inline-block;
     margin-right: 0.4rem;
     vertical-align: middle;
-    --mat-progress-spinner-active-indicator-color: #ffffff;
+    --mat-progress-spinner-active-indicator-color: var(--cn-light);
   }
 }
 

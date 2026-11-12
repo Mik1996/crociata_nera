@@ -1,9 +1,11 @@
 // Last act, the call: the three Crusaders under golden rays, then the banner to join.
 
+@use 'color-palette' as palette;
+
 :host {
   isolation: isolate;
-  background: linear-gradient(180deg, #0b0a0f 0%, #121019 40%, #0b0a0f 100%);
-  color: #f2f5fb;
+  background: linear-gradient(180deg, var(--cn-night-dark) 0%, var(--cn-call-dusk) 40%, var(--cn-night-dark) 100%);
+  color: var(--cn-welcome-text);
 }
 
 .call {
@@ -31,8 +33,12 @@
   width: min(140vw, 70rem);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgba(255, 214, 130, 0.22) 0deg 5deg, transparent 5deg 15deg);
-  mask: radial-gradient(circle, #000 10%, transparent 62%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    #{palette.alpha(var(--cn-call-rays), 22%)} 0deg 5deg,
+    transparent 5deg 15deg
+  );
+  mask: radial-gradient(circle, var(--cn-mask) 10%, transparent 62%);
   opacity: var(--in);
   transform: translate(-50%, -50%) rotate(calc(var(--enter) * 40deg)) scale(calc(0.7 + var(--in) * 0.3));
 }
@@ -56,8 +62,8 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse at 50% 40%,
-    rgba(255, 214, 130, 0.5) 0%,
-    rgba(255, 214, 130, 0.16) 45%,
+    palette.alpha(var(--cn-call-rays), 50%) 0%,
+    palette.alpha(var(--cn-call-rays), 16%) 45%,
     transparent 70%
   );
   opacity: calc(0.4 + var(--in) * 0.6);
@@ -82,8 +88,8 @@
   height: calc(20% + (1 - var(--in)) * 70%);
   background: radial-gradient(
     ellipse 60% 100% at 50% 100%,
-    rgba(11, 10, 15, 0.95) 30%,
-    rgba(11, 10, 15, 0.6) 55%,
+    palette.alpha(var(--cn-night-dark), 95%) 30%,
+    palette.alpha(var(--cn-night-dark), 60%) 55%,
     transparent 75%
   );
 }

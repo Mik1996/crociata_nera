@@ -10,7 +10,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:server": "node --test server/server.test.mjs server/history.test.mjs"
+    "test:server": "node --test server/server.test.mjs server/history.test.mjs",
+    "lint:colors": "node scripts/check-colors.mjs"
   },
   "private": true,
   "packageManager": "npm@11.19.1",

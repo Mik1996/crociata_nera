@@ -2,9 +2,11 @@
 // Portrait first (Crusader at the bottom right, behind the banners); wide stages put him on the
 // right of the numbers.
 
-$ink: #f2f5fb;
-$muted: #cfd7e8;
-$night: #0b0a0d;
+@use 'color-palette' as palette;
+
+$ink: var(--cn-welcome-text);
+$muted: var(--cn-welcome-text-muted);
+$night: var(--cn-night-dark);
 
 .army {
   isolation: isolate;
@@ -18,7 +20,13 @@ $night: #0b0a0d;
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, $night 0%, rgba(11, 10, 13, 0.55) 22%, rgba(11, 10, 13, 0.7) 60%, $night 100%),
+    linear-gradient(
+      180deg,
+      $night 0%,
+      palette.alpha($night, 55%) 22%,
+      palette.alpha($night, 70%) 60%,
+      $night 100%
+    ),
     url('/images/welcome/army.webp') center 30% / cover no-repeat;
   // Slow push-in towards the army.
   transform: scale(calc(1.18 - var(--p) * 0.14));
@@ -27,7 +35,7 @@ $night: #0b0a0d;
 
 .army__crusader {
   --crusader-in: clamp(0, var(--p) / 0.3, 1);
-  --crusader-fog: 11, 10, 13;
+  --crusader-fog: #{$night};
   position: absolute;
   z-index: 0;
   right: -16cqw;
@@ -81,7 +89,11 @@ $night: #0b0a0d;
   // Swallowtail banner.
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
   border-top: 3px solid var(--cn-game-gold);
-  background: linear-gradient(180deg, rgba(92, 16, 19, 0.92), rgba(42, 8, 10, 0.94));
+  background: linear-gradient(
+    180deg,
+    palette.alpha(var(--cn-hero-banner), 92%),
+    palette.alpha(var(--cn-army-banner-bottom), 94%)
+  );
   text-align: center;
   opacity: var(--in);
   transform: translate3d(0, calc((1 - var(--in)) * -5cqh), 0);
@@ -92,8 +104,8 @@ $night: #0b0a0d;
   font-size: min(var(--cn-fs-2xl), 17cqi, 5.4cqh);
   line-height: 1.1;
   white-space: nowrap;
-  color: #fff;
-  text-shadow: 0 2px 0 #000;
+  color: var(--cn-light);
+  text-shadow: 0 2px 0 var(--cn-shadow);
 
   small {
     font-size: 0.6em;
@@ -132,9 +144,9 @@ $night: #0b0a0d;
   align-items: center;
   gap: 0.35rem;
   padding: 0.2rem 0.7rem 0.2rem 0.3rem;
-  border: 1px solid rgba(255, 216, 98, 0.45);
+  border: 1px solid palette.alpha(var(--cn-gold-light), 45%);
   border-radius: 0.25rem;
-  background: rgba(10, 14, 24, 0.75);
+  background: palette.alpha(var(--cn-bg), 75%);
   font-size: var(--cn-fs-xs);
   color: $ink;
 

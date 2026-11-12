@@ -1,8 +1,10 @@
+@use 'color-palette' as palette;
+
 // Recruitment banner: dark war scene (same look in both themes), the pitch and one card per clan
 // of the Crusade, each with its colour (`data-order`: black, red, gold).
 
-$scene-ink: #f2f5fb; // text on the dark scene
-$scene-muted: #cfd7e8;
+$scene-ink: var(--cn-text); // text on the dark scene
+$scene-muted: var(--cn-text-muted);
 
 :host {
   display: block;
@@ -24,8 +26,17 @@ $scene-muted: #cfd7e8;
   outline: 2px solid var(--cn-game-gold);
   outline-offset: -7px;
   background:
-    radial-gradient(ellipse 70% 90% at 85% 50%, rgba(255, 120, 30, 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(8, 11, 20, 0.85) 0%, rgba(8, 11, 20, 0.92) 45%, rgba(8, 11, 20, 0.97) 100%),
+    radial-gradient(
+      ellipse 70% 90% at 85% 50%,
+      palette.alpha(var(--cn-fire-orange), 22%),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      palette.alpha(var(--cn-ink), 85%) 0%,
+      palette.alpha(var(--cn-ink), 92%) 45%,
+      palette.alpha(var(--cn-ink), 97%) 100%
+    ),
     url('/images/welcome/army.webp') right 30% / cover no-repeat;
   box-shadow: var(--cn-card-shadow);
   color: $scene-ink;
@@ -35,8 +46,8 @@ $scene-muted: #cfd7e8;
   display: inline-block;
   padding: 0.2rem 0.7rem;
   border-radius: 999px;
-  background: rgba(244, 197, 66, 0.15);
-  border: 1px solid rgba(244, 197, 66, 0.55);
+  background: palette.alpha(var(--cn-gold), 15%);
+  border: 1px solid palette.alpha(var(--cn-gold), 55%);
   font-size: var(--cn-fs-xs);
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -46,8 +57,8 @@ $scene-muted: #cfd7e8;
 
 // No free spot in any of the clans.
 .recruit__kicker--closed {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: palette.alpha(var(--cn-light), 6%);
+  border-color: palette.alpha(var(--cn-light), 30%);
   color: $scene-muted;
 }
 
@@ -56,10 +67,10 @@ $scene-muted: #cfd7e8;
   font-family: var(--cn-font-display);
   font-size: clamp(1.9rem, 1rem + 3vw, 3rem);
   line-height: 1.05;
-  color: #ffffff;
+  color: var(--cn-light);
   text-shadow:
-    0 3px 0 #000,
-    0 0 18px rgba(255, 120, 30, 0.55);
+    0 3px 0 var(--cn-shadow),
+    0 0 18px palette.alpha(var(--cn-fire-orange), 55%);
 }
 
 .recruit__text {
@@ -105,10 +116,10 @@ $scene-muted: #cfd7e8;
 // Card of one clan, in its colours (as its button, `.cn-crusade-cta`): the border, the name and
 // the number of open spots. Crociata Nera: black iron with a gold edge.
 .enlist {
-  --order: 217, 169, 63;
-  --card-border: #0b0b0d;
-  --ink-fill: linear-gradient(180deg, #6b6e76 0%, #3a3c42 35%, #141418 60%, #2a2b30 100%);
-  --ink-edge: #d9a93f;
+  --order: var(--cn-crest-rim);
+  --card-border: var(--cn-ink);
+  --ink-fill: var(--cn-recruit-black-fill);
+  --ink-edge: var(--cn-crest-rim);
   // Container of the button text: it shrinks to stay on one line.
   container-type: inline-size;
   display: flex;
@@ -120,27 +131,31 @@ $scene-muted: #cfd7e8;
   padding: 1.25rem 1rem;
   border: 2px solid var(--card-border);
   // Thin outer line in the clan's accent.
-  outline: 1px solid rgba(var(--order), 0.7);
+  outline: 1px solid palette.alpha(var(--order), 70%);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(40, 52, 82, 0.9), rgba(14, 19, 33, 0.95));
+  background: linear-gradient(
+    180deg,
+    palette.alpha(var(--cn-surface-2), 90%),
+    palette.alpha(var(--cn-bg), 95%)
+  );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 0 24px rgba(var(--order), 0.12);
+    inset 0 1px 0 palette.alpha(var(--cn-light), 12%),
+    0 0 24px palette.alpha(var(--order), 12%);
   text-align: center;
 }
 
 .enlist[data-order='red'] {
-  --order: 226, 178, 76;
-  --card-border: #a51a1a;
-  --ink-fill: linear-gradient(180deg, #f07a6e 0%, #c62a24 45%, #8a1010 70%, #b52020 100%);
-  --ink-edge: #e2b24c;
+  --order: var(--cn-clan-gold-leaf);
+  --card-border: var(--cn-recruit-red-border);
+  --ink-fill: var(--cn-recruit-red-fill);
+  --ink-edge: var(--cn-clan-gold-leaf);
 }
 
 .enlist[data-order='gold'] {
-  --order: 106, 69, 8;
-  --card-border: #e2b24c;
-  --ink-fill: linear-gradient(180deg, #fff3b8 0%, #f2c94c 45%, #b8861f 75%, #e2b24c 100%);
-  --ink-edge: #5a3a06;
+  --order: var(--cn-clan-gold-border);
+  --card-border: var(--cn-clan-gold-leaf);
+  --ink-fill: var(--cn-recruit-gold-fill);
+  --ink-edge: var(--cn-clan-gold-depth);
 }
 
 // Name and number painted with the clan's metal.
@@ -152,7 +167,7 @@ $scene-muted: #cfd7e8;
   color: transparent;
   -webkit-text-stroke: 1px var(--ink-edge);
   text-shadow: none;
-  filter: drop-shadow(0 2px 0 #000);
+  filter: drop-shadow(0 2px 0 var(--cn-shadow));
 }
 
 .enlist__clan {
@@ -169,7 +184,7 @@ $scene-muted: #cfd7e8;
   width: 44px;
   height: 44px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 2px 2px palette.alpha(var(--cn-shadow), 60%));
 }
 
 .enlist__slots {
@@ -206,9 +221,9 @@ $scene-muted: #cfd7e8;
 
   div {
     padding: 0.4rem 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid palette.alpha(var(--cn-light), 14%);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: palette.alpha(var(--cn-shadow), 30%);
   }
 
   dt {
@@ -226,8 +241,8 @@ $scene-muted: #cfd7e8;
     margin: 0.3rem 0 0;
     font-family: var(--cn-font-display);
     font-size: var(--cn-fs-sm);
-    color: #ffffff;
-    text-shadow: 0 2px 0 #000;
+    color: var(--cn-light);
+    text-shadow: 0 2px 0 var(--cn-shadow);
   }
 }
 
@@ -237,7 +252,7 @@ $scene-muted: #cfd7e8;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 3px 3px palette.alpha(var(--cn-shadow), 60%));
 }
 
 // Game button in the clan's colours (`.cn-crusade-cta`, global), at the bottom of the card.
@@ -277,5 +292,3 @@ $scene-muted: #cfd7e8;
   line-height: 1.45;
   color: $scene-muted;
 }
-
-

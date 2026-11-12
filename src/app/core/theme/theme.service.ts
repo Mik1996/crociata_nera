@@ -1,14 +1,14 @@
 import { DOCUMENT } from '@angular/common';
-import { ApplicationRef, computed, DestroyRef, effect, inject, Injectable, signal } from '@angular/core';
-import { isThemeName, THEME_COLORS, THEME_STORAGE_KEY, ThemeName, THEMES } from './themes';
+import { ApplicationRef, computed, effect, inject, Injectable, signal } from '@angular/core';
+import { AVAILABLE_THEMES, DEFAULT_THEME, THEME_STORAGE_KEY, ThemeName } from './themes';
 
-const DARK_QUERY = '(prefers-color-scheme: dark)';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
  * Current color theme.
- * Follows the system preference until the user picks a theme; the choice is then remembered.
- * The theme is applied as `<html data-theme="light|dark">`, which switches the CSS tokens in `styles.scss`.
+ * Uses `DEFAULT_THEME` until the user picks another available theme; the choice is then remembered
+ * (a saved theme that no longer exists falls back to the default).
+ * The theme is applied as `<html data-theme="<name>">`, which switches the CSS tokens in `styles.scss`.
  * Theme changes cross-fade with a View Transition (300 ms ease-out, see `styles.scss`) where supported,
  * unless the user prefers reduced motion.
  */
@@ -16,38 +16,48 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private readonly appRef = inject(ApplicationRef);
-  private readonly media = this.document.defaultView?.matchMedia?.(DARK_QUERY) ?? null;
 
-  readonly themes = THEMES;
+  readonly themes = inject(AVAILABLE_THEMES);
+  /** Whether the user can choose a theme (the pickers are shown only with two or more themes). */
+  readonly selectable = this.themes.length > 1;
 
-  private readonly systemTheme = signal<ThemeName>(this.media?.matches ? 'dark' : 'light');
-  /** Theme explicitly chosen by the user, or `null` to follow the system. */
-  private readonly chosen = signal<ThemeName | null>(readSaved());
+  private readonly chosen = signal<ThemeName>(this.readSaved() ?? DEFAULT_THEME);
 
-  readonly current = computed<ThemeName>(() => this.chosen() ?? this.systemTheme());
-  readonly currentOption = computed(() => THEMES.find((t) => t.name === this.current()) ?? THEMES[0]);
+  readonly current = this.chosen.asReadonly();
+  readonly currentOption = computed(
+    () => this.themes.find((t) => t.name === this.current()) ?? this.themes[0],
+  );
 
   constructor() {
-    if (this.media) {
-      const onChange = (event: MediaQueryListEvent) =>
-        this.withTransition(() => this.systemTheme.set(event.matches ? 'dark' : 'light'));
-      this.media.addEventListener('change', onChange);
-      inject(DestroyRef).onDestroy(() => this.media?.removeEventListener('change', onChange));
-    }
-
     effect(() => this.applyToDocument(this.current()));
   }
 
   /** Applies a theme and remembers the choice. */
   use(theme: ThemeName): void {
-    if (theme === this.current() && this.chosen() === theme) return;
+    if (theme === this.current() || !this.isAvailable(theme)) return;
     save(theme);
     this.withTransition(() => this.chosen.set(theme));
   }
 
+  private isAvailable(value: unknown): value is ThemeName {
+    return this.themes.some((t) => t.name === value);
+  }
+
+  private readSaved(): ThemeName | null {
+    try {
+      const value = localStorage.getItem(THEME_STORAGE_KEY);
+      return this.isAvailable(value) ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
   private applyToDocument(theme: ThemeName): void {
     this.document.documentElement.dataset['theme'] = theme;
-    this.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
+    // Browser UI colour = the theme background, read from the palette once the theme applies.
+    const view = this.document.defaultView;
+    const color = view?.getComputedStyle(this.document.documentElement).getPropertyValue('--cn-bg').trim();
+    if (color) this.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color);
   }
 
   /**
@@ -67,15 +77,6 @@ export class ThemeService {
       return;
     }
     this.document.startViewTransition(update);
-  }
-}
-
-function readSaved(): ThemeName | null {
-  try {
-    const value = localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemeName(value) ? value : null;
-  } catch {
-    return null;
   }
 }
 

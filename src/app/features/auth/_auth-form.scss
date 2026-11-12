@@ -51,7 +51,7 @@
     display: inline-block;
     margin-right: 0.5rem;
     vertical-align: middle;
-    --mat-progress-spinner-active-indicator-color: #ffffff;
+    --mat-progress-spinner-active-indicator-color: var(--cn-light);
   }
 }
 

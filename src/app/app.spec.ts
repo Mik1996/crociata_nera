@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, of } from 'rxjs';
 import { App } from './app';
 import { CocApiService } from './core/api/coc-api';
+import { AVAILABLE_THEMES, ThemeName, THEMES } from './core/theme/themes';
 import { provideCocApiTest } from './testing/fixtures';
 
 describe('App', () => {
@@ -88,7 +89,19 @@ describe('App', () => {
     localStorage.clear();
   });
 
-  it('switches theme from the header menu, with a white and a black dot', async () => {
+  it('hides the theme picker when there is a single theme', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('button.theme-picker')).toBeNull();
+    expect(document.documentElement.dataset['theme']).toBe('dark');
+  });
+
+  it('switches theme from the header menu when more themes are available', async () => {
+    const other = 'other' as ThemeName;
+    TestBed.overrideProvider(AVAILABLE_THEMES, {
+      useValue: [...THEMES, { name: other, labelKey: 'theme.other', swatch: 'rgb(255, 255, 255)' }],
+    });
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -96,16 +109,15 @@ describe('App', () => {
     el.querySelector<HTMLButtonElement>('button.theme-picker')!.click();
     await fixture.whenStable();
     const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.theme-menu [mat-menu-item]'));
-    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Chiaro', 'Scuro']);
-    expect(options[0].querySelector('.swatch--light')).not.toBeNull();
-    expect(options[1].querySelector('.swatch--dark')).not.toBeNull();
+    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Scuro', 'theme.other']);
+    expect(options[1].querySelector<HTMLElement>('.swatch')?.style.background).toBe('rgb(255, 255, 255)');
 
     options[1].click();
     await fixture.whenStable();
-    expect(document.documentElement.dataset['theme']).toBe('dark');
-    expect(el.querySelector('button.theme-picker .swatch--dark')).not.toBeNull();
-    expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe('Scuro');
+    expect(document.documentElement.dataset['theme']).toBe(other);
+    expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe('theme.other');
     localStorage.clear();
+    document.documentElement.dataset['theme'] = 'dark';
   });
 
   it('offers a link to skip to the main content', async () => {

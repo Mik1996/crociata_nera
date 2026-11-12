@@ -34,7 +34,7 @@ describe('SwipeTabs', () => {
     const scrollTo = vi.fn();
     bar.scrollTo = scrollTo as unknown as typeof bar.scrollTo;
     // jsdom has no matchMedia. The test files share one window: the stub must be a complete
-    // MediaQueryList (ThemeService listens to it) and must be removed afterwards.
+    // MediaQueryList (e.g. the CDK BreakpointObserver reads it) and must be removed afterwards.
     const stubbed = typeof window.matchMedia !== 'function';
     if (stubbed) {
       window.matchMedia = ((media: string) => ({

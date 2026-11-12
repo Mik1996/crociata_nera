@@ -1,4 +1,6 @@
-<button type="button" class="skip-link" (click)="content.focus()">{{ 'app.skipToContent' | translate }}</button>
+<button type="button" class="skip-link" (click)="content.focus()">
+  {{ 'app.skipToContent' | translate }}
+</button>
 
 <mat-toolbar class="header" role="banner">
   <button
@@ -12,17 +14,32 @@
     <mat-icon>{{ navOpen() ? 'menu_open' : 'menu' }}</mat-icon>
   </button>
 
-  <a routerLink="/" class="brand" [attr.aria-label]="'app.goToHome' | translate: { name: clanName }">
+  <a
+    routerLink="/"
+    class="brand"
+    [attr.aria-label]="'app.goToHome' | translate: { name: clanName }"
+  >
     @if (badgeUrl(); as url) {
       @if (!badgeFailed()) {
-        <img class="brand__badge" [src]="url" alt="" width="44" height="44" (error)="badgeFailed.set(true)" />
+        <img
+          class="brand__badge"
+          [src]="url"
+          alt=""
+          width="44"
+          height="44"
+          (error)="badgeFailed.set(true)"
+        />
       }
     }
     @if (!badgeUrl() || badgeFailed()) {
       <svg class="brand__crest" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
-        <path d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z" fill="#141416" stroke="#d9a93f" stroke-width="3" />
-        <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" fill="#7a1414" />
-        <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" fill="#f0c96a" />
+        <path
+          d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z"
+          class="brand__crest-shield"
+          stroke-width="3"
+        />
+        <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" class="brand__crest-field" />
+        <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" class="brand__crest-cross" />
       </svg>
     }
     <span class="brand__text">
@@ -34,38 +51,48 @@
   <span class="spacer"></span>
 
   @if (useMock) {
-    <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{ 'app.demoData' | translate }}</span>
+    <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{
+      'app.demoData' | translate
+    }}</span>
   }
 
-  @let activeTheme = theme.currentOption();
-  <button
-    mat-button
-    type="button"
-    class="picker theme-picker"
-    [matMenuTriggerFor]="themeMenu"
-    [attr.aria-label]="'theme.change' | translate: { name: (activeTheme.labelKey | translate) }"
-  >
-    <span class="swatch" [class]="'swatch swatch--' + activeTheme.name" aria-hidden="true"></span>
-    <span class="theme-picker__label">{{ activeTheme.labelKey | translate }}</span>
-    <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
-  </button>
-  <mat-menu #themeMenu="matMenu" xPosition="before" class="theme-menu" [ariaLabel]="'theme.menu' | translate">
-    @for (t of theme.themes; track t.name) {
-      <button
-        mat-menu-item
-        type="button"
-        [class.active]="t.name === activeTheme.name"
-        [attr.aria-current]="t.name === activeTheme.name ? 'true' : null"
-        (click)="theme.use(t.name)"
-      >
-        <span class="swatch" [class]="'swatch swatch--' + t.name" aria-hidden="true"></span>
-        <span class="theme-name">{{ t.labelKey | translate }}</span>
-        @if (t.name === activeTheme.name) {
-          <span class="check material-icons" aria-hidden="true">check</span>
-        }
-      </button>
-    }
-  </mat-menu>
+  <!-- Theme picker: only when there is more than one theme -->
+  @if (theme.selectable) {
+    @let activeTheme = theme.currentOption();
+    <button
+      mat-button
+      type="button"
+      class="picker theme-picker"
+      [matMenuTriggerFor]="themeMenu"
+      [attr.aria-label]="'theme.change' | translate: { name: (activeTheme.labelKey | translate) }"
+    >
+      <span class="swatch" [style.background]="activeTheme.swatch" aria-hidden="true"></span>
+      <span class="theme-picker__label">{{ activeTheme.labelKey | translate }}</span>
+      <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+    </button>
+    <mat-menu
+      #themeMenu="matMenu"
+      xPosition="before"
+      class="theme-menu"
+      [ariaLabel]="'theme.menu' | translate"
+    >
+      @for (t of theme.themes; track t.name) {
+        <button
+          mat-menu-item
+          type="button"
+          [class.active]="t.name === activeTheme.name"
+          [attr.aria-current]="t.name === activeTheme.name ? 'true' : null"
+          (click)="theme.use(t.name)"
+        >
+          <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
+          <span class="theme-name">{{ t.labelKey | translate }}</span>
+          @if (t.name === activeTheme.name) {
+            <span class="check material-icons" aria-hidden="true">check</span>
+          }
+        </button>
+      }
+    </mat-menu>
+  }
 
   @let active = language.currentLanguage();
   <button
@@ -79,7 +106,12 @@
     <span class="language__code">{{ active.code.slice(0, 2) }}</span>
     <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
   </button>
-  <mat-menu #languageMenu="matMenu" xPosition="before" class="language-menu" [ariaLabel]="'language.menu' | translate">
+  <mat-menu
+    #languageMenu="matMenu"
+    xPosition="before"
+    class="language-menu"
+    [ariaLabel]="'language.menu' | translate"
+  >
     @for (l of language.languages; track l.code) {
       <button
         mat-menu-item
@@ -107,11 +139,18 @@
         [matMenuTriggerFor]="accountMenu"
         [attr.aria-label]="'auth.account.menu' | translate: { name: user.username }"
       >
-        <span class="account__avatar" aria-hidden="true">{{ user.username.charAt(0).toUpperCase() }}</span>
+        <span class="account__avatar" aria-hidden="true">{{
+          user.username.charAt(0).toUpperCase()
+        }}</span>
         <span class="account__name">{{ user.username }}</span>
         <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
       </button>
-      <mat-menu #accountMenu="matMenu" xPosition="before" class="account-menu" [ariaLabel]="'auth.account.menuLabel' | translate">
+      <mat-menu
+        #accountMenu="matMenu"
+        xPosition="before"
+        class="account-menu"
+        [ariaLabel]="'auth.account.menuLabel' | translate"
+      >
         <div class="account-menu__header">
           <span class="account-menu__label">{{ 'auth.account.signedInAs' | translate }}</span>
           <span class="account-menu__email">{{ user.email }}</span>

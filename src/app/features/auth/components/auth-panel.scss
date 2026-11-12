@@ -1,3 +1,5 @@
+@use 'color-palette' as palette;
+
 :host {
   display: block;
   width: min(100%, 440px);
@@ -16,12 +18,12 @@
   flex-direction: column;
   align-items: center;
   padding: 2.4rem 1rem 0.7rem;
-  background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
+  background: var(--cn-gold-fill);
   border-bottom: 3px solid var(--cn-panel-border);
   border-radius: 11px 11px 0 0;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+    inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
+    inset 0 -3px 0 palette.alpha(var(--cn-shadow), 15%);
 }
 
 .panel__emblem {
@@ -30,7 +32,7 @@
   width: 72px;
   height: 72px;
   object-fit: contain;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 3px 0 palette.alpha(var(--cn-shadow), 35%));
 }
 
 .panel__heading {
@@ -41,13 +43,13 @@
   letter-spacing: 0.02em;
   text-align: center;
   // White title with a dark outline, as on the game's banners (readable on gold).
-  color: #ffffff;
+  color: var(--cn-light);
   text-shadow:
-    0 2px 0 #1d1503,
-    1px 1px 0 #1d1503,
-    -1px 1px 0 #1d1503,
-    1px -1px 0 #1d1503,
-    -1px -1px 0 #1d1503;
+    0 2px 0 var(--cn-on-gold),
+    1px 1px 0 var(--cn-on-gold),
+    -1px 1px 0 var(--cn-on-gold),
+    1px -1px 0 var(--cn-on-gold),
+    -1px -1px 0 var(--cn-on-gold);
 }
 
 .panel__body {

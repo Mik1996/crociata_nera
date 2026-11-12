@@ -23,7 +23,6 @@
   "theme": {
     "change": "Cambiar tema (actual: {{name}})",
     "menu": "Temas disponibles",
-    "light": "Claro",
     "dark": "Oscuro"
   },
   "nav": {
@@ -778,7 +777,7 @@
   },
   "settings": {
     "title": "Ajustes",
-    "subtitle": "Tema e idioma de la app",
+    "subtitle": "Idioma de la app",
     "theme": "Tema",
     "language": "Idioma"
   },

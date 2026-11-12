@@ -1,10 +1,13 @@
 // The Black Crusader: glow behind, breathing figure, fog veil in front of his feet.
-// `--crusader-in` (0–1) comes from the parent; `--crusader-glow` and `--crusader-fog` (RGB triplets) colour the halo and the fog.
+// `--crusader-in` (0–1) comes from the parent; `--crusader-glow` and `--crusader-fog` (colours, palette
+// tokens) colour the halo and the fog.
+
+@use 'color-palette' as palette;
 
 :host {
   --crusader-in: 1;
-  --crusader-glow: 244, 170, 60;
-  --crusader-fog: 14, 12, 14;
+  --crusader-glow: var(--cn-crusader-glow);
+  --crusader-fog: var(--cn-crusader-fog);
   position: relative;
   display: block;
   aspect-ratio: 2 / 3;
@@ -20,8 +23,8 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse at 50% 40%,
-    rgba(var(--crusader-glow), 0.55) 0%,
-    rgba(var(--crusader-glow), 0.18) 45%,
+    palette.alpha(var(--crusader-glow), 55%) 0%,
+    palette.alpha(var(--crusader-glow), 18%) 45%,
     transparent 70%
   );
   opacity: calc(0.4 + var(--crusader-in) * 0.6);
@@ -44,7 +47,12 @@
   position: absolute;
   inset: auto -20% -4%;
   height: calc(22% + (1 - var(--crusader-in)) * 70%);
-  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--crusader-fog), 0.95) 30%, rgba(var(--crusader-fog), 0.6) 55%, transparent 75%);
+  background: radial-gradient(
+    ellipse 60% 100% at 50% 100%,
+    palette.alpha(var(--crusader-fog), 95%) 30%,
+    palette.alpha(var(--crusader-fog), 60%) 55%,
+    transparent 75%
+  );
 }
 
 @keyframes crusader-breath {

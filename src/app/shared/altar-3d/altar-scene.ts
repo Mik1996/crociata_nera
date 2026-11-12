@@ -29,6 +29,8 @@ import {
   WebGLRenderer,
 } from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { cssColorAlpha } from '../styles/css-color';
+import { paletteColor } from '../styles/palette-color-3d';
 
 export interface AltarSceneOptions {
   /** Continuous animation (floating trophy, embers, rays); off = drawn only when something changes. */
@@ -95,7 +97,7 @@ export class AltarScene {
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
-    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearColor(paletteColor('--cn-shadow'), 0);
 
     const pmrem = new PMREMGenerator(this.renderer);
     const room = new RoomEnvironment();
@@ -247,23 +249,23 @@ export class AltarScene {
   // --- Building --------------------------------------------------------------------------------
 
   private addLights(): void {
-    this.scene.add(new AmbientLight('#4a3026', 0.7));
-    const key = new DirectionalLight('#ffc48a', 2.6);
+    this.scene.add(new AmbientLight(paletteColor('--cn-altar-ambient'), 0.7));
+    const key = new DirectionalLight(paletteColor('--cn-altar-key-light'), 2.6);
     key.position.set(2.5, 4, 3.5);
-    const rim = new DirectionalLight('#ff3a1a', 3);
+    const rim = new DirectionalLight(paletteColor('--cn-altar-rim-light'), 3);
     rim.position.set(-3, 2.5, -3.5);
-    const fill = new DirectionalLight('#5a6cff', 0.35);
+    const fill = new DirectionalLight(paletteColor('--cn-altar-fill-light'), 0.35);
     fill.position.set(-4, 1.5, 2);
     // The trophy's own glow on the top of the altar.
-    const glow = new PointLight('#ff9a40', 5, 3.2, 2);
+    const glow = new PointLight(paletteColor('--cn-altar-flame'), 5, 3.2, 2);
     glow.position.set(0, ALTAR_TOP + 0.35, 0.2);
     this.scene.add(key, rim, fill, glow);
   }
 
   private buildAltar(): Group {
-    const stone = new MeshStandardMaterial({ color: '#2b2a31', roughness: 0.82, metalness: 0.08, flatShading: true });
-    const darkStone = new MeshStandardMaterial({ color: '#1b1a20', roughness: 0.9, metalness: 0.05, flatShading: true });
-    const gold = new MeshPhysicalMaterial({ color: '#e2b24c', metalness: 1, roughness: 0.3, clearcoat: 0.4 });
+    const stone = new MeshStandardMaterial({ color: paletteColor('--cn-altar-stone'), roughness: 0.82, metalness: 0.08, flatShading: true });
+    const darkStone = new MeshStandardMaterial({ color: paletteColor('--cn-altar-stone-dark'), roughness: 0.9, metalness: 0.05, flatShading: true });
+    const goldMetal = new MeshPhysicalMaterial({ color: paletteColor('--cn-clan-gold-leaf'), metalness: 1, roughness: 0.3, clearcoat: 0.4 });
 
     const altar = new Group();
     const prism = (top: number, bottom: number, height: number, y: number, material: Material) => {
@@ -275,12 +277,12 @@ export class AltarScene {
 
     // Steps, column, capital and top, from the ground up, with gold rings.
     prism(1.15, 1.25, 0.22, 0.11, darkStone);
-    prism(1.17, 1.17, 0.04, 0.23, gold);
+    prism(1.17, 1.17, 0.04, 0.23, goldMetal);
     prism(0.95, 1.0, 0.18, 0.34, stone);
-    prism(0.97, 0.97, 0.035, 0.44, gold);
+    prism(0.97, 0.97, 0.035, 0.44, goldMetal);
     prism(0.5, 0.62, 1.0, 0.95, stone);
     prism(0.78, 0.55, 0.2, 1.55, stone);
-    prism(0.8, 0.8, 0.04, 1.66, gold);
+    prism(0.8, 0.8, 0.04, 1.66, goldMetal);
     prism(0.7, 0.75, 0.05, 1.665, darkStone);
 
     // Gold crosses of the clan on four faces of the column (leaning like the tapered faces).
@@ -291,8 +293,8 @@ export class AltarScene {
       const cross = new Group();
       cross.position.set(0, 0.98, 0.528);
       cross.rotation.x = -lean;
-      const upright = new Mesh(new BoxGeometry(0.07, 0.4, 0.03), gold);
-      const arm = new Mesh(new BoxGeometry(0.26, 0.07, 0.03), gold);
+      const upright = new Mesh(new BoxGeometry(0.07, 0.4, 0.03), goldMetal);
+      const arm = new Mesh(new BoxGeometry(0.26, 0.07, 0.03), goldMetal);
       arm.position.y = 0.07;
       cross.add(upright, arm);
       face.add(cross);
@@ -303,7 +305,10 @@ export class AltarScene {
     const brazier = new Mesh(
       new CircleGeometry(0.55, 32),
       new MeshBasicMaterial({
-        map: this.glowTexture('rgba(255, 190, 90, 1)', 'rgba(255, 80, 10, 0)'),
+        map: this.glowTexture(
+          cssColorAlpha('--cn-altar-ember-glow', 1),
+          cssColorAlpha('--cn-altar-ember-edge', 0),
+        ),
         transparent: true,
         blending: AdditiveBlending,
         depthWrite: false,
@@ -320,7 +325,10 @@ export class AltarScene {
     const ground = new Mesh(
       new CircleGeometry(1.9, 48),
       new MeshBasicMaterial({
-        map: this.glowTexture('rgba(150, 52, 20, 0.85)', 'rgba(60, 14, 8, 0)'),
+        map: this.glowTexture(
+          cssColorAlpha('--cn-altar-ground', 0.85),
+          cssColorAlpha('--cn-altar-ground-edge', 0),
+        ),
         transparent: true,
         depthWrite: false,
       }),
@@ -340,8 +348,8 @@ export class AltarScene {
     for (let i = 0; i < 18; i++) {
       ctx.rotate((Math.PI * 2) / 18);
       const gradient = ctx.createLinearGradient(0, 0, 0, -c);
-      gradient.addColorStop(0, 'rgba(255, 214, 130, 0.55)');
-      gradient.addColorStop(1, 'rgba(255, 160, 60, 0)');
+      gradient.addColorStop(0, cssColorAlpha('--cn-altar-ember-light', 0.55));
+      gradient.addColorStop(1, cssColorAlpha('--cn-altar-flame', 0));
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -380,8 +388,11 @@ export class AltarScene {
       geometry,
       new PointsMaterial({
         size: 0.06,
-        map: this.glowTexture('rgba(255, 220, 150, 1)', 'rgba(255, 110, 20, 0)'),
-        color: '#ffb060',
+        map: this.glowTexture(
+          cssColorAlpha('--cn-altar-ember-light', 1),
+          cssColorAlpha('--cn-altar-ember-edge', 0),
+        ),
+        color: paletteColor('--cn-altar-ember'),
         transparent: true,
         blending: AdditiveBlending,
         depthWrite: false,

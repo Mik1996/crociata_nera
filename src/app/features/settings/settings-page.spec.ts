@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
+import { AVAILABLE_THEMES, ThemeName, THEMES } from '../../core/theme/themes';
 import { SettingsPage } from './settings-page';
 
 describe('SettingsPage', () => {
@@ -14,16 +15,27 @@ describe('SettingsPage', () => {
     return { fixture, el: fixture.nativeElement as HTMLElement };
   }
 
-  it('switches theme, marking the chosen option', async () => {
+  it('hides the theme section when there is a single theme', async () => {
+    const { el } = await render();
+    expect(el.querySelector('.option--theme')).toBeNull();
+    expect(el.querySelector('#settings-theme')).toBeNull();
+  });
+
+  it('switches theme, marking the chosen option, when more themes are available', async () => {
+    const other = 'other' as ThemeName;
+    TestBed.overrideProvider(AVAILABLE_THEMES, {
+      useValue: [...THEMES, { name: other, labelKey: 'theme.other', swatch: '#ffffff' }],
+    });
     const { fixture, el } = await render();
     const options = Array.from(el.querySelectorAll<HTMLButtonElement>('.option--theme'));
-    expect(options.map((o) => o.querySelector('.option__label')?.textContent?.trim())).toEqual(['Chiaro', 'Scuro']);
+    expect(options.map((o) => o.querySelector('.option__label')?.textContent?.trim())).toEqual(['Scuro', 'theme.other']);
 
     options[1].click();
     await fixture.whenStable();
-    expect(document.documentElement.dataset['theme']).toBe('dark');
+    expect(document.documentElement.dataset['theme']).toBe(other);
     expect(options[1].getAttribute('aria-checked')).toBe('true');
     expect(options[0].getAttribute('aria-checked')).toBe('false');
+    document.documentElement.dataset['theme'] = 'dark';
   });
 
   it('switches language', async () => {
@@ -37,7 +49,7 @@ describe('SettingsPage', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(el.querySelector('h2')!.textContent).toContain('Theme');
+    expect(el.querySelector('h2')!.textContent).toContain('Language');
     expect(options[1].getAttribute('aria-checked')).toBe('true');
   });
 });

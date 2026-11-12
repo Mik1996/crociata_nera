@@ -1,3 +1,5 @@
+@use 'color-palette' as palette;
+
 .settings {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
@@ -47,12 +49,12 @@
 
 .option--selected {
   border-color: var(--cn-panel-border);
-  background: linear-gradient(180deg, #ffd862 0%, #e9ae1f 100%);
+  background: var(--cn-gold-fill);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
+    inset 0 -3px 0 palette.alpha(var(--cn-shadow), 20%),
     0 2px 0 var(--cn-panel-border);
-  color: #1d1503;
+  color: var(--cn-on-gold);
 }
 
 .option__label {
@@ -61,24 +63,16 @@
 
 .option__check {
   flex: none;
-  color: #1d1503;
+  color: var(--cn-on-gold);
 }
 
-/* Colored dot of the theme (white = light, black = dark). */
+/* Colored dot of the theme (its color comes from `ThemeOption.swatch`). */
 .swatch {
   flex: none;
   width: 24px;
   height: 24px;
   border-radius: 50%;
   border: 1px solid var(--cn-outline);
-}
-
-.swatch--light {
-  background: #ffffff;
-}
-
-.swatch--dark {
-  background: #000000;
 }
 
 .flag {

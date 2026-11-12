@@ -29,6 +29,8 @@ import {
   WebGLRenderer,
 } from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { cssColor, cssColorAlpha } from '../styles/css-color';
+import { paletteColor } from '../styles/palette-color-3d';
 import { MedalDecorations } from './medal-decorations';
 import { MedalFinishSpec } from './medal-finish';
 import { createBodyGeometry, createFaceGeometry, frontHeightAt } from './medal-geometry';
@@ -42,18 +44,16 @@ const GEM_DEPTH = 0.15;
 const GEM_LIFT = 0.1;
 const GEM_SCALE = 1.2;
 const GEM_OUTSET = 0.4;
-/** Colour of the sunburst and the glints, as in the flat medals. */
-const GLOW_COLOR = '#ffd54a';
-const LOCKED_GEM = '#3a3d44';
-/** Warm enough to stay visible on the light theme too. */
-const SPARKLE_COLOR = '#ffd75e';
+/** Palette token of the sunburst and the glints, as in the flat medals. */
+const GLINT_COLOR = '--cn-medal-glint';
+const LOCKED_GEM = '--cn-medal-locked-gem';
 
 /** Studio renderer settings shared by the interactive scene and the snapshots. */
 export function configureRenderer(renderer: WebGLRenderer): void {
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(paletteColor('--cn-shadow'), 0);
 }
 
 /**
@@ -85,13 +85,13 @@ export class MedalModel {
     this.scene.environment = this.environment;
 
     // Lights fixed in the world: turning the medal makes the specular highlights slide on the metal.
-    const key = new DirectionalLight(0xffffff, 1.9);
+    const key = new DirectionalLight(paletteColor('--cn-light'), 1.9);
     key.position.set(3, 4, 5);
-    const fill = new DirectionalLight(0xfff1dc, 0.8);
+    const fill = new DirectionalLight(paletteColor('--cn-3d-light-warm'), 0.8);
     fill.position.set(-4, 1, 3);
-    const rim = new DirectionalLight(0xdfe8ff, 0.9);
+    const rim = new DirectionalLight(paletteColor('--cn-3d-light-cool'), 0.9);
     rim.position.set(-2, -3, -4);
-    this.scene.add(new AmbientLight(0xffffff, 0.25), key, fill, rim);
+    this.scene.add(new AmbientLight(paletteColor('--cn-light'), 0.25), key, fill, rim);
 
     this.medal.add(
       new Mesh(createBodyGeometry(), this.bodyMaterial),
@@ -104,7 +104,7 @@ export class MedalModel {
   /** Metal of the whole medal (body, face, leaves, studs); a locked medal also loses its glows. */
   setFinish(finish: Required<MedalFinishSpec>, locked: boolean): void {
     for (const material of [this.bodyMaterial, this.faceMaterial]) {
-      material.color = new Color(finish.color);
+      material.color = new Color(finish.color || undefined);
       material.metalness = finish.metalness;
       material.roughness = finish.roughness;
       material.clearcoat = finish.clearcoat;
@@ -241,7 +241,7 @@ export class MedalModel {
         geometry,
         new MeshBasicMaterial({
           map: glowTexture(),
-          color: GLOW_COLOR,
+          color: paletteColor(GLINT_COLOR),
           transparent: true,
           depthWrite: false,
           side: DoubleSide,
@@ -258,7 +258,7 @@ export class MedalModel {
         const sprite = new Sprite(
           new SpriteMaterial({
             map: texture,
-            color: SPARKLE_COLOR,
+            color: paletteColor(GLINT_COLOR),
             transparent: true,
             depthWrite: false,
           }),
@@ -276,8 +276,9 @@ export class MedalModel {
   /** Locked: grey gems, no glows. */
   private applyLock(): void {
     for (const { material, color } of this.gemMaterials) {
-      material.color = new Color(this.locked ? LOCKED_GEM : color);
-      material.emissive = new Color(this.locked ? '#000000' : color).multiplyScalar(0.35);
+      material.color = this.locked ? paletteColor(LOCKED_GEM) : new Color(color);
+      const emissive = this.locked ? paletteColor('--cn-shadow') : new Color(color);
+      material.emissive = emissive.multiplyScalar(0.35);
       material.roughness = this.locked ? 0.7 : 0.05;
       material.clearcoat = this.locked ? 0 : 1;
     }
@@ -331,9 +332,9 @@ function glowTexture(): CanvasTexture {
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d')!;
   const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  gradient.addColorStop(0.4, 'rgba(255, 241, 160, 1)');
-  gradient.addColorStop(0.8, 'rgba(255, 200, 58, 0.75)');
-  gradient.addColorStop(1, 'rgba(255, 176, 0, 0.1)');
+  gradient.addColorStop(0.4, cssColorAlpha('--cn-medal-glow-core', 1));
+  gradient.addColorStop(0.8, cssColorAlpha('--cn-medal-glow-mid', 0.75));
+  gradient.addColorStop(1, cssColorAlpha('--cn-medal-glow-edge', 0.1));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
   const texture = new CanvasTexture(canvas);
@@ -349,12 +350,12 @@ function sparkleTexture(): CanvasTexture {
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d')!;
   const halo = ctx.createRadialGradient(c, c, 0, c, c, c);
-  halo.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
-  halo.addColorStop(0.35, 'rgba(255, 250, 220, 0.15)');
-  halo.addColorStop(1, 'rgba(255, 250, 220, 0)');
+  halo.addColorStop(0, cssColorAlpha('--cn-light', 0.55));
+  halo.addColorStop(0.35, cssColorAlpha('--cn-medal-sparkle-halo', 0.15));
+  halo.addColorStop(1, cssColorAlpha('--cn-medal-sparkle-halo', 0));
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = cssColor('--cn-light');
   ctx.beginPath();
   const [long, short] = [c * 0.95, c * 0.16];
   for (let i = 0; i < 8; i++) {

@@ -16,8 +16,7 @@ import { clanTrend, computeWarKpi, efficiency, rankPerformers } from '../../core
 import {
   barSeries,
   baseChartOptions,
-  CHART_CHROME,
-  CHART_COLORS,
+  chartChrome,
   lineSeries,
   shortDateLabel,
 } from '../../shared/charts/chart-theme';
@@ -92,14 +91,14 @@ export class DashboardPage {
   );
 
   /** Chart colours of the current theme. */
-  private readonly chrome = computed(() => CHART_CHROME[this.theme.current()]);
+  private readonly chrome = computed(() => chartChrome(this.theme.current()));
 
   protected readonly starsOptions = computed(() => baseChartOptions(this.chrome(), { min: 0 }));
   protected readonly starsData = computed<ChartData<'line', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      lineSeries(this.language.t('dashboard.seriesStarsEarned'), this.trend().map((p) => p.stars), CHART_COLORS.gold, this.chrome()),
-      lineSeries(this.language.t('dashboard.seriesStarsConceded'), this.trend().map((p) => p.starsConceded), CHART_COLORS.blue, this.chrome()),
+      lineSeries(this.language.t('dashboard.seriesStarsEarned'), this.trend().map((p) => p.stars), this.chrome().series1, this.chrome()),
+      lineSeries(this.language.t('dashboard.seriesStarsConceded'), this.trend().map((p) => p.starsConceded), this.chrome().series2, this.chrome()),
     ],
   }));
 
@@ -109,7 +108,7 @@ export class DashboardPage {
   protected readonly participationData = computed<ChartData<'bar', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      barSeries(this.language.t('dashboard.seriesAttacksUsed'), this.trend().map((p) => p.participation), CHART_COLORS.gold, this.chrome()),
+      barSeries(this.language.t('dashboard.seriesAttacksUsed'), this.trend().map((p) => p.participation), this.chrome().series1, this.chrome()),
     ],
   }));
 
@@ -122,9 +121,9 @@ export class DashboardPage {
       lineSeries(
         this.language.t('dashboard.seriesDestruction'),
         this.trend().map((p) => p.destruction),
-        CHART_COLORS.gold,
+        this.chrome().series1,
         this.chrome(),
-        CHART_COLORS.goldTransparent,
+        this.chrome().series1Fill,
       ),
     ],
   }));

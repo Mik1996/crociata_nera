@@ -3,12 +3,20 @@
 // The scroll (`.code__scroll`, an act of its own) is unrolled by `--reveal` (px), written by the
 // component from its position (`scrollReveal`).
 
-$ink: #f2f5fb;
+@use 'color-palette' as palette;
+
+$ink: var(--cn-welcome-text);
 
 :host {
   container: code / inline-size;
   isolation: isolate;
-  background: linear-gradient(180deg, #0d0607 0%, #140d0a 18%, #140d0a 82%, #0b0a0f 100%);
+  background: linear-gradient(
+    180deg,
+    var(--cn-war-night) 0%,
+    var(--cn-code-night) 18%,
+    var(--cn-code-night) 82%,
+    var(--cn-night-dark) 100%
+  );
   color: $ink;
 }
 
@@ -25,7 +33,11 @@ $ink: #f2f5fb;
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(ellipse 50% 30% at 50% 20%, rgba(255, 170, 80, 0.22), transparent 70%);
+  background: radial-gradient(
+    ellipse 50% 30% at 50% 20%,
+    palette.alpha(var(--cn-fire-torch), 22%),
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -38,8 +50,8 @@ $ink: #f2f5fb;
 
 .code__crusader {
   --crusader-in: clamp(0, (var(--enter) - 0.15) * 2.4, 1);
-  --crusader-glow: 255, 190, 110;
-  --crusader-fog: 20, 13, 10;
+  --crusader-glow: var(--cn-fire-candle);
+  --crusader-fog: var(--cn-code-night);
   height: calc(var(--scrolly-vh, 100svh) * 0.5);
 }
 
@@ -70,10 +82,16 @@ $ink: #f2f5fb;
   left: -12px;
   right: -12px;
   height: 26px;
-  border: 2px solid #3d220e;
+  border: 2px solid var(--cn-parchment-wood-edge);
   border-radius: 13px;
-  background: linear-gradient(180deg, #5a3418 0%, #c08a4a 35%, #8a5a2a 60%, #4a2a12 100%);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(
+    180deg,
+    var(--cn-parchment-wood-dark) 0%,
+    var(--cn-parchment-wood-light) 35%,
+    var(--cn-parchment-wood-mid) 60%,
+    var(--cn-parchment-wood-deep) 100%
+  );
+  box-shadow: 0 6px 10px palette.alpha(var(--cn-shadow), 45%);
 
   // Gilded knobs at both ends.
   &::before,
@@ -83,9 +101,14 @@ $ink: #f2f5fb;
     top: 50%;
     width: 22px;
     height: 34px;
-    border: 2px solid #5a3a0a;
+    border: 2px solid var(--cn-parchment-knob-edge);
     border-radius: 8px;
-    background: linear-gradient(180deg, #ffe08a, #c9921f 60%, #7a5208);
+    background: linear-gradient(
+      180deg,
+      var(--cn-parchment-knob-light),
+      var(--cn-parchment-knob) 60%,
+      var(--cn-parchment-knob-dark)
+    );
     transform: translateY(-50%);
   }
 

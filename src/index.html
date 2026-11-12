@@ -6,16 +6,17 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Statistiche e storico delle guerre del clan Crociata Nera (Clash of Clans).">
-  <meta name="theme-color" content="#0f1729">
+  <!-- Initial browser UI colour (= --cn-bg of the default theme, before the styles load; ThemeService
+       then reads it from the palette). Keep in sync with public/site.webmanifest. -->
+  <meta name="theme-color" content="#16181c">
   <script>
-    // Apply the saved theme (or the system one) before the app boots, to avoid a flash of the wrong theme.
-    // Keep in sync with ThemeService (src/app/core/theme).
+    // Apply the saved theme (or the default one) before the app boots, to avoid a flash of the wrong theme.
+    // Keep in sync with THEMES / DEFAULT_THEME (src/app/core/theme/themes.ts).
     (function () {
+      var themes = ['dark'];
       var theme = null;
       try { theme = localStorage.getItem('crociata-nera.theme'); } catch (e) {}
-      if (theme !== 'light' && theme !== 'dark') {
-        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
+      if (themes.indexOf(theme) < 0) theme = 'dark';
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>

@@ -2,28 +2,30 @@
 
 <div appScrollFade class="page__scroll">
   <div class="settings">
-    <section class="cn-card cn-section" aria-labelledby="settings-theme">
-      <h2 id="settings-theme">{{ 'settings.theme' | translate }}</h2>
-      <div class="options" role="radiogroup" aria-labelledby="settings-theme">
-        @for (t of theme.themes; track t.name) {
-          @let selected = t.name === theme.current();
-          <button
-            type="button"
-            role="radio"
-            class="option option--theme"
-            [class.option--selected]="selected"
-            [attr.aria-checked]="selected"
-            (click)="theme.use(t.name)"
-          >
-            <span class="swatch" [class]="'swatch swatch--' + t.name" aria-hidden="true"></span>
-            <span class="option__label">{{ t.labelKey | translate }}</span>
-            @if (selected) {
-              <mat-icon class="option__check" aria-hidden="true">check_circle</mat-icon>
-            }
-          </button>
-        }
-      </div>
-    </section>
+    @if (theme.selectable) {
+      <section class="cn-card cn-section" aria-labelledby="settings-theme">
+        <h2 id="settings-theme">{{ 'settings.theme' | translate }}</h2>
+        <div class="options" role="radiogroup" aria-labelledby="settings-theme">
+          @for (t of theme.themes; track t.name) {
+            @let selected = t.name === theme.current();
+            <button
+              type="button"
+              role="radio"
+              class="option option--theme"
+              [class.option--selected]="selected"
+              [attr.aria-checked]="selected"
+              (click)="theme.use(t.name)"
+            >
+              <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
+              <span class="option__label">{{ t.labelKey | translate }}</span>
+              @if (selected) {
+                <mat-icon class="option__check" aria-hidden="true">check_circle</mat-icon>
+              }
+            </button>
+          }
+        </div>
+      </section>
+    }
 
     <section class="cn-card cn-section" aria-labelledby="settings-language">
       <h2 id="settings-language">{{ 'settings.language' | translate }}</h2>

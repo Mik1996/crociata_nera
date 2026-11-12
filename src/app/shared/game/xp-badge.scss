@@ -34,7 +34,7 @@
   font-family: var(--cn-font-display);
   font-weight: 700;
   font-size: var(--cn-fs-md);
-  color: #ffffff;
+  color: var(--cn-light);
 }
 
 /* Dark outline of the star. */
@@ -47,13 +47,13 @@
 
 :host::before {
   inset: 0;
-  background: #0b2547;
+  background: var(--cn-xp-outline);
 }
 
 /* Blue body of the star. */
 :host::after {
   inset: 0.12em;
-  background: radial-gradient(circle at 50% 35%, #8fd0ff 0%, #3a8ee6 50%, #1d57a8 100%);
+  background: radial-gradient(circle at 50% 35%, var(--cn-xp-light) 0%, var(--cn-xp) 50%, var(--cn-xp-dark) 100%);
 }
 
 .xp__number {
@@ -62,9 +62,9 @@
   white-space: nowrap;
   letter-spacing: -0.02em;
   text-shadow:
-    0 2px 0 #0b2547,
-    1px 1px 0 #0b2547,
-    -1px 1px 0 #0b2547,
-    1px -1px 0 #0b2547,
-    -1px -1px 0 #0b2547;
+    0 2px 0 var(--cn-xp-outline),
+    1px 1px 0 var(--cn-xp-outline),
+    -1px 1px 0 var(--cn-xp-outline),
+    1px -1px 0 var(--cn-xp-outline),
+    -1px -1px 0 var(--cn-xp-outline);
 }
