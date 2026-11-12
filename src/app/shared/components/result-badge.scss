@@ -1,9 +1,11 @@
+@use 'variables' as *;
+
 :host {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
+  gap: $space-xs;
+  padding: $space-xs $space-s;
+  border-radius: $radius-pill;
   font-size: var(--cn-fs-sm);
   font-weight: 600;
   white-space: nowrap;

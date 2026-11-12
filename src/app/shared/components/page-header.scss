@@ -1,11 +1,13 @@
+@use 'variables' as *;
+
 :host {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 0.75rem;
-  margin-bottom: 0.9rem;
-  padding-bottom: 0.5rem;
+  gap: $space-s $space-m;
+  margin-bottom: $space-l;
+  padding-bottom: $space-s;
   border-bottom: 1px solid var(--cn-border);
 }
 
@@ -19,14 +21,14 @@
 }
 
 .subtitle {
-  margin: 0.15rem 0 0;
+  margin: $space-xs 0 0;
   color: var(--cn-text-muted);
 }
 
 .actions {
   display: flex;
   flex-grow: 1;
-  gap: 0.5rem;
+  gap: $space-s;
   flex-wrap: wrap;
   justify-content: flex-end;
 }

@@ -1,10 +1,16 @@
 // Last act, the call: the three Crusaders under golden rays, then the banner to join.
 
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   isolation: isolate;
-  background: linear-gradient(180deg, var(--cn-night-dark) 0%, var(--cn-call-dusk) 40%, var(--cn-night-dark) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--cn-night-dark) 0%,
+    var(--cn-call-dusk) 40%,
+    var(--cn-night-dark) 100%
+  );
   color: var(--cn-welcome-text);
 }
 
@@ -12,7 +18,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: min(3rem, 8vh) clamp(0.75rem, 2.5vw, 1.5rem) 2rem;
+  padding: min($space-xxxl, 8vh) clamp($space-m, 2.5vw, $space-xl) $space-xxl;
 }
 
 .call__intro {
@@ -40,7 +46,8 @@
   );
   mask: radial-gradient(circle, var(--cn-mask) 10%, transparent 62%);
   opacity: var(--in);
-  transform: translate(-50%, -50%) rotate(calc(var(--enter) * 40deg)) scale(calc(0.7 + var(--in) * 0.3));
+  transform: translate(-50%, -50%) rotate(calc(var(--enter) * 40deg))
+    scale(calc(0.7 + var(--in) * 0.3));
 }
 
 // Gold, Black and Red Crusaders side by side (1200 × 1023 picture): they rise out of the fog.
@@ -49,7 +56,7 @@
   // Height-bound on wide screens, width-bound on phones.
   width: min(calc(var(--scrolly-vh, 100svh) * 0.62 * 1200 / 1023), 100%);
   aspect-ratio: 1200 / 1023;
-  margin-top: 0.5rem;
+  margin-top: $space-s;
   pointer-events: none;
   opacity: clamp(0, var(--in) * 1.4, 1);
   transform: translate3d(0, calc((1 - var(--in)) * 14%), 0) scale(calc(0.94 + var(--in) * 0.06));

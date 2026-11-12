@@ -3,6 +3,7 @@
 // right of the numbers.
 
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 $ink: var(--cn-welcome-text);
 $muted: var(--cn-welcome-text-muted);
@@ -50,12 +51,12 @@ $night: var(--cn-night-dark);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: min(1.1rem, 2.4cqh);
+  gap: min($space-l, 2.4cqh);
   box-sizing: border-box;
   width: 100%;
   max-width: 64rem;
   margin: 0 auto;
-  padding: min(2.5rem, 7cqh) 1rem min(1.5rem, 4cqh);
+  padding: min($space-xxl, 7cqh) $space-l min($space-xl, 4cqh);
 }
 
 // --- Banners with the numbers ----------------------------------------------------------------
@@ -84,8 +85,8 @@ $night: var(--cn-night-dark);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
-  padding: min(0.8rem, 2cqh) 0.4rem min(1.1rem, 2.6cqh);
+  gap: $space-xs;
+  padding: min($space-m, 2cqh) $space-s min($space-l, 2.6cqh);
   // Swallowtail banner.
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
   border-top: 3px solid var(--cn-game-gold);
@@ -131,7 +132,7 @@ $night: var(--cn-night-dark);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.4rem;
+  gap: $space-s;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -142,23 +143,23 @@ $night: var(--cn-night-dark);
 .label-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.7rem 0.2rem 0.3rem;
+  gap: $space-xs;
+  padding: $space-xs $space-m $space-xs $space-xs;
   border: 1px solid palette.alpha(var(--cn-gold-light), 45%);
-  border-radius: 0.25rem;
+  border-radius: $radius-s;
   background: palette.alpha(var(--cn-bg), 75%);
   font-size: var(--cn-fs-xs);
   color: $ink;
 
   img {
-    width: 24px;
-    height: 24px;
+    width: 1.5rem;
+    height: 1.5rem;
   }
 }
 
 // --- Wide stages ---------------------------------------------------------------------------------
 
-@container stage (min-width: 600px) {
+@container stage (min-width: 37.5rem) {
   .army__stats {
     --columns: 3;
   }
@@ -176,6 +177,6 @@ $night: var(--cn-night-dark);
     margin: 0;
     width: 62%;
     max-width: none;
-    padding-left: clamp(1rem, 5cqw, 4rem);
+    padding-left: clamp($space-l, 5cqw, $space-xxxl);
   }
 }

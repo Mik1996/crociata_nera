@@ -10,6 +10,7 @@
 // (`--finale`).
 
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 $ink: var(--cn-welcome-text);
 $muted: var(--cn-welcome-text-muted);
@@ -113,7 +114,10 @@ $night: var(--cn-welcome-night);
   place-items: center;
   width: min(64cqw, 40cqh);
   aspect-ratio: 1;
-  transform: translate(calc(-50% + var(--lift) * var(--halo-x)), calc(-50% + var(--lift) * var(--halo-y)))
+  transform: translate(
+      calc(-50% + var(--lift) * var(--halo-x)),
+      calc(-50% + var(--lift) * var(--halo-y))
+    )
     scale(calc(1 + var(--lift) * (var(--halo-scale) - 1)));
   // Stays fully visible: it is the clan's emblem.
   opacity: calc(1 - var(--lift) * 0.05);
@@ -150,7 +154,7 @@ $night: var(--cn-welcome-night);
   width: 78%;
   height: 78%;
   object-fit: contain;
-  filter: drop-shadow(0 10px 0 #{palette.alpha(var(--cn-shadow), 45%)});
+  filter: drop-shadow(0 0.625rem 0 #{palette.alpha(var(--cn-shadow), 45%)});
   animation: badge-float 5s ease-in-out infinite;
 }
 
@@ -217,8 +221,16 @@ $night: var(--cn-welcome-night);
   inset: auto -10% 0;
   height: 42cqh;
   background:
-    radial-gradient(ellipse 45% 40% at 20% 85%, #{palette.alpha(var(--cn-hero-fog), 45%)}, transparent 70%),
-    radial-gradient(ellipse 50% 45% at 78% 90%, #{palette.alpha(var(--cn-hero-fog), 40%)}, transparent 70%),
+    radial-gradient(
+      ellipse 45% 40% at 20% 85%,
+      #{palette.alpha(var(--cn-hero-fog), 45%)},
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 78% 90%,
+      #{palette.alpha(var(--cn-hero-fog), 40%)},
+      transparent 70%
+    ),
     linear-gradient(to top, $night 0%, #{palette.alpha($night, 88%)} 28%, transparent 100%);
   animation: fog-drift 18s ease-in-out infinite alternate;
 }
@@ -237,13 +249,13 @@ $night: var(--cn-welcome-night);
 
 .ember {
   position: absolute;
-  bottom: -10px;
+  bottom: -0.625rem;
   left: calc(var(--i) * 7%);
-  width: 5px;
-  height: 5px;
+  width: 0.3125rem;
+  height: 0.3125rem;
   border-radius: 50%;
   background: radial-gradient(circle, var(--ember-core) 0%, var(--ember-edge) 55%, transparent 70%);
-  box-shadow: 0 0 8px 2px palette.alpha(var(--ember-edge), 60%);
+  box-shadow: 0 0 0.5rem 2px palette.alpha(var(--ember-edge), 60%);
   opacity: 0;
   animation: ember-rise calc(5s + var(--i) * 0.37s) linear infinite;
   animation-delay: calc(var(--i) * -0.9s);
@@ -258,7 +270,7 @@ $night: var(--cn-welcome-night);
     opacity: 0.9;
   }
   100% {
-    transform: translate(calc(sin(var(--i)) * 40px), -70cqh) scale(0.3);
+    transform: translate(calc(sin(var(--i)) * 2.5rem), -70cqh) scale(0.3);
     opacity: 0;
   }
 }
@@ -276,9 +288,12 @@ $night: var(--cn-welcome-night);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 $space-l;
   text-align: center;
-  transform: translate(calc((1 - var(--lift)) * var(--title-x)), calc((1 - var(--lift)) * var(--title-y)))
+  transform: translate(
+      calc((1 - var(--lift)) * var(--title-x)),
+      calc((1 - var(--lift)) * var(--title-y))
+    )
     scale(calc(1 + (1 - var(--lift)) * 0.1));
 }
 
@@ -316,7 +331,13 @@ $night: var(--cn-welcome-night);
 
 .clan-name__metal {
   background:
-    linear-gradient(105deg, transparent 40%, #{palette.alpha(var(--sweep), 45%)} 50%, transparent 60%) 0 0 / 260% 100% no-repeat,
+    linear-gradient(
+        105deg,
+        transparent 40%,
+        #{palette.alpha(var(--sweep), 45%)} 50%,
+        transparent 60%
+      )
+      0 0 / 260% 100% no-repeat,
     var(--metal);
   -webkit-background-clip: text;
   background-clip: text;
@@ -325,7 +346,7 @@ $night: var(--cn-welcome-night);
   text-shadow: none;
   // Edge like the trims of the Crusader's armour.
   -webkit-text-stroke: 1.5px var(--metal-edge);
-  filter: drop-shadow(0 3px 0 var(--cn-shadow)) drop-shadow(0 0 1px var(--cn-shadow));
+  filter: drop-shadow(0 0.1875rem 0 var(--cn-shadow)) drop-shadow(0 0 1px var(--cn-shadow));
   animation: metal-sweep 5.5s ease-in-out infinite;
 }
 
@@ -370,7 +391,7 @@ $night: var(--cn-welcome-night);
 
 // "Act VI · Sister clan", above the name of a sister clan.
 .hero__kicker {
-  margin: 0 0 0.35rem;
+  margin: 0 0 $space-xs;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-xs);
   letter-spacing: 0.32em;
@@ -384,8 +405,8 @@ $night: var(--cn-welcome-night);
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 0.25rem 0.5rem;
-  margin: 0.5rem 0 0;
+  gap: $space-xs $space-s;
+  margin: $space-s 0 0;
   font-size: var(--cn-fs-sm);
   letter-spacing: 0.06em;
   color: $muted;
@@ -395,12 +416,12 @@ $night: var(--cn-welcome-night);
 .hero__location {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: $space-xs;
 
   mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
+    width: 1.125rem;
+    height: 1.125rem;
+    font-size: 1.125rem;
   }
 }
 
@@ -415,8 +436,8 @@ $night: var(--cn-welcome-night);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: min(1rem, 2.5cqh);
-  padding: 0 1.25rem;
+  gap: min($space-l, 2.5cqh);
+  padding: 0 $space-xl;
   text-align: center;
   opacity: var(--finale);
   transform: translate3d(0, calc((1 - var(--finale)) * 4cqh), 0);
@@ -434,8 +455,8 @@ $night: var(--cn-welcome-night);
   line-height: 1.45;
   color: $ink;
   text-shadow:
-    0 2px 4px var(--cn-shadow),
-    0 0 18px palette.alpha(var(--cn-shadow), 80%);
+    0 2px 0.25rem var(--cn-shadow),
+    0 0 1.125rem palette.alpha(var(--cn-shadow), 80%);
 
   &::before {
     content: '“';
@@ -449,10 +470,10 @@ $night: var(--cn-welcome-night);
 .hero__cta {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: min(0.7rem, 1.8cqh) 1.4rem;
+  gap: $space-s;
+  padding: min($space-m, 1.8cqh) $space-xl;
   // Colours of the clan: `.cn-crusade-cta` (global).
-  border-radius: 14px;
+  border-radius: $radius-xl;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-lg);
   white-space: nowrap;
@@ -492,7 +513,7 @@ $night: var(--cn-welcome-night);
 
 @keyframes hint-bounce {
   50% {
-    transform: translateY(5px);
+    transform: translateY(0.3125rem);
   }
 }
 

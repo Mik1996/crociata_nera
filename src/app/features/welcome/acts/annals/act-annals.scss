@@ -2,6 +2,7 @@
 // sideways (`--slide`) and the tablet in the middle comes forward (`--focus`).
 
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 $ink: var(--cn-welcome-text);
 $muted: var(--cn-annals-text-muted);
@@ -24,12 +25,12 @@ $muted: var(--cn-annals-text-muted);
     repeating-linear-gradient(
       0deg,
       palette.alpha(var(--cn-shadow), 35%) 0 2px,
-      transparent 2px 64px
+      transparent 2px 4rem
     ),
     repeating-linear-gradient(
       90deg,
       palette.alpha(var(--cn-shadow), 25%) 0 2px,
-      transparent 2px 128px
+      transparent 2px 8rem
     ),
     radial-gradient(
       ellipse 80% 60% at 50% 55%,
@@ -81,10 +82,10 @@ $muted: var(--cn-annals-text-muted);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: min(1.5rem, 4cqh);
+  gap: min($space-xl, 4cqh);
   box-sizing: border-box;
   width: 100%;
-  padding: min(2.5rem, 7cqh) 0 min(2rem, 5cqh);
+  padding: min($space-xxl, 7cqh) 0 min($space-xxl, 5cqh);
 }
 
 // Clipped only sideways: the torchlight and the shadows of the tablets overflow above and below.
@@ -99,12 +100,12 @@ $muted: var(--cn-annals-text-muted);
   --tablet: min(72cqw, 19rem, 48cqh);
   display: flex;
   align-items: center;
-  gap: min(1.25rem, 4cqw);
+  gap: min($space-xl, 4cqw);
   box-sizing: border-box;
   width: max-content;
   margin: 0;
   // The first and the last tablet can reach the middle.
-  padding: 1rem calc((100cqw - var(--tablet)) / 2);
+  padding: $space-l calc((100cqw - var(--tablet)) / 2);
   list-style: none;
   transform: translate3d(calc(var(--slide) * var(--track-shift, 0px) * -1), 0, 0);
 }
@@ -120,14 +121,14 @@ $muted: var(--cn-annals-text-muted);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: $space-xs;
   box-sizing: border-box;
   width: var(--tablet);
   aspect-ratio: 3 / 4;
   // In tablet units: percentages would refer to the whole track.
   padding: calc(var(--tablet) * 0.14) calc(var(--tablet) * 0.08) calc(var(--tablet) * 0.1);
   // Arched stone tablet.
-  border-radius: 50% 50% 12px 12px / 22% 22% 12px 12px;
+  border-radius: #{50% 50% $radius-l $radius-l} / #{22% 22% $radius-l $radius-l};
   background:
     radial-gradient(ellipse 90% 60% at 50% 0%, palette.alpha(var(--cn-light), 8%), transparent 70%),
     linear-gradient(
@@ -137,9 +138,9 @@ $muted: var(--cn-annals-text-muted);
       var(--cn-stone-tablet-dark) 100%
     );
   box-shadow:
-    inset 0 0 0 3px palette.alpha(var(--cn-shadow), 35%),
-    inset 0 0 0 7px palette.alpha(var(--cn-light), 5%),
-    0 18px 30px palette.alpha(var(--cn-shadow), 55%);
+    inset 0 0 0 0.1875rem palette.alpha(var(--cn-shadow), 35%),
+    inset 0 0 0 0.4375rem palette.alpha(var(--cn-light), 5%),
+    0 1.125rem 1.875rem palette.alpha(var(--cn-shadow), 55%);
   text-align: center;
   opacity: calc(0.45 + var(--focus) * 0.55);
   transform: scale(calc(0.86 + var(--focus) * 0.14));
@@ -163,20 +164,20 @@ $muted: var(--cn-annals-text-muted);
 .record__icon {
   display: grid;
   place-items: center;
-  width: min(96px, 32cqi);
+  width: min(6rem, 32cqi);
   aspect-ratio: 1;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 3px 0 palette.alpha(var(--cn-shadow), 45%));
+    filter: drop-shadow(0 0.1875rem 0 palette.alpha(var(--cn-shadow), 45%));
   }
 
   mat-icon {
     width: 100%;
     height: 100%;
-    font-size: min(60px, 26cqi);
+    font-size: min(3.75rem, 26cqi);
     color: var(--cn-game-gold);
   }
 }
@@ -191,7 +192,7 @@ $muted: var(--cn-annals-text-muted);
   text-shadow:
     0 -1px 0 palette.alpha(var(--cn-shadow), 85%),
     0 1px 0 palette.alpha(var(--cn-light), 15%),
-    0 0 14px palette.alpha(var(--cn-fire-torch), 35%);
+    0 0 0.875rem palette.alpha(var(--cn-fire-torch), 35%);
 }
 
 // League name: smaller than a number, may wrap.
@@ -219,7 +220,7 @@ $muted: var(--cn-annals-text-muted);
   display: flex;
   width: 80%;
   aspect-ratio: 3 / 2;
-  filter: drop-shadow(0 3px 0 palette.alpha(var(--cn-shadow), 40%));
+  filter: drop-shadow(0 0.1875rem 0 palette.alpha(var(--cn-shadow), 40%));
 }
 
 .flag__slice {
@@ -256,7 +257,7 @@ $muted: var(--cn-annals-text-muted);
     flex-wrap: wrap;
     justify-content: center;
     width: auto;
-    padding: 0.5rem 1rem;
+    padding: $space-s $space-l;
     transform: none;
   }
 

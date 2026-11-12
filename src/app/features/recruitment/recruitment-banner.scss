@@ -1,4 +1,5 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 // Recruitment banner: dark war scene (same look in both themes), the pitch and one card per clan
 // of the Crusade, each with its colour (`data-order`: black, red, gold).
@@ -8,7 +9,7 @@ $scene-muted: var(--cn-text-muted);
 
 :host {
   display: block;
-  margin-top: 0.9rem;
+  margin-top: $space-l;
 }
 
 .recruit {
@@ -19,10 +20,10 @@ $scene-muted: var(--cn-text-muted);
   container: recruit / inline-size;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  padding: clamp(1.1rem, 3vw, 2rem);
+  gap: $space-xl;
+  padding: clamp($space-l, 3vw, $space-xxl);
   border: 3px solid var(--cn-panel-border);
-  border-radius: 16px;
+  border-radius: $radius-xl;
   outline: 2px solid var(--cn-game-gold);
   outline-offset: -7px;
   background:
@@ -44,8 +45,8 @@ $scene-muted: var(--cn-text-muted);
 
 .recruit__kicker {
   display: inline-block;
-  padding: 0.2rem 0.7rem;
-  border-radius: 999px;
+  padding: $space-xs $space-m;
+  border-radius: $radius-pill;
   background: palette.alpha(var(--cn-gold), 15%);
   border: 1px solid palette.alpha(var(--cn-gold), 55%);
   font-size: var(--cn-fs-xs);
@@ -63,19 +64,19 @@ $scene-muted: var(--cn-text-muted);
 }
 
 .recruit__title {
-  margin: 0.5rem 0 0;
+  margin: $space-s 0 0;
   font-family: var(--cn-font-display);
   font-size: clamp(1.9rem, 1rem + 3vw, 3rem);
   line-height: 1.05;
   color: var(--cn-light);
   text-shadow:
-    0 3px 0 var(--cn-shadow),
-    0 0 18px palette.alpha(var(--cn-fire-orange), 55%);
+    0 0.1875rem 0 var(--cn-shadow),
+    0 0 1.125rem palette.alpha(var(--cn-fire-orange), 55%);
 }
 
 .recruit__text {
   max-width: 60ch;
-  margin: 0.75rem 0 0;
+  margin: $space-m 0 0;
   font-size: var(--cn-fs-md, 1.05rem);
   line-height: 1.55;
   color: $scene-muted;
@@ -92,10 +93,10 @@ $scene-muted: var(--cn-text-muted);
 .recruit__clans {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
+  gap: $space-l;
 }
 
-@container recruit (min-width: 760px) {
+@container recruit (min-width: 47.5rem) {
   .recruit__clans {
     // As many equal columns as there are clans.
     grid-auto-columns: minmax(0, 1fr);
@@ -127,12 +128,12 @@ $scene-muted: var(--cn-text-muted);
   align-items: center;
   // Name at the top, button at the bottom: aligned across the cards whatever is in between.
   justify-content: flex-start;
-  gap: 0.9rem;
-  padding: 1.25rem 1rem;
+  gap: $space-l;
+  padding: $space-xl $space-l;
   border: 2px solid var(--card-border);
   // Thin outer line in the clan's accent.
   outline: 1px solid palette.alpha(var(--order), 70%);
-  border-radius: 14px;
+  border-radius: $radius-xl;
   background: linear-gradient(
     180deg,
     palette.alpha(var(--cn-surface-2), 90%),
@@ -140,7 +141,7 @@ $scene-muted: var(--cn-text-muted);
   );
   box-shadow:
     inset 0 1px 0 palette.alpha(var(--cn-light), 12%),
-    0 0 24px palette.alpha(var(--order), 12%);
+    0 0 1.5rem palette.alpha(var(--order), 12%);
   text-align: center;
 }
 
@@ -174,15 +175,15 @@ $scene-muted: var(--cn-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: $space-s;
   margin: 0;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-xl);
 }
 
 .enlist__clan-badge {
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   object-fit: contain;
   filter: drop-shadow(0 2px 2px palette.alpha(var(--cn-shadow), 60%));
 }
@@ -215,14 +216,14 @@ $scene-muted: var(--cn-text-muted);
   display: grid;
   // Side by side when there is room: three cards stay short on phones too.
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
-  gap: 0.5rem;
+  gap: $space-s;
   width: 100%;
   margin: 0;
 
   div {
-    padding: 0.4rem 0.5rem;
+    padding: $space-s $space-s;
     border: 1px solid palette.alpha(var(--cn-light), 14%);
-    border-radius: 10px;
+    border-radius: $radius-l;
     background: palette.alpha(var(--cn-shadow), 30%);
   }
 
@@ -237,8 +238,8 @@ $scene-muted: var(--cn-text-muted);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.2rem;
-    margin: 0.3rem 0 0;
+    gap: $space-xs;
+    margin: $space-xs 0 0;
     font-family: var(--cn-font-display);
     font-size: var(--cn-fs-sm);
     color: var(--cn-light);
@@ -248,11 +249,11 @@ $scene-muted: var(--cn-text-muted);
 
 // Town Hall and league pictures of the requirements.
 .enlist__badge {
-  width: min(100px, 100%);
+  width: min(6.25rem, 100%);
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
-  filter: drop-shadow(0 3px 3px palette.alpha(var(--cn-shadow), 60%));
+  filter: drop-shadow(0 0.1875rem 0.1875rem palette.alpha(var(--cn-shadow), 60%));
 }
 
 // Game button in the clan's colours (`.cn-crusade-cta`, global), at the bottom of the card.
@@ -260,12 +261,12 @@ $scene-muted: var(--cn-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: $space-s;
   box-sizing: border-box;
   width: calc(100% - 1rem);
   margin-top: auto;
-  padding: 0.85rem 1rem;
-  border-radius: 14px;
+  padding: $space-m $space-l;
+  border-radius: $radius-xl;
   font-family: var(--cn-font-display);
   font-size: min(var(--cn-fs-xl), 7.5cqi);
   white-space: nowrap;

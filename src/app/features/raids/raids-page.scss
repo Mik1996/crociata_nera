@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 .weekend-selector {
   min-width: 18.75rem;
 }
@@ -5,8 +7,8 @@
 .weekend-state {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.75rem;
+  gap: $space-s;
+  margin: 0 0 $space-m;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
@@ -14,7 +16,7 @@
 
 .state-chip {
   display: inline-block;
-  padding: 0.15rem 0.6rem;
+  padding: $space-xs $space-s;
   border: 1px solid var(--cn-border);
   border-radius: 50%;
   font-family: var(--cn-font-body);
@@ -31,13 +33,13 @@
 .raid-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: 0.9rem;
-  margin-top: 0.9rem;
+  gap: $space-l;
+  margin-top: $space-l;
   align-items: start;
 }
 
 .members {
-  min-width: 420px;
+  min-width: 26.25rem;
 }
 
 .missing {
@@ -48,7 +50,7 @@
 .absent {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: $space-xs;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -56,14 +58,14 @@
   li {
     display: flex;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: $space-s;
   }
 }
 
 .all-in {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: $space-s;
   margin: 0;
   font-weight: 600;
 
@@ -74,9 +76,9 @@
 
 .notice {
   display: flex;
-  gap: 0.9rem;
+  gap: $space-l;
   align-items: flex-start;
-  margin-top: 0.9rem;
+  margin-top: $space-l;
 
   mat-icon {
     flex: none;
@@ -84,12 +86,12 @@
   }
 
   p {
-    margin: 0.25rem 0 0;
+    margin: $space-xs 0 0;
     color: var(--cn-text-muted);
   }
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 56.24rem) {
   .raid-grid {
     grid-template-columns: minmax(0, 1fr);
   }

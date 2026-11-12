@@ -1,12 +1,14 @@
+@use 'variables' as *;
+
 .season-selector {
-  min-width: 240px;
+  min-width: 15rem;
 }
 
 .season-state {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.75rem;
+  gap: $space-s;
+  margin: 0 0 $space-m;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
@@ -14,9 +16,9 @@
 
 .state-chip {
   display: inline-block;
-  padding: 0.15rem 0.6rem;
+  padding: $space-xs $space-s;
   border: 1px solid var(--cn-border);
-  border-radius: 999px;
+  border-radius: $radius-pill;
   font-family: var(--cn-font-body);
   font-size: var(--cn-fs-xs);
   font-weight: 600;
@@ -32,13 +34,13 @@
 .cwl-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
-  margin-bottom: 0.9rem;
+  gap: $space-l;
+  margin-bottom: $space-l;
   align-items: start;
 }
 
 .standings {
-  min-width: 420px;
+  min-width: 26.25rem;
 
   td.cn-num {
     white-space: nowrap;
@@ -46,7 +48,7 @@
 }
 
 .players {
-  min-width: 720px;
+  min-width: 45rem;
 }
 
 .index-cell {
@@ -83,11 +85,11 @@
 .clan-cell {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-s;
 
   img {
-    width: 28px;
-    height: 28px;
+    width: 1.75rem;
+    height: 1.75rem;
     object-fit: contain;
   }
 }
@@ -97,14 +99,14 @@
 }
 
 .note {
-  margin: 0.5rem 0 0;
+  margin: $space-s 0 0;
   font-size: var(--cn-fs-xs);
 }
 
 .rounds {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-s;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -114,10 +116,10 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0.75rem;
+  gap: $space-m;
+  padding: $space-s $space-m;
   border: 1px solid var(--cn-border);
-  border-radius: 10px;
+  border-radius: $radius-l;
   background: var(--cn-tint-neutral);
 }
 
@@ -154,13 +156,13 @@
 }
 
 /* Tablets and smaller: one column. */
-@media (max-width: 1279.98px) {
+@media (max-width: 79.99rem) {
   .cwl-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 599.98px) {
+@media (max-width: 37.4988rem) {
   .round {
     grid-template-columns: auto minmax(0, 1fr);
 

@@ -1,6 +1,7 @@
 // Title of an act, on the dark scenes of the welcome page (same look in both themes).
 
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   display: flex;
@@ -13,7 +14,7 @@
 .act-heading__kicker {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: $space-s;
   margin: 0;
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-xs);
@@ -33,7 +34,7 @@
 }
 
 .act-heading__title {
-  margin: 0.25rem 0 0;
+  margin: $space-xs 0 0;
   font-family: var(--cn-font-display);
   // Height-aware: also fits a phone held sideways.
   font-size: min(clamp(1.9rem, 1.2rem + 3.2vw, 3.6rem), 11cqi, 9cqh);
@@ -41,13 +42,13 @@
   letter-spacing: 0.02em;
   color: var(--cn-light);
   text-shadow:
-    0 3px 0 var(--cn-shadow),
-    0 0 22px palette.alpha(var(--cn-clan-black-ember), 45%);
+    0 0.1875rem 0 var(--cn-shadow),
+    0 0 1.375rem palette.alpha(var(--cn-clan-black-ember), 45%);
 }
 
 .act-heading__tagline {
   max-width: 34ch;
-  margin: 0.4rem 0 0;
+  margin: $space-s 0 0;
   font-size: min(var(--cn-fs-md), 4.6cqi);
   font-style: italic;
   line-height: 1.4;

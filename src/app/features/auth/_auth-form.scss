@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Form styles shared by the sign-in and sign-up pages (included by each page stylesheet).
 
 .auth-form {
@@ -7,23 +9,23 @@
   mat-form-field {
     width: 100%;
     // Dynamic subscripts grow with long hints/errors: keep a steady gap between fields.
-    margin-bottom: 0.6rem;
+    margin-bottom: $space-s;
   }
 
   mat-icon[matPrefix] {
-    margin: 0 0.25rem 0 0.6rem;
+    margin: 0 $space-xs 0 $space-s;
     color: var(--cn-text-muted);
   }
 }
 
 .auth-form__alert {
   display: flex;
-  gap: 0.6rem;
+  gap: $space-s;
   align-items: flex-start;
-  margin-bottom: 0.9rem;
-  padding: 0.6rem 0.75rem;
+  margin-bottom: $space-l;
+  padding: $space-s $space-m;
   border: 2px solid var(--cn-red-mid);
-  border-radius: 10px;
+  border-radius: $radius-l;
   background: color-mix(in srgb, var(--cn-red-mid) 14%, transparent);
   color: var(--cn-red-text);
   font-size: var(--cn-fs-sm);
@@ -43,13 +45,13 @@
 
 .auth-form__submit {
   width: 100%;
-  min-height: 48px;
-  margin-top: 0.5rem;
+  min-height: 3rem;
+  margin-top: $space-s;
   font-size: var(--cn-fs-lg);
 
   mat-progress-spinner {
     display: inline-block;
-    margin-right: 0.5rem;
+    margin-right: $space-s;
     vertical-align: middle;
     --mat-progress-spinner-active-indicator-color: var(--cn-light);
   }
@@ -69,11 +71,11 @@
 .auth-form__success,
 .auth-form__status {
   display: flex;
-  gap: 0.6rem;
+  gap: $space-s;
   align-items: center;
-  margin-bottom: 0.9rem;
-  padding: 0.7rem 0.8rem;
-  border-radius: 10px;
+  margin-bottom: $space-l;
+  padding: $space-m $space-m;
+  border-radius: $radius-l;
   font-size: var(--cn-fs-sm);
 
   p {
@@ -102,7 +104,7 @@
 
 .auth-form__forgot {
   align-self: flex-end;
-  margin: -0.3rem 0 0.2rem;
+  margin: -$space-xs 0 $space-xs;
   font-size: var(--cn-fs-sm);
   color: var(--cn-gold-light);
 }

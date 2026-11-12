@@ -39,7 +39,11 @@
   --cn-bg-image:
     radial-gradient(ellipse at 50% -10%, #{alpha(#c4ccd8, 16%)}, transparent 60%),
     linear-gradient(115deg, transparent 30%, #{alpha(var(--cn-light), 2.5%)} 48%, transparent 66%),
-    repeating-linear-gradient(0deg, #{alpha(var(--cn-light), 1.4%)} 0 1px, transparent 1px 3px);
+    repeating-linear-gradient(
+      0deg,
+      #{alpha(var(--cn-light), 1.4%)} 0 1px,
+      transparent 1px 0.1875rem
+    );
   --cn-surface: #282b31;
   --cn-surface-2: #32363d;
   --cn-surface-3: #3d4149;
@@ -109,8 +113,9 @@
   --cn-tint-gold: #{alpha(var(--cn-gold-light), 14%)};
 
   // --- Elevation ---
-  --cn-header-shadow: 0 3px 0 var(--cn-ink), 0 6px 14px #{alpha(var(--cn-shadow), 55%)};
-  --cn-card-shadow: 0 6px 16px #{alpha(var(--cn-shadow), 40%)};
+  --cn-header-shadow:
+    0 0.1875rem 0 var(--cn-ink), 0 0.375rem 0.875rem #{alpha(var(--cn-shadow), 55%)};
+  --cn-card-shadow: 0 0.375rem 1rem #{alpha(var(--cn-shadow), 40%)};
 
   // --- Game-style panels (player profile, stat tiles, recruitment): gunmetal like the cards,
   //     with a stronger chrome gradient and white outlined text ---
@@ -187,13 +192,13 @@
   --cn-clan-black-iron: linear-gradient(180deg, #5a5c63 0%, #2a2b30 48%, #111114 100%); // CTA
   // Letters of the clan name: dark bands, darkest in the middle.
   --cn-clan-black-iron-letters: linear-gradient(
-  180deg,
-  #6b6e76 0%,
-  #3a3c42 30%,
-  #17181c 52%,
-  #0b0b0d 60%,
-  #26272c 82%,
-  #4a4c53 100%
+    180deg,
+    #6b6e76 0%,
+    #3a3c42 30%,
+    #17181c 52%,
+    #0b0b0d 60%,
+    #26272c 82%,
+    #4a4c53 100%
   );
   --cn-clan-black-depth: #5c410c; // 3D base of the CTA
   --cn-clan-black-flame-1: #ffc43d; // flames over the name, inner to outer
@@ -209,13 +214,13 @@
   // --- Crociata Rossa (red clan): red lacquer with a gold edge, crimson dusk ---
   --cn-clan-red-lacquer: linear-gradient(180deg, #e0574d 0%, #a51a1a 55%, #6c0a0a 100%); // CTA
   --cn-clan-red-lacquer-letters: linear-gradient(
-  180deg,
-  #d85050 0%,
-  #941616 30%,
-  #500707 52%,
-  #2c0303 60%,
-  #700d0d 82%,
-  #b02c2c 100%
+    180deg,
+    #d85050 0%,
+    #941616 30%,
+    #500707 52%,
+    #2c0303 60%,
+    #700d0d 82%,
+    #b02c2c 100%
   );
   --cn-clan-red-edge: var(--cn-clan-gold-leaf);
   --cn-clan-red-depth: #4a0606; // 3D base and text shadow of the CTA
@@ -236,13 +241,13 @@
   --cn-clan-gold-leaf: #e2b24c; // gold of the Crusade: edges of the red clan, body of the gold letters
   --cn-clan-gold-fill: linear-gradient(180deg, #fff3b8 0%, #f2c94c 50%, #b8861f 100%); // CTA
   --cn-clan-gold-letters: linear-gradient(
-  180deg,
-  #f6d77e 0%,
-  var(--cn-clan-gold-leaf) 30%,
-  #b8862a 52%,
-  #9a6c1c 60%,
-  var(--cn-clan-gold-leaf) 82%,
-  #f2cf6a 100%
+    180deg,
+    #f6d77e 0%,
+    var(--cn-clan-gold-leaf) 30%,
+    #b8862a 52%,
+    #9a6c1c 60%,
+    var(--cn-clan-gold-leaf) 82%,
+    #f2cf6a 100%
   );
   --cn-clan-gold-border: #6a4508; // edge of the CTA
   --cn-clan-gold-depth: #5a3a06; // 3D base of the CTA
@@ -328,12 +333,30 @@
 
   // --- Recruitment banner (war scene and clans of the Crusade) ---
   // Crociata Nera: black iron, edged with --cn-crest-rim.
-  --cn-recruit-black-fill: linear-gradient(180deg, #6b6e76 0%, #3a3c42 35%, #141418 60%, #2a2b30 100%);
+  --cn-recruit-black-fill: linear-gradient(
+    180deg,
+    #6b6e76 0%,
+    #3a3c42 35%,
+    #141418 60%,
+    #2a2b30 100%
+  );
   // Crociata Rossa (red clan).
   --cn-recruit-red-border: #a51a1a;
-  --cn-recruit-red-fill: linear-gradient(180deg, #f07a6e 0%, #c62a24 45%, #8a1010 70%, #b52020 100%);
+  --cn-recruit-red-fill: linear-gradient(
+    180deg,
+    #f07a6e 0%,
+    #c62a24 45%,
+    #8a1010 70%,
+    #b52020 100%
+  );
   // Crociata d'Oro (gold clan).
-  --cn-recruit-gold-fill: linear-gradient(180deg, #fff3b8 0%, #f2c94c 45%, #b8861f 75%, #e2b24c 100%);
+  --cn-recruit-gold-fill: linear-gradient(
+    180deg,
+    #fff3b8 0%,
+    #f2c94c 45%,
+    #b8861f 75%,
+    #e2b24c 100%
+  );
 
   // --- Parchment (clan rules scroll) ---
   --cn-rules-paper: #f6e7c4;
@@ -358,7 +381,11 @@
   --cn-level-flame-edge: #e23a0c; // outer flame: red edge
   --cn-level-flame-heart: #fffac8; // inner flame: white-hot heart
   --cn-level-flame-glow: #ffbe3c; // inner flame: halo
-  --cn-level-progress-fill: linear-gradient(90deg, #6fc04b, #9de36a); // level progress bars (heroes, units)
+  --cn-level-progress-fill: linear-gradient(
+    90deg,
+    #6fc04b,
+    #9de36a
+  ); // level progress bars (heroes, units)
 
   // --- XP badge (the blue star of the game: blue is its meaning, not a panel) ---
   --cn-xp-outline: #0b2547; // star outline and number outline

@@ -42,6 +42,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Frontend — colours only from the palette
         run: npm run lint:colors
+      - name: Frontend — sizes in rem, no hard-coded pixels
+        run: npm run lint:units
       - name: Frontend — unit tests
         run: npx ng test --watch=false
       - name: Frontend — production build

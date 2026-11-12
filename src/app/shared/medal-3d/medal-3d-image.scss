@@ -2,7 +2,7 @@
 
 :host {
   display: inline-block;
-  width: 104px;
+  width: 6.5rem;
   aspect-ratio: 1;
   flex-shrink: 0;
 }
@@ -14,7 +14,7 @@ img {
 }
 
 .medal {
-  filter: drop-shadow(0 4px 4px palette.alpha(var(--cn-shadow), 40%));
+  filter: drop-shadow(0 0.25rem 0.25rem palette.alpha(var(--cn-shadow), 40%));
   animation: medal-in 0.25s ease-out;
 }
 
@@ -22,7 +22,7 @@ img {
 .flat {
   padding: 13%;
   box-sizing: border-box;
-  filter: drop-shadow(0 3px 3px palette.alpha(var(--cn-shadow), 45%));
+  filter: drop-shadow(0 0.1875rem 0.1875rem palette.alpha(var(--cn-shadow), 45%));
 }
 
 .flat--locked {

@@ -1,4 +1,5 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   position: relative;
@@ -12,7 +13,7 @@
   min-width: 1.35em;
   padding: 0 0.3em;
   border: 1.5px solid var(--cn-light);
-  border-radius: 5px;
+  border-radius: $radius-s;
   background: var(--cn-ink);
   color: var(--cn-light);
   font-family: var(--cn-font-display);

@@ -1,16 +1,18 @@
+@use 'variables' as *;
+
 :host {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
+  gap: $space-m;
+  padding: $space-m $space-l;
   min-width: 0;
 }
 
 .kpi__icon {
   flex: none;
-  font-size: 30px;
-  width: 30px;
-  height: 30px;
+  font-size: 1.875rem;
+  width: 1.875rem;
+  height: 1.875rem;
   color: var(--cn-gold);
 }
 

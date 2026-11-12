@@ -1,10 +1,11 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 .title {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding-top: 1.25rem;
+  gap: $space-xs;
+  padding-top: $space-xl;
   font-family: var(--cn-font-display);
 
   // Material's baseline strut: as a column item it would be an empty 40px row above the name.
@@ -53,12 +54,16 @@
   // All the width of the dialog: the medal cannot be zoomed past its canvas, so give it room.
   width: 100%;
   // Soft spotlight behind the medal, like a display case.
-  background: radial-gradient(circle at 50% 45%, palette.alpha(var(--cn-light), 10%), transparent 65%);
+  background: radial-gradient(
+    circle at 50% 45%,
+    palette.alpha(var(--cn-light), 10%),
+    transparent 65%
+  );
   border-radius: 50%;
 }
 
 .hint {
-  margin: 0 0 0.75rem;
+  margin: 0 0 $space-m;
   font-size: var(--cn-fs-xs);
 }
 
@@ -76,5 +81,5 @@
 
 .description {
   max-width: 36ch;
-  margin: 0.4rem 0 0;
+  margin: $space-s 0 0;
 }

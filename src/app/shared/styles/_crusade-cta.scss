@@ -13,7 +13,7 @@
   --cta-pulse: var(--cn-gold);
   --cta-shadow:
     inset 0 2px 0 #{palette.alpha(var(--cn-light), 30%)},
-    inset 0 -4px 0 #{palette.alpha(var(--cn-shadow), 30%)}, 0 4px 0 var(--cta-depth);
+    inset 0 -0.25rem 0 #{palette.alpha(var(--cn-shadow), 30%)}, 0 0.25rem 0 var(--cta-depth);
   border: 3px solid var(--cta-border);
   background: var(--cta-bg);
   box-shadow: var(--cta-shadow);
@@ -58,7 +58,7 @@
   100% {
     box-shadow:
       var(--cta-shadow),
-      0 0 0 16px palette.alpha(var(--cta-pulse), 0%);
+      0 0 0 1rem palette.alpha(var(--cta-pulse), 0%);
   }
 }
 

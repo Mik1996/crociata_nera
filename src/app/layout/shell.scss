@@ -1,4 +1,5 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   display: flex;
@@ -9,13 +10,13 @@
 .skip-link {
   position: absolute;
   left: 1rem;
-  top: -100px;
+  top: -6.25rem;
   z-index: 1000;
-  padding: 0.6rem 1rem;
+  padding: $space-s $space-l;
   background: var(--cn-gold);
   color: var(--cn-on-gold);
   border: 0;
-  border-radius: 6px;
+  border-radius: $radius-m;
   font-weight: 600;
   cursor: pointer;
 
@@ -27,8 +28,8 @@
 .header {
   position: relative;
   z-index: 3;
-  height: 64px;
-  gap: 0.5rem;
+  height: 4rem;
+  gap: $space-s;
   background: var(--cn-header-bg);
   border-bottom: 2px solid var(--cn-gold-dark);
   box-shadow: var(--cn-header-shadow);
@@ -38,17 +39,17 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: $space-m;
   color: inherit;
   text-decoration: none;
   min-width: 0;
 }
 
 .brand__crest {
-  width: 36px;
-  height: 40px;
+  width: 2.25rem;
+  height: 2.5rem;
   flex: none;
-  filter: drop-shadow(0 0 6px var(--cn-glow));
+  filter: drop-shadow(0 0 0.375rem var(--cn-glow));
 }
 
 .brand__crest-shield {
@@ -65,11 +66,11 @@
 }
 
 .brand__badge {
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   flex: none;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px var(--cn-glow));
+  filter: drop-shadow(0 0 0.375rem var(--cn-glow));
 }
 
 .brand__text {
@@ -108,9 +109,9 @@
 
 .mock-chip {
   font-family: var(--cn-font-body);
-  padding: 0.2rem 0.6rem;
+  padding: $space-xs $space-s;
   border: 1px solid var(--cn-red-mid);
-  border-radius: 999px;
+  border-radius: $radius-pill;
   font-size: var(--cn-fs-2xs);
   color: var(--cn-red-text);
   white-space: nowrap;
@@ -121,7 +122,7 @@
 }
 
 .sidenav {
-  width: 264px;
+  width: 16.5rem;
   border-right: 3px solid var(--cn-panel-border);
   display: flex;
   flex-direction: column;
@@ -134,10 +135,10 @@
 
   // Menu entries as game buttons: the active one is a raised gold button.
   a.mat-mdc-list-item {
-    margin: 0.2rem 0.5rem;
+    margin: $space-xs $space-s;
     width: auto;
     border: 2px solid transparent;
-    border-radius: 10px;
+    border-radius: $radius-l;
     font-family: var(--cn-font-display);
     --mat-list-list-item-label-text-font: var(--cn-font-display);
     --mat-list-list-item-label-text-size: var(--cn-fs-md);
@@ -154,7 +155,7 @@
     border-color: var(--cn-panel-border);
     box-shadow:
       inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
-      inset 0 -3px 0 palette.alpha(var(--cn-shadow), 20%),
+      inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 20%),
       0 2px 0 var(--cn-panel-border);
   }
 }
@@ -162,7 +163,7 @@
 // Settings: pinned to the bottom of the side navigation, above the notice.
 .sidenav__bottom {
   margin-top: auto;
-  padding-top: 0.25rem;
+  padding-top: $space-xs;
   border-top: 1px solid var(--cn-border);
 }
 
@@ -170,7 +171,7 @@
 .sidenav__pin {
   display: flex;
   justify-content: flex-end;
-  padding: 0.25rem 0.5rem 0;
+  padding: $space-xs $space-s 0;
 
   // Unpinned: muted and tilted; pinned: gold and upright.
   button {
@@ -200,7 +201,7 @@ mat-sidenav-content {
 .content {
   flex: 1 0 auto;
   // Every page uses the whole width of the content area, also on large screens.
-  padding: 1rem clamp(0.75rem, 2.5vw, 1.5rem) 1rem;
+  padding: $space-l clamp($space-m, 2.5vw, $space-xl) $space-l;
   outline: none;
 }
 
@@ -213,7 +214,7 @@ mat-sidenav-content {
   bottom: 0;
   z-index: 2;
   background: var(--cn-bg);
-  padding: 0.5rem clamp(0.75rem, 2.5vw, 1.5rem);
+  padding: $space-s clamp($space-m, 2.5vw, $space-xl);
   border-top: 1px solid var(--cn-border);
   font-size: var(--cn-fs-xs);
   line-height: 1.4;
@@ -228,26 +229,26 @@ mat-sidenav-content {
 .picker {
   flex: none;
   min-width: 0;
-  padding: 0 0.5rem;
+  padding: 0 $space-s;
   color: var(--cn-text);
   border: 1px solid var(--cn-border);
-  border-radius: 999px;
+  border-radius: $radius-pill;
 
   .picker__arrow {
     margin-left: 0.1rem;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 }
 
 .theme-picker .theme-picker__label {
-  margin-left: 0.4rem;
+  margin-left: $space-s;
   font-weight: 600;
 }
 
 .account .account__name {
-  margin-left: 0.4rem;
+  margin-left: $space-s;
   font-weight: 600;
   max-width: 12ch;
   overflow: hidden;
@@ -256,15 +257,15 @@ mat-sidenav-content {
 }
 
 .account__icon {
-  font-size: 22px;
+  font-size: 1.375rem;
 }
 
 // Initial of the username in a gold game-style token.
 .account__avatar {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border: 2px solid var(--cn-panel-border);
   border-radius: 50%;
   background: var(--cn-gold-fill);
@@ -275,7 +276,7 @@ mat-sidenav-content {
 }
 
 .language .language__code {
-  margin-left: 0.4rem;
+  margin-left: $space-s;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -285,8 +286,8 @@ mat-sidenav-content {
 .swatch {
   display: inline-block;
   vertical-align: middle;
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
   border-radius: 50%;
   border: 1px solid var(--cn-outline);
 }
@@ -294,16 +295,16 @@ mat-sidenav-content {
 .flag {
   display: inline-block;
   vertical-align: middle;
-  width: 24px;
-  height: 16px;
-  border-radius: 2px;
+  width: 1.5rem;
+  height: 1rem;
+  border-radius: $radius-s;
   object-fit: cover;
   box-shadow: 0 0 0 1px var(--cn-flag-ring);
 }
 
 // Small screens (collapsible side navigation): theme and language live in Settings, and the
 // account / sign-in button is a round icon (its name stays in the aria-label).
-@media (max-width: 959.98px) {
+@media (max-width: 59.99rem) {
   .theme-picker,
   .language {
     display: none;
@@ -311,9 +312,9 @@ mat-sidenav-content {
 
   .account {
     justify-content: center;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
     padding: 0;
     border-radius: 50%;
 
@@ -324,7 +325,7 @@ mat-sidenav-content {
   }
 }
 
-@media (max-width: 599.98px) {
+@media (max-width: 37.4988rem) {
   .language .language__code,
   .theme-picker .theme-picker__label,
   .account .account__name,
@@ -334,21 +335,21 @@ mat-sidenav-content {
 
   // Compact header on phones: icon-only pickers and a smaller badge leave room for the clan name.
   .header {
-    gap: 0.25rem;
-    padding: 0 0.5rem;
+    gap: $space-xs;
+    padding: 0 $space-s;
   }
 
   .brand {
-    gap: 0.5rem;
+    gap: $space-s;
   }
 
   .brand__badge {
-    width: 36px;
-    height: 36px;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .picker {
-    padding: 0 0.6rem;
+    padding: 0 $space-s;
 
     .picker__arrow {
       display: none;

@@ -2,9 +2,9 @@
 
 :host {
   display: inline-block;
-  width: 72px;
+  width: 4.5rem;
   flex-shrink: 0;
-  filter: drop-shadow(0 3px 3px palette.alpha(var(--cn-shadow), 45%));
+  filter: drop-shadow(0 0.1875rem 0.1875rem palette.alpha(var(--cn-shadow), 45%));
 }
 
 img {

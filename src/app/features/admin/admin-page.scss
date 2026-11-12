@@ -1,8 +1,10 @@
+@use 'variables' as *;
+
 .search {
-  margin-bottom: 0.5rem;
+  margin-bottom: $space-s;
 
   button {
-    min-height: 48px;
+    min-height: 3rem;
   }
 }
 
@@ -18,7 +20,7 @@
 .tag-cell {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: $space-xs;
   white-space: nowrap;
 }
 
@@ -31,10 +33,10 @@
 }
 
 .feedback {
-  margin: 0 0 0.75rem;
-  padding: 0.5rem 0.7rem;
+  margin: 0 0 $space-m;
+  padding: $space-s $space-m;
   border: 2px solid var(--cn-win);
-  border-radius: 10px;
+  border-radius: $radius-l;
   background: color-mix(in srgb, var(--cn-win) 12%, transparent);
   font-size: var(--cn-fs-sm);
 

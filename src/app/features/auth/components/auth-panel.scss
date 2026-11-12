@@ -1,9 +1,10 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   display: block;
-  width: min(100%, 440px);
-  margin: 2.5rem auto 1rem;
+  width: min(100%, 27.5rem);
+  margin: $space-xxl auto $space-l;
 }
 
 .panel {
@@ -17,22 +18,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2.4rem 1rem 0.7rem;
+  padding: $space-xxl $space-l $space-m;
   background: var(--cn-gold-fill);
   border-bottom: 3px solid var(--cn-panel-border);
-  border-radius: 11px 11px 0 0;
+  border-radius: $radius-l $radius-l 0 0;
   box-shadow:
     inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
-    inset 0 -3px 0 palette.alpha(var(--cn-shadow), 15%);
+    inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 15%);
 }
 
 .panel__emblem {
   position: absolute;
-  top: -40px;
-  width: 72px;
-  height: 72px;
+  top: -2.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
   object-fit: contain;
-  filter: drop-shadow(0 3px 0 palette.alpha(var(--cn-shadow), 35%));
+  filter: drop-shadow(0 0.1875rem 0 palette.alpha(var(--cn-shadow), 35%));
 }
 
 .panel__heading {
@@ -53,18 +54,18 @@
 }
 
 .panel__body {
-  padding: 1rem 1.25rem 0.5rem;
+  padding: $space-l $space-xl $space-s;
 }
 
 .panel__subtitle {
-  margin: 0 0 1rem;
+  margin: 0 0 $space-l;
   text-align: center;
   color: var(--cn-text-muted);
   font-size: var(--cn-fs-sm);
 }
 
 .panel__footer {
-  padding: 0.75rem 1.25rem 1rem;
+  padding: $space-m $space-xl $space-l;
   border-top: 1px solid var(--cn-border);
   text-align: center;
   font-size: var(--cn-fs-sm);

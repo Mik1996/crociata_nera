@@ -1,0 +1,30 @@
+// =================================================================================================
+// Crociata Nera design scales: spacing and corner radii.
+//
+// Margins, paddings and gaps use the `$space-*` scale, rounded corners the `$radius-*` scale, so the
+// stylesheets never hard-code pixel sizes. Sizes are in rem (they follow the user's font size); px is
+// left only for hairlines such as 1px borders.
+//
+// This file only declares variables (it emits no CSS): `@use 'variables' as *;` and write
+// `padding: $space-s $space-m;`, `margin: 0 (-$space-s);`, `border-radius: $radius-m;`.
+// Wrap a negative token in parentheses: `0 -$space-s` would be a subtraction.
+// The colours live next door in `_color-palette.scss`.
+// =================================================================================================
+
+// --- Spacing (margin, padding, gap) ---
+$space-xs: 0.25rem; // 4px
+$space-s: 0.5rem; // 8px
+$space-m: 0.75rem; // 12px
+$space-l: 1rem; // 16px
+$space-xl: 1.5rem; // 24px
+$space-xxl: 2rem; // 32px
+$space-xxxl: 3rem; // 48px: page-level breathing room (sections, empty states)
+
+// --- Corner radius ---
+$radius-s: 0.25rem; // 4px: badges, small chips, flags
+$radius-m: 0.5rem; // 8px: buttons, inputs, tiles
+$radius-l: 0.75rem; // 12px: cards and panels
+$radius-xl: 1rem; // 16px: large panels and dialogs
+// Fully rounded shapes. A circle (square box) is `border-radius: 50%`. A pill (wider than tall)
+// needs a radius longer than its short side instead: 50% would turn it into an ellipse.
+$radius-pill: 50rem;

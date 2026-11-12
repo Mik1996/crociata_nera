@@ -30,6 +30,7 @@ npx ng test --watch=false                          # frontend tests (Vitest)
 npx ng test --watch=false --include <spec path>    # a single spec
 npx tsc -p tsconfig.app.json --noEmit              # frontend type check
 npm run lint:colors                                # colours only from the palette
+npm run lint:units                                 # sizes in rem, no hard-coded pixels
 npm run test:server                                # proxy tests (node:test)
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
 ```
@@ -47,6 +48,11 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   `@use 'color-palette' as palette;` + `palette.alpha(var(--cn-x), 30%)` for transparency; TS reads
   tokens with `cssColor()` (`src/app/shared/styles/css-color.ts`). `npm run lint:colors` (in CI) fails
   on any other literal.
+- Sizes: rem only. Margins, paddings and gaps use `$space-xs|s|m|l|xl|xxl|xxxl`, corners
+  `$radius-s|m|l|xl` from `src/styles/_variables.scss` (`@use 'variables' as *;`). Circles use
+  `border-radius: 50%`, pills (wider than tall) `$radius-pill`. Negative tokens go in parentheses
+  (`margin: 0 (-$space-s)`). Pixels only for hairlines (≤ 2px, border/outline widths);
+  `npm run lint:units` (in CI) fails on any other px (`units-lint: allow` comment to opt out).
 - New UI text: add the key to **all three** files `public/i18n/{it-IT,en-US,es-ES}.json`.
 - Backend responses are `BaseResult` `{ result, messages, status }`; errors are `MessageKey` values
   (`ERROR.*` / `SUCCESS.*`) translated by the frontend. Validate input with zod (`parseBody`,

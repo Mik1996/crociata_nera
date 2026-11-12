@@ -1,4 +1,5 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 // The page fills the space below the header (see `.page--fill` in styles.scss): back link, banner and
 // tabs scroll together in `.page__scroll`, the tab bar sticks to its top once scrolled past.
@@ -22,7 +23,7 @@
 
 .back {
   flex: none;
-  margin: -0.5rem 0 0.4rem -0.5rem;
+  margin: (-$space-s) 0 $space-s (-$space-s);
 }
 
 .player-tabs {
@@ -35,7 +36,7 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.25rem 0.75rem;
+  gap: $space-xs $space-m;
 }
 
 .section-count {
@@ -48,37 +49,37 @@ h2 {
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 175px), 1fr));
-  gap: 0.75rem;
-  margin: 0 0 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.9375rem), 1fr));
+  gap: $space-m;
+  margin: 0 0 $space-l;
   padding: 0;
   list-style: none;
 }
 
 .stat {
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 2.125rem 1fr;
   grid-template-rows: auto auto;
-  column-gap: 0.75rem;
+  column-gap: $space-m;
   align-items: center;
-  padding: 0.6rem 0.75rem;
-  border-radius: 12px;
+  padding: $space-s $space-m;
+  border-radius: $radius-l;
   border: 2px solid var(--cn-game-panel-border);
   background: var(--cn-game-panel);
   color: var(--cn-game-panel-text);
-  box-shadow: inset 0 -3px 0 palette.alpha(var(--cn-shadow), 30%);
+  box-shadow: inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 30%);
 
   > img,
   > .stat__icon {
     grid-row: 1 / span 2;
-    width: 34px;
-    height: 34px;
+    width: 2.125rem;
+    height: 2.125rem;
     object-fit: contain;
   }
 }
 
 .stat__icon {
-  font-size: 30px;
+  font-size: 1.875rem;
   color: var(--cn-game-gold);
   filter: drop-shadow(0 1px 0 var(--cn-ink));
 }
@@ -101,29 +102,29 @@ h2 {
 // --- Sections -----------------------------------------------------------------
 
 .game-section {
-  margin-bottom: 1.25rem;
+  margin-bottom: $space-xl;
 }
 
 .unit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
   justify-items: center;
-  gap: 0.75rem 0.5rem;
+  gap: $space-m $space-s;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .progress {
-  height: 8px;
-  border-radius: 4px;
+  height: 0.5rem;
+  border-radius: $radius-s;
   background: var(--cn-surface-3);
   overflow: hidden;
 
   span {
     display: block;
     height: 100%;
-    border-radius: 4px;
+    border-radius: $radius-s;
     background: var(--cn-level-progress-fill);
   }
 }
@@ -132,8 +133,8 @@ h2 {
 
 .heroes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
+  gap: $space-l;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -141,20 +142,22 @@ h2 {
 
 .hero {
   display: flex;
-  gap: 0.75rem;
-  padding: 0.6rem;
-  border-radius: 14px;
+  gap: $space-m;
+  padding: $space-s;
+  border-radius: $radius-xl;
   border: 3px solid var(--cn-panel-border);
   background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
-  box-shadow: inset 0 2px 0 var(--cn-panel-highlight), inset 0 -4px 0 var(--cn-panel-bevel);
+  box-shadow:
+    inset 0 2px 0 var(--cn-panel-highlight),
+    inset 0 -0.25rem 0 var(--cn-panel-bevel);
 }
 
 .hero__portrait {
   position: relative;
   flex: none;
-  width: 96px;
-  height: 96px;
-  border-radius: 12px;
+  width: 6rem;
+  height: 6rem;
+  border-radius: $radius-l;
   background: var(--cn-game-tile);
   border: 2px solid var(--cn-game-tile-border);
 
@@ -162,7 +165,7 @@ h2 {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    border-radius: 10px;
+    border-radius: $radius-l;
   }
 }
 
@@ -173,15 +176,15 @@ h2 {
 .hero__level {
   --size: var(--cn-fs-sm);
   position: absolute;
-  left: 4px;
-  bottom: 4px;
+  left: 0.25rem;
+  bottom: 0.25rem;
   z-index: 1;
 }
 
 .hero__body {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: $space-xs;
   min-width: 0;
   flex: 1;
 }
@@ -199,8 +202,8 @@ h2 {
 
 .hero__equipment {
   display: flex;
-  gap: 0.4rem;
-  margin: 0.2rem 0 0;
+  gap: $space-s;
+  margin: $space-xs 0 0;
   padding: 0;
   list-style: none;
 }
@@ -208,13 +211,13 @@ h2 {
 // --- Achievements -----------------------------------------------------------------
 
 .achievements-summary {
-  margin: 0 0 0.75rem;
+  margin: 0 0 $space-m;
 }
 
 .achievements {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21.25rem), 1fr));
+  gap: $space-m;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -222,12 +225,14 @@ h2 {
 
 .achievement {
   display: flex;
-  gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 12px;
+  gap: $space-s;
+  padding: $space-s $space-m;
+  border-radius: $radius-l;
   border: 3px solid var(--cn-panel-border);
   background: linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
-  box-shadow: inset 0 2px 0 var(--cn-panel-highlight), inset 0 -4px 0 var(--cn-panel-bevel);
+  box-shadow:
+    inset 0 2px 0 var(--cn-panel-highlight),
+    inset 0 -0.25rem 0 var(--cn-panel-bevel);
 }
 
 .achievement--done {
@@ -241,15 +246,15 @@ h2 {
   gap: 1px;
 
   img {
-    width: 22px;
-    height: 22px;
+    width: 1.375rem;
+    height: 1.375rem;
   }
 }
 
 .achievement__body {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: $space-xs;
   min-width: 0;
   flex: 1;
 }

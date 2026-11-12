@@ -1,9 +1,11 @@
+@use 'variables' as *;
+
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  gap: $space-l;
+  margin-bottom: $space-s;
 
   h2 {
     margin: 0;
@@ -11,21 +13,21 @@
 }
 
 .note {
-  margin: 0 0 0.75rem;
+  margin: 0 0 $space-m;
   font-size: var(--cn-fs-sm);
 }
 
 .rankings {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18.75rem), 1fr));
+  gap: $space-l;
 }
 
 .ranking h3 {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin: 0 0 0.5rem;
+  gap: $space-s;
+  margin: 0 0 $space-s;
   font-size: var(--cn-fs-md);
 }
 
@@ -47,8 +49,8 @@
   display: grid;
   grid-template-columns: 2rem 1fr auto;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.45rem 0;
+  gap: $space-m;
+  padding: $space-s 0;
   border-bottom: 1px solid var(--cn-border);
 
   &:last-child {
@@ -98,11 +100,11 @@
 }
 
 .trend-title {
-  margin-top: 0.5rem;
+  margin-top: $space-s;
 }
 
 h3 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 $space-m;
   font-size: var(--cn-fs-md);
   color: var(--cn-text);
 }

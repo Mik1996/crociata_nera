@@ -1,26 +1,27 @@
 @use 'color-palette' as palette;
+@use 'variables' as *;
 
 :host {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  width: var(--tile, 72px);
+  gap: $space-xs;
+  width: var(--tile, 4.5rem);
   text-align: center;
 }
 
 :host(.unit--small) {
-  --tile: 48px;
+  --tile: 3rem;
 }
 
 .unit__tile {
   position: relative;
-  width: var(--tile, 72px);
-  height: var(--tile, 72px);
-  border-radius: 10px;
+  width: var(--tile, 4.5rem);
+  height: var(--tile, 4.5rem);
+  border-radius: $radius-l;
   background: var(--cn-game-tile);
   border: 2px solid var(--cn-game-tile-border);
-  box-shadow: inset 0 -3px 0 palette.alpha(var(--cn-shadow), 35%);
+  box-shadow: inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 35%);
 }
 
 :host(.unit--max) .unit__tile {
@@ -36,9 +37,9 @@ img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 4px;
+  padding: $space-xs;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: $radius-m;
 }
 
 .unit__initials {
@@ -52,8 +53,8 @@ img {
 
 .unit__badge {
   position: absolute;
-  left: 3px;
-  bottom: 3px;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
   z-index: 1;
 }
 

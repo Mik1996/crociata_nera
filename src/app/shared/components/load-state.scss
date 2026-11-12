@@ -1,26 +1,28 @@
+@use 'variables' as *;
+
 .state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 3rem 1rem;
+  gap: $space-s;
+  padding: $space-xxxl $space-l;
   text-align: center;
   color: var(--cn-text-muted);
 }
 
 .state > mat-icon {
-  font-size: 44px;
-  width: 44px;
-  height: 44px;
+  font-size: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
   color: var(--cn-gold);
 }
 
 // Clan badge of the empty states.
 .badge {
-  width: 96px;
-  height: 96px;
+  width: 6rem;
+  height: 6rem;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px var(--cn-glow));
+  filter: drop-shadow(0 0 0.625rem var(--cn-glow));
 }
 
 .state--error > mat-icon {
@@ -36,5 +38,5 @@
 }
 
 button {
-  margin-top: 0.75rem;
+  margin-top: $space-m;
 }
