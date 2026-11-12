@@ -1,12 +1,13 @@
 import { randomBytes } from 'node:crypto';
-import { Types } from 'mongoose';
+import { QueryFilter, Types } from 'mongoose';
 import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { ImageVariant, processBaseImage } from './base-image';
 import { imageStore, StoredImage } from './base-image.store';
-import { CreateBaseInput, UpdateBaseInput } from './bases.schemas';
+import { CreateBaseInput, encodeBaseCursor, ListBasesQuery, UpdateBaseInput } from './bases.schemas';
 import { ClanCastleTroop, clanCastleCapacity, housingSpaceUsed } from './clan-castle';
 import {
+  DefenseBase,
   DefenseBaseDocument,
   DefenseBaseModel,
   MAX_DEFENSE_BASES,
@@ -14,9 +15,11 @@ import {
   toPublicDefenseBase,
 } from './defense-base.model';
 
-export interface DefenseBaseList {
+export interface DefenseBasePage {
   /** Highest town hall first, then the most recently changed. */
   items: PublicDefenseBase[];
+  /** Cursor of the next page; `null` on the last page (nothing left to ask for). */
+  nextCursor: string | null;
   /** Town hall levels with at least one base (all of them, whatever the filter), highest first. */
   townHallLevels: number[];
 }
@@ -24,13 +27,36 @@ export interface DefenseBaseList {
 /** Shape of the image keys: 24 URL-safe characters (18 random bytes). */
 export const IMAGE_KEY_PATTERN = /^[A-Za-z0-9_-]{24}$/;
 
-export async function listBases(townHallLevel?: number): Promise<DefenseBaseList> {
+/**
+ * A page of the arsenal, sorted by town hall, last change and id (all descending). Keyset
+ * pagination: the next page starts after the sort key of the last base sent, so bases added or
+ * removed meanwhile neither repeat nor shift other bases between pages. One extra base is read to
+ * know whether another page follows, so the last page says so and no empty page is ever asked for.
+ */
+export async function listBases({ th, limit, cursor }: ListBasesQuery): Promise<DefenseBasePage> {
+  const filter: QueryFilter<DefenseBase> = th ? { townHallLevel: th } : {};
+  if (cursor) {
+    const { townHallLevel, updatedAt, id } = cursor;
+    filter.$or = [
+      { townHallLevel: { $lt: townHallLevel } },
+      { townHallLevel, updatedAt: { $lt: updatedAt } },
+      { townHallLevel, updatedAt, _id: { $lt: id } },
+    ];
+  }
   const [bases, levels] = await Promise.all([
-    DefenseBaseModel.find(townHallLevel ? { townHallLevel } : {}).sort({ townHallLevel: -1, updatedAt: -1 }),
+    DefenseBaseModel.find(filter)
+      .sort({ townHallLevel: -1, updatedAt: -1, _id: -1 })
+      .limit(limit + 1),
     DefenseBaseModel.distinct('townHallLevel'),
   ]);
+  const page = bases.slice(0, limit);
+  const last = page.at(-1);
   return {
-    items: bases.map(toPublicDefenseBase),
+    items: page.map(toPublicDefenseBase),
+    nextCursor:
+      bases.length > limit && last
+        ? encodeBaseCursor({ townHallLevel: last.townHallLevel, updatedAt: last.updatedAt, id: last._id })
+        : null,
     townHallLevels: (levels as number[]).sort((a, b) => b - a),
   };
 }

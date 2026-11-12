@@ -14,6 +14,28 @@
   object-fit: contain;
 }
 
+.group + .group {
+  margin-top: $space-xl;
+}
+
+.group__title {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+  margin: 0 0 $space-m;
+  padding-bottom: $space-s;
+  border-bottom: 1px solid var(--cn-border);
+  color: var(--cn-text);
+  font-size: var(--cn-fs-lg);
+  font-weight: 700;
+
+  img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
@@ -112,4 +134,23 @@
 
 .base__delete {
   color: var(--cn-red-text);
+}
+
+// End of the endless list: spinner while the next page loads, then the error or the end.
+.feed-end {
+  display: flex;
+  justify-content: center;
+  min-height: 3rem;
+  padding: $space-l 0;
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-sm);
+  text-align: center;
+
+  p {
+    margin: 0 0 $space-s;
+  }
+}
+
+.feed-end__done {
+  margin: 0;
 }

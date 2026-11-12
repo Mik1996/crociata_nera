@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { z } from 'zod';
 import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageDescriptor } from '@/lib/http/base-result';
@@ -8,10 +9,49 @@ import { MAX_CLAN_CASTLE_CAPACITY, mergeTroops, TROOP_NAMES } from './clan-castl
 import { MAX_DESCRIPTION_LENGTH } from './defense-base.model';
 import { LayoutLink, MAX_TOWN_HALL_LEVEL, parseLayoutLink } from './layout-link';
 
-/** `GET /bases?th=18`: only the bases of one town hall level. */
+/** Bases per page of `GET /bases` when `limit` is not given, and the most a page can hold. */
+export const DEFAULT_BASES_PAGE_SIZE = 24;
+export const MAX_BASES_PAGE_SIZE = 60;
+
+/**
+ * Position in the arsenal after which the next page starts: the sort key of the last base of the
+ * previous page. Sent as an opaque text (`nextCursor`); see {@link encodeBaseCursor}.
+ */
+export interface BaseCursor {
+  townHallLevel: number;
+  updatedAt: Date;
+  id: Types.ObjectId;
+}
+
+/** `<town hall>.<updatedAt ms>.<id>`, base64url: opaque for clients, stable across requests. */
+export function encodeBaseCursor({ townHallLevel, updatedAt, id }: BaseCursor): string {
+  return Buffer.from(`${townHallLevel}.${updatedAt.getTime()}.${id.toString()}`).toString('base64url');
+}
+
+export function decodeBaseCursor(text: string): BaseCursor | null {
+  const match = /^(\d{1,2})\.(\d{1,15})\.([0-9a-f]{24})$/.exec(Buffer.from(text, 'base64url').toString());
+  if (!match) return null;
+  return { townHallLevel: Number(match[1]), updatedAt: new Date(Number(match[2])), id: new Types.ObjectId(match[3]) };
+}
+
+/** `GET /bases?th=18&limit=24&cursor=…`: a page of bases, optionally of one town hall level. */
 export const listBasesQuerySchema = z.object({
   th: z.coerce.number().int().min(1).max(MAX_TOWN_HALL_LEVEL).optional(),
+  limit: z.coerce.number().int().min(1).max(MAX_BASES_PAGE_SIZE).default(DEFAULT_BASES_PAGE_SIZE),
+  cursor: z
+    .string()
+    .max(100)
+    .transform((text, ctx): BaseCursor => {
+      const cursor = decodeBaseCursor(text);
+      if (!cursor) {
+        ctx.addIssue({ code: 'custom', message: MessageKey.INVALID_FIELD });
+        return z.NEVER;
+      }
+      return cursor;
+    })
+    .optional(),
 });
+export type ListBasesQuery = z.output<typeof listBasesQuerySchema>;
 
 /** In-game "copy base" link, read into its town hall level and layout id. */
 const layoutLink = z

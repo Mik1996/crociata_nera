@@ -8,11 +8,12 @@ import { createBaseSchema, listBasesQuerySchema, parseBaseForm } from '@/modules
 import { createBase, listBases } from '@/modules/bases/bases.service';
 
 /**
- * `GET /api/v1/bases?th=18`: the defense bases of the arsenal, optionally of one town hall level
- * (administrators and members of the clans of the Crusade).
+ * `GET /api/v1/bases?th=18&limit=24&cursor=…`: a page of the defense bases of the arsenal, optionally
+ * of one town hall level (administrators and members of the clans of the Crusade). The next page is
+ * asked for with the `nextCursor` of the previous one, `null` on the last page.
  */
 export const GET = apiHandler({ apiName: ApiName.BASES_READ, clanAccess: true }, async ({ request }) => ({
-  result: await listBases(parseQuery(request, listBasesQuerySchema).th),
+  result: await listBases(parseQuery(request, listBasesQuerySchema)),
 }));
 
 /**

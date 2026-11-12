@@ -756,6 +756,9 @@
     "deleteOf": "Delete the Town Hall {{n}} base",
     "empty": "The arsenal is still empty",
     "emptyLevel": "No bases for Town Hall {{n}}",
+    "loadingMore": "Loading more bases…",
+    "loadMoreError": "More bases could not be loaded.",
+    "allShown": "You have seen every base",
     "form": {
       "createTitle": "New defense base",
       "editTitle": "Edit defense base",

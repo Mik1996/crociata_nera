@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
+import { CACHE_DURATION } from '../http/http-cache';
 import { DefenseBase } from './backend-api.types';
 import { DefenseBasesService, HttpDefenseBasesService } from './defense-bases.service';
 
@@ -24,7 +25,11 @@ describe('HttpDefenseBasesService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: false })],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi: false }),
+      ],
     });
     service = TestBed.inject(DefenseBasesService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -36,19 +41,33 @@ describe('HttpDefenseBasesService', () => {
     expect(service).toBeInstanceOf(HttpDefenseBasesService);
   });
 
-  it('lists the bases, optionally of one town hall', async () => {
-    const all = firstValueFrom(service.list(null));
-    httpMock.expectOne('/api/v1/bases').flush(ok({ items: [base], townHallLevels: [18] }));
-    expect((await all).items).toEqual([base]);
+  it('lists the bases page by page, optionally of one town hall', async () => {
+    const first = firstValueFrom(service.list(null));
+    httpMock
+      .expectOne('/api/v1/bases')
+      .flush(ok({ items: [base], nextCursor: 'c1', townHallLevels: [18] }));
+    expect(await first).toEqual({ items: [base], nextCursor: 'c1', townHallLevels: [18] });
 
-    const th17 = firstValueFrom(service.list(17));
-    httpMock.expectOne('/api/v1/bases?th=17').flush(ok({ items: [], townHallLevels: [18] }));
-    expect((await th17).items).toEqual([]);
+    const next = firstValueFrom(service.list(17, 'c1'));
+    httpMock
+      .expectOne('/api/v1/bases?th=17&cursor=c1')
+      .flush(ok({ items: [], nextCursor: null, townHallLevels: [18] }));
+    expect((await next).nextCursor).toBeNull();
+  });
+
+  it('leaves the pages out of the HTTP cache (BaseArsenal keeps them)', async () => {
+    const page = firstValueFrom(service.list(null));
+    const request = httpMock.expectOne('/api/v1/bases');
+    expect(request.request.context.get(CACHE_DURATION)).toBe(0);
+    request.flush(ok({ items: [], nextCursor: null, townHallLevels: [] }));
+    await page;
   });
 
   it('sends new and changed bases as multipart forms', async () => {
     const image = new Blob(['x'], { type: 'image/webp' });
-    const created = firstValueFrom(service.create({ layoutUrl: base.layoutUrl, description: 'Notes', image }));
+    const created = firstValueFrom(
+      service.create({ layoutUrl: base.layoutUrl, description: 'Notes', image }),
+    );
     const post = httpMock.expectOne('/api/v1/bases');
     expect(post.request.method).toBe('POST');
     const body = post.request.body as FormData;

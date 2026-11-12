@@ -34,11 +34,17 @@ export const DefenseBase = model(
   }),
 );
 
-export const DefenseBaseList = model(
-  'DefenseBaseList',
-  'Bases of the arsenal.',
+export const DefenseBasePage = model(
+  'DefenseBasePage',
+  'A page of the arsenal.',
   z.strictObject({
-    items: z.array(DefenseBase).describe('Bases, highest town hall first, then the most recently changed.'),
+    items: z
+      .array(DefenseBase)
+      .describe('Bases of the page: highest town hall first, then the most recently changed.'),
+    nextCursor: z
+      .string()
+      .nullable()
+      .describe('Pass it as `cursor` to get the next page; `null` on the last page.'),
     townHallLevels: z
       .array(z.number().int())
       .describe('Town hall levels with at least one base (whatever the filter), highest first.'),

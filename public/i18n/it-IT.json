@@ -756,6 +756,9 @@
     "deleteOf": "Elimina la base del municipio {{n}}",
     "empty": "L'arsenale è ancora vuoto",
     "emptyLevel": "Nessuna base per il municipio {{n}}",
+    "loadingMore": "Caricamento di altre basi…",
+    "loadMoreError": "Non è stato possibile caricare altre basi.",
+    "allShown": "Hai visto tutte le basi",
     "form": {
       "createTitle": "Nuova base difensiva",
       "editTitle": "Modifica base difensiva",

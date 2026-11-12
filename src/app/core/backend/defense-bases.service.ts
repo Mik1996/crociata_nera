@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { cacheFor } from '../http/http-cache';
-import { BaseResult, DefenseBase, DefenseBaseChanges, DefenseBaseList } from './backend-api.types';
+import { noCache } from '../http/http-cache';
+import { BaseResult, DefenseBase, DefenseBaseChanges, DefenseBasePage } from './backend-api.types';
 
 export type BaseImageVariant = 'thumb' | 'full';
 
@@ -13,9 +13,14 @@ export type BaseImageVariant = 'thumb' | 'full';
  * without backend), chosen by `provideCocApi`.
  */
 export abstract class DefenseBasesService {
-  /** The bases, optionally of one town hall level only. */
-  abstract list(townHallLevel: number | null): Observable<DefenseBaseList>;
-  abstract create(changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges): Observable<DefenseBase>;
+  /**
+   * A page of bases, optionally of one town hall level only: the first page without `cursor`, the
+   * following ones with the `nextCursor` of the previous page.
+   */
+  abstract list(townHallLevel: number | null, cursor?: string | null): Observable<DefenseBasePage>;
+  abstract create(
+    changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges,
+  ): Observable<DefenseBase>;
   /** Changes only the fields given. */
   abstract update(id: string, changes: DefenseBaseChanges): Observable<DefenseBase>;
   abstract remove(id: string): Observable<void>;
@@ -29,15 +34,19 @@ export class HttpDefenseBasesService extends DefenseBasesService {
   private readonly baseUrl = inject(APP_CONFIG).backendBaseUrl;
   private readonly url = `${this.baseUrl}/bases`;
 
-  list(townHallLevel: number | null): Observable<DefenseBaseList> {
-    const params: Record<string, number> = townHallLevel ? { th: townHallLevel } : {};
-    // Changes made here clear the cache (mutations on /api/v1); changes by others show up within minutes.
+  list(townHallLevel: number | null, cursor?: string | null): Observable<DefenseBasePage> {
+    const params: Record<string, number | string> = {};
+    if (townHallLevel) params['th'] = townHallLevel;
+    if (cursor) params['cursor'] = cursor;
+    // Not in the HTTP cache: `BaseArsenal` keeps the pages already read, per filter.
     return this.http
-      .get<BaseResult<DefenseBaseList>>(this.url, { params, context: cacheFor({ minutes: 2 }) })
+      .get<BaseResult<DefenseBasePage>>(this.url, { params, context: noCache() })
       .pipe(map((response) => response.result!));
   }
 
-  create(changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges): Observable<DefenseBase> {
+  create(
+    changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges,
+  ): Observable<DefenseBase> {
     return this.http
       .post<BaseResult<DefenseBase>>(this.url, toFormData(changes))
       .pipe(map((response) => response.result!));

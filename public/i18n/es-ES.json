@@ -756,6 +756,9 @@
     "deleteOf": "Eliminar la base del ayuntamiento {{n}}",
     "empty": "El arsenal todavía está vacío",
     "emptyLevel": "No hay bases para el ayuntamiento {{n}}",
+    "loadingMore": "Cargando más bases…",
+    "loadMoreError": "No se pudieron cargar más bases.",
+    "allShown": "Has visto todas las bases",
     "form": {
       "createTitle": "Nueva base defensiva",
       "editTitle": "Editar base defensiva",

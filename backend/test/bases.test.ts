@@ -228,13 +228,56 @@ describe('defense bases', () => {
     const all = await call(listBases, { token: admin });
     expect(all.body.result.townHallLevels).toEqual([18, 17, 16]);
     expect(all.body.result.items.map((b: { townHallLevel: number }) => b.townHallLevel)).toEqual([18, 18, 17, 16]);
-    // Most recently changed first within a level.
+    // Most recently changed first within a level; everything fits in the first page.
     expect(all.body.result.items[0].layoutUrl).toContain('AAAA18bx');
+    expect(all.body.result.nextCursor).toBeNull();
 
     const th17 = await call(listBases, { token: admin, path: '/api/v1/bases?th=17' });
     expect(th17.body.result.items).toHaveLength(1);
     expect(th17.body.result.townHallLevels).toEqual([18, 17, 16]);
     expect((await call(listBases, { token: admin, path: '/api/v1/bases?th=abc' })).status).toBe(400);
+  });
+
+  it('pages the bases with a cursor until the last page says there is nothing left', async () => {
+    const admin = await adminToken();
+    for (const [th, id] of [[18, 'AAAA18ax'], [17, 'AAAA17ax'], [18, 'AAAA18bx'], [17, 'AAAA17bx'], [16, 'AAAA16ax']] as const) {
+      await create(admin, th, {}, id);
+    }
+    const ids = async (query: string) => {
+      const response = await call(listBases, { token: admin, path: `/api/v1/bases?${query}` });
+      expect(response.status).toBe(200);
+      const { items, nextCursor } = response.body.result as { items: { layoutUrl: string }[]; nextCursor: string | null };
+      return { ids: items.map((b) => b.layoutUrl.slice(-8)), nextCursor };
+    };
+
+    const first = await ids('limit=2');
+    expect(first.ids).toEqual(['AAAA18bx', 'AAAA18ax']);
+    expect(first.nextCursor).toEqual(expect.any(String));
+
+    // A base added meanwhile at the top neither repeats nor shifts the following pages.
+    await create(admin, 18, {}, 'AAAA18cx');
+    const second = await ids(`limit=2&cursor=${first.nextCursor}`);
+    expect(second.ids).toEqual(['AAAA17bx', 'AAAA17ax']);
+    const third = await ids(`limit=2&cursor=${second.nextCursor}`);
+    // Exactly `limit` bases left would still say "more"; one base left is the last page.
+    expect(third).toEqual({ ids: ['AAAA16ax'], nextCursor: null });
+
+    // Same cursor within one level.
+    const th18 = await ids('th=18&limit=2');
+    expect(th18.ids).toEqual(['AAAA18cx', 'AAAA18bx']);
+    expect(await ids(`th=18&limit=2&cursor=${th18.nextCursor}`)).toEqual({ ids: ['AAAA18ax'], nextCursor: null });
+
+    // A full last page: the extra base read tells there is nothing after it.
+    expect((await ids('th=17&limit=2')).nextCursor).toBeNull();
+  });
+
+  it('refuses malformed cursors and page sizes', async () => {
+    const admin = await adminToken();
+    for (const query of ['cursor=nope', `cursor=${Buffer.from('18.x.y').toString('base64url')}`, 'limit=0', 'limit=61']) {
+      const response = await call(listBases, { token: admin, path: `/api/v1/bases?${query}` });
+      expect(response.status).toBe(400);
+      expect(response.body.messages).toEqual([expect.objectContaining({ key: 'ERROR.INVALID_FIELD' })]);
+    }
   });
 
   it('changes only the fields sent and replaces the image', async () => {

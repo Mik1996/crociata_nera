@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
@@ -16,7 +25,9 @@ import { TOWN_HALL_IMAGES } from '../../core/game/game-assets';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
+import { NearEnd } from '../../shared/directives/near-end';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { BaseArsenal } from './base-arsenal';
 import { BaseDeleteDialog, BaseDeleteDialogData } from './components/base-delete-dialog';
 import { BaseFormDialog, BaseFormDialogData } from './components/base-form-dialog';
 import { BaseImageDialog, BaseImageDialogData } from './components/base-image-dialog';
@@ -28,9 +39,17 @@ const FORM_DIALOG = {
   autoFocus: 'first-tabbable',
 } as const;
 
+/** Bases of one town hall level, in the order of the arsenal. */
+export interface TownHallGroup {
+  level: number;
+  bases: DefenseBase[];
+}
+
 /**
  * Arsenal of defense bases: screenshot, in-game "copy base" link and notes, filtered by town hall
- * (`?th=18`). Members of the clans read it; administrators add, edit and delete bases.
+ * (`?th=18`) and grouped by town hall when not filtered. Endless list: the next page is asked for
+ * when the end of the list comes near; pages already read stay in {@link BaseArsenal}. Members of
+ * the clans read it; administrators add, edit and delete bases.
  */
 @Component({
   selector: 'app-bases-page',
@@ -38,11 +57,13 @@ const FORM_DIALOG = {
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
+    MatProgressSpinnerModule,
     MatTooltipModule,
     TranslatePipe,
     LoadState,
     PageHeader,
     ScrollFade,
+    NearEnd,
     ClanCastleTroops,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +73,7 @@ const FORM_DIALOG = {
 })
 export class BasesPage {
   private readonly service = inject(DefenseBasesService);
+  private readonly arsenal = inject(BaseArsenal);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
@@ -69,19 +91,43 @@ export class BasesPage {
     return Number.isInteger(level) && level > 0 ? level : null;
   });
 
-  protected readonly bases = rxResource({
-    params: () => ({ townHall: this.townHall() }),
-    stream: ({ params }) => this.service.list(params.townHall),
+  /** Pages read so far for the filter (kept when the filter or the page is left and shown again). */
+  protected readonly feed = computed(() => this.arsenal.feed(this.townHall()));
+  protected readonly items = computed(() => this.feed().items());
+  /** Consecutive bases of the same town hall (the backend sorts by town hall first). */
+  protected readonly groups = computed(() => {
+    const groups: TownHallGroup[] = [];
+    for (const base of this.items()) {
+      const last = groups.at(-1);
+      if (last?.level === base.townHallLevel) last.bases.push(base);
+      else groups.push({ level: base.townHallLevel, bases: [base] });
+    }
+    return groups;
   });
-  protected readonly items = computed(() => (this.bases.hasValue() ? this.bases.value().items : []));
+  /** Marker after the last base: near the visible part, the next page is asked for. */
+  private readonly end = viewChild(NearEnd);
+
   /** Levels offered by the filter; the selected one stays even when it has no bases left. */
   protected readonly levels = computed(() => {
-    const levels = this.bases.hasValue() ? this.bases.value().townHallLevels : [];
+    const levels = this.feed().townHallLevels();
     const selected = this.townHall();
     return selected && !levels.includes(selected)
       ? [...levels, selected].sort((a, b) => b - a)
       : levels;
   });
+
+  constructor() {
+    // First page of a filter, then one more each time the end of the list comes near (also right
+    // after a page too short to fill the screen). A feed never asks for a page twice, nor after
+    // the last one.
+    effect(() => {
+      const feed = this.feed();
+      const wanted = !feed.items().length || !!this.end()?.visible();
+      if (wanted && !feed.loading() && !feed.complete() && feed.error() === undefined) {
+        untracked(() => feed.loadMore());
+      }
+    });
+  }
 
   protected townHallImage(level: number): string | null {
     return TOWN_HALL_IMAGES[level] ?? null;
@@ -124,7 +170,11 @@ export class BasesPage {
         data: { base, imageUrl: this.imageUrl(base, 'thumb') },
       })
       .afterClosed()
-      .subscribe((deleted) => deleted && this.changed('SUCCESS.BASE_DELETED'));
+      .subscribe((deleted) => {
+        if (!deleted) return;
+        this.arsenal.reset();
+        this.notify('SUCCESS.BASE_DELETED');
+      });
   }
 
   private openForm(data: BaseFormDialogData): void {
@@ -134,14 +184,17 @@ export class BasesPage {
         data,
       })
       .afterClosed()
-      .subscribe(
-        (saved) => saved && this.changed(data.base ? 'SUCCESS.BASE_UPDATED' : 'SUCCESS.BASE_CREATED'),
-      );
+      .subscribe((saved) => {
+        if (!saved) return;
+        // An edited base is updated where it is shown; a new one needs the pages read again (the
+        // backend sorts them and lists the levels).
+        if (data.base) this.arsenal.replace(saved);
+        else this.arsenal.reset();
+        this.notify(data.base ? 'SUCCESS.BASE_UPDATED' : 'SUCCESS.BASE_CREATED');
+      });
   }
 
-  /** Reloads the list (the backend sorts and lists the levels) and says what happened. */
-  private changed(messageKey: string): void {
-    this.bases.reload();
+  private notify(messageKey: string): void {
     this.snackBar.open(this.language.t(messageKey), undefined, { duration: 3000 });
   }
 }

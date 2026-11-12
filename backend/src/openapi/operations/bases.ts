@@ -3,7 +3,7 @@ import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
 import { IMAGE_CONTENT_TYPE } from '@/modules/bases/base-image';
 import { createBaseSchema, listBasesQuerySchema, updateBaseSchema } from '@/modules/bases/bases.schemas';
-import { DefenseBase, DefenseBaseList } from '../models/bases';
+import { DefenseBase, DefenseBasePage } from '../models/bases';
 import { ApiOperation, FieldDoc, requestPart } from '../operation';
 
 const baseIdPath = requestPart(z.object({ id: z.string() }), {
@@ -44,11 +44,17 @@ export const BASE_OPERATIONS: ApiOperation[] = [
     operationId: 'listBases',
     tag: 'Bases',
     summary: 'List the defense bases',
-    description: 'The defense bases of the arsenal, optionally of one town hall level.',
+    description:
+      'A page of the defense bases of the arsenal, optionally of one town hall level. Keyset pagination: ask for the next page with the `nextCursor` of the previous one, until it is `null`. Bases added or removed meanwhile neither repeat nor shift other bases between pages.',
     access: 'clan',
     rateLimit: ApiName.BASES_READ,
-    query: requestPart(listBasesQuerySchema, { th: 'Only the bases of this town hall level, 1–30.' }),
-    responses: { 200: { description: 'The bases.', result: DefenseBaseList } },
+    query: requestPart(listBasesQuerySchema, {
+      th: 'Only the bases of this town hall level, 1–30.',
+      limit: 'Bases per page, 1–60 (default 24).',
+      cursor: 'The `nextCursor` of the previous page; omit it for the first page.',
+    }),
+    responses: { 200: { description: 'A page of bases.', result: DefenseBasePage } },
+    errors: { 400: [K.INVALID_FIELD] },
   },
   {
     method: 'POST',

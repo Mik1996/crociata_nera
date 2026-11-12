@@ -129,9 +129,12 @@ export interface DefenseBase {
   updatedAt: string;
 }
 
-export interface DefenseBaseList {
+/** A page of the arsenal (`GET /bases`). */
+export interface DefenseBasePage {
   /** Highest town hall first, then the most recently changed. */
   items: DefenseBase[];
+  /** Pass it to get the next page; `null` on the last page. */
+  nextCursor: string | null;
   /** Town hall levels with at least one base, whatever the filter, highest first. */
   townHallLevels: number[];
 }

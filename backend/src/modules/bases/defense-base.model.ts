@@ -32,7 +32,8 @@ const defenseBaseSchema = new Schema(
   },
   { collection: 'DefenseBases', timestamps: true, versionKey: false },
 );
-defenseBaseSchema.index({ townHallLevel: -1, updatedAt: -1 });
+// Sort and keyset pagination of the arsenal (`listBases`).
+defenseBaseSchema.index({ townHallLevel: -1, updatedAt: -1, _id: -1 });
 
 export type DefenseBase = InferSchemaType<typeof defenseBaseSchema>;
 export type DefenseBaseDocument = HydratedDocument<DefenseBase>;

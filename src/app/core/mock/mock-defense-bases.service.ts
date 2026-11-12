@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DefenseBase, DefenseBaseChanges, DefenseBaseList } from '../backend/backend-api.types';
+import { DefenseBase, DefenseBaseChanges, DefenseBasePage } from '../backend/backend-api.types';
 import { DefenseBasesService } from '../backend/defense-bases.service';
 import { APP_CONFIG } from '../config/app-config';
 import { TOWN_HALL_IMAGES } from '../game/game-assets';
@@ -32,9 +32,29 @@ const SEED: [th: number, id: string, description: string, troops: ClanCastleTroo
       { name: 'Headhunter', count: 4 },
     ],
   ],
-  [16, 'AAAADwAAAAEyq8wPd9sLk3Jh4Gf5Ds6A', 'Ideale per la CWL.', [{ name: 'Lava Hound', count: 1 }, { name: 'Valkyrie', count: 2 }]],
+  [
+    16,
+    'AAAADwAAAAEyq8wPd9sLk3Jh4Gf5Ds6A',
+    'Ideale per la CWL.',
+    [
+      { name: 'Lava Hound', count: 1 },
+      { name: 'Valkyrie', count: 2 },
+    ],
+  ],
   [15, 'AAAADQAAAAG1h2j3k4l5z6x7c8v9b0Nm', '', []],
+  // More bases without notes, enough for a few pages of the endless list.
+  ...[18, 18, 18, 18, 17, 17, 17, 17, 17, 16, 16, 16, 15, 15, 14, 14, 13, 12].map(
+    (th, i): [number, string, string, ClanCastleTroop[]] => [
+      th,
+      `MOCK${String(i).padStart(4, '0')}`,
+      '',
+      [],
+    ],
+  ),
 ];
+
+/** Smaller pages than the backend's, so the demo shows the endless list with few bases. */
+const MOCK_PAGE_SIZE = 8;
 
 /**
  * Arsenal kept in memory, for the demo without backend (`npm run start:mock`). Town hall pictures
@@ -59,17 +79,27 @@ export class MockDefenseBasesService extends DefenseBasesService {
   });
   private nextId = SEED.length;
 
-  list(townHallLevel: number | null): Observable<DefenseBaseList> {
+  /** The cursor is the id of the last base of the previous page. */
+  list(townHallLevel: number | null, cursor?: string | null): Observable<DefenseBasePage> {
     const sorted = [...this.bases].sort(
-      (a, b) => b.townHallLevel - a.townHallLevel || b.updatedAt.localeCompare(a.updatedAt),
+      (a, b) =>
+        b.townHallLevel - a.townHallLevel ||
+        b.updatedAt.localeCompare(a.updatedAt) ||
+        b.id.localeCompare(a.id),
     );
+    const matching = sorted.filter((b) => !townHallLevel || b.townHallLevel === townHallLevel);
+    const start = cursor ? matching.findIndex((b) => b.id === cursor) + 1 : 0;
+    const items = matching.slice(start, start + MOCK_PAGE_SIZE);
     return this.reply({
-      items: sorted.filter((b) => !townHallLevel || b.townHallLevel === townHallLevel),
+      items,
+      nextCursor: start + MOCK_PAGE_SIZE < matching.length ? items.at(-1)!.id : null,
       townHallLevels: [...new Set(sorted.map((b) => b.townHallLevel))],
     });
   }
 
-  create(changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges): Observable<DefenseBase> {
+  create(
+    changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges,
+  ): Observable<DefenseBase> {
     const now = new Date().toISOString();
     const base: DefenseBase = {
       id: `mock-${this.nextId++}`,
@@ -119,7 +149,8 @@ export class MockDefenseBasesService extends DefenseBasesService {
     if (housingSpaceUsed(next.clanCastleTroops) > clanCastleCapacity(next.townHallLevel)) {
       return error(400, 'ERROR.CLAN_CASTLE_OVER_CAPACITY', 'clanCastleTroops');
     }
-    if (changes.image) next.image = { key: URL.createObjectURL(changes.image), width: 1, height: 1 };
+    if (changes.image)
+      next.image = { key: URL.createObjectURL(changes.image), width: 1, height: 1 };
     return next;
   }
 
