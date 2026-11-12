@@ -1,7 +1,7 @@
 // Act V, the code: candlelight, the Crusader under oath and the unrolling scroll of the rules.
 //
-// The scroll (`.code__scroll`, an act of its own) is revealed down to a line at 82% of the
-// scrollport: `--reveal` is how much of it is above that line, in px, from its `--top`/`--h`.
+// The scroll (`.code__scroll`, an act of its own) is unrolled by `--reveal` (px), written by the
+// component from its position (`scrollReveal`).
 
 $ink: #f2f5fb;
 
@@ -54,8 +54,7 @@ $ink: #f2f5fb;
 // --- The scroll ------------------------------------------------------------------------------------
 
 .code__scroll {
-  --line: calc(var(--scrolly-vh, 100svh) * 0.82);
-  --reveal: clamp(0px, var(--line) - var(--top), var(--h));
+  --reveal: 0px;
   // Room for the overhanging rollers.
   width: calc(100% - 24px);
 }

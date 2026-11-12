@@ -1,5 +1,5 @@
 .weekend-selector {
-  min-width: 280px;
+  min-width: 18.75rem;
 }
 
 .weekend-state {
@@ -16,7 +16,7 @@
   display: inline-block;
   padding: 0.15rem 0.6rem;
   border: 1px solid var(--cn-border);
-  border-radius: 999px;
+  border-radius: 50%;
   font-family: var(--cn-font-body);
   font-size: var(--cn-fs-xs);
   font-weight: 600;
