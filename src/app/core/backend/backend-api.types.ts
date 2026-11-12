@@ -1,5 +1,7 @@
 /** Types of the application backend (`backend/`). Keep in sync with `backend/src`. */
 
+import { ClanCastleTroop } from '../game/clan-castle';
+
 export interface BackendMessage {
   /** Translation key, e.g. `ERROR.INVALID_CREDENTIALS`. */
   key: string;
@@ -119,6 +121,8 @@ export interface DefenseBase {
   /** In-game "copy base" link. */
   layoutUrl: string;
   description: string;
+  /** Clan castle reinforcements recommended for the base; empty when not given. */
+  clanCastleTroops: ClanCastleTroop[];
   /** Screenshot: `/base-images/{key}/thumb|full`; `width`/`height` of the full image. */
   image: { key: string; width: number; height: number };
   createdAt: string;
@@ -136,5 +140,7 @@ export interface DefenseBaseList {
 export interface DefenseBaseChanges {
   layoutUrl?: string;
   description?: string;
+  /** `[]` removes the reinforcements. */
+  clanCastleTroops?: ClanCastleTroop[];
   image?: Blob;
 }

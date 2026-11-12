@@ -511,7 +511,9 @@
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Aggiungi un'immagine della base.",
     "IMAGE_IS_TOO_LARGE": "Immagine troppo grande (massimo {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Immagine non valida: usa un file PNG, JPEG o WebP.",
-    "INVALID_FORM_DATA": "Richiesta non valida."
+    "INVALID_FORM_DATA": "Richiesta non valida.",
+    "CLAN_CASTLE_TROOPS_NOT_VALID": "Rinforzi del castello non validi.",
+    "CLAN_CASTLE_OVER_CAPACITY": "I rinforzi occupano {{used}} spazi, ma il castello ne ha {{max}}: togli qualche truppa."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -768,7 +770,7 @@
       "imagePreparing": "Preparazione dell'immagine…",
       "imageTooLarge": "File troppo grande (massimo {{max}} MB).",
       "description": "Descrizione",
-      "descriptionHint": "Facoltativa: ad esempio le truppe consigliate per il castello del clan",
+      "descriptionHint": "Facoltativa: ad esempio come difendersi o quando usare la base",
       "create": "Aggiungi",
       "save": "Salva"
     },
@@ -778,6 +780,21 @@
     },
     "imageDialog": {
       "title": "Base del municipio {{n}}"
+    },
+    "castle": {
+      "title": "Rinforzi del castello del clan",
+      "space": "{{used}}/{{max}} spazi",
+      "needLink": "Inserisci il link della base: la capienza del castello dipende dal municipio.",
+      "none": "Nessun rinforzo: tocca una truppa qui sotto per aggiungerla.",
+      "clear": "Svuota",
+      "add": "Aggiungi {{name}} ({{space}} spazi)",
+      "removeOne": "Togli un {{name}}",
+      "groups": {
+        "elixir": "Truppe elisir",
+        "dark": "Truppe elisir nero",
+        "super": "Super truppe"
+      },
+      "short": "Castello del clan"
     }
   },
   "commendations": {

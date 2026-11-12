@@ -60,11 +60,17 @@ export class HttpDefenseBasesService extends DefenseBasesService {
   }
 }
 
-/** `multipart/form-data` body: the backend reads `layoutUrl`, `description` and the file `image`. */
+/**
+ * `multipart/form-data` body: the backend reads `layoutUrl`, `description`, `clanCastleTroops` (JSON)
+ * and the file `image`.
+ */
 function toFormData(changes: DefenseBaseChanges): FormData {
   const form = new FormData();
   if (changes.layoutUrl !== undefined) form.append('layoutUrl', changes.layoutUrl);
   if (changes.description !== undefined) form.append('description', changes.description);
+  if (changes.clanCastleTroops !== undefined) {
+    form.append('clanCastleTroops', JSON.stringify(changes.clanCastleTroops));
+  }
   if (changes.image) form.append('image', changes.image, 'base');
   return form;
 }

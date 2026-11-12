@@ -1,0 +1,90 @@
+<div class="head">
+  <span class="label" id="castle-label">{{ 'bases.castle.title' | translate }}</span>
+  @if (capacity() !== null) {
+    <span class="space cn-num" [class.space--over]="over()">
+      {{ 'bases.castle.space' | translate: { used: used(), max: capacity() } }}
+    </span>
+  }
+</div>
+
+@if (capacity() === null) {
+  <p class="hint cn-muted">{{ 'bases.castle.needLink' | translate }}</p>
+} @else {
+  <div
+    class="bar"
+    role="meter"
+    aria-labelledby="castle-label"
+    [attr.aria-valuenow]="used()"
+    aria-valuemin="0"
+    [attr.aria-valuemax]="capacity()"
+    [attr.aria-valuetext]="'bases.castle.space' | translate: { used: used(), max: capacity() }"
+  >
+    <span class="bar__fill" [class.bar__fill--over]="over()" [style.width.%]="fill()"></span>
+  </div>
+
+  <div class="chosen">
+    @for (troop of chosen(); track troop.name) {
+      <span class="chosen__item">
+        <span class="tile tile--chosen" [matTooltip]="troop.name">
+          @if (troop.info?.icon; as icon) {
+            <img [src]="icon" alt="" />
+          } @else {
+            <span class="tile__initials" aria-hidden="true">{{ initials(troop.name) }}</span>
+          }
+          <span class="tile__count cn-num">×{{ troop.count }}</span>
+          <span class="cn-visually-hidden">{{ troop.name }}</span>
+        </span>
+        <button
+          type="button"
+          class="chosen__remove"
+          [disabled]="disabled()"
+          (click)="removeOne(troop.name)"
+          [matTooltip]="'bases.castle.removeOne' | translate: { name: troop.name }"
+          [attr.aria-label]="'bases.castle.removeOne' | translate: { name: troop.name }"
+        >
+          <mat-icon aria-hidden="true">remove</mat-icon>
+        </button>
+      </span>
+    } @empty {
+      <span class="cn-muted empty">{{ 'bases.castle.none' | translate }}</span>
+    }
+    @if (chosen().length) {
+      <button mat-button type="button" class="clear" [disabled]="disabled()" (click)="clear()">
+        {{ 'bases.castle.clear' | translate }}
+      </button>
+    }
+  </div>
+
+  @if (over()) {
+    <p class="error" role="alert">
+      {{ 'ERROR.CLAN_CASTLE_OVER_CAPACITY' | translate: { used: used(), max: capacity() } }}
+    </p>
+  }
+
+  <div class="catalogue">
+    @for (g of groups; track g.group) {
+      <h3 class="group">{{ 'bases.castle.groups.' + g.group | translate }}</h3>
+      <div class="grid">
+        @for (troop of g.troops; track troop.name) {
+          <button
+            type="button"
+            class="tile"
+            [disabled]="!fits(troop)"
+            (click)="add(troop)"
+            [matTooltip]="troop.name"
+            [attr.aria-label]="
+              'bases.castle.add' | translate: { name: troop.name, space: troop.housingSpace }
+            "
+          >
+            @if (troop.icon; as icon) {
+              <img [src]="icon" alt="" loading="lazy" decoding="async" />
+            } @else {
+              <span class="tile__initials" aria-hidden="true">{{ initials(troop.name) }}</span>
+            }
+            <span class="tile__space cn-num" aria-hidden="true">{{ troop.housingSpace }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+}

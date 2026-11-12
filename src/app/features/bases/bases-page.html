@@ -75,6 +75,14 @@
             <p class="base__description">{{ base.description }}</p>
           }
 
+          @if (base.clanCastleTroops.length) {
+            <app-clan-castle-troops
+              class="base__troops"
+              [troops]="base.clanCastleTroops"
+              [townHallLevel]="base.townHallLevel"
+            />
+          }
+
           <div class="base__actions">
             <a
               mat-flat-button

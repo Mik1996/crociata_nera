@@ -11,6 +11,7 @@ const base: DefenseBase = {
   townHallLevel: 18,
   layoutUrl: 'https://link.clashofclans.com/en?action=OpenLayout&id=TH18%3AHV%3AAAAAFQAAAALR',
   description: '',
+  clanCastleTroops: [],
   image: { key: 'Key_123', width: 1400, height: 900 },
   createdAt: '2026-11-12T10:00:00Z',
   updatedAt: '2026-11-12T10:00:00Z',

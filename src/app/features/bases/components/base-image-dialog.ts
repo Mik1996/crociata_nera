@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DefenseBase } from '../../../core/backend/backend-api.types';
+import { ClanCastleTroops } from './clan-castle-troops';
 
 export interface BaseImageDialogData {
   base: DefenseBase;
@@ -14,7 +15,7 @@ export interface BaseImageDialogData {
 /** Enlarged screenshot of a base, with its description and the "copy base" link. */
 @Component({
   selector: 'app-base-image-dialog',
-  imports: [MatButtonModule, MatDialogModule, MatIconModule, TranslatePipe],
+  imports: [MatButtonModule, MatDialogModule, MatIconModule, TranslatePipe, ClanCastleTroops],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-image-dialog.html',
   styleUrl: './base-image-dialog.scss',

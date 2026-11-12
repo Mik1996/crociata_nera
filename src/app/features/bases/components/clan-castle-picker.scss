@@ -1,0 +1,232 @@
+@use 'color-palette' as palette;
+@use 'variables' as *;
+
+:host {
+  display: block;
+  margin: 0 0 $space-l;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-s;
+  margin-bottom: $space-xs;
+}
+
+.label {
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-sm);
+}
+
+.space {
+  font-size: var(--cn-fs-sm);
+  font-weight: 700;
+}
+
+.space--over {
+  color: var(--cn-red-text);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--cn-fs-sm);
+}
+
+.bar {
+  height: 0.5rem;
+  border-radius: $radius-pill;
+  background: var(--cn-surface-3);
+  overflow: hidden;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cn-gold);
+  transition: width 0.15s ease;
+}
+
+.bar__fill--over {
+  background: var(--cn-red-mid);
+}
+
+.chosen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-s;
+  min-height: 3.5rem;
+  margin: $space-s 0;
+}
+
+.empty {
+  font-size: var(--cn-fs-sm);
+}
+
+.clear {
+  margin-inline-start: auto;
+}
+
+.catalogue {
+  max-height: 16rem;
+  overflow-y: auto;
+  padding: $space-s;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-l;
+  background: var(--cn-surface-2);
+}
+
+.group {
+  margin: $space-s 0 $space-xs;
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+  gap: $space-s;
+}
+
+// Game-style tile, as the units of the player page.
+.tile {
+  position: relative;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  border: 2px solid var(--cn-game-tile-border);
+  border-radius: $radius-l;
+  background: var(--cn-game-tile);
+  box-shadow: inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 35%);
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    border-color 0.1s ease;
+
+  img {
+    width: 100%;
+    height: 100%;
+    padding: $space-xs;
+    box-sizing: border-box;
+    object-fit: contain;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--cn-gold);
+    transform: translateY(-0.0625rem);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+
+    img,
+    .tile__initials {
+      filter: grayscale(1);
+      opacity: 0.35;
+    }
+  }
+}
+
+.tile--chosen {
+  display: block;
+  box-sizing: border-box;
+  border-color: var(--cn-game-gold);
+  cursor: default;
+
+  // Not a button: no hover effect (the red "−" is).
+  &:hover:not(:disabled) {
+    border-color: var(--cn-game-gold);
+    transform: none;
+  }
+}
+
+.tile__initials {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--cn-font-display);
+  color: var(--cn-light);
+}
+
+.tile__space,
+.tile__count {
+  position: absolute;
+  right: 0.125rem;
+  bottom: 0.125rem;
+  min-width: 1rem;
+  padding: 0 0.1875rem;
+  border-radius: $radius-s;
+  background: palette.alpha(var(--cn-surface), 85%);
+  color: var(--cn-text);
+  font-size: var(--cn-fs-2xs);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.tile__count {
+  color: var(--cn-gold);
+}
+
+.chosen__item {
+  position: relative;
+  display: inline-flex;
+}
+
+// Red "−" on the corner of each chosen troop: takes one away.
+.chosen__remove {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  padding: 0;
+  border: 2px solid var(--cn-surface);
+  border-radius: 50%;
+  background: var(--cn-red-mid);
+  color: var(--cn-text);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+
+  mat-icon {
+    width: 1rem;
+    height: 1rem;
+    font-size: 1rem;
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.error {
+  margin: 0 0 $space-s;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+}

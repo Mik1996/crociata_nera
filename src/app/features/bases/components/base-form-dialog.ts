@@ -24,12 +24,18 @@ import {
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
 import { TOWN_HALL_IMAGES } from '../../../core/game/game-assets';
+import {
+  ClanCastleTroop,
+  clanCastleCapacity,
+  housingSpaceUsed,
+} from '../../../core/game/clan-castle';
 import { layoutLinkTownHall } from '../../../core/game/layout-link';
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_SOURCE_BYTES,
   prepareImage,
 } from '../../../core/utils/prepare-image';
+import { ClanCastlePicker } from './clan-castle-picker';
 
 export interface BaseFormDialogData {
   /** The base to edit; absent to create a new one. */
@@ -42,6 +48,17 @@ export interface BaseFormDialogData {
 export const MAX_DESCRIPTION_LENGTH = 1000;
 
 /** The in-game "copy base" link of a home village base (an empty field is left to `required`). */
+/**
+ * The reinforcements must fit in the clan castle of the town hall read from the link (checked on the
+ * group: a new link can make a castle smaller).
+ */
+export function clanCastleFitsValidator(group: AbstractControl): ValidationErrors | null {
+  const townHall = layoutLinkTownHall(group.get('layoutUrl')?.value ?? '');
+  const troops: ClanCastleTroop[] = group.get('clanCastleTroops')?.value ?? [];
+  if (!townHall || !troops.length) return null;
+  return housingSpaceUsed(troops) > clanCastleCapacity(townHall) ? { clanCastleOverCapacity: true } : null;
+}
+
 export function layoutLinkValidator(control: AbstractControl<string | null>): ValidationErrors | null {
   const value = control.value?.trim();
   return !value || layoutLinkTownHall(value) ? null : { layoutLink: true };
@@ -63,6 +80,7 @@ export function layoutLinkValidator(control: AbstractControl<string | null>): Va
     MatInputModule,
     MatProgressSpinnerModule,
     TranslatePipe,
+    ClanCastlePicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-form-dialog.html',
@@ -86,7 +104,10 @@ export class BaseFormDialog {
       nonNullable: true,
       validators: [Validators.maxLength(MAX_DESCRIPTION_LENGTH)],
     }),
-  });
+    clanCastleTroops: new FormControl<ClanCastleTroop[]>(this.data.base?.clanCastleTroops ?? [], {
+      nonNullable: true,
+    }),
+  }, { validators: clanCastleFitsValidator });
 
   private readonly layoutUrl = toSignal(this.form.controls.layoutUrl.valueChanges, {
     initialValue: this.form.controls.layoutUrl.value,
@@ -97,6 +118,11 @@ export class BaseFormDialog {
   );
   /** Town hall level read from the link as it is typed. */
   protected readonly townHall = computed(() => layoutLinkTownHall(this.layoutUrl()));
+  /** Housing space of the clan castle of that town hall; `null` while the link is not valid. */
+  protected readonly castleCapacity = computed(() => {
+    const level = this.townHall();
+    return level ? clanCastleCapacity(level) : null;
+  });
   protected readonly townHallImage = computed(() => {
     const level = this.townHall();
     return level ? (TOWN_HALL_IMAGES[level] ?? null) : null;
@@ -108,6 +134,8 @@ export class BaseFormDialog {
   /** Object URL of the new image's preview, released when replaced or on close. */
   private previewObjectUrl: string | null = null;
   protected readonly imageError = signal<BackendMessage | null>(null);
+  /** Error of the backend about the reinforcements (e.g. a troop it does not know). */
+  protected readonly castleError = signal<BackendMessage | null>(null);
   protected readonly preparing = signal(false);
   protected readonly dragging = signal(false);
   protected readonly busy = signal(false);
@@ -189,6 +217,7 @@ export class BaseFormDialog {
     }
     this.busy.set(true);
     this.errors.set([]);
+    this.castleError.set(null);
     request.subscribe({
       next: (base) => this.ref.close(base),
       error: (error: unknown) => {
@@ -202,12 +231,16 @@ export class BaseFormDialog {
   private request(image: Blob | null): Observable<DefenseBase> | null {
     const layoutUrl = this.form.controls.layoutUrl.value.trim();
     const description = this.form.controls.description.value.trim();
+    const clanCastleTroops = this.form.controls.clanCastleTroops.value;
     const base = this.data.base;
-    if (!base) return this.service.create({ layoutUrl, description, image: image! });
+    if (!base) return this.service.create({ layoutUrl, description, clanCastleTroops, image: image! });
 
     const changes: DefenseBaseChanges = {};
     if (layoutUrl !== base.layoutUrl) changes.layoutUrl = layoutUrl;
     if (description !== base.description) changes.description = description;
+    if (JSON.stringify(clanCastleTroops) !== JSON.stringify(base.clanCastleTroops)) {
+      changes.clanCastleTroops = clanCastleTroops;
+    }
     if (image) changes.image = image;
     return Object.keys(changes).length ? this.service.update(base.id, changes) : null;
   }
@@ -219,6 +252,8 @@ export class BaseFormDialog {
     for (const message of fields) {
       if (message.field === 'image') {
         this.imageError.set(message);
+      } else if (message.field?.startsWith('clanCastleTroops')) {
+        this.castleError.set(message);
       } else if (message.field === 'layoutUrl' || message.field === 'description') {
         const control = this.form.controls[message.field];
         control.setErrors({ server: message });

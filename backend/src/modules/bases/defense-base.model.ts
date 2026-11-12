@@ -14,6 +14,11 @@ const defenseBaseSchema = new Schema(
     layoutId: { type: String, required: true, unique: true },
     layoutUrl: { type: String, required: true },
     description: { type: String, default: '' },
+    /** Clan castle reinforcements recommended for the base (within the castle's capacity). */
+    clanCastleTroops: {
+      type: [{ _id: false, name: { type: String, required: true }, count: { type: Number, required: true } }],
+      default: [],
+    },
     /**
      * Random key of the screenshot in the image store. A new image gets a new key, so its URLs
      * can be cached forever; being random, the URLs cannot be guessed.
@@ -41,6 +46,8 @@ export interface PublicDefenseBase {
   townHallLevel: number;
   layoutUrl: string;
   description: string;
+  /** Clan castle reinforcements, by English troop name; empty when not given. */
+  clanCastleTroops: { name: string; count: number }[];
   image: { key: string; width: number; height: number };
   createdAt: string;
   updatedAt: string;
@@ -52,6 +59,7 @@ export function toPublicDefenseBase(base: DefenseBaseDocument): PublicDefenseBas
     townHallLevel: base.townHallLevel,
     layoutUrl: base.layoutUrl,
     description: base.description,
+    clanCastleTroops: base.clanCastleTroops.map(({ name, count }) => ({ name, count })),
     image: { key: base.imageKey, width: base.imageWidth, height: base.imageHeight },
     createdAt: base.createdAt.toISOString(),
     updatedAt: base.updatedAt.toISOString(),

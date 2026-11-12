@@ -16,6 +16,7 @@ const saved: DefenseBase = {
   townHallLevel: 18,
   layoutUrl: LINK,
   description: 'Castello: Drago',
+  clanCastleTroops: [{ name: 'Golem', count: 1 }],
   image: { key: 'key', width: 1400, height: 700 },
   createdAt: '2026-11-12T10:00:00Z',
   updatedAt: '2026-11-12T10:00:00Z',
@@ -106,12 +107,26 @@ describe('BaseFormDialog', () => {
     await settle();
     expect(query<HTMLImageElement>('.drop__preview').src).toBe('blob:preview');
 
+    // Reinforcements: TH18 castle, 55 spaces. Golem (30) + Golem would be 60: the second does not fit.
+    expect(dialog().textContent).toContain('0/55 spazi');
+    const golem = () => query<HTMLButtonElement>('.catalogue button[aria-label^="Aggiungi Golem "]');
+    golem().click();
+    await settle();
+    expect(dialog().textContent).toContain('30/55 spazi');
+    expect(golem().disabled).toBe(true);
+    query<HTMLButtonElement>('.catalogue button[aria-label^="Aggiungi Barbarian "]').click();
+    query<HTMLButtonElement>('.catalogue button[aria-label^="Aggiungi Barbarian "]').click();
+    await settle();
     type(query('textarea'), '  Castello: Drago  ');
     query<HTMLButtonElement>('button[type="submit"]').click();
     const post = httpMock.expectOne('/api/v1/bases');
     const body = post.request.body as FormData;
     expect(body.get('layoutUrl')).toBe(LINK);
     expect(body.get('description')).toBe('Castello: Drago');
+    expect(JSON.parse(body.get('clanCastleTroops') as string)).toEqual([
+      { name: 'Golem', count: 1 },
+      { name: 'Barbarian', count: 2 },
+    ]);
     const image = body.get('image') as Blob;
     expect(image.type).toBe('image/webp');
     expect(await image.text()).toBe('2000x1000');
@@ -149,6 +164,23 @@ describe('BaseFormDialog', () => {
     );
     await settle();
     expect(dialog().textContent).toContain("Questa base è già nell'arsenale.");
+  });
+
+  it('asks for the link before the reinforcements and blocks a castle that became too small', async () => {
+    await open({ base: saved, imageUrl: '/x' });
+    // TH18 with a Golem: fine. A TH10 link leaves 35 spaces, still enough.
+    type(query('input[formcontrolname="layoutUrl"]'), 'https://link.clashofclans.com/en?action=OpenLayout&id=TH4%3AHV%3ABBBBFQAAAALR');
+    await settle();
+    // TH4: 15 spaces, the Golem (30) no longer fits.
+    expect(dialog().textContent).toContain('30/15 spazi');
+    expect(dialog().textContent).toContain('ma il castello ne ha 15');
+    query<HTMLButtonElement>('button[type="submit"]').click();
+    httpMock.expectNone('/api/v1/bases/b1');
+
+    type(query('input[formcontrolname="layoutUrl"]'), 'not a link');
+    await settle();
+    expect(dialog().textContent).toContain('Inserisci il link della base: la capienza');
+    expect(dialog().querySelector('.catalogue')).toBeNull();
   });
 
   it('closes without a request when nothing changed', async () => {

@@ -5,6 +5,7 @@ import { MessageKey } from '@/lib/http/message-key';
 import { ImageVariant, processBaseImage } from './base-image';
 import { imageStore, StoredImage } from './base-image.store';
 import { CreateBaseInput, UpdateBaseInput } from './bases.schemas';
+import { ClanCastleTroop, clanCastleCapacity, housingSpaceUsed } from './clan-castle';
 import {
   DefenseBaseDocument,
   DefenseBaseModel,
@@ -47,6 +48,7 @@ export async function createBase(actorId: string, input: CreateBaseInput): Promi
     throwException(409, [{ key: MessageKey.BASE_LIMIT_REACHED, params: { max: MAX_DEFENSE_BASES } }]);
   }
   await assertLayoutIsNew(input.layoutUrl.layoutId);
+  assertFitsClanCastle(input.clanCastleTroops, input.layoutUrl.townHallLevel);
 
   const images = await processBaseImage(input.image);
   const imageKey = newImageKey();
@@ -57,6 +59,7 @@ export async function createBase(actorId: string, input: CreateBaseInput): Promi
       layoutId: input.layoutUrl.layoutId,
       layoutUrl: input.layoutUrl.url,
       description: input.description,
+      clanCastleTroops: input.clanCastleTroops,
       imageKey,
       imageWidth: images.full.width,
       imageHeight: images.full.height,
@@ -85,6 +88,9 @@ export async function updateBase(actorId: string, id: string, input: UpdateBaseI
     });
   }
   if (input.description !== undefined) base.description = input.description;
+  if (input.clanCastleTroops !== undefined) base.set('clanCastleTroops', input.clanCastleTroops);
+  // A lower town hall (new link) may leave less room for the troops already chosen.
+  if (input.layoutUrl || input.clanCastleTroops) assertFitsClanCastle(base.clanCastleTroops, base.townHallLevel);
 
   const oldImageKey = base.imageKey;
   let newKey: string | null = null;
@@ -121,6 +127,17 @@ async function findBase(id: string): Promise<DefenseBaseDocument> {
   const base = Types.ObjectId.isValid(id) ? await DefenseBaseModel.findById(id) : null;
   if (!base) throwException(404, MessageKey.BASE_NOT_FOUND);
   return base;
+}
+
+/** The reinforcements must fit in the clan castle of the base's town hall. */
+function assertFitsClanCastle(troops: readonly ClanCastleTroop[], townHallLevel: number): void {
+  const used = housingSpaceUsed(troops);
+  const max = clanCastleCapacity(townHallLevel);
+  if (used > max) {
+    throwException(400, [
+      { key: MessageKey.CLAN_CASTLE_OVER_CAPACITY, params: { used, max }, field: 'clanCastleTroops' },
+    ]);
+  }
 }
 
 async function assertLayoutIsNew(layoutId: string): Promise<void> {

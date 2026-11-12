@@ -15,6 +15,7 @@ const base = (id: string, townHallLevel: number, description = ''): DefenseBase 
   townHallLevel,
   layoutUrl: `https://link.clashofclans.com/en?action=OpenLayout&id=TH${townHallLevel}%3AHV%3A${id}xxxxxxxx`,
   description,
+  clanCastleTroops: id === 'a' ? [{ name: 'Golem', count: 1 }, { name: 'Witch', count: 2 }] : [],
   image: { key: `key-${id}`, width: 1400, height: 900 },
   createdAt: '2026-11-12T10:00:00Z',
   updatedAt: '2026-11-12T10:00:00Z',
@@ -71,6 +72,11 @@ describe('BasesPage', () => {
       const copy = cards[0].querySelector<HTMLAnchorElement>('a.base__copy')!;
       expect(copy.href).toBe(base('a', 18).layoutUrl);
       expect(copy.textContent).toContain('Copia base');
+      // Reinforcements: Golem 30 + 2 Witches 24 out of 55 (TH18).
+      const troops = cards[0].querySelector('app-clan-castle-troops')!;
+      expect(troops.textContent).toContain('54/55 spazi');
+      expect([...troops.querySelectorAll('.count')].map((c) => c.textContent)).toEqual(['×1', '×2']);
+      expect(cards[1].querySelector('app-clan-castle-troops')).toBeNull();
     });
 
     it('hides the editing buttons from members who are not administrators', async () => {

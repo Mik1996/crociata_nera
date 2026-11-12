@@ -511,7 +511,9 @@
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Add an image of the base.",
     "IMAGE_IS_TOO_LARGE": "Image too large (at most {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Invalid image: use a PNG, JPEG or WebP file.",
-    "INVALID_FORM_DATA": "Invalid request."
+    "INVALID_FORM_DATA": "Invalid request.",
+    "CLAN_CASTLE_TROOPS_NOT_VALID": "Invalid clan castle reinforcements.",
+    "CLAN_CASTLE_OVER_CAPACITY": "The reinforcements take {{used}} spaces but the castle has {{max}}: remove some troops."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -768,7 +770,7 @@
       "imagePreparing": "Preparing the image…",
       "imageTooLarge": "File too large (at most {{max}} MB).",
       "description": "Description",
-      "descriptionHint": "Optional: e.g. the troops recommended for the clan castle",
+      "descriptionHint": "Optional: e.g. how to defend or when to use the base",
       "create": "Add",
       "save": "Save"
     },
@@ -778,6 +780,21 @@
     },
     "imageDialog": {
       "title": "Town Hall {{n}} base"
+    },
+    "castle": {
+      "title": "Clan castle reinforcements",
+      "space": "{{used}}/{{max}} spaces",
+      "needLink": "Enter the base link first: the castle capacity depends on the Town Hall.",
+      "none": "No reinforcements: tap a troop below to add it.",
+      "clear": "Clear",
+      "add": "Add {{name}} ({{space}} spaces)",
+      "removeOne": "Remove one {{name}}",
+      "groups": {
+        "elixir": "Elixir troops",
+        "dark": "Dark elixir troops",
+        "super": "Super troops"
+      },
+      "short": "Clan castle"
     }
   },
   "commendations": {

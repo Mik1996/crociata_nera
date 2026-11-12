@@ -10,6 +10,13 @@
     [height]="data.base.image.height"
     [alt]="'bases.imageDialog.title' | translate: { n: data.base.townHallLevel }"
   />
+  @if (data.base.clanCastleTroops.length) {
+    <app-clan-castle-troops
+      class="troops"
+      [troops]="data.base.clanCastleTroops"
+      [townHallLevel]="data.base.townHallLevel"
+    />
+  }
   @if (data.base.description) {
     <p class="description">{{ data.base.description }}</p>
   }

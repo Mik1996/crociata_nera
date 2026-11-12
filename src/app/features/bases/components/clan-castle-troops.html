@@ -1,0 +1,17 @@
+<div class="head">
+  <span class="title">{{ 'bases.castle.short' | translate }}</span>
+  <span class="space cn-num cn-muted">
+    {{ 'bases.castle.space' | translate: { used: used(), max: capacity() } }}
+  </span>
+</div>
+<ul class="list">
+  @for (troop of items(); track troop.name) {
+    <li class="troop" [matTooltip]="troop.name">
+      @if (troop.icon; as icon) {
+        <img [src]="icon" alt="" loading="lazy" decoding="async" />
+      }
+      <span class="count cn-num">×{{ troop.count }}</span>
+      <span class="cn-visually-hidden">{{ troop.name }}</span>
+    </li>
+  }
+</ul>

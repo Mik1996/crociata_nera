@@ -80,6 +80,15 @@
       }
     </div>
 
+    <app-clan-castle-picker
+      formControlName="clanCastleTroops"
+      [capacity]="castleCapacity()"
+      (click)="castleError.set(null)"
+    />
+    @if (castleError(); as m) {
+      <p class="error castle-error" role="alert">{{ m.key | translate: m.params }}</p>
+    }
+
     <mat-form-field appearance="outline" class="field" subscriptSizing="dynamic">
       <mat-label>{{ 'bases.form.description' | translate }}</mat-label>
       <textarea

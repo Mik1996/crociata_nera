@@ -511,7 +511,9 @@
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Añade una imagen de la base.",
     "IMAGE_IS_TOO_LARGE": "Imagen demasiado grande (máximo {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Imagen no válida: usa un archivo PNG, JPEG o WebP.",
-    "INVALID_FORM_DATA": "Solicitud no válida."
+    "INVALID_FORM_DATA": "Solicitud no válida.",
+    "CLAN_CASTLE_TROOPS_NOT_VALID": "Refuerzos del castillo no válidos.",
+    "CLAN_CASTLE_OVER_CAPACITY": "Los refuerzos ocupan {{used}} espacios, pero el castillo tiene {{max}}: quita alguna tropa."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -768,7 +770,7 @@
       "imagePreparing": "Preparando la imagen…",
       "imageTooLarge": "Archivo demasiado grande (máximo {{max}} MB).",
       "description": "Descripción",
-      "descriptionHint": "Opcional: por ejemplo las tropas recomendadas para el castillo del clan",
+      "descriptionHint": "Opcional: por ejemplo cómo defender o cuándo usar la base",
       "create": "Añadir",
       "save": "Guardar"
     },
@@ -778,6 +780,21 @@
     },
     "imageDialog": {
       "title": "Base del ayuntamiento {{n}}"
+    },
+    "castle": {
+      "title": "Refuerzos del castillo del clan",
+      "space": "{{used}}/{{max}} espacios",
+      "needLink": "Introduce primero el enlace de la base: la capacidad del castillo depende del ayuntamiento.",
+      "none": "Sin refuerzos: toca una tropa abajo para añadirla.",
+      "clear": "Vaciar",
+      "add": "Añadir {{name}} ({{space}} espacios)",
+      "removeOne": "Quitar un {{name}}",
+      "groups": {
+        "elixir": "Tropas de elixir",
+        "dark": "Tropas de elixir oscuro",
+        "super": "Supertropas"
+      },
+      "short": "Castillo del clan"
     }
   },
   "commendations": {

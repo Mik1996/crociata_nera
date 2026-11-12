@@ -20,6 +20,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { BaseDeleteDialog, BaseDeleteDialogData } from './components/base-delete-dialog';
 import { BaseFormDialog, BaseFormDialogData } from './components/base-form-dialog';
 import { BaseImageDialog, BaseImageDialogData } from './components/base-image-dialog';
+import { ClanCastleTroops } from './components/clan-castle-troops';
 
 const FORM_DIALOG = {
   width: '36rem',
@@ -42,6 +43,7 @@ const FORM_DIALOG = {
     LoadState,
     PageHeader,
     ScrollFade,
+    ClanCastleTroops,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

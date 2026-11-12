@@ -292,3 +292,71 @@ describe('defense bases', () => {
     }
   });
 });
+
+describe('clan castle reinforcements', () => {
+  const troops = (list: [string, number][]) => JSON.stringify(list.map(([name, count]) => ({ name, count })));
+
+  it('are optional and saved with the base, repeated troops added up', async () => {
+    const admin = await adminToken();
+    const none = await create(admin, 18, {}, 'NOTROOPSx');
+    expect(none.body.result.clanCastleTroops).toEqual([]);
+
+    const res = await create(admin, 18, { clanCastleTroops: troops([['Golem', 1], ['Witch', 1], ['Witch', 1]]) });
+    expect(res.status).toBe(201);
+    expect(res.body.result.clanCastleTroops).toEqual([
+      { name: 'Golem', count: 1 },
+      { name: 'Witch', count: 2 },
+    ]);
+    const list = await call(listBases, { token: admin });
+    expect(list.body.result.items.find((b: { id: string }) => b.id === res.body.result.id).clanCastleTroops).toHaveLength(2);
+  });
+
+  it('must fit in the clan castle of the town hall', async () => {
+    const admin = await adminToken();
+    // TH10: 35 spaces; Golem 30 + Witch 12 = 42.
+    const over = await create(admin, 10, { clanCastleTroops: troops([['Golem', 1], ['Witch', 1]]) });
+    expect(over.status).toBe(400);
+    expect(over.body.messages).toEqual([
+      { key: 'ERROR.CLAN_CASTLE_OVER_CAPACITY', params: { used: 42, max: 35 }, field: 'clanCastleTroops' },
+    ]);
+    // Exactly full is fine: 35 Barbarians.
+    expect((await create(admin, 10, { clanCastleTroops: troops([['Barbarian', 35]]) })).status).toBe(201);
+    // Town halls without a clan castle take no troops.
+    expect((await create(admin, 2, { clanCastleTroops: troops([['Barbarian', 1]]) }, 'TWOxxxxxx')).status).toBe(400);
+    expect(await BaseImageModel.countDocuments()).toBe(2);
+  });
+
+  it('refuses unknown troops and malformed lists', async () => {
+    const admin = await adminToken();
+    for (const value of [
+      'not json',
+      '{"name":"Golem","count":1}',
+      troops([['Wall Wrecker', 1]]),
+      troops([['Golem', 0]]),
+      JSON.stringify([{ name: 'Golem', count: 1.5 }]),
+    ]) {
+      const res = await create(admin, 18, { clanCastleTroops: value });
+      expect(res.status, value).toBe(400);
+      expect(res.body.messages.map((m: { key: string }) => m.key)).toContain('ERROR.CLAN_CASTLE_TROOPS_NOT_VALID');
+      expect(res.body.messages.every((m: { field?: string }) => m.field?.startsWith('clanCastleTroops'))).toBe(true);
+    }
+  });
+
+  it('are kept, replaced or cleared on update, and checked against a new town hall', async () => {
+    const admin = await adminToken();
+    const base = (await create(admin, 18, { clanCastleTroops: troops([['Golem', 1], ['Witch', 2]]) })).body.result;
+    const params = { id: base.id };
+    const patch = (fields: Record<string, string>) =>
+      call(updateBase, { token: admin, params, method: 'PATCH', body: form(fields) });
+
+    expect((await patch({ description: 'x' })).body.result.clanCastleTroops).toHaveLength(2);
+    // TH10 cannot hold 54 spaces.
+    const lower = await patch({ layoutUrl: link(10) });
+    expect(lower.status).toBe(400);
+    expect(lower.body.messages[0]).toMatchObject({ key: 'ERROR.CLAN_CASTLE_OVER_CAPACITY', params: { used: 54, max: 35 } });
+    // Same link change with troops that fit.
+    const moved = await patch({ layoutUrl: link(10), clanCastleTroops: troops([['Lava Hound', 1]]) });
+    expect(moved.body.result).toMatchObject({ townHallLevel: 10, clanCastleTroops: [{ name: 'Lava Hound', count: 1 }] });
+    expect((await patch({ clanCastleTroops: '[]' })).body.result.clanCastleTroops).toEqual([]);
+  });
+});
