@@ -1,0 +1,116 @@
+<h2 mat-dialog-title>
+  {{ (editing ? 'bases.form.editTitle' : 'bases.form.createTitle') | translate }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()" (paste)="onPaste($event)">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="field">
+      <mat-label>{{ 'bases.form.layoutUrl' | translate }}</mat-label>
+      <input
+        matInput
+        type="url"
+        formControlName="layoutUrl"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="https://link.clashofclans.com/…"
+        cdkFocusInitial
+      />
+      @if (townHallImage(); as src) {
+        <img matSuffix class="th-icon" [src]="src" alt="" />
+      }
+      <mat-hint>
+        @if (townHall(); as level) {
+          {{ 'bases.form.townHallFromLink' | translate: { n: level } }}
+        } @else {
+          {{ 'bases.form.layoutUrlHint' | translate }}
+        }
+      </mat-hint>
+      @let linkErrors = form.controls.layoutUrl.errors;
+      <mat-error>
+        @if (linkErrors?.['required']) {
+          {{ 'ERROR.LAYOUT_LINK_SHOULD_NOT_BE_EMPTY' | translate }}
+        } @else if (linkErrors?.['layoutLink']) {
+          {{ 'ERROR.LAYOUT_LINK_IS_NOT_VALID' | translate }}
+        } @else if (linkErrors?.['server']; as m) {
+          {{ m.key | translate: m.params }}
+        }
+      </mat-error>
+    </mat-form-field>
+
+    <div class="image-field">
+      <span class="image-field__label" id="base-image-label"
+        >{{ 'bases.form.image' | translate }}{{ editing ? '' : '*' }}</span
+      >
+      <label
+        class="drop"
+        [class.drop--active]="dragging()"
+        [class.drop--error]="imageError()"
+        [class.drop--filled]="preview()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="dragging.set(false)"
+        (drop)="onDrop($event)"
+      >
+        <input
+          type="file"
+          class="cn-visually-hidden"
+          aria-labelledby="base-image-label"
+          [accept]="accept"
+          (change)="onFileInput($event)"
+        />
+        @if (preview(); as src) {
+          <img class="drop__preview" [src]="src" [alt]="'bases.form.imagePreview' | translate" />
+          <span class="drop__change">
+            <mat-icon aria-hidden="true">photo_camera</mat-icon>
+            {{ 'bases.form.imageChange' | translate }}
+          </span>
+        } @else {
+          <mat-icon class="drop__icon" aria-hidden="true">add_photo_alternate</mat-icon>
+          <span>{{ 'bases.form.imageDrop' | translate }}</span>
+          <span class="cn-muted drop__formats">{{ 'bases.form.imageFormats' | translate }}</span>
+        }
+        @if (preparing()) {
+          <span class="drop__busy" role="status">
+            <mat-spinner diameter="32" />
+            <span class="cn-visually-hidden">{{ 'bases.form.imagePreparing' | translate }}</span>
+          </span>
+        }
+      </label>
+      @if (imageError(); as m) {
+        <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+      }
+    </div>
+
+    <mat-form-field appearance="outline" class="field" subscriptSizing="dynamic">
+      <mat-label>{{ 'bases.form.description' | translate }}</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        rows="4"
+        [attr.maxlength]="maxDescription"
+      ></textarea>
+      <mat-hint>{{ 'bases.form.descriptionHint' | translate }}</mat-hint>
+      <mat-hint align="end" class="cn-num">
+        {{ descriptionText().length }}/{{ maxDescription }}
+      </mat-hint>
+      @let descriptionErrors = form.controls.description.errors;
+      <mat-error>
+        @if (descriptionErrors?.['maxlength']) {
+          {{ 'ERROR.DESCRIPTION_IS_TOO_LONG' | translate }}
+        } @else if (descriptionErrors?.['server']; as m) {
+          {{ m.key | translate: m.params }}
+        }
+      </mat-error>
+    </mat-form-field>
+
+    @for (m of errors(); track $index) {
+      <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" [disabled]="busy() || preparing()">
+      {{ (editing ? 'bases.form.save' : 'bases.form.create') | translate }}
+    </button>
+  </mat-dialog-actions>
+</form>

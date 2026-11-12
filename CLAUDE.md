@@ -97,6 +97,11 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   player leaves the clan and at season end, so the backend adds up the counter's growth between
   reads (`DonationCounters` → `DonationTotals`, per Gold Pass season from `/goldpass/seasons/current`,
   `backend/src/modules/donations/`) and reads once more a minute before the season ends.
+- Base arsenal (`backend/src/modules/bases/`): the town hall level comes from the in-game layout
+  link (`TH18:HV:…`). Screenshots are shrunk in the browser (`prepareImage`), re-encoded by `sharp`
+  as WebP (`thumb` 640 px, `full` 1400 px) and kept in MongoDB (`BaseImages`, behind the
+  `ImageStore` interface; max 400 bases for the free cluster). `GET /base-images/{key}/{variant}` is
+  public: the key is random and changes with the image, so responses are cached as immutable.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the

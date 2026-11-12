@@ -10,7 +10,8 @@
     "style",
     "auth",
     "raids",
-    "administration"
+    "administration",
+    "bases"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

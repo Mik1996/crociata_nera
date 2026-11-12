@@ -8,7 +8,7 @@ import { adminGuard, authGuard, clanGuard, guestGuard } from './core/backend/aut
  * the 404) lives under a group protected by `authGuard`: signed-out users are sent to the
  * welcome page, from which "Sign in" brings them back to the page they asked for.
  *
- * The clans' data (wars, CWL, raids, players, statistics) is further restricted by `clanGuard` to
+ * The clans' data (wars, CWL, raids, players, statistics, base arsenal) is further restricted by `clanGuard` to
  * administrators and members of Crociata Nera, Crociata Rossa or Crociata d'Oro with a verified
  * linked account; the other signed-in users only reach their profile. The backend enforces the
  * same rule on its data routes.
@@ -114,6 +114,11 @@ export const routes: Routes = [
             title: 'nav.player',
             loadComponent: () =>
               import('./features/players/player-detail-page').then((m) => m.PlayerDetailPage),
+          },
+          {
+            path: 'bases',
+            title: 'nav.bases',
+            loadComponent: () => import('./features/bases/bases-page').then((m) => m.BasesPage),
           },
           {
             path: 'statistics',

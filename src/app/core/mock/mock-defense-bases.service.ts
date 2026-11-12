@@ -1,0 +1,109 @@
+import { inject, Injectable } from '@angular/core';
+import { delay, Observable, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { DefenseBase, DefenseBaseChanges, DefenseBaseList } from '../backend/backend-api.types';
+import { DefenseBasesService } from '../backend/defense-bases.service';
+import { APP_CONFIG } from '../config/app-config';
+import { TOWN_HALL_IMAGES } from '../game/game-assets';
+import { layoutLinkTownHall } from '../game/layout-link';
+
+const layoutLink = (th: number, id: string) =>
+  `https://link.clashofclans.com/en?action=OpenLayout&id=TH${th}%3AHV%3A${id}`;
+
+const SEED: [th: number, id: string, description: string][] = [
+  [18, 'AAAAFQAAAALRVVKKOsCkPrNIeGUyK9Qd', 'Anti 3 stelle da guerra.\nCastello: Super Minatore + Maga.'],
+  [18, 'AAAAFQAAAAKx9TQkW7nN2fYbRk0pPq1Z', ''],
+  [17, 'AAAAEQAAAAH2c1y3m4n5b6v7c8x9z0Lp', 'Ibrida farming/guerra. Castello: Drago Elettrico.'],
+  [16, 'AAAADwAAAAEyq8wPd9sLk3Jh4Gf5Ds6A', 'Ideale per la CWL.'],
+  [15, 'AAAADQAAAAG1h2j3k4l5z6x7c8v9b0Nm', ''],
+];
+
+/**
+ * Arsenal kept in memory, for the demo without backend (`npm run start:mock`). Town hall pictures
+ * stand in for the screenshots; uploaded images are shown from the browser memory. Changes last
+ * until the page is reloaded.
+ */
+@Injectable()
+export class MockDefenseBasesService extends DefenseBasesService {
+  private readonly latency = inject(APP_CONFIG).mockLatencyMs;
+  private bases: DefenseBase[] = SEED.map(([th, id, description], index) => {
+    const date = new Date(Date.UTC(2026, 10, 10 - index)).toISOString();
+    return {
+      id: `mock-${index}`,
+      townHallLevel: th,
+      layoutUrl: layoutLink(th, id),
+      description,
+      image: { key: TOWN_HALL_IMAGES[th], width: 1, height: 1 },
+      createdAt: date,
+      updatedAt: date,
+    };
+  });
+  private nextId = SEED.length;
+
+  list(townHallLevel: number | null): Observable<DefenseBaseList> {
+    const sorted = [...this.bases].sort(
+      (a, b) => b.townHallLevel - a.townHallLevel || b.updatedAt.localeCompare(a.updatedAt),
+    );
+    return this.reply({
+      items: sorted.filter((b) => !townHallLevel || b.townHallLevel === townHallLevel),
+      townHallLevels: [...new Set(sorted.map((b) => b.townHallLevel))],
+    });
+  }
+
+  create(changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges): Observable<DefenseBase> {
+    const now = new Date().toISOString();
+    const base: DefenseBase = {
+      id: `mock-${this.nextId++}`,
+      townHallLevel: 0,
+      layoutUrl: '',
+      description: '',
+      image: { key: '', width: 1, height: 1 },
+      createdAt: now,
+      updatedAt: now,
+    };
+    const result = this.apply(base, changes);
+    if (result instanceof HttpErrorResponse) return throwError(() => result);
+    this.bases = [result, ...this.bases];
+    return this.reply(result);
+  }
+
+  update(id: string, changes: DefenseBaseChanges): Observable<DefenseBase> {
+    const base = this.bases.find((b) => b.id === id);
+    if (!base) return throwError(() => error(404, 'ERROR.BASE_NOT_FOUND'));
+    const result = this.apply({ ...base, updatedAt: new Date().toISOString() }, changes);
+    if (result instanceof HttpErrorResponse) return throwError(() => result);
+    this.bases = this.bases.map((b) => (b.id === id ? result : b));
+    return this.reply(result);
+  }
+
+  remove(id: string): Observable<void> {
+    this.bases = this.bases.filter((b) => b.id !== id);
+    return this.reply(undefined);
+  }
+
+  /** Same picture for both variants. */
+  imageUrl(base: DefenseBase): string {
+    return base.image.key;
+  }
+
+  private apply(base: DefenseBase, changes: DefenseBaseChanges): DefenseBase | HttpErrorResponse {
+    const next = { ...base };
+    if (changes.layoutUrl !== undefined) {
+      const th = layoutLinkTownHall(changes.layoutUrl);
+      if (!th) return error(400, 'ERROR.LAYOUT_LINK_IS_NOT_VALID', 'layoutUrl');
+      next.townHallLevel = th;
+      next.layoutUrl = changes.layoutUrl.trim();
+    }
+    if (changes.description !== undefined) next.description = changes.description.trim();
+    if (changes.image) next.image = { key: URL.createObjectURL(changes.image), width: 1, height: 1 };
+    return next;
+  }
+
+  private reply<T>(value: T): Observable<T> {
+    return of(value).pipe(delay(this.latency));
+  }
+}
+
+function error(status: number, key: string, field?: string): HttpErrorResponse {
+  return new HttpErrorResponse({ status, error: { result: null, messages: [{ key, field }] } });
+}

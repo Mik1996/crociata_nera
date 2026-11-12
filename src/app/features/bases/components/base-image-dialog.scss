@@ -1,0 +1,22 @@
+@use 'variables' as *;
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  // Leaves room for the title, the description and the buttons.
+  max-height: calc(100dvh - 14rem);
+  border-radius: $radius-m;
+  background: var(--cn-surface-3);
+  object-fit: contain;
+}
+
+.description {
+  margin: $space-m 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+a mat-icon {
+  margin-inline-end: $space-xs;
+}

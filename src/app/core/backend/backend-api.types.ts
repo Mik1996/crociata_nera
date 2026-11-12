@@ -110,3 +110,31 @@ export interface PlayerRecord {
   lastSeenAt: string | null;
   commendations: EarnedCommendation[];
 }
+
+/** A defense base of the arsenal (`GET /bases`). */
+export interface DefenseBase {
+  id: string;
+  /** From the layout link (`TH18:HV:…`). */
+  townHallLevel: number;
+  /** In-game "copy base" link. */
+  layoutUrl: string;
+  description: string;
+  /** Screenshot: `/base-images/{key}/thumb|full`; `width`/`height` of the full image. */
+  image: { key: string; width: number; height: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DefenseBaseList {
+  /** Highest town hall first, then the most recently changed. */
+  items: DefenseBase[];
+  /** Town hall levels with at least one base, whatever the filter, highest first. */
+  townHallLevels: number[];
+}
+
+/** Fields sent to create (all but `description` required) or change (only the changed ones) a base. */
+export interface DefenseBaseChanges {
+  layoutUrl?: string;
+  description?: string;
+  image?: Blob;
+}

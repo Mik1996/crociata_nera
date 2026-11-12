@@ -139,6 +139,7 @@ export class Shell {
     { path: '/wars', label: 'nav.history', icon: 'history_edu' },
     { path: '/players', label: 'nav.players', icon: 'groups' },
     { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
+    { path: '/bases', label: 'nav.bases', icon: 'shield' },
   ];
 
   /**

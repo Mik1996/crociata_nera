@@ -1,0 +1,26 @@
+@use 'variables' as *;
+
+.thumb {
+  display: block;
+  width: 100%;
+  max-height: 10rem;
+  margin-bottom: $space-m;
+  border-radius: $radius-m;
+  background: var(--cn-surface-3);
+  object-fit: contain;
+}
+
+.intro {
+  margin: 0;
+}
+
+.error {
+  margin: $space-s 0 0;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+}
+
+.danger:not(:disabled) {
+  --mat-button-filled-container-color: var(--cn-red-mid);
+  --mat-button-filled-label-text-color: var(--cn-text);
+}

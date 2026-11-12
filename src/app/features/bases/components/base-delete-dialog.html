@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>{{ 'bases.deleteDialog.title' | translate }}</h2>
+
+<mat-dialog-content>
+  <img class="thumb" [src]="data.imageUrl" alt="" />
+  <p class="intro">
+    {{ 'bases.deleteDialog.intro' | translate: { n: data.base.townHallLevel } }}
+  </p>
+  @for (m of errors(); track $index) {
+    <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close cdkFocusInitial>
+    {{ 'common.cancel' | translate }}
+  </button>
+  <button mat-flat-button type="button" class="danger" [disabled]="busy()" (click)="confirm()">
+    {{ 'bases.delete' | translate }}
+  </button>
+</mat-dialog-actions>

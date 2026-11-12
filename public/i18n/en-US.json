@@ -45,7 +45,8 @@
     "verifyEmail": "Confirm email",
     "profile": "My profile",
     "admin": "Administration",
-    "settings": "Settings"
+    "settings": "Settings",
+    "bases": "Base arsenal"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -444,7 +445,10 @@
     "USER_UPDATED": "{{name}} updated",
     "PLAYER_LINKED": "Game account verified and linked.",
     "PLAYER_UNLINKED": "Account {{tag}} unlinked.",
-    "USER_DELETED": "{{name}} deleted"
+    "USER_DELETED": "{{name}} deleted",
+    "BASE_CREATED": "Base added to the arsenal",
+    "BASE_UPDATED": "Base updated",
+    "BASE_DELETED": "Base deleted"
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -497,7 +501,17 @@
     "CANNOT_DELETE_OWN_ACCOUNT": "You cannot delete your own account.",
     "USERNAME_CONFIRMATION_MISMATCH": "The name entered does not match the user's.",
     "PLAYER_NOT_FOUND_TAG": "Player {{tag}} not found in Clash of Clans.",
-    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} is already linked to another user."
+    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} is already linked to another user.",
+    "BASE_NOT_FOUND": "Base not found: it may have been deleted.",
+    "BASE_ALREADY_EXISTS": "This base is already in the arsenal.",
+    "BASE_LIMIT_REACHED": "The arsenal is full (at most {{max}} bases): delete outdated bases.",
+    "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Enter the link of the base.",
+    "LAYOUT_LINK_IS_NOT_VALID": "Invalid link: use the game's “Copy base” link of a home village base.",
+    "DESCRIPTION_IS_TOO_LONG": "Description too long (at most 1000 characters).",
+    "IMAGE_SHOULD_NOT_BE_EMPTY": "Add an image of the base.",
+    "IMAGE_IS_TOO_LARGE": "Image too large (at most {{max}} MB).",
+    "IMAGE_IS_NOT_VALID": "Invalid image: use a PNG, JPEG or WebP file.",
+    "INVALID_FORM_DATA": "Invalid request."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -721,6 +735,49 @@
       "title": "Delete user",
       "intro": "The user {{name}} will be deleted permanently and signed out of every device. This cannot be undone.",
       "label": "To confirm, type {{name}}"
+    }
+  },
+  "bases": {
+    "title": "Base arsenal",
+    "subtitle": "Defense bases ready to copy into the game",
+    "add": "Add base",
+    "filterByTownHall": "Filter by Town Hall",
+    "all": "All",
+    "thShort": "TH {{n}}",
+    "found": "Bases found: {{n}}",
+    "copy": "Copy base",
+    "copyOf": "Copy the Town Hall {{n}} base into the game",
+    "enlarge": "Enlarge the Town Hall {{n}} base",
+    "edit": "Edit",
+    "editOf": "Edit the Town Hall {{n}} base",
+    "delete": "Delete",
+    "deleteOf": "Delete the Town Hall {{n}} base",
+    "empty": "The arsenal is still empty",
+    "emptyLevel": "No bases for Town Hall {{n}}",
+    "form": {
+      "createTitle": "New defense base",
+      "editTitle": "Edit defense base",
+      "layoutUrl": "Base link",
+      "layoutUrlHint": "The “Copy base” link shared from the game",
+      "townHallFromLink": "Town Hall {{n}}, read from the link",
+      "image": "Base image",
+      "imageDrop": "Drop the screenshot here, paste it or choose a file",
+      "imageFormats": "PNG, JPEG or WebP",
+      "imageChange": "Change image",
+      "imagePreview": "Preview of the base",
+      "imagePreparing": "Preparing the image…",
+      "imageTooLarge": "File too large (at most {{max}} MB).",
+      "description": "Description",
+      "descriptionHint": "Optional: e.g. the troops recommended for the clan castle",
+      "create": "Add",
+      "save": "Save"
+    },
+    "deleteDialog": {
+      "title": "Delete base",
+      "intro": "The Town Hall {{n}} base will be removed from the arsenal together with its image. This cannot be undone."
+    },
+    "imageDialog": {
+      "title": "Town Hall {{n}} base"
     }
   },
   "commendations": {

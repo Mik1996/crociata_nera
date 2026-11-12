@@ -45,7 +45,8 @@
     "verifyEmail": "Confirmar email",
     "profile": "Mi perfil",
     "admin": "Administración",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "bases": "Arsenal de bases"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -444,7 +445,10 @@
     "USER_UPDATED": "{{name}} actualizado",
     "PLAYER_LINKED": "Cuenta del juego verificada y vinculada.",
     "PLAYER_UNLINKED": "Cuenta {{tag}} desvinculada.",
-    "USER_DELETED": "{{name}} eliminado"
+    "USER_DELETED": "{{name}} eliminado",
+    "BASE_CREATED": "Base añadida al arsenal",
+    "BASE_UPDATED": "Base actualizada",
+    "BASE_DELETED": "Base eliminada"
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -497,7 +501,17 @@
     "CANNOT_DELETE_OWN_ACCOUNT": "No puedes eliminar tu propia cuenta.",
     "USERNAME_CONFIRMATION_MISMATCH": "El nombre introducido no coincide con el del usuario.",
     "PLAYER_NOT_FOUND_TAG": "Jugador {{tag}} no encontrado en Clash of Clans.",
-    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} ya está vinculado a otro usuario."
+    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} ya está vinculado a otro usuario.",
+    "BASE_NOT_FOUND": "Base no encontrada: quizá se ha eliminado.",
+    "BASE_ALREADY_EXISTS": "Esta base ya está en el arsenal.",
+    "BASE_LIMIT_REACHED": "El arsenal está lleno (máximo {{max}} bases): elimina las bases superadas.",
+    "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Introduce el enlace de la base.",
+    "LAYOUT_LINK_IS_NOT_VALID": "Enlace no válido: usa el enlace «Copiar base» del juego de una base de la aldea principal.",
+    "DESCRIPTION_IS_TOO_LONG": "Descripción demasiado larga (máximo 1000 caracteres).",
+    "IMAGE_SHOULD_NOT_BE_EMPTY": "Añade una imagen de la base.",
+    "IMAGE_IS_TOO_LARGE": "Imagen demasiado grande (máximo {{max}} MB).",
+    "IMAGE_IS_NOT_VALID": "Imagen no válida: usa un archivo PNG, JPEG o WebP.",
+    "INVALID_FORM_DATA": "Solicitud no válida."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -721,6 +735,49 @@
       "title": "Eliminar usuario",
       "intro": "El usuario {{name}} se eliminará definitivamente y se cerrará su sesión en todos los dispositivos. No se puede deshacer.",
       "label": "Para confirmar, escribe {{name}}"
+    }
+  },
+  "bases": {
+    "title": "Arsenal de bases",
+    "subtitle": "Bases defensivas listas para copiar en el juego",
+    "add": "Añadir base",
+    "filterByTownHall": "Filtrar por ayuntamiento",
+    "all": "Todas",
+    "thShort": "TH {{n}}",
+    "found": "Bases encontradas: {{n}}",
+    "copy": "Copiar base",
+    "copyOf": "Copiar en el juego la base del ayuntamiento {{n}}",
+    "enlarge": "Ampliar la base del ayuntamiento {{n}}",
+    "edit": "Editar",
+    "editOf": "Editar la base del ayuntamiento {{n}}",
+    "delete": "Eliminar",
+    "deleteOf": "Eliminar la base del ayuntamiento {{n}}",
+    "empty": "El arsenal todavía está vacío",
+    "emptyLevel": "No hay bases para el ayuntamiento {{n}}",
+    "form": {
+      "createTitle": "Nueva base defensiva",
+      "editTitle": "Editar base defensiva",
+      "layoutUrl": "Enlace de la base",
+      "layoutUrlHint": "El enlace «Copiar base» compartido desde el juego",
+      "townHallFromLink": "Ayuntamiento {{n}}, obtenido del enlace",
+      "image": "Imagen de la base",
+      "imageDrop": "Arrastra aquí la captura, pégala o elige un archivo",
+      "imageFormats": "PNG, JPEG o WebP",
+      "imageChange": "Cambiar imagen",
+      "imagePreview": "Vista previa de la base",
+      "imagePreparing": "Preparando la imagen…",
+      "imageTooLarge": "Archivo demasiado grande (máximo {{max}} MB).",
+      "description": "Descripción",
+      "descriptionHint": "Opcional: por ejemplo las tropas recomendadas para el castillo del clan",
+      "create": "Añadir",
+      "save": "Guardar"
+    },
+    "deleteDialog": {
+      "title": "Eliminar base",
+      "intro": "La base del ayuntamiento {{n}} se eliminará del arsenal junto con su imagen. No se puede deshacer."
+    },
+    "imageDialog": {
+      "title": "Base del ayuntamiento {{n}}"
     }
   },
   "commendations": {

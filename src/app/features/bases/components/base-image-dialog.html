@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>
+  {{ 'bases.imageDialog.title' | translate: { n: data.base.townHallLevel } }}
+</h2>
+
+<mat-dialog-content>
+  <img
+    class="image"
+    [src]="data.imageUrl"
+    [width]="data.base.image.width"
+    [height]="data.base.image.height"
+    [alt]="'bases.imageDialog.title' | translate: { n: data.base.townHallLevel }"
+  />
+  @if (data.base.description) {
+    <p class="description">{{ data.base.description }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
+  <a mat-flat-button [href]="data.base.layoutUrl" target="_blank" rel="noopener noreferrer">
+    <mat-icon aria-hidden="true">download</mat-icon>
+    {{ 'bases.copy' | translate }}
+  </a>
+</mat-dialog-actions>

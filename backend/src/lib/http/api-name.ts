@@ -15,6 +15,9 @@ export enum ApiName {
   WARS_READ = 'wars-read',
   CLAN_RECORDS = 'clan-records',
   ADMIN = 'admin',
+  BASES_READ = 'bases-read',
+  BASES_WRITE = 'bases-write',
+  BASE_IMAGES = 'base-images',
 }
 
 export interface RateLimit {
@@ -43,4 +46,9 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   // Public (welcome page).
   [ApiName.CLAN_RECORDS]: { limit: 60, windowMs: MINUTE },
   [ApiName.ADMIN]: { limit: 120, windowMs: MINUTE },
+  [ApiName.BASES_READ]: { limit: 120, windowMs: MINUTE },
+  // Administrators only; each request may carry an image of up to 10 MB.
+  [ApiName.BASES_WRITE]: { limit: 60, windowMs: 15 * MINUTE },
+  // A page of the arsenal loads one thumbnail per base (cached by the browser afterwards).
+  [ApiName.BASE_IMAGES]: { limit: 600, windowMs: MINUTE },
 };

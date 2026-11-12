@@ -29,7 +29,10 @@ export interface CallResult<T> {
 
 /** Invokes a Route Handler as Next.js would. */
 export async function call<T = any>(handler: Handler, options: CallOptions = {}): Promise<CallResult<T>> {
-  const headers = new Headers({ 'content-type': 'application/json', 'x-forwarded-for': options.ip ?? '10.0.0.1' });
+  // A FormData body is sent as multipart/form-data (the boundary is set by the Request).
+  const multipart = options.body instanceof FormData;
+  const headers = new Headers({ 'x-forwarded-for': options.ip ?? '10.0.0.1' });
+  if (!multipart) headers.set('content-type', 'application/json');
   if (options.origin !== null) headers.set('origin', options.origin ?? ORIGIN);
   if (options.token) headers.set('authorization', `Bearer ${options.token}`);
   if (options.cookie) headers.set('cookie', `cn_refresh=${options.cookie}`);
@@ -37,7 +40,12 @@ export async function call<T = any>(handler: Handler, options: CallOptions = {})
   const request = new Request(`http://localhost:3001${options.path ?? '/api/v1/test'}`, {
     method: options.method ?? (options.body === undefined ? 'GET' : 'POST'),
     headers,
-    body: options.body === undefined ? undefined : typeof options.body === 'string' ? options.body : JSON.stringify(options.body),
+    body:
+      options.body === undefined
+        ? undefined
+        : multipart || typeof options.body === 'string'
+          ? (options.body as BodyInit)
+          : JSON.stringify(options.body),
   });
   const response = await handler(request, { params: Promise.resolve(options.params ?? {}) });
   const setCookie = response.headers.getSetCookie().find((c) => c.startsWith('cn_refresh='));

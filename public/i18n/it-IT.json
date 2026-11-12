@@ -45,7 +45,8 @@
     "verifyEmail": "Conferma email",
     "profile": "Il mio profilo",
     "admin": "Amministrazione",
-    "settings": "Impostazioni"
+    "settings": "Impostazioni",
+    "bases": "Arsenale basi"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -444,7 +445,10 @@
     "USER_UPDATED": "{{name}} aggiornato",
     "PLAYER_LINKED": "Account di gioco verificato e collegato.",
     "PLAYER_UNLINKED": "Account {{tag}} scollegato.",
-    "USER_DELETED": "{{name}} eliminato"
+    "USER_DELETED": "{{name}} eliminato",
+    "BASE_CREATED": "Base aggiunta all'arsenale",
+    "BASE_UPDATED": "Base aggiornata",
+    "BASE_DELETED": "Base eliminata"
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -497,7 +501,17 @@
     "CANNOT_DELETE_OWN_ACCOUNT": "Non puoi eliminare il tuo account.",
     "USERNAME_CONFIRMATION_MISMATCH": "Il nome inserito non corrisponde a quello dell'utente.",
     "PLAYER_NOT_FOUND_TAG": "Giocatore {{tag}} non trovato in Clash of Clans.",
-    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} è già collegato a un altro utente."
+    "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} è già collegato a un altro utente.",
+    "BASE_NOT_FOUND": "Base non trovata: forse è stata eliminata.",
+    "BASE_ALREADY_EXISTS": "Questa base è già nell'arsenale.",
+    "BASE_LIMIT_REACHED": "L'arsenale è pieno (massimo {{max}} basi): elimina le basi superate.",
+    "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Inserisci il link della base.",
+    "LAYOUT_LINK_IS_NOT_VALID": "Link non valido: usa il link «Copia base» del gioco di una base del villaggio principale.",
+    "DESCRIPTION_IS_TOO_LONG": "Descrizione troppo lunga (massimo 1000 caratteri).",
+    "IMAGE_SHOULD_NOT_BE_EMPTY": "Aggiungi un'immagine della base.",
+    "IMAGE_IS_TOO_LARGE": "Immagine troppo grande (massimo {{max}} MB).",
+    "IMAGE_IS_NOT_VALID": "Immagine non valida: usa un file PNG, JPEG o WebP.",
+    "INVALID_FORM_DATA": "Richiesta non valida."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -721,6 +735,49 @@
       "title": "Elimina utente",
       "intro": "L'utente {{name}} verrà eliminato definitivamente e disconnesso da tutti i dispositivi. L'operazione non si può annullare.",
       "label": "Per confermare scrivi {{name}}"
+    }
+  },
+  "bases": {
+    "title": "Arsenale basi",
+    "subtitle": "Basi difensive pronte da copiare nel gioco",
+    "add": "Aggiungi base",
+    "filterByTownHall": "Filtra per municipio",
+    "all": "Tutte",
+    "thShort": "TH {{n}}",
+    "found": "Basi trovate: {{n}}",
+    "copy": "Copia base",
+    "copyOf": "Copia nel gioco la base del municipio {{n}}",
+    "enlarge": "Ingrandisci la base del municipio {{n}}",
+    "edit": "Modifica",
+    "editOf": "Modifica la base del municipio {{n}}",
+    "delete": "Elimina",
+    "deleteOf": "Elimina la base del municipio {{n}}",
+    "empty": "L'arsenale è ancora vuoto",
+    "emptyLevel": "Nessuna base per il municipio {{n}}",
+    "form": {
+      "createTitle": "Nuova base difensiva",
+      "editTitle": "Modifica base difensiva",
+      "layoutUrl": "Link della base",
+      "layoutUrlHint": "Il link «Copia base» condiviso dal gioco",
+      "townHallFromLink": "Municipio {{n}}, ricavato dal link",
+      "image": "Immagine della base",
+      "imageDrop": "Trascina qui lo screenshot, incollalo o scegli un file",
+      "imageFormats": "PNG, JPEG o WebP",
+      "imageChange": "Cambia immagine",
+      "imagePreview": "Anteprima della base",
+      "imagePreparing": "Preparazione dell'immagine…",
+      "imageTooLarge": "File troppo grande (massimo {{max}} MB).",
+      "description": "Descrizione",
+      "descriptionHint": "Facoltativa: ad esempio le truppe consigliate per il castello del clan",
+      "create": "Aggiungi",
+      "save": "Salva"
+    },
+    "deleteDialog": {
+      "title": "Elimina base",
+      "intro": "La base del municipio {{n}} verrà eliminata dall'arsenale insieme alla sua immagine. L'operazione non si può annullare."
+    },
+    "imageDialog": {
+      "title": "Base del municipio {{n}}"
     }
   },
   "commendations": {

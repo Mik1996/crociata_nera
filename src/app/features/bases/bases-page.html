@@ -1,0 +1,116 @@
+<app-page-header [title]="'bases.title' | translate" [subtitle]="'bases.subtitle' | translate">
+  @if (canEdit()) {
+    <button mat-flat-button type="button" class="add" (click)="openCreate()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      {{ 'bases.add' | translate }}
+    </button>
+  }
+</app-page-header>
+
+<div appScrollFade class="page__scroll">
+  @if (levels().length) {
+    <mat-chip-listbox
+      class="filter"
+      hideSingleSelectionIndicator
+      [attr.aria-label]="'bases.filterByTownHall' | translate"
+      [value]="townHall()"
+      (change)="selectTownHall($event.value)"
+    >
+      <mat-chip-option [value]="null" [selectable]="townHall() !== null">
+        {{ 'bases.all' | translate }}
+      </mat-chip-option>
+      @for (level of levels(); track level) {
+        <mat-chip-option [value]="level" [selectable]="townHall() !== level">
+          @if (townHallImage(level); as src) {
+            <img matChipAvatar class="filter__th" [src]="src" alt="" />
+          }
+          {{ 'bases.thShort' | translate: { n: level } }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  }
+
+  <p class="cn-visually-hidden" aria-live="polite">
+    {{ 'bases.found' | translate: { n: items().length } }}
+  </p>
+
+  <app-load-state
+    [loading]="bases.isLoading() && !bases.hasValue()"
+    [error]="bases.error()"
+    [empty]="!items().length"
+    emptyIcon="shield"
+    [emptyMessage]="
+      townHall()
+        ? ('bases.emptyLevel' | translate: { n: townHall() })
+        : ('bases.empty' | translate)
+    "
+    (retry)="bases.reload()"
+  >
+    <ul class="grid">
+      @for (base of items(); track base.id) {
+        <li class="base cn-card">
+          <button
+            type="button"
+            class="base__media"
+            (click)="openImage(base)"
+            [attr.aria-label]="'bases.enlarge' | translate: { n: base.townHallLevel }"
+          >
+            <img
+              [src]="imageUrl(base, 'thumb')"
+              [width]="base.image.width"
+              [height]="base.image.height"
+              loading="lazy"
+              decoding="async"
+              alt=""
+            />
+          </button>
+          <span class="base__th">
+            @if (townHallImage(base.townHallLevel); as src) {
+              <img [src]="src" alt="" />
+            }
+            {{ 'bases.thShort' | translate: { n: base.townHallLevel } }}
+          </span>
+
+          @if (base.description) {
+            <p class="base__description">{{ base.description }}</p>
+          }
+
+          <div class="base__actions">
+            <a
+              mat-flat-button
+              class="base__copy"
+              [href]="base.layoutUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'bases.copyOf' | translate: { n: base.townHallLevel }"
+            >
+              <mat-icon aria-hidden="true">download</mat-icon>
+              {{ 'bases.copy' | translate }}
+            </a>
+            @if (canEdit()) {
+              <button
+                mat-icon-button
+                type="button"
+                (click)="openEdit(base)"
+                [matTooltip]="'bases.edit' | translate"
+                [attr.aria-label]="'bases.editOf' | translate: { n: base.townHallLevel }"
+              >
+                <mat-icon aria-hidden="true">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="base__delete"
+                (click)="openDelete(base)"
+                [matTooltip]="'bases.delete' | translate"
+                [attr.aria-label]="'bases.deleteOf' | translate: { n: base.townHallLevel }"
+              >
+                <mat-icon aria-hidden="true">delete</mat-icon>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  </app-load-state>
+</div>

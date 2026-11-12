@@ -63,7 +63,8 @@ type RouteContext<P> = { params: Promise<P> };
  */
 export function apiHandler<P extends object = object, T = unknown, A extends boolean = false>(
   options: ApiHandlerOptions<A>,
-  handler: (context: ApiContext<P, A>) => Promise<ApiResponse<T>>,
+  /** Returns a `BaseResult` description, or a ready `Response` for non-JSON content (images). */
+  handler: (context: ApiContext<P, A>) => Promise<ApiResponse<T> | Response>,
 ): (request: Request, routeContext: RouteContext<P>) => Promise<Response> {
   return async (request, routeContext) => {
     const origin = request.headers.get('origin');
@@ -91,6 +92,7 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
 
       const params = (await routeContext?.params) ?? ({} as P);
       const response = await handler({ request, params, user: user as ApiContext<P, A>['user'], ip });
+      if (response instanceof Response) return response;
       return respond(response.status ?? 200, response.result ?? null, response.messages, origin, response.headers);
     } catch (error) {
       return respondWithError(error, origin);
