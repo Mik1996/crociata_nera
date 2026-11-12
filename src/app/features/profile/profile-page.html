@@ -8,7 +8,7 @@
     @if (!hasClanAccess()) {
       <aside class="cn-card access-notice" role="note" aria-labelledby="access-title">
         <mat-icon class="access-notice__icon" aria-hidden="true">lock</mat-icon>
-        <div>
+        <div class="access-notice__body">
           <h2 id="access-title">{{ 'profile.access.title' | translate }}</h2>
           <p>{{ 'profile.access.text' | translate }}</p>
           <p class="cn-muted">{{ 'profile.access.notMember' | translate }}</p>

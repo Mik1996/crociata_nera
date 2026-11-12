@@ -79,19 +79,32 @@ h2 {
   gap: $space-m;
   align-items: flex-start;
   margin-bottom: $space-l;
+  // Room below for the button's 3D edge and the card's inner bevel.
+  padding: $space-l $space-l $space-xl;
   border: 2px solid var(--cn-gold-dark);
 
+  h2 {
+    margin-bottom: $space-m;
+  }
+
   p {
-    margin: 0 0 $space-s;
+    margin: 0 0 $space-m;
   }
 
   a {
-    margin-top: $space-xs;
+    margin-top: $space-s;
   }
+}
+
+.access-notice__body {
+  flex: 1;
+  min-width: 0;
 }
 
 .access-notice__icon {
   flex: none;
+  // Lined up with the first line of the title.
+  margin-top: 0.1rem;
   color: var(--cn-gold);
 }
 
