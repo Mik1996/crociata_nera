@@ -10,6 +10,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
+import { injectSisterClans } from '../../core/api/sister-clans';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
@@ -55,15 +56,21 @@ export class ProfilePage {
   protected readonly hasClanAccess = this.auth.hasClanAccess;
   protected readonly roleKey = roleKey;
 
-  /** Clan members, to show which member each linked account belongs to. */
+  /** Crociata Nera and its sister clans, to show which member each linked account belongs to. */
   private readonly clan = rxResource({ stream: () => this.api.getClan().pipe(catchError(() => of(null))) });
-  /** Linked accounts with the clan member they belong to (`null` if not in the clan now). */
+  private readonly sisterClans = injectSisterClans();
+  /**
+   * Linked accounts with the clan member they belong to and its clan (`null` if the account is in
+   * none of the three clans now).
+   */
   protected readonly linkedPlayers = computed(() => {
-    const members = this.clan.hasValue() ? (this.clan.value()?.members ?? []) : [];
-    return this.auth.linkedPlayers().map((player) => ({
-      ...player,
-      member: members.find((m) => m.tag === player.tag) ?? null,
-    }));
+    const main = this.clan.hasValue() ? this.clan.value() : null;
+    const clans = [...(main ? [main] : []), ...this.sisterClans().map((s) => s.clan)];
+    return this.auth.linkedPlayers().map((player) => {
+      const clan = clans.find((c) => c.members.some((m) => m.tag === player.tag));
+      const member = clan?.members.find((m) => m.tag === player.tag) ?? null;
+      return { ...player, member, clanName: clan?.name ?? null };
+    });
   });
   protected readonly maxPlayers = MAX_LINKED_PLAYERS;
 

@@ -194,7 +194,8 @@
                         @if (p.member; as m) {
                           {{
                             'profile.player.linkedTo'
-                              | translate: { name: m.name, role: (roleKey(m.role) | translate) }
+                              | translate
+                                : { name: m.name, role: (roleKey(m.role) | translate), clan: p.clanName }
                           }}
                         } @else {
                           {{ 'profile.player.linkedTag' | translate: { tag: p.tag } }}

@@ -666,8 +666,8 @@
     "player": {
       "title": "Clash of Clans accounts",
       "hint": "Link your game accounts, even more than one: their rows will be highlighted in the tables. Each account needs the game's API token, which only its owner can see, so nobody can link someone else's player.",
-      "linkedTo": "Linked to {{name}} ({{role}})",
-      "notInClan": "This tag is not among the current clan members.",
+      "linkedTo": "Linked to {{name}} ({{role}} in {{clan}})",
+      "notInClan": "This tag is not among the current members of Crociata Nera, Crociata Rossa or Crociata d'Oro.",
       "linkedTag": "Linked to tag {{tag}}",
       "verified": "Verified with the game token",
       "unverified": "Not verified: enter the token below to confirm it is yours",

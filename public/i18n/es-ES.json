@@ -666,8 +666,8 @@
     "player": {
       "title": "Cuentas de Clash of Clans",
       "hint": "Vincula tus cuentas del juego, incluso más de una: sus filas se resaltarán en las tablas. Cada cuenta necesita el token de API del juego, que solo ve su propietario, así nadie puede vincular el jugador de otro.",
-      "linkedTo": "Vinculado a {{name}} ({{role}})",
-      "notInClan": "Este tag no está entre los miembros actuales del clan.",
+      "linkedTo": "Vinculado a {{name}} ({{role}} en {{clan}})",
+      "notInClan": "Este tag no está entre los miembros actuales de Crociata Nera, Crociata Rossa o Crociata d'Oro.",
       "linkedTag": "Vinculado a la etiqueta {{tag}}",
       "verified": "Verificado con el token del juego",
       "unverified": "No verificado: introduce el token abajo para confirmar que es tuyo",
