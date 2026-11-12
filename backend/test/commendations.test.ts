@@ -11,7 +11,7 @@ import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { syncWars } from '@/modules/wars/war-sync.service';
 import { mockCocApi } from './coc-mock';
-import { call, cocWar } from './helpers';
+import { call, cocWar, memberToken } from './helpers';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -161,10 +161,7 @@ describe('commendation sync', () => {
     mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
     await savedRaid({ '#AAA111': 31_000 });
     await syncCommendations(NOW);
-    const { body } = await call(signUp, {
-      body: { email: 'comm@x.io', username: 'medals', password: 'secret123', repeatPassword: 'secret123' },
-    });
-    const auth = body.result.accessToken;
+    const auth = await memberToken('medals');
 
     const player = await call(getPlayer, { token: auth, params: { tag: '%23aaa111' } });
     expect(player.body.result).toMatchObject({

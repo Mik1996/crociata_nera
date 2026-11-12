@@ -5,6 +5,19 @@
 
 <div appScrollFade class="page__scroll">
   @if (user(); as u) {
+    @if (!hasClanAccess()) {
+      <aside class="cn-card access-notice" role="note" aria-labelledby="access-title">
+        <mat-icon class="access-notice__icon" aria-hidden="true">lock</mat-icon>
+        <div>
+          <h2 id="access-title">{{ 'profile.access.title' | translate }}</h2>
+          <p>{{ 'profile.access.text' | translate }}</p>
+          <p class="cn-muted">{{ 'profile.access.notMember' | translate }}</p>
+          <a mat-stroked-button routerLink="/join">
+            <mat-icon aria-hidden="true">person_add</mat-icon> {{ 'nav.join' | translate }}
+          </a>
+        </div>
+      </aside>
+    }
     <div class="profile-grid">
       <!-- Account -->
       <section class="cn-card cn-section" aria-labelledby="account-title">

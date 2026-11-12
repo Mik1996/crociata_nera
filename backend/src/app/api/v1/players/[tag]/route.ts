@@ -8,7 +8,7 @@ import { getPlayer } from '@/modules/commendations/players.service';
  * commendations earned (frozen when awarded). The tag is URL-encoded (`%23ABC123`).
  */
 export const GET = apiHandler<{ tag: string }, unknown, true>(
-  { apiName: ApiName.WARS_READ, auth: true },
+  { apiName: ApiName.WARS_READ, clanAccess: true },
   async ({ params }) => ({ result: await getPlayer(decodeURIComponent(params.tag)) }),
 );
 

@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, provideRouter, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
-import { adminGuard, authGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
+import { adminGuard, authGuard, clanGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
 import { AuthService } from './auth.service';
 
 const signedIn = {
@@ -88,5 +88,26 @@ describe('auth guards', () => {
     const admin = run(adminGuard);
     httpMock.expectOne('/api/v1/auth/refresh').flush({ ...signedIn, result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } } });
     expect(await admin).toBe(true);
+  });
+
+  it('opens the clans pages to members of the Crusade and admins, the others go to their profile', async () => {
+    setup();
+    expect(String(await run(clanGuard, '/wars'))).toBe('/?returnUrl=%2Fwars');
+
+    const auth = TestBed.inject(AuthService);
+    const as = async (user: object) => {
+      auth.restoreSession();
+      const pending = run(clanGuard, '/wars');
+      httpMock.expectOne('/api/v1/auth/refresh').flush({ ...signedIn, result: { ...signedIn.result, user } });
+      return pending;
+    };
+    expect(String(await as({ username: 'a', roles: ['USER'], clanAccess: false }))).toBe('/profile');
+    expect(await as({ username: 'a', roles: ['USER'], clanAccess: true })).toBe(true);
+    expect(await as({ username: 'a', roles: ['USER', 'ADMIN'], clanAccess: false })).toBe(true);
+  });
+
+  it('keeps the clans pages open with mock data', async () => {
+    setup(true);
+    expect(await run(clanGuard, '/wars')).toBe(true);
   });
 });

@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
@@ -28,6 +29,7 @@ type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null
   selector: 'app-profile-page',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -49,6 +51,8 @@ export class ProfilePage {
   private readonly fb = inject(NonNullableFormBuilder);
 
   protected readonly user = this.auth.user;
+  /** Without it the clans' pages are closed: the page explains how to get access. */
+  protected readonly hasClanAccess = this.auth.hasClanAccess;
   protected readonly roleKey = roleKey;
 
   /** Clan members, to show which member each linked account belongs to. */

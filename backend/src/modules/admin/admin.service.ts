@@ -3,7 +3,8 @@ import { UserRole } from '@/lib/auth/user-role';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { SessionModel } from '@/modules/auth/session.model';
-import { PublicUser, toPublicUser, UserModel } from '@/modules/auth/user.model';
+import { publicUser } from '@/modules/access/clan-access.service';
+import { PublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
 import { ListUsersQuery, UpdateUserInput } from './admin.schemas';
 
 export interface AdminUser extends PublicUser {
@@ -35,7 +36,7 @@ export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
     UserModel.countDocuments(filter),
   ]);
   return {
-    items: users.map((user) => ({ ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() })),
+    items: await Promise.all(users.map(toAdminUser)),
     total,
     page: query.page,
     limit: query.limit,
@@ -65,7 +66,7 @@ export async function updateUser(actorId: string, userId: string, input: UpdateU
   if (rolesChanged && actorId !== userId) {
     await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
   }
-  return { ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() };
+  return toAdminUser(user);
 }
 
 /**
@@ -80,5 +81,9 @@ export async function unlinkUserPlayer(userId: string, tag: string): Promise<Adm
     user.pendingPlayerTag = null;
     await user.save();
   }
-  return { ...toPublicUser(user), updatedAt: user.updatedAt.toISOString() };
+  return toAdminUser(user);
+}
+
+async function toAdminUser(user: UserDocument): Promise<AdminUser> {
+  return { ...(await publicUser(user)), updatedAt: user.updatedAt.toISOString() };
 }

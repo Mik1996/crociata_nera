@@ -11,7 +11,7 @@ const querySchema = z.object({ limit: z.coerce.number().int().min(1).max(36).def
  * `GET /api/v1/donations/seasons`: game seasons, most recent first (the one in progress
  * included), with the troops donated by each player as counted by the backend.
  */
-export const GET = apiHandler({ apiName: ApiName.WARS_READ, auth: true }, async ({ request }) => ({
+export const GET = apiHandler({ apiName: ApiName.WARS_READ, clanAccess: true }, async ({ request }) => ({
   result: await listDonationSeasons(parseQuery(request, querySchema).limit),
 }));
 

@@ -1,4 +1,8 @@
+import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import type { BaseResult } from '@/lib/http/base-result';
+import { crusadeClanTags } from '@/modules/access/clan-access.service';
+import { ClanRosterModel } from '@/modules/access/clan-roster.model';
+import { UserModel } from '@/modules/auth/user.model';
 
 export const ORIGIN = 'http://localhost:4200';
 
@@ -86,4 +90,36 @@ export function cocWar(overrides: Record<string, unknown> = {}) {
     },
     ...overrides,
   };
+}
+
+/**
+ * Saves the member lists of the clans of the Crusade as just read from the API, so that access
+ * checks need no Clash of Clans call. `members` go in the first clan (Crociata Nera).
+ */
+export async function seedCrusadeRosters(members: string[] = []): Promise<void> {
+  await Promise.all(
+    crusadeClanTags().map((clanTag, index) =>
+      ClanRosterModel.updateOne(
+        { clanTag },
+        { $set: { memberTags: index === 0 ? members : [], syncedAt: new Date() } },
+        { upsert: true },
+      ),
+    ),
+  );
+}
+
+/**
+ * Signs up a user with full access to the site (a verified account in Crociata Nera) and
+ * returns the access token.
+ */
+export async function memberToken(username = 'member', ip?: string): Promise<string> {
+  const { body } = await call(signUp, {
+    body: { email: `${username}@x.io`, username, password: 'secret123', repeatPassword: 'secret123' },
+    ip,
+  });
+  const playerTag = `#M${username.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
+  await UserModel.updateOne({ email: `${username}@x.io` }, { $set: { playerTags: [playerTag] } });
+  const saved = await ClanRosterModel.findOne({ clanTag: crusadeClanTags()[0] }).lean();
+  await seedCrusadeRosters([...(saved?.memberTags ?? []), playerTag]);
+  return body.result.accessToken;
 }

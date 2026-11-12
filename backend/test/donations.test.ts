@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { GET as listSeasons } from '@/app/api/v1/donations/seasons/route';
 import { CommendationAwardModel } from '@/modules/commendations/commendation-award.model';
 import { syncCommendations, syncMembers } from '@/modules/commendations/commendation-sync.service';
@@ -8,7 +7,7 @@ import { PlayerModel } from '@/modules/commendations/player.model';
 import { DonationCounterModel, DonationSeasonModel, DonationTotalModel } from '@/modules/donations/donation.model';
 import { recordDonations, seasonId } from '@/modules/donations/donation.service';
 import { mockCocApi } from './coc-mock';
-import { call } from './helpers';
+import { call, memberToken } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -184,10 +183,7 @@ describe('GET /donations/seasons', () => {
   it('lists the seasons with the totals to signed-in users', async () => {
     api({ '#A': 300, '#B': 800 });
     await syncMembers(at('09'));
-    const { body } = await call(signUp, {
-      body: { email: 'don@x.io', username: 'donor', password: 'secret123', repeatPassword: 'secret123' },
-    });
-    const list = await call(listSeasons, { token: body.result.accessToken });
+    const list = await call(listSeasons, { token: await memberToken('donor') });
     expect(list.body.result).toEqual([
       expect.objectContaining({
         season: '2026-11',

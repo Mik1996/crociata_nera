@@ -56,10 +56,15 @@ export interface PublicUser {
   /** Linked Clash of Clans accounts; `verified: false` only for links made before the token check. */
   players: LinkedPlayer[];
   emailVerified: boolean;
+  /**
+   * Full access to the site: administrator, or a verified account currently in a clan of the
+   * Crusade (see `hasClanAccess`). Without it only the public pages are open.
+   */
+  clanAccess: boolean;
   createdAt: string;
 }
 
-export function toPublicUser(user: UserDocument): PublicUser {
+export function toPublicUser(user: UserDocument, clanAccess: boolean): PublicUser {
   return {
     id: user._id.toString(),
     email: user.email,
@@ -70,6 +75,7 @@ export function toPublicUser(user: UserDocument): PublicUser {
       ...(user.pendingPlayerTag ? [{ tag: user.pendingPlayerTag, verified: false }] : []),
     ],
     emailVerified: user.emailVerified,
+    clanAccess,
     createdAt: user.createdAt.toISOString(),
   };
 }

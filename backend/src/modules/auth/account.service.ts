@@ -9,7 +9,8 @@ import { isMailConfigured, sendMail } from '@/lib/mail/mailer';
 import { MailLanguage, passwordResetMail, verifyEmailMail } from '@/lib/mail/templates';
 import { ChangePasswordInput, LinkPlayerInput, ResetPasswordInput } from './auth.schemas';
 import { SessionModel } from './session.model';
-import { MAX_LINKED_PLAYERS, PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
+import { publicUser } from '@/modules/access/clan-access.service';
+import { MAX_LINKED_PLAYERS, PublicUser, UserDocument, UserModel } from './user.model';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -63,7 +64,7 @@ export async function linkPlayer(userId: string, input: LinkPlayerInput): Promis
     }
     throw error;
   }
-  return toPublicUser(await findUser(userId));
+  return publicUser(await findUser(userId));
 }
 
 /** Unlinks one Clash of Clans account (verified or not) from the user. */
@@ -71,7 +72,7 @@ export async function unlinkPlayer(userId: string, tag: string): Promise<PublicU
   const user = await findUser(userId);
   await UserModel.updateOne({ _id: user._id }, { $pull: { playerTags: tag } });
   await UserModel.updateOne({ _id: user._id, pendingPlayerTag: tag }, { $set: { pendingPlayerTag: null } });
-  return toPublicUser(await findUser(userId));
+  return publicUser(await findUser(userId));
 }
 
 /**
@@ -167,5 +168,5 @@ export async function verifyEmail(token: string): Promise<PublicUser> {
   user.emailVerified = true;
   user.set({ verifyEmailTokenHash: null, verifyEmailExpiresAt: null });
   await user.save();
-  return toPublicUser(user);
+  return publicUser(user);
 }

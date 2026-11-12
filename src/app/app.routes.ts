@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './core/backend/auth.guards';
+import { adminGuard, authGuard, clanGuard, guestGuard } from './core/backend/auth.guards';
 
 /**
  * Route `title`s are translation keys, resolved by `PageTitleStrategy`.
@@ -7,6 +7,11 @@ import { adminGuard, authGuard, guestGuard } from './core/backend/auth.guards';
  * Public pages: the welcome page (home), "Join us", settings, sign-in and sign-up. Every other page (including
  * the 404) lives under a group protected by `authGuard`: signed-out users are sent to the
  * welcome page, from which "Sign in" brings them back to the page they asked for.
+ *
+ * The clans' data (wars, CWL, raids, players, statistics) is further restricted by `clanGuard` to
+ * administrators and members of Crociata Nera, Crociata Rossa or Crociata d'Oro with a verified
+ * linked account; the other signed-in users only reach their profile. The backend enforces the
+ * same rule on its data routes.
  */
 export const routes: Routes = [
   {
@@ -41,13 +46,15 @@ export const routes: Routes = [
     path: 'forgot-password',
     title: 'nav.forgotPassword',
     canActivate: [guestGuard],
-    loadComponent: () => import('./features/auth/forgot-password-page').then((m) => m.ForgotPasswordPage),
+    loadComponent: () =>
+      import('./features/auth/forgot-password-page').then((m) => m.ForgotPasswordPage),
   },
   {
     // Public: the link arrives by email, signed in or not.
     path: 'reset-password',
     title: 'nav.resetPassword',
-    loadComponent: () => import('./features/auth/reset-password-page').then((m) => m.ResetPasswordPage),
+    loadComponent: () =>
+      import('./features/auth/reset-password-page').then((m) => m.ResetPasswordPage),
   },
   {
     path: 'verify-email',
@@ -59,49 +66,62 @@ export const routes: Routes = [
     canActivateChild: [authGuard],
     children: [
       {
-        path: 'dashboard',
-        title: 'nav.dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard-page').then((m) => m.DashboardPage),
-      },
-      {
-        path: 'current-war',
-        title: 'nav.currentWar',
-        loadComponent: () => import('./features/wars/current-war-page').then((m) => m.CurrentWarPage),
-      },
-      {
-        path: 'cwl',
-        title: 'nav.cwl',
-        loadComponent: () => import('./features/cwl/cwl-page').then((m) => m.CwlPage),
-      },
-      {
-        path: 'raids',
-        title: 'nav.raids',
-        loadComponent: () => import('./features/raids/raids-page').then((m) => m.RaidsPage),
-      },
-      {
-        path: 'wars',
-        title: 'nav.history',
-        loadComponent: () => import('./features/wars/war-history-page').then((m) => m.WarHistoryPage),
-      },
-      {
-        path: 'wars/:id',
-        title: 'nav.warDetail',
-        loadComponent: () => import('./features/wars/war-detail-page').then((m) => m.WarDetailPage),
-      },
-      {
-        path: 'players',
-        title: 'nav.players',
-        loadComponent: () => import('./features/players/players-page').then((m) => m.PlayersPage),
-      },
-      {
-        path: 'players/:tag',
-        title: 'nav.player',
-        loadComponent: () => import('./features/players/player-detail-page').then((m) => m.PlayerDetailPage),
-      },
-      {
-        path: 'statistics',
-        title: 'nav.statistics',
-        loadComponent: () => import('./features/statistics/statistics-page').then((m) => m.StatisticsPage),
+        path: '',
+        canActivateChild: [clanGuard],
+        children: [
+          {
+            path: 'dashboard',
+            title: 'nav.dashboard',
+            loadComponent: () =>
+              import('./features/dashboard/dashboard-page').then((m) => m.DashboardPage),
+          },
+          {
+            path: 'current-war',
+            title: 'nav.currentWar',
+            loadComponent: () =>
+              import('./features/wars/current-war-page').then((m) => m.CurrentWarPage),
+          },
+          {
+            path: 'cwl',
+            title: 'nav.cwl',
+            loadComponent: () => import('./features/cwl/cwl-page').then((m) => m.CwlPage),
+          },
+          {
+            path: 'raids',
+            title: 'nav.raids',
+            loadComponent: () => import('./features/raids/raids-page').then((m) => m.RaidsPage),
+          },
+          {
+            path: 'wars',
+            title: 'nav.history',
+            loadComponent: () =>
+              import('./features/wars/war-history-page').then((m) => m.WarHistoryPage),
+          },
+          {
+            path: 'wars/:id',
+            title: 'nav.warDetail',
+            loadComponent: () =>
+              import('./features/wars/war-detail-page').then((m) => m.WarDetailPage),
+          },
+          {
+            path: 'players',
+            title: 'nav.players',
+            loadComponent: () =>
+              import('./features/players/players-page').then((m) => m.PlayersPage),
+          },
+          {
+            path: 'players/:tag',
+            title: 'nav.player',
+            loadComponent: () =>
+              import('./features/players/player-detail-page').then((m) => m.PlayerDetailPage),
+          },
+          {
+            path: 'statistics',
+            title: 'nav.statistics',
+            loadComponent: () =>
+              import('./features/statistics/statistics-page').then((m) => m.StatisticsPage),
+          },
+        ],
       },
       {
         path: 'profile',
@@ -117,7 +137,8 @@ export const routes: Routes = [
       {
         path: '**',
         title: 'nav.notFound',
-        loadComponent: () => import('./features/not-found/not-found-page').then((m) => m.NotFoundPage),
+        loadComponent: () =>
+          import('./features/not-found/not-found-page').then((m) => m.NotFoundPage),
       },
     ],
   },

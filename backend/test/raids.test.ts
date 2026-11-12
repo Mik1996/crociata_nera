@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { GET as listSeasons } from '@/app/api/v1/raids/seasons/route';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { mockCocApi } from './coc-mock';
-import { call } from './helpers';
+import { call, memberToken } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -50,10 +49,7 @@ describe('Raid Weekend sync', () => {
   it('exposes the saved weekends to signed-in users, in the API format', async () => {
     mockCocApi({ '/capitalraidseasons': { body: { items: [weekend('ongoing', true)] } } });
     await syncRaids(new Date('2026-11-01T12:00:00Z'));
-    const { body } = await call(signUp, {
-      body: { email: 'raid@x.io', username: 'raider', password: 'secret123', repeatPassword: 'secret123' },
-    });
-    const list = await call(listSeasons, { token: body.result.accessToken });
+    const list = await call(listSeasons, { token: await memberToken('raider') });
     expect(list.body.result).toEqual([expect.objectContaining({ startTime: '20261030T070000.000Z', members })]);
     expect((await call(listSeasons)).status).toBe(401);
   });

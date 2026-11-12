@@ -11,7 +11,7 @@ const querySchema = z.object({ limit: z.coerce.number().int().min(1).max(200).de
  * `GET /api/v1/wars/archive?limit=60`: saved wars with members and attacks, in the
  * `currentwar` format of the Clash of Clans API (the frontend history source).
  */
-export const GET = apiHandler({ apiName: ApiName.WARS_READ, auth: true }, async ({ request }) => ({
+export const GET = apiHandler({ apiName: ApiName.WARS_READ, clanAccess: true }, async ({ request }) => ({
   result: await listArchive(parseQuery(request, querySchema).limit),
 }));
 

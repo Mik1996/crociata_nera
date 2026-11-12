@@ -23,7 +23,7 @@ import { POST as verifyEmail } from '@/app/api/v1/auth/verify-email/route';
 import { migrateLinkedPlayers, UserModel } from '@/modules/auth/user.model';
 import { POST as linkPlayer } from '@/app/api/v1/auth/me/player/route';
 import { mockCocApi } from './coc-mock';
-import { call } from './helpers';
+import { call, seedCrusadeRosters } from './helpers';
 
 const account = { email: 'knight@crociata.it', username: 'Knight', password: 'secret123', repeatPassword: 'secret123' };
 const tokenFrom = (text: string) => /token=([\w%-]+)/.exec(text)![1]!;
@@ -73,6 +73,9 @@ describe('email verification', () => {
 });
 
 describe('profile', () => {
+  // #DEF456 plays in Crociata Nera; #ABC123 in no clan of the Crusade.
+  beforeEach(() => seedCrusadeRosters(['#DEF456']));
+
   /** Fake `verifytoken`: `good-token` is valid for every tag. */
   function mockVerifyToken() {
     const coc = mockCocApi({
@@ -95,12 +98,14 @@ describe('profile', () => {
     const first = await call(linkPlayer, { body: { playerTag: ' #abc123 ', token: ' good-token ' }, token });
     expect(first.status).toBe(200);
     expect(first.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_LINKED' }]);
+    expect(first.body.result.clanAccess).toBe(false);
     const [url, init] = coc.mock.calls.at(-1)!;
     expect(String(url)).toBe('https://coc.test/v1/players/%23ABC123/verifytoken');
     expect(init).toMatchObject({ method: 'POST' });
     expect(JSON.parse(String(init!.body))).toEqual({ token: 'good-token' });
 
-    await call(linkPlayer, { body: { playerTag: '#DEF456', token: 'good-token' }, token });
+    const member = await call(linkPlayer, { body: { playerTag: '#DEF456', token: 'good-token' }, token });
+    expect(member.body.result.clanAccess).toBe(true);
     // Linking an account again is harmless.
     const again = await call(linkPlayer, { body: { playerTag: '#ABC123', token: 'good-token' }, token });
     expect(again.body.result.players).toEqual([

@@ -29,6 +29,24 @@ export const authGuard: CanActivateFn = (_route, state) => {
   return auth.whenReady().pipe(map(() => (auth.isAuthenticated() ? true : guestRedirect(router, state.url))));
 };
 
+/**
+ * Pages with the clans' data: administrators and members of a clan of the Crusade (verified linked
+ * account). Signed-out users go to the welcome page as with {@link authGuard}; signed-in users
+ * without access go to their profile, which explains how to get it (link an account of the clans).
+ * With mock data every page stays open. Usable both as `canActivate` and `canActivateChild`.
+ */
+export const clanGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (inject(APP_CONFIG).useMockApi) return true;
+  return auth.whenReady().pipe(
+    map(() => {
+      if (!auth.isAuthenticated()) return guestRedirect(router, state.url);
+      return auth.hasClanAccess() ? true : router.parseUrl('/profile');
+    }),
+  );
+};
+
 /** Administration pages: signed-in users without the ADMIN role go back to the home page. */
 export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

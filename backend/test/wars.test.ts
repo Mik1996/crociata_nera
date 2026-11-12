@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
-import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { POST as cronSync } from '@/app/api/v1/cron/war-sync/route';
 import { GET as getWar } from '@/app/api/v1/wars/[warKey]/route';
 import { GET as listWars } from '@/app/api/v1/wars/route';
@@ -9,7 +8,7 @@ import { WarModel } from '@/modules/wars/war.model';
 import { syncWars } from '@/modules/wars/war-sync.service';
 import { buildWarKey } from '@/modules/wars/wars.service';
 import { mockCocApi } from './coc-mock';
-import { call, cocWar } from './helpers';
+import { call, cocWar, memberToken } from './helpers';
 
 const WAR_KEY = '20261104T100000-OPP999';
 /** During the battle day of the fixture war (ends 2026-11-06 10:00 UTC). */
@@ -158,10 +157,7 @@ describe('POST /api/v1/cron/war-sync', () => {
 
 describe('GET /api/v1/wars', () => {
   async function token(): Promise<string> {
-    const { body } = await call(signUp, {
-      body: { email: 'w@x.io', username: 'warrior', password: 'secret123', repeatPassword: 'secret123' },
-    });
-    return body.result.accessToken;
+    return memberToken('warrior');
   }
 
   it('requires authentication', async () => {

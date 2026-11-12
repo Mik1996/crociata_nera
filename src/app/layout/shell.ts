@@ -35,7 +35,7 @@ interface MenuItem {
   /** Translation key. */
   label: string;
   icon: string;
-  /** Reachable while signed out. */
+  /** Open to everyone (signed out, or signed in without access to the clans' pages). */
   public?: boolean;
 }
 
@@ -81,8 +81,11 @@ export class Shell {
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
 
-  /** App pages are only for signed-in users (always open with mock data). */
-  private readonly signedIn = computed(() => this.useMock || this.auth.isAuthenticated());
+  /**
+   * The clans' pages are only for administrators and members of the clans of the Crusade (always
+   * open with mock data).
+   */
+  private readonly clanAccess = computed(() => this.useMock || this.auth.hasClanAccess());
   protected readonly navOpen = signal(false);
 
   private readonly currentUrl = toSignal(
@@ -138,8 +141,13 @@ export class Shell {
     { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
   ];
 
-  /** Signed out: only the public pages (welcome, join us); settings are always at the bottom. */
-  protected readonly menu = computed(() => (this.signedIn() ? this.allMenu : this.allMenu.filter((i) => i.public)));
+  /**
+   * Without access to the clans' pages (signed out, or not in a clan of the Crusade): only the
+   * public pages (welcome, join us). Settings are always at the bottom.
+   */
+  protected readonly menu = computed(() =>
+    this.clanAccess() ? this.allMenu : this.allMenu.filter((i) => i.public),
+  );
   protected readonly settingsItem: MenuItem = { path: '/settings', label: 'nav.settings', icon: 'settings', public: true };
 
   protected readonly mobile = toSignal(

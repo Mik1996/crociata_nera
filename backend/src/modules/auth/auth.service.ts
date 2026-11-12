@@ -9,7 +9,8 @@ import { UserRole } from '@/lib/auth/user-role';
 import { sendVerificationEmail } from './account.service';
 import { SignInInput, SignUpInput } from './auth.schemas';
 import { SessionDocument, SessionModel } from './session.model';
-import { PublicUser, toPublicUser, UserDocument, UserModel } from './user.model';
+import { publicUser } from '@/modules/access/clan-access.service';
+import { PublicUser, UserDocument, UserModel } from './user.model';
 
 /** Request metadata stored with a session (helps users recognise their devices). */
 export interface ClientInfo {
@@ -162,7 +163,7 @@ export async function signOut(refreshToken: string | null): Promise<void> {
 export async function getCurrentUser(userId: string): Promise<PublicUser> {
   const user = Types.ObjectId.isValid(userId) ? await UserModel.findById(userId) : null;
   if (!user) throwException(404, MessageKey.USER_NOT_FOUND);
-  return toPublicUser(user);
+  return publicUser(user);
 }
 
 async function startSession(user: UserDocument, client: ClientInfo): Promise<AuthSession> {
@@ -179,7 +180,7 @@ async function startSession(user: UserDocument, client: ClientInfo): Promise<Aut
 
   const access = await signAccessToken({ sub: user._id.toString(), roles: [...user.roles] as UserRole[] });
   return {
-    user: toPublicUser(user),
+    user: await publicUser(user),
     accessToken: access.token,
     accessTokenExpiresAt: access.expiresAt.toISOString(),
     refreshToken,

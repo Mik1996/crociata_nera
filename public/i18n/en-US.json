@@ -447,6 +447,7 @@
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
     "FORBIDDEN": "You don't have permission for this action.",
+    "CLAN_ACCESS_REQUIRED": "This section is reserved to the members of Crociata Nera, Crociata Rossa and Crociata d'Oro: link one of your game accounts from your profile.",
     "INVALID_TOKEN": "Invalid session: please sign in again.",
     "INVALID_CREDENTIALS": "Incorrect email, username or password.",
     "INVALID_REFRESH_TOKEN": "Session expired: please sign in again.",
@@ -666,6 +667,11 @@
       "title": "Change password",
       "hint": "Your other devices will be signed out; this one stays signed in.",
       "submit": "Change password"
+    },
+    "access": {
+      "title": "Access reserved to the clans of the Crusade",
+      "text": "Wars, CWL, Raids, players and statistics are visible only to the members of Crociata Nera, Crociata Rossa and Crociata d'Oro. Link your game account below (verified with the API token): access opens as soon as it is in one of the three clans.",
+      "notMember": "Not one of us yet? Find out how to join the Crusade."
     }
   },
   "admin": {

@@ -58,6 +58,11 @@ export class AuthService {
   /** `true` for one of the signed-in user's verified accounts: marks "your" rows in the tables. */
   readonly isMyPlayer = (tag: string): boolean => this.playerTags().has(tag.toUpperCase());
   readonly isAdmin = computed(() => this.session()?.user.roles?.includes('ADMIN') ?? false);
+  /**
+   * Full access to the clans' pages: administrators and members of a clan of the Crusade with a
+   * verified linked account (worked out by the backend, which enforces it on every request).
+   */
+  readonly hasClanAccess = computed(() => this.isAdmin() || (this.session()?.user.clanAccess ?? false));
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
     return this.post('sign-up', { ...request, language: this.language.current() });

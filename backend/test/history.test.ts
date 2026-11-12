@@ -1,19 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { GET as getPeriod } from '@/app/api/v1/history/[period]/route';
 import { GET as listMonths } from '@/app/api/v1/history/route';
 import { GET as archive } from '@/app/api/v1/wars/archive/route';
 import { syncWars } from '@/modules/wars/war-sync.service';
 import { mockCocApi } from './coc-mock';
-import { call, cocWar } from './helpers';
+import { call, cocWar, memberToken } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
 
 async function token(): Promise<string> {
-  const { body } = await call(signUp, {
-    body: { email: 'h@x.io', username: 'historian', password: 'secret123', repeatPassword: 'secret123' },
-  });
-  return body.result.accessToken;
+  return memberToken('historian');
 }
 
 /** Saves an ended war through the real sync (preparation start, opponent, clan stars). */

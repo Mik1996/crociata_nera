@@ -29,6 +29,11 @@ export interface BackendUser {
   /** Linked Clash of Clans accounts; `verified: false` only for links made before the token check. */
   players: LinkedPlayer[];
   emailVerified: boolean;
+  /**
+   * Full access to the site: administrator, or a verified account currently in Crociata Nera,
+   * Crociata Rossa or Crociata d'Oro. Without it only the public pages are open.
+   */
+  clanAccess: boolean;
   createdAt: string;
 }
 

@@ -73,6 +73,28 @@ h2 {
   margin: 0 0 $space-s;
 }
 
+// Shown while the clans' pages are closed to the user (no account in a clan of the Crusade).
+.access-notice {
+  display: flex;
+  gap: $space-m;
+  align-items: flex-start;
+  margin-bottom: $space-l;
+  border: 2px solid var(--cn-gold-dark);
+
+  p {
+    margin: 0 0 $space-s;
+  }
+
+  a {
+    margin-top: $space-xs;
+  }
+}
+
+.access-notice__icon {
+  flex: none;
+  color: var(--cn-gold);
+}
+
 .hint {
   margin: 0 0 $space-m;
   font-size: var(--cn-fs-sm);

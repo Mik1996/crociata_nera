@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { userHasClanAccess } from '@/modules/access/clan-access.service';
 import { verifyAccessToken } from '../auth/tokens';
 import { UserRole } from '../auth/user-role';
 import { connectToDatabase } from '../db/mongoose';
@@ -40,6 +41,11 @@ export interface ApiHandlerOptions<A extends boolean> {
   /** Requires at least one of these roles (implies `auth`). */
   roles?: UserRole[];
   /**
+   * Requires full access to the site (implies `auth`): administrators, and users with a verified
+   * account currently in a clan of the Crusade. Use it on every route serving the clans' data.
+   */
+  clanAccess?: boolean;
+  /**
    * Rejects requests whose `Origin` is not an allowed frontend. Use it on routes
    * authenticated by the refresh cookie, as a CSRF defence on top of `SameSite=Strict`.
    */
@@ -73,12 +79,15 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
         throwException(403, MessageKey.ORIGIN_NOT_ALLOWED);
       }
 
-      const user = await authenticate(request, !!options.auth || !!options.roles?.length);
+      const user = await authenticate(request, !!options.auth || !!options.roles?.length || !!options.clanAccess);
       if (options.roles?.length && !options.roles.some((role) => user!.roles.includes(role))) {
         throwException(403, MessageKey.FORBIDDEN);
       }
 
-      if (options.database !== false) await connectToDatabase();
+      if (options.database !== false || options.clanAccess) await connectToDatabase();
+      if (options.clanAccess && !(await userHasClanAccess(user!.id))) {
+        throwException(403, MessageKey.CLAN_ACCESS_REQUIRED);
+      }
 
       const params = (await routeContext?.params) ?? ({} as P);
       const response = await handler({ request, params, user: user as ApiContext<P, A>['user'], ip });

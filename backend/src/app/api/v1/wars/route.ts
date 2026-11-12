@@ -9,7 +9,7 @@ import { listWars } from '@/modules/wars/wars.service';
  * `GET /api/v1/wars?page=1&limit=20&state=warEnded`: war summaries, most recent first.
  * Wars are written only by the backend's war sync (read from the Clash of Clans API).
  */
-export const GET = apiHandler({ apiName: ApiName.WARS_READ, auth: true }, async ({ request }) => ({
+export const GET = apiHandler({ apiName: ApiName.WARS_READ, clanAccess: true }, async ({ request }) => ({
   result: await listWars(parseQuery(request, listWarsQuerySchema)),
 }));
 

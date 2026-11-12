@@ -5,7 +5,7 @@ import { getCwlSeason } from '@/modules/cwl/cwl.service';
 
 /** `GET /api/v1/cwl/seasons/{season}`: group and wars of a Clan War League season. */
 export const GET = apiHandler<{ season: string }, unknown, true>(
-  { apiName: ApiName.WARS_READ, auth: true },
+  { apiName: ApiName.WARS_READ, clanAccess: true },
   async ({ params }) => ({ result: await getCwlSeason(decodeURIComponent(params.season)) }),
 );
 

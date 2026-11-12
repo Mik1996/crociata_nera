@@ -447,6 +447,7 @@
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
     "FORBIDDEN": "No tienes permiso para esta operación.",
+    "CLAN_ACCESS_REQUIRED": "Esta sección está reservada a los miembros de Crociata Nera, Crociata Rossa y Crociata d'Oro: vincula una de tus cuentas de juego desde tu perfil.",
     "INVALID_TOKEN": "Sesión no válida: inicia sesión de nuevo.",
     "INVALID_CREDENTIALS": "Email, nombre de usuario o contraseña incorrectos.",
     "INVALID_REFRESH_TOKEN": "Sesión caducada: inicia sesión de nuevo.",
@@ -666,6 +667,11 @@
       "title": "Cambiar contraseña",
       "hint": "Se cerrará la sesión en tus otros dispositivos; este sigue conectado.",
       "submit": "Cambiar contraseña"
+    },
+    "access": {
+      "title": "Acceso reservado a los clanes de la Cruzada",
+      "text": "Guerras, CWL, Incursiones, jugadores y estadísticas solo son visibles para los miembros de Crociata Nera, Crociata Rossa y Crociata d'Oro. Vincula abajo tu cuenta de juego (verificada con el token API): el acceso se abre en cuanto esté en uno de los tres clanes.",
+      "notMember": "¿Aún no eres de los nuestros? Descubre cómo unirte a la Cruzada."
     }
   },
   "admin": {

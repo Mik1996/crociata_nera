@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { GET as getSeason } from '@/app/api/v1/cwl/seasons/[season]/route';
 import { GET as listSeasons } from '@/app/api/v1/cwl/seasons/route';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { mockCocApi } from './coc-mock';
-import { call } from './helpers';
+import { call, memberToken } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -29,10 +28,7 @@ const leagueWar = (state: string) => ({
 });
 
 async function token(): Promise<string> {
-  const { body } = await call(signUp, {
-    body: { email: 'cwl@x.io', username: 'leaguer', password: 'secret123', repeatPassword: 'secret123' },
-  });
-  return body.result.accessToken;
+  return memberToken('leaguer');
 }
 
 describe('Clan War League sync', () => {

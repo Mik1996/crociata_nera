@@ -57,16 +57,36 @@ describe('app routes', () => {
     expect(TestBed.inject(Router).url).toBe('/sign-in?returnUrl=%2Fwars');
   });
 
-  it('waits for the session restore before deciding', async () => {
+  /** Signs in (startup session restore) as a user with the given fields and navigates. */
+  async function signedInAt(url: string, user: object): Promise<RouterTestingHarness> {
     TestBed.inject(AuthService).restoreSession();
     const harness = await RouterTestingHarness.create();
-    const navigation = harness.navigateByUrl('/statistics');
+    const navigation = harness.navigateByUrl(url);
     httpMock.expectOne('/api/v1/auth/refresh').flush({
-      result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'a' } },
+      result: { accessToken: 't', accessTokenExpiresAt: '', user: { username: 'a', roles: ['USER'], ...user } },
       messages: [],
       status: { code: 200, name: 'HTTP_STATUS.OK' },
     });
     await navigation.catch(() => undefined);
+    return harness;
+  }
+
+  it('waits for the session restore before deciding', async () => {
+    await signedInAt('/statistics', { clanAccess: true });
     expect(TestBed.inject(Router).url).toBe('/statistics');
+  });
+
+  it.each(['/dashboard', '/current-war', '/cwl', '/raids', '/wars/123', '/players/%23ABC', '/statistics'])(
+    'sends signed-in users outside the clans of the Crusade from %s to their profile',
+    async (url) => {
+      await signedInAt(url, { clanAccess: false });
+      expect(TestBed.inject(Router).url).toBe('/profile');
+    },
+  );
+
+  it('opens the profile to signed-in users outside the clans of the Crusade', async () => {
+    const harness = await signedInAt('/profile', { clanAccess: false });
+    expect(TestBed.inject(Router).url).toBe('/profile');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-profile-page');
   });
 });
