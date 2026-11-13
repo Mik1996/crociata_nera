@@ -13,7 +13,8 @@
     "administration",
     "bases",
     "swagger",
-    "theme"
+    "theme",
+    "general"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

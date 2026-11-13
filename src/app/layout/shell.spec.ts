@@ -1,7 +1,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { MatSidenav } from '@angular/material/sidenav';
+import { By } from '@angular/platform-browser';
+import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../core/backend/auth.service';
 import { provideCocApiTest } from '../testing/fixtures';
 import { Shell } from './shell';
@@ -20,6 +23,43 @@ describe('Shell', () => {
     expect(items).toEqual(['Benvenuto', 'Unisciti a noi']);
     expect(el.querySelector('.sidenav__bottom a')!.textContent).toContain('Impostazioni');
     expect(el.querySelector('a.account')!.getAttribute('href')).toContain('/sign-in');
+  });
+
+  it('closes the floating navigation on a page change, keeps the pinned one open', async () => {
+    @Component({ template: '' })
+    class Blank {}
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: 'a', component: Blank },
+          { path: 'b', component: Blank },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi: false }),
+      ],
+    });
+    localStorage.setItem('cn.navigationPinned', 'false');
+    try {
+      const fixture = TestBed.createComponent(Shell);
+      fixture.detectChanges();
+      const sidenav = fixture.debugElement.query(By.directive(MatSidenav)).injector.get(MatSidenav);
+      const router = TestBed.inject(Router);
+
+      await sidenav.open();
+      await router.navigateByUrl('/a');
+      expect(sidenav.opened).toBe(false);
+
+      // Pinned: the navigation stays open.
+      fixture.nativeElement.querySelector('.sidenav__pin button').click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(sidenav.opened).toBe(true);
+      await router.navigateByUrl('/b');
+      expect(sidenav.opened).toBe(true);
+    } finally {
+      localStorage.removeItem('cn.navigationPinned');
+    }
   });
 
   it('account menu links to the player page of each verified game account, by name', async () => {

@@ -10,7 +10,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -162,6 +162,15 @@ export class Shell {
       }
       wasSignedIn = signedIn;
     });
+
+    // A floating navigation closes on every page change, wherever it comes from (menu, account
+    // menu, links in the page, back/forward); a pinned one stays open.
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.closeIfFloating());
   }
 
   protected changeLanguage(code: LanguageCode): void {
@@ -248,6 +257,7 @@ export class Shell {
     void this.sidenav()?.toggle();
   }
 
+  /** Also on a click of the current page's item, which does not navigate. */
   protected closeIfFloating(): void {
     if (!this.pinned()) {
       void this.sidenav()?.close();
