@@ -23,9 +23,29 @@
   "theme": {
     "change": "Cambiar tema (actual: {{name}})",
     "menu": "Temas disponibles",
-    "dark": "Oscuro"
+    "iron": "Hierro",
+    "steel": "Acero"
+  },
+  "kicker": {
+    "dashboard": "El cuartel general",
+    "war": "Crónicas del frente",
+    "cwl": "La liga de guerras",
+    "raids": "La Capital del clan",
+    "history": "Los anales",
+    "statistics": "El cuadro de honor",
+    "players": "Los caballeros de la Cruzada",
+    "bases": "El arsenal",
+    "join": "La llamada",
+    "profile": "Tu juramento",
+    "settings": "Tu armadura",
+    "admin": "El consejo de guerra"
   },
   "nav": {
+    "group": {
+      "battle": "Batalla",
+      "clan": "El Clan",
+      "arsenal": "Arsenal"
+    },
     "dashboard": "Panel",
     "currentWar": "Guerra actual",
     "cwl": "Liga (CWL)",
@@ -187,13 +207,15 @@
     "seriesDestruction": "Destrucción"
   },
   "currentWar": {
-    "subtitle": "Situación en tiempo real del enfrentamiento en curso",
+    "subtitle": "El campo arde. Cada ataque cuenta.",
     "empty": "El clan no está en guerra ahora mismo (o su registro de guerras es privado). ¡Vuelve cuando empiece la próxima!",
     "withoutAttacks": "Sin ataques",
     "outOfParticipants": "de {{n}} participantes",
-    "participants": "Participantes"
+    "participants": "Participantes",
+    "participantsKicker": "El ejército desplegado"
   },
   "summary": {
+    "starsOutOf": "{{stars}} estrellas de {{total}}",
     "versus": "{{n}} contra {{n}}",
     "endedOn": "Terminada el {{date}}",
     "startsIn": "La batalla empieza en {{time}}",

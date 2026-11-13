@@ -1,7 +1,30 @@
-<div>
-  <h1 class="title">{{ title() }}</h1>
-  @if (subtitle()) {
-    <p class="subtitle">{{ subtitle() }}</p>
-  }
+<div class="scene" aria-hidden="true">
+  <div class="scene__sky"></div>
+  <div class="scene__ruins"></div>
+  <span class="scene__ember"></span>
+  <span class="scene__ember"></span>
+  <span class="scene__ember"></span>
+  <span class="scene__ember"></span>
+  <span class="scene__ember"></span>
+  <div class="scene__fade"></div>
 </div>
-<div class="actions"><ng-content /></div>
+@if (crusader(); as pose) {
+  <app-crusader class="figure crusader--soft" [pose]="pose" sizes="14rem" />
+}
+
+<div class="top">
+  <div class="heading">
+    @if (kicker()) {
+      <p class="kicker">
+        <span class="kicker__rule" aria-hidden="true"></span>{{ kicker()
+        }}<span class="kicker__rule kicker__rule--end" aria-hidden="true"></span>
+      </p>
+    }
+    <h1 class="title">{{ title() }}</h1>
+    @if (subtitle()) {
+      <p class="subtitle">{{ subtitle() }}</p>
+    }
+  </div>
+  <div class="actions"><ng-content /></div>
+</div>
+<ng-content select="[pageHero]" />

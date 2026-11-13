@@ -1,4 +1,4 @@
-<app-page-header [title]="'bases.title' | translate" [subtitle]="'bases.subtitle' | translate">
+<app-page-header scene="candle" [kicker]="'kicker.bases' | translate" [title]="'bases.title' | translate" [subtitle]="'bases.subtitle' | translate">
   @if (canEdit()) {
     <button mat-flat-button type="button" class="add" (click)="openCreate()">
       <mat-icon aria-hidden="true">add</mat-icon>
@@ -56,7 +56,7 @@
         }
         <ul class="grid">
           @for (base of group.bases; track base.id) {
-            <li class="base cn-card">
+            <li class="base cn-card cn-card--plain">
               <button
                 type="button"
                 class="base__media"

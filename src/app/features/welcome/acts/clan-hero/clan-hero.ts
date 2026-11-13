@@ -5,7 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { CrusadeOrder } from '../../../../core/config/sister-clans';
 import { Clan } from '../../../../core/models';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
-import { Crusader } from '../../crusader/crusader';
+import { Crusader } from '../../../../shared/crusader/crusader';
 
 /** Progress from which the motto and the call to action are visible (see `--finale` in the styles). */
 const FINALE_AT = 0.6;

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
-import { AVAILABLE_THEMES, ThemeName, THEMES } from '../../core/theme/themes';
+import { AVAILABLE_THEMES, DEFAULT_THEME, ThemeName, THEMES } from '../../core/theme/themes';
 import { SettingsPage } from './settings-page';
 
 describe('SettingsPage', () => {
@@ -16,6 +16,7 @@ describe('SettingsPage', () => {
   }
 
   it('hides the theme section when there is a single theme', async () => {
+    TestBed.overrideProvider(AVAILABLE_THEMES, { useValue: THEMES.slice(0, 1) });
     const { el } = await render();
     expect(el.querySelector('.option--theme')).toBeNull();
     expect(el.querySelector('#settings-theme')).toBeNull();
@@ -28,14 +29,14 @@ describe('SettingsPage', () => {
     });
     const { fixture, el } = await render();
     const options = Array.from(el.querySelectorAll<HTMLButtonElement>('.option--theme'));
-    expect(options.map((o) => o.querySelector('.option__label')?.textContent?.trim())).toEqual(['Scuro', 'theme.other']);
+    expect(options.map((o) => o.querySelector('.option__label')?.textContent?.trim())).toEqual(['Ferro', 'Acciaio', 'theme.other']);
 
-    options[1].click();
+    options[2].click();
     await fixture.whenStable();
     expect(document.documentElement.dataset['theme']).toBe(other);
-    expect(options[1].getAttribute('aria-checked')).toBe('true');
+    expect(options[2].getAttribute('aria-checked')).toBe('true');
     expect(options[0].getAttribute('aria-checked')).toBe('false');
-    document.documentElement.dataset['theme'] = 'dark';
+    document.documentElement.dataset['theme'] = DEFAULT_THEME;
   });
 
   it('switches language', async () => {
@@ -49,7 +50,7 @@ describe('SettingsPage', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(el.querySelector('h2')!.textContent).toContain('Language');
+    expect(el.querySelector('#settings-language')!.textContent).toContain('Language');
     expect(options[1].getAttribute('aria-checked')).toBe('true');
   });
 });

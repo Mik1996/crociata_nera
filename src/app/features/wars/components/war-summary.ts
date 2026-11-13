@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -8,18 +8,25 @@ import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes'
 import { War } from '../../../core/models';
 import { warResult } from '../../../core/utils/war-stats';
 import { ResultBadge } from '../../../shared/components/result-badge';
+import { Crusader } from '../../../shared/crusader/crusader';
 import { warStateKey } from '../../../shared/labels';
 
-/** Battle scoreboard: our clan versus the opponent. */
+/**
+ * Battle scoreboard: our clan versus the opponent. Each side has a bar of the stars earned out of
+ * the stars at stake (three per base). `scenic` is the scoreboard of a scenic page header: the
+ * sides hang as banners over the scene, the Crusader stands in the middle behind the score.
+ */
 @Component({
   selector: 'app-war-summary',
-  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, MatIconModule, ResultBadge],
+  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, MatIconModule, ResultBadge, Crusader],
+  host: { '[class.summary--scenic]': 'scenic()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './war-summary.html',
   styleUrl: './war-summary.scss',
 })
 export class WarSummary {
   readonly war = input.required<War>();
+  readonly scenic = input(false, { transform: booleanAttribute });
   private readonly language = inject(LanguageService);
 
   private readonly now = toSignal(timer(0, 60_000).pipe(map(() => Date.now())), {
@@ -40,5 +47,14 @@ export class WarSummary {
 
   protected totalAttacks(): number {
     return this.war().teamSize * this.war().attacksPerMember;
+  }
+
+  /** Stars at stake for each side: three per base. */
+  protected readonly maxStars = computed(() => this.war().teamSize * 3);
+
+  /** Share of the stars at stake earned by a side, 0–100. */
+  protected starsShare(stars: number): number {
+    const max = this.maxStars();
+    return max > 0 ? Math.min(100, (stars / max) * 100) : 0;
   }
 }

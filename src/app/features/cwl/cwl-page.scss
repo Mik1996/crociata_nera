@@ -9,7 +9,7 @@
   align-items: center;
   gap: $space-s;
   margin: 0 0 $space-m;
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
 }
@@ -128,7 +128,7 @@
 }
 
 .round__number {
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
   color: var(--cn-heading);
   white-space: nowrap;
 }

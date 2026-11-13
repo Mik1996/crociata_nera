@@ -9,7 +9,7 @@
   align-items: center;
   gap: $space-s;
   margin: 0 0 $space-m;
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
 }
@@ -18,7 +18,7 @@
   display: inline-block;
   padding: $space-xs $space-s;
   border: 1px solid var(--cn-border);
-  border-radius: 50%;
+  border-radius: $radius-m;
   font-family: var(--cn-font-body);
   font-size: var(--cn-fs-xs);
   font-weight: 600;

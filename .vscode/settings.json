@@ -12,7 +12,8 @@
     "raids",
     "administration",
     "bases",
-    "swagger"
+    "swagger",
+    "theme"
   ],
   "i18n-ally.localesPaths": [
     "public/i18n",

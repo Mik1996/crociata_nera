@@ -8,15 +8,15 @@
   <meta name="description" content="Statistiche e storico delle guerre del clan Crociata Nera (Clash of Clans).">
   <!-- Initial browser UI colour (= --cn-bg of the default theme, before the styles load; ThemeService
        then reads it from the palette). Keep in sync with public/site.webmanifest. -->
-  <meta name="theme-color" content="#16181c">
+  <meta name="theme-color" content="#0a0709">
   <script>
     // Apply the saved theme (or the default one) before the app boots, to avoid a flash of the wrong theme.
     // Keep in sync with THEMES / DEFAULT_THEME (src/app/core/theme/themes.ts).
     (function () {
-      var themes = ['dark'];
+      var themes = ['iron', 'steel'];
       var theme = null;
       try { theme = localStorage.getItem('crociata-nera.theme'); } catch (e) {}
-      if (themes.indexOf(theme) < 0) theme = 'dark';
+      if (themes.indexOf(theme) < 0) theme = 'iron';
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
@@ -27,7 +27,7 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>

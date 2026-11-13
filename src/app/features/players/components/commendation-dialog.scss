@@ -6,7 +6,7 @@
   flex-direction: column;
   gap: $space-xs;
   padding-top: $space-xl;
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
 
   // Material's baseline strut: as a column item it would be an empty 40px row above the name.
   &::before {

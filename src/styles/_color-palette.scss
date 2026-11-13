@@ -7,7 +7,8 @@
 //
 // Two kinds of tokens:
 // - `theme-tokens-<name>`: the look of a theme (surfaces, text, lines, panels...). A new theme is a
-//   new mixin with the same token names (see `src/app/core/theme/themes.ts`).
+//   new mixin with the same token names (see `src/app/core/theme/themes.ts`). The shapes and fonts
+//   of a theme (not colours) are next to its mixin call, in `src/styles.scss`.
 // - `identity-tokens`: colours that never change with the theme because they belong to something
 //   (the clans of the Crusade, medal metals, game emblems, the illustrations of the welcome page).
 //
@@ -21,11 +22,11 @@
 }
 
 // -------------------------------------------------------------------------------------------------
-// Theme "dark": gunmetal-grey panels with near-black outlines, brushed-metal backdrop and a
-// chrome-like header; gold for headings and values, green for actions.
+// Theme "steel" (Acciaio): gunmetal-grey panels with near-black outlines, brushed-metal backdrop and
+// a chrome-like header; gold for headings and values, green for actions.
 // Text colours meet WCAG AA (>= 4.5:1) on every surface; accents for icons and borders >= 3:1.
 // -------------------------------------------------------------------------------------------------
-@mixin theme-tokens-dark {
+@mixin theme-tokens-steel {
   color-scheme: dark;
 
   // --- Base inks: pure light and dark, used mostly through alpha() ---
@@ -128,6 +129,47 @@
   --cn-game-gold: var(--cn-gold);
   --cn-game-text-outline: var(--cn-text-outline);
 
+  // --- Panels (`.cn-card`), their corner studs and the stat tiles ---
+  --cn-card-bg:
+    var(--cn-surface-sheen), linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
+  --cn-card-border-color: var(--cn-panel-border);
+  --cn-card-elevation:
+    inset 0 2px 0 var(--cn-panel-highlight), inset 0 -0.25rem 0 var(--cn-panel-bevel),
+    var(--cn-card-shadow);
+  --cn-stud: transparent; // no studs on the gunmetal panels
+  --cn-stud-glow: transparent;
+  --cn-kpi-bg: var(--cn-card-bg);
+  --cn-kpi-edge: var(--cn-panel-border);
+  --cn-divider: var(--cn-border); // hairlines between rows and under headers
+
+  // --- Buttons (filled and outlined): the green "game" buttons ---
+  // A gradient even when flat: Material sets the `background-color` of filled buttons itself.
+  --cn-button-bg: linear-gradient(var(--cn-action), var(--cn-action));
+  --cn-button-border: var(--cn-action-border);
+  --cn-button-ink: var(--cn-on-action);
+  --cn-button-ink-shadow: var(--cn-action-border);
+  --cn-button-depth: var(--cn-action-border);
+
+  // --- Shell: header, side navigation ---
+  --cn-header-border: var(--cn-gold-dark);
+  --cn-sidenav-fill: var(--cn-sidenav-bg);
+  --cn-sidenav-border: var(--cn-panel-border);
+  --cn-nav-ink: var(--cn-text);
+  --cn-nav-icon: var(--cn-text-muted);
+  --cn-nav-group: var(--cn-text-muted);
+  --cn-nav-active-bg: var(--cn-gold-fill);
+  --cn-nav-active-ink: var(--cn-on-gold);
+  --cn-nav-active-edge: var(--cn-panel-border);
+  --cn-brand-fill: linear-gradient(var(--cn-text), var(--cn-text)); // clan name in the header
+  --cn-brand-edge: transparent;
+  --cn-avatar-bg: var(--cn-gold-fill);
+  --cn-avatar-ink: var(--cn-on-gold);
+  --cn-avatar-border: var(--cn-panel-border);
+
+  // --- Row of the signed-in user's player ---
+  --cn-me: var(--cn-win);
+  --cn-on-me: var(--cn-bg);
+
   // --- Charts (read by `shared/charts/chart-theme.ts`) ---
   --cn-chart-series-1: #a8791b;
   --cn-chart-series-2: #4a90c8;
@@ -140,11 +182,166 @@
 }
 
 // -------------------------------------------------------------------------------------------------
+// Theme "iron" (Ferro, the default): the look of the welcome page. Warm black-iron plates with a
+// gold hairline and gold studs, ember glow at the foot of the page, iron-and-gold buttons, gold for
+// headings and values, fire for what is happening now.
+// Text colours meet WCAG AA (>= 4.5:1) on every surface; accents for icons and borders >= 3:1.
+// -------------------------------------------------------------------------------------------------
+@mixin theme-tokens-iron {
+  color-scheme: dark;
+
+  // --- Base inks ---
+  --cn-ink: #050304;
+  --cn-shadow: #000000;
+  --cn-light: #ffffff;
+  --cn-mask: #000000;
+
+  // --- Backgrounds and surfaces (black iron, warm) ---
+  --cn-bg: #0a0709;
+  --cn-bg-image:
+    radial-gradient(ellipse 80% 40% at 60% 105%, #{alpha(#ff6e1e, 16%)}, transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, #{alpha(#000000, 55%)});
+  --cn-surface: #121011;
+  --cn-surface-2: #1d191a;
+  --cn-surface-3: #2a2425;
+  --cn-surface-sheen: linear-gradient(180deg, #{alpha(#ffe2aa, 5.5%)}, transparent 38%);
+  --cn-sidenav-bg: #0e0b0c;
+  --cn-header-bg: linear-gradient(180deg, #1d191a 0%, #0e0b0c 100%);
+  --cn-table-head: #1b1617;
+  --cn-backdrop: #{alpha(#050304, 88%)};
+
+  // --- Lines and bevels ---
+  --cn-border: #3d3122; // dividers inside panels
+  --cn-outline: #8f7a4e; // outlines of controls
+  --cn-panel-border: #4a3a22; // thick outlines (toggles, tiles)
+  --cn-panel-highlight: #{alpha(#ffe6b4, 9%)};
+  --cn-panel-bevel: #{alpha(var(--cn-shadow), 35%)};
+  --cn-flag-ring: #{alpha(var(--cn-light), 30%)};
+
+  // --- Text ---
+  --cn-text: #f2f5fb;
+  --cn-text-muted: #c8bfb8;
+  --cn-heading: #ffffff;
+  --cn-text-outline: 0 2px 0 var(--cn-shadow);
+  --cn-heading-shadow: var(--cn-text-outline);
+  --cn-brand-shadow: none;
+
+  // --- Brand gold (headings, values, selected items) ---
+  --cn-gold: #f4c542;
+  --cn-gold-light: #ffd862;
+  --cn-gold-dark: #c99a2e;
+  --cn-gold-top: #fff3b8;
+  --cn-gold-bottom: #b8861f;
+  --cn-gold-fill: linear-gradient(180deg, #fff3b8 0%, #f2c94c 50%, #b8861f 100%);
+  --cn-gold-toggle: #f2c94c;
+  --cn-on-gold: #1d1503;
+
+  // --- Actions (Material primary is gold: toggles, checkboxes, focused fields) ---
+  --cn-primary: #f4c542;
+  --cn-on-primary: #1d1503;
+  --cn-action: #2a2b30;
+  --cn-action-border: #d9a93f;
+  --cn-on-action: #f4c542;
+
+  // --- Status ---
+  --cn-win: #86e39a;
+  --cn-red-mid: #c0392b;
+  --cn-red-text: #ff9b92;
+  --cn-star-empty: #5a5257;
+  --cn-all-in: #2e9d4f;
+
+  // --- Interaction, tints and glows ---
+  --cn-hover: #{alpha(var(--cn-gold), 8%)};
+  --cn-glow: #{alpha(#ff8a1f, 45%)};
+  --cn-row-alert: #{alpha(var(--cn-red-mid), 16%)};
+  --cn-row-warn: #{alpha(#ff8014, 13%)};
+  --cn-score-glow: #{alpha(#ff5a14, 55%)};
+  --cn-tint-win: #{alpha(var(--cn-win), 12%)};
+  --cn-tint-loss: #{alpha(var(--cn-red-text), 12%)};
+  --cn-tint-neutral: #{alpha(var(--cn-light), 8%)};
+  --cn-tint-gold: #{alpha(var(--cn-gold-light), 14%)};
+
+  // --- Elevation ---
+  --cn-header-shadow: 0 1px 0 var(--cn-shadow), 0 0.625rem 1.75rem #{alpha(var(--cn-shadow), 65%)};
+  --cn-card-shadow: 0 0.875rem 2rem #{alpha(var(--cn-shadow), 55%)};
+
+  // --- Game-style panels (player profile, stat tiles, recruitment): black iron ---
+  --cn-game-panel: linear-gradient(180deg, #2a2526 0%, #1a1617 55%, #121011 100%);
+  --cn-game-panel-border: #4a3a22;
+  --cn-game-panel-text: #ffffff;
+  --cn-game-panel-muted: #c8bfb8;
+  --cn-game-tile: linear-gradient(180deg, #332d2e 0%, #1c1819 100%);
+  --cn-game-tile-border: #050304;
+  --cn-game-gold: var(--cn-gold);
+  --cn-game-text-outline: var(--cn-text-outline);
+
+  // --- Panels (`.cn-card`): iron plates with a gold hairline and two gold studs ---
+  --cn-card-bg: var(--cn-surface-sheen), linear-gradient(180deg, #1d191a, #121011);
+  --cn-card-border-color: #{alpha(#e2b24c, 42%)};
+  --cn-card-elevation:
+    inset 0 0 0 1px var(--cn-shadow), inset 0 1px 0 var(--cn-panel-highlight),
+    var(--cn-card-shadow);
+  --cn-stud: #e2b24c;
+  --cn-stud-glow: #{alpha(#ff8a1f, 65%)};
+  // Stat tiles: crimson swallow-tailed banners with a gold top edge.
+  --cn-kpi-bg: linear-gradient(180deg, #{alpha(#6a1216, 96%)}, #{alpha(#2a080a, 97%)});
+  --cn-kpi-edge: #f4c542;
+  --cn-divider: #{alpha(#e2b24c, 16%)};
+
+  // --- Buttons (filled and outlined): black iron with a gold edge ---
+  --cn-button-bg: linear-gradient(180deg, #5a5c63 0%, #2a2b30 48%, #111114 100%);
+  --cn-button-border: #d9a93f;
+  --cn-button-ink: #f4c542;
+  --cn-button-ink-shadow: var(--cn-shadow);
+  --cn-button-depth: #5c410c;
+
+  // --- Shell: header, side navigation ---
+  --cn-header-border: #{alpha(#e2b24c, 55%)};
+  --cn-sidenav-fill: linear-gradient(180deg, #120f10, #080607);
+  --cn-sidenav-border: #{alpha(#e2b24c, 22%)};
+  --cn-nav-ink: #cfd7e8;
+  --cn-nav-icon: #a8916a;
+  --cn-nav-group: #c99a2e;
+  --cn-nav-active-bg: linear-gradient(90deg, #6a1216 0%, #3a0b0d 70%, #2a080a 100%);
+  --cn-nav-active-ink: #ffd862;
+  --cn-nav-active-edge: #f4c542;
+  // Clan name in the header: black iron letters with a gold edge.
+  --cn-brand-fill: linear-gradient(
+    180deg,
+    #8a8d95 0%,
+    #3a3c42 34%,
+    #17181c 52%,
+    #0b0b0d 60%,
+    #2c2d32 82%,
+    #5a5c63 100%
+  );
+  --cn-brand-edge: #e2b24c;
+  --cn-avatar-bg: radial-gradient(circle at 50% 35%, #5c1013, #1a0607);
+  --cn-avatar-ink: #ffd862;
+  --cn-avatar-border: #d9a93f;
+
+  // --- Row of the signed-in user's player ---
+  --cn-me: #f4c542;
+  --cn-on-me: #1d1503;
+
+  // --- Charts (read by `shared/charts/chart-theme.ts`) ---
+  --cn-chart-series-1: #ff8014;
+  --cn-chart-series-2: #8a919c;
+  --cn-chart-text: var(--cn-text-muted);
+  --cn-chart-grid: #{alpha(var(--cn-light), 8%)};
+  --cn-chart-surface: var(--cn-surface);
+  --cn-chart-tooltip-bg: var(--cn-sidenav-bg);
+  --cn-chart-tooltip-border: #4a3a22;
+  --cn-chart-tooltip-text: var(--cn-text);
+}
+
+// -------------------------------------------------------------------------------------------------
 // Identity colours: the same in every theme.
 // -------------------------------------------------------------------------------------------------
 @mixin identity-tokens {
   // --- Theme pickers: dot shown next to each theme name ---
-  --cn-theme-swatch-dark: #2b2f35;
+  --cn-theme-swatch-iron: #1d191a;
+  --cn-theme-swatch-steel: #3d4149;
 
   // --- Clan crest (header and welcome page) ---
   --cn-crest-shield: #141416;
@@ -167,6 +364,27 @@
   --cn-medal-locked-dark: #2a2d34;
 
   // ============ Clans of the Crusade, welcome page and its illustrated acts ============
+
+  // --- Page titles and scenic page headers (same in every theme) ---
+  --cn-title-fill: linear-gradient(180deg, #fff3b8 0%, #f2c94c 48%, #b8861f 100%); // gold letters
+  --cn-scene-text: #f2f5fb;
+  --cn-scene-text-muted: #e0d6d0;
+  --cn-scene-kicker: #f4c542;
+  --cn-scene-smoke: #3c2c2e;
+  --cn-scene-stone-glow: #ff963c;
+  --cn-scene-dusk-top: #0d0a14;
+  --cn-scene-dusk-mid: #2a1420;
+  --cn-scene-dusk-low: #6a2a1c;
+  // Banners of the two sides of a battle (scenic scoreboard).
+  --cn-flag-us: linear-gradient(180deg, #5a5c63 0%, #2a2b30 40%, #111114 100%);
+  --cn-flag-us-edge: #f4c542;
+  --cn-flag-them: linear-gradient(180deg, #4a4f57, #26292e);
+  --cn-flag-them-edge: #c3ccd8;
+  --cn-flag-text-muted: #d6ccc6;
+  --cn-altar-plate: linear-gradient(180deg, #2a0d0b, #100506); // score plate over the fire
+  --cn-altar-plate-edge: #e2b24c;
+  --cn-bar-fire: linear-gradient(90deg, #c81e00, #ff8014, #ffc43d);
+  --cn-bar-steel: linear-gradient(90deg, #66748a, #c3ccd8);
 
   // --- Welcome scene (dark stage of the welcome page, same in every theme) ---
   --cn-welcome-night: #0a0709; // background of the scenes and the fog at their feet

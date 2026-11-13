@@ -213,8 +213,13 @@
     }
     <nav [attr.aria-label]="'app.mainNavigation' | translate">
       <mat-nav-list>
-        @for (item of menu(); track item.path) {
-          <ng-container *ngTemplateOutlet="navItem; context: { $implicit: item }" />
+        @for (group of menu(); track $index) {
+          @if (group.label) {
+            <h2 class="nav-group">{{ group.label | translate }}</h2>
+          }
+          @for (item of group.items; track item.path) {
+            <ng-container *ngTemplateOutlet="navItem; context: { $implicit: item }" />
+          }
         }
       </mat-nav-list>
     </nav>

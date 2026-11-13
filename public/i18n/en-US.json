@@ -23,9 +23,29 @@
   "theme": {
     "change": "Change theme (current: {{name}})",
     "menu": "Available themes",
-    "dark": "Dark"
+    "iron": "Iron",
+    "steel": "Steel"
+  },
+  "kicker": {
+    "dashboard": "Headquarters",
+    "war": "Chronicles from the front",
+    "cwl": "The war league",
+    "raids": "The Clan Capital",
+    "history": "The annals",
+    "statistics": "The roll of honour",
+    "players": "The knights of the Crusade",
+    "bases": "The arsenal",
+    "join": "The call",
+    "profile": "Your oath",
+    "settings": "Your armour",
+    "admin": "The war council"
   },
   "nav": {
+    "group": {
+      "battle": "Battle",
+      "clan": "The Clan",
+      "arsenal": "Arsenal"
+    },
     "dashboard": "Dashboard",
     "currentWar": "Current war",
     "cwl": "League (CWL)",
@@ -187,13 +207,15 @@
     "seriesDestruction": "Destruction"
   },
   "currentWar": {
-    "subtitle": "Live status of the ongoing battle",
+    "subtitle": "The field is burning. Every attack counts.",
     "empty": "The clan is not currently at war (or its war log is private). Check back when the next one starts!",
     "withoutAttacks": "Without attacks",
     "outOfParticipants": "out of {{n}} participants",
-    "participants": "Participants"
+    "participants": "Participants",
+    "participantsKicker": "The army in the field"
   },
   "summary": {
+    "starsOutOf": "{{stars}} stars out of {{total}}",
     "versus": "{{n}} vs {{n}}",
     "endedOn": "Ended on {{date}}",
     "startsIn": "Battle starts in {{time}}",

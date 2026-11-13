@@ -39,6 +39,13 @@ interface MenuItem {
   public?: boolean;
 }
 
+/** Items of the navigation that belong together, under a heading (none for the first group). */
+interface MenuGroup {
+  /** Translation key of the heading. */
+  label?: string;
+  items: MenuItem[];
+}
+
 /**
  * Main layout: header with the clan name, side navigation and content.
  * The side navigation is always there: signed out it only offers the public pages and the
@@ -129,26 +136,43 @@ export class Shell {
     if (code !== this.language.current()) this.language.use(code).subscribe();
   }
 
-  private readonly allMenu: MenuItem[] = [
-    { path: '/', label: 'nav.welcome', icon: 'fort', public: true },
-    { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
-    { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
-    { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
-    { path: '/cwl', label: 'nav.cwl', icon: 'emoji_events' },
-    { path: '/raids', label: 'nav.raids', icon: 'castle' },
-    { path: '/wars', label: 'nav.history', icon: 'history_edu' },
-    { path: '/players', label: 'nav.players', icon: 'groups' },
-    { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
-    { path: '/bases', label: 'nav.bases', icon: 'shield' },
+  private readonly allMenu: MenuGroup[] = [
+    {
+      items: [
+        { path: '/', label: 'nav.welcome', icon: 'fort', public: true },
+        { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
+      ],
+    },
+    {
+      label: 'nav.group.clan',
+      items: [
+        { path: '/players', label: 'nav.players', icon: 'groups' },
+        { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
+      ],
+    },
+    {
+      label: 'nav.group.battle',
+      items: [
+        { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
+        { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
+        { path: '/cwl', label: 'nav.cwl', icon: 'emoji_events' },
+        { path: '/raids', label: 'nav.raids', icon: 'castle' },
+        { path: '/wars', label: 'nav.history', icon: 'history_edu' },
+      ],
+    },
+    { label: 'nav.group.arsenal', items: [{ path: '/bases', label: 'nav.bases', icon: 'shield' }] },
   ];
 
   /**
    * Without access to the clans' pages (signed out, or not in a clan of the Crusade): only the
    * public pages (welcome, join us). Settings are always at the bottom.
    */
-  protected readonly menu = computed(() =>
-    this.clanAccess() ? this.allMenu : this.allMenu.filter((i) => i.public),
-  );
+  protected readonly menu = computed(() => {
+    const open = this.clanAccess();
+    return this.allMenu
+      .map((group) => ({ ...group, items: group.items.filter((i) => open || i.public) }))
+      .filter((group) => group.items.length > 0);
+  });
   protected readonly settingsItem: MenuItem = { path: '/settings', label: 'nav.settings', icon: 'settings', public: true };
 
   protected readonly mobile = toSignal(

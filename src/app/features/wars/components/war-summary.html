@@ -2,20 +2,33 @@
 <div class="meta">
   <app-result-badge [result]="result()" />
   <span>{{ state() | translate }}</span>
-  <span class="cn-muted">· {{ 'summary.versus' | translate: { n: w.teamSize } }}</span>
+  <span class="meta__muted">· {{ 'summary.versus' | translate: { n: w.teamSize } }}</span>
   @if (timeLeft(); as t) {
     <span class="time-left"><mat-icon aria-hidden="true">schedule</mat-icon>{{ t }}</span>
   } @else {
-    <span class="cn-muted">· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span>
+    <span class="meta__muted">· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span>
   }
 </div>
 
 <div class="scoreboard">
+  @if (scenic()) {
+    <app-crusader class="figure crusader--soft" pose="fist" sizes="12rem" />
+  }
   @for (side of [w.clan, w.opponent]; track side.tag; let isOpponent = $last) {
     <section class="side" [class.side--opponent]="isOpponent" [attr.aria-label]="(isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate">
       <span class="side__role">{{ (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate }}</span>
       <h2 class="side__name">{{ side.name }}</h2>
-      <span class="cn-muted side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+      <span class="side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+      <div class="side__stars">
+        <div
+          class="bar"
+          role="img"
+          [attr.aria-label]="'summary.starsOutOf' | translate: { stars: side.stars, total: maxStars() }"
+        >
+          <span class="bar__fill" [style.width.%]="starsShare(side.stars)"></span>
+        </div>
+        <span class="side__stars-value cn-num" aria-hidden="true">★ {{ side.stars }}/{{ maxStars() }}</span>
+      </div>
       <dl class="side__data">
         <div><dt>{{ 'common.destruction' | translate }}</dt><dd class="cn-num">{{ side.destructionPercentage | localNumber: '1.1-1' }}%</dd></div>
         <div><dt>{{ 'common.attacks' | translate }}</dt><dd class="cn-num">{{ side.attacksUsed || (w.hasDetails ? 0 : '—') }}/{{ totalAttacks() }}</dd></div>

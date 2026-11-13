@@ -4,7 +4,7 @@ import { Clan, ClanRanks } from '../../../../core/models';
 import { LocalNumberPipe } from '../../../../core/i18n/locale-pipes';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
 import { ScrollyCounter } from '../../../../shared/scrolly/scrolly-counter';
-import { Crusader } from '../../crusader/crusader';
+import { Crusader } from '../../../../shared/crusader/crusader';
 import { ActHeading } from '../act-heading/act-heading';
 
 /** Clan size limit in Clash of Clans. */

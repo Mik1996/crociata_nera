@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, of } from 'rxjs';
 import { App } from './app';
 import { CocApiService } from './core/api/coc-api';
-import { AVAILABLE_THEMES, ThemeName, THEMES } from './core/theme/themes';
+import { AVAILABLE_THEMES, DEFAULT_THEME, ThemeName, THEMES } from './core/theme/themes';
 import { provideCocApiTest } from './testing/fixtures';
 
 describe('App', () => {
@@ -51,14 +51,20 @@ describe('App', () => {
     expect(items).toEqual([
       'Benvenuto',
       'Unisciti a noi',
+      'Giocatori',
+      'Statistiche',
       'Dashboard',
       'Guerra corrente',
       'Lega (CWL)',
       'Raid Weekend',
       'Storico guerre',
-      'Giocatori',
-      'Statistiche',
       'Arsenale basi',
+    ]);
+    // The pages are grouped under headings: the clan first, then the battles and the arsenal.
+    expect(Array.from(nav!.querySelectorAll('.nav-group')).map((h) => h.textContent?.trim())).toEqual([
+      'Il Clan',
+      'Battaglia',
+      'Arsenale',
     ]);
   });
 
@@ -84,18 +90,19 @@ describe('App', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(items()).toEqual(['Welcome', 'Join us', 'Dashboard', 'Current war', 'League (CWL)', 'Raid Weekend', 'War history', 'Players', 'Statistics', 'Base arsenal']);
+    expect(items()).toEqual(['Welcome', 'Join us', 'Players', 'Statistics', 'Dashboard', 'Current war', 'League (CWL)', 'Raid Weekend', 'War history', 'Base arsenal']);
     expect(el.querySelector('button.language img')?.getAttribute('src')).toBe('flags/us.svg');
     TestBed.inject(TranslateService).use('it-IT');
     localStorage.clear();
   });
 
   it('hides the theme picker when there is a single theme', async () => {
+    TestBed.overrideProvider(AVAILABLE_THEMES, { useValue: THEMES.slice(0, 1) });
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('button.theme-picker')).toBeNull();
-    expect(document.documentElement.dataset['theme']).toBe('dark');
+    expect(document.documentElement.dataset['theme']).toBe(DEFAULT_THEME);
   });
 
   it('switches theme from the header menu when more themes are available', async () => {
@@ -110,15 +117,15 @@ describe('App', () => {
     el.querySelector<HTMLButtonElement>('button.theme-picker')!.click();
     await fixture.whenStable();
     const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.theme-menu [mat-menu-item]'));
-    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Scuro', 'theme.other']);
-    expect(options[1].querySelector<HTMLElement>('.swatch')?.style.background).toBe('rgb(255, 255, 255)');
+    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Ferro', 'Acciaio', 'theme.other']);
+    expect(options[2].querySelector<HTMLElement>('.swatch')?.style.background).toBe('rgb(255, 255, 255)');
 
-    options[1].click();
+    options[2].click();
     await fixture.whenStable();
     expect(document.documentElement.dataset['theme']).toBe(other);
     expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe('theme.other');
     localStorage.clear();
-    document.documentElement.dataset['theme'] = 'dark';
+    document.documentElement.dataset['theme'] = DEFAULT_THEME;
   });
 
   it('offers a link to skip to the main content', async () => {

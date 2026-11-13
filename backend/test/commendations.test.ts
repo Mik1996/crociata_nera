@@ -100,6 +100,20 @@ describe('commendation sync', () => {
     expect((await PlayerModel.findOne({ tag: '#AAA222' }))!.commendations[0]).toMatchObject({ id: '95000013', name: 'capitalRaider-bronze' });
   });
 
+  it('awards a Raid Weekend also to raiders now in another clan of the Crusade', async () => {
+    // #RED001 raided in Crociata Nera, then moved to Crociata Rossa: not in the member list anymore.
+    mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
+    await RaidSeasonModel.create({
+      clanTag: CLAN, startTime: new Date('2026-10-30T07:00:00Z'), endTime: new Date('2026-11-02T07:00:00Z'),
+      state: 'ended', hasMembers: true, lastSyncedAt: NOW,
+      season: { members: [{ tag: '#RED001', name: 'Red', capitalResourcesLooted: 28_000 }] },
+    });
+    await syncCommendations(NOW);
+    expect(await PlayerModel.findOne({ tag: '#RED001' })).toMatchObject({
+      name: 'Red', inClan: false, commendations: [expect.objectContaining({ id: '95000014', name: 'capitalRaider-silver', quantity: 1 })],
+    });
+  });
+
   it('counts the same commendation earned in several periods', async () => {
     mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
     await savedRaid({ '#AAA111': 31_000 });

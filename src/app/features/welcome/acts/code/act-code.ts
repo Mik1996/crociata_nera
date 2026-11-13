@@ -3,7 +3,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
 import { ActMetrics, clamp01 } from '../../../../shared/scrolly/scrolly-math';
 import { ClanRules } from '../../../recruitment/clan-rules';
-import { Crusader } from '../../crusader/crusader';
+import { Crusader } from '../../../../shared/crusader/crusader';
 import { ActHeading } from '../act-heading/act-heading';
 
 /** Scroll taller than this (minus the margins) cannot be seen whole: the reveal follows a line. */

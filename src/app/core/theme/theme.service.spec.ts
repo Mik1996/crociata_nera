@@ -2,10 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { ThemeService } from './theme.service';
 import { AVAILABLE_THEMES, DEFAULT_THEME, THEME_STORAGE_KEY, ThemeName, ThemeOption, THEMES } from './themes';
 
-/** A second theme, to exercise the switching infrastructure while the site ships a single theme. */
+/** One more theme, to exercise the switching infrastructure whatever themes the site ships. */
 const OTHER = 'other' as ThemeName;
+const ONE_THEME: readonly ThemeOption[] = THEMES.slice(0, 1);
 const TWO_THEMES: readonly ThemeOption[] = [
-  ...THEMES,
+  ...ONE_THEME,
   { name: OTHER, labelKey: 'theme.other', swatch: '#ffffff' },
 ];
 
@@ -15,7 +16,14 @@ describe('ThemeService', () => {
 
   const theme = () => document.documentElement.dataset['theme'];
 
+  it('ships Ferro as the default theme and Acciaio as the alternative', () => {
+    expect(THEMES.map((t) => t.name)).toEqual(['iron', 'steel']);
+    expect(DEFAULT_THEME).toBe('iron');
+    expect(TestBed.inject(ThemeService).selectable).toBe(true);
+  });
+
   it('applies the default theme and offers no choice with a single theme', () => {
+    TestBed.configureTestingModule({ providers: [{ provide: AVAILABLE_THEMES, useValue: ONE_THEME }] });
     const service = TestBed.inject(ThemeService);
     TestBed.tick();
     expect(service.current()).toBe(DEFAULT_THEME);
@@ -23,8 +31,8 @@ describe('ThemeService', () => {
     expect(service.selectable).toBe(false);
   });
 
-  it('ignores a saved theme that no longer exists (e.g. the removed light theme)', () => {
-    localStorage.setItem(THEME_STORAGE_KEY, 'light');
+  it('ignores a saved theme that no longer exists (e.g. the old name of the gunmetal theme)', () => {
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
     expect(TestBed.inject(ThemeService).current()).toBe(DEFAULT_THEME);
   });
 

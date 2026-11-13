@@ -27,6 +27,27 @@ describe('CurrentWarPage', () => {
     expect(el.textContent).toContain('Non ha ancora attaccato');
   });
 
+  it('puts the scoreboard in the scenic header, with bars of the stars earned out of the total', async () => {
+    configure();
+    const el = await render();
+    const summary = el.querySelector('app-page-header app-war-summary')!;
+    expect(summary.classList.contains('summary--scenic')).toBe(true);
+    expect(el.querySelector('app-page-header')!.getAttribute('data-scene')).toBe('war');
+
+    const war = (await new Promise<{ teamSize: number; clan: { stars: number }; opponent: { stars: number } } | null>((resolve) =>
+      TestBed.inject(CocApiService).getCurrentWar().subscribe(resolve),
+    ))!;
+    const total = war.teamSize * 3;
+    const bars = Array.from(summary.querySelectorAll<HTMLElement>('.bar'));
+    expect(bars.map((b) => b.getAttribute('aria-label'))).toEqual([
+      `${war.clan.stars} stelle su ${total}`,
+      `${war.opponent.stars} stelle su ${total}`,
+    ]);
+    const widths = bars.map((b) => parseFloat(b.querySelector<HTMLElement>('.bar__fill')!.style.width));
+    expect(widths[0]).toBeCloseTo((war.clan.stars / total) * 100, 3);
+    expect(widths[1]).toBeCloseTo((war.opponent.stars / total) * 100, 3);
+  });
+
   it('shows a message when the clan is not at war', async () => {
     configure();
     vi.spyOn(TestBed.inject(CocApiService), 'getCurrentWar').mockReturnValue(of(null));

@@ -1,4 +1,4 @@
-<app-page-header
+<app-page-header scene="war" [kicker]="'kicker.war' | translate"
   [title]="
     war()
       ? ('warDetail.versus' | translate: { name: war()!.opponent.name })

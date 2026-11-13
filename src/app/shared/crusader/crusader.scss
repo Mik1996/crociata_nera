@@ -55,6 +55,17 @@
   );
 }
 
+// Soft halo (class `crusader--soft` on the host): it fades out inside its own box, for scenes where
+// the edge of the round halo would show against a dark background.
+:host(.crusader--soft) .crusader__glow {
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    palette.alpha(var(--crusader-glow), 50%) 0%,
+    palette.alpha(var(--crusader-glow), 16%) 55%,
+    transparent 100%
+  );
+}
+
 @keyframes crusader-breath {
   0%,
   100% {

@@ -29,10 +29,47 @@
 // To add a theme, see `src/app/core/theme/themes.ts`.
 // ---------------------------------------------------------------------------
 
+// Shapes and fonts of each theme (its colours are in `color-palette`).
+@mixin theme-shapes-iron {
+  // Section titles, navigation, buttons, tabs, table headers: Roman capitals.
+  --cn-font-heading: 'Cinzel', 'Times New Roman', serif;
+  --cn-heading-weight: 700;
+  --cn-heading-tracking: 0.05em;
+  --cn-card-border-width: 1px;
+  --cn-card-radius: 0.375rem;
+  --cn-control-radius: 0.5rem;
+  --cn-button-border-width: 0.1875rem;
+  --cn-button-depth-size: 0.25rem;
+  // Swallow-tailed shapes: the active navigation item points right, the stat tiles hang.
+  --cn-nav-active-clip: polygon(0 0, 100% 0, calc(100% - 1rem) 50%, 100% 100%, 0 100%);
+  --cn-nav-item-radius: 0;
+  --cn-nav-item-inset-end: 0rem; // the banner reaches the edge of the navigation
+  --cn-kpi-clip: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 0.875rem), 0 100%);
+  --cn-kpi-foot: 0.875rem; // room for the tail
+}
+
+@mixin theme-shapes-steel {
+  --cn-font-heading: var(--cn-font-display);
+  --cn-heading-weight: 400;
+  --cn-heading-tracking: 0.02em;
+  --cn-card-border-width: 0.1875rem;
+  --cn-card-radius: #{$radius-xl};
+  --cn-control-radius: #{$radius-l};
+  --cn-button-border-width: 2px;
+  --cn-button-depth-size: 2px;
+  --cn-nav-active-clip: none;
+  --cn-nav-item-radius: #{$radius-l};
+  --cn-nav-item-inset-end: #{$space-s};
+  --cn-kpi-clip: none;
+  --cn-kpi-foot: 0rem;
+}
+
 :root {
-  // Display font for headings, clan name and big numbers (Clash of Clans style).
+  // Display font for numbers and game values (Clash of Clans style).
   --cn-font-display: 'Clash', 'Trebuchet MS', sans-serif;
   --cn-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  // Engraved capitals of the Crusade: page titles and the clan name.
+  --cn-font-engraved: 'Cinzel Decorative', 'Cinzel', 'Times New Roman', serif;
 
   // Fluid type scale: each size grows linearly from 360px to 1440px of viewport width, between the
   // given minimum and maximum. The middle term mixes rem and vw so text still follows browser zoom
@@ -49,11 +86,18 @@
   --cn-fs-brand: clamp(1rem, 0.7667rem + 1.037vw, 1.7rem);
 
   @include palette.identity-tokens;
-  @include palette.theme-tokens-dark; // default theme
+  @include palette.theme-tokens-iron; // default theme
+  @include theme-shapes-iron;
 }
 
-:root[data-theme='dark'] {
-  @include palette.theme-tokens-dark;
+:root[data-theme='iron'] {
+  @include palette.theme-tokens-iron;
+  @include theme-shapes-iron;
+}
+
+:root[data-theme='steel'] {
+  @include palette.theme-tokens-steel;
+  @include theme-shapes-steel;
 }
 
 html {
@@ -67,7 +111,7 @@ html {
       ),
       typography: (
         plain-family: var(--cn-font-body),
-        brand-family: var(--cn-font-display),
+        brand-family: var(--cn-font-heading),
       ),
       density: 0,
     )
@@ -94,7 +138,7 @@ html {
     (
       background-color: transparent,
       header-headline-color: var(--cn-gold-light),
-      row-item-outline-color: var(--cn-border),
+      row-item-outline-color: var(--cn-divider),
     )
   );
   @include mat.paginator-overrides(
@@ -149,12 +193,12 @@ a {
 h1,
 h2,
 h3 {
-  font-family: var(--cn-font-display);
-  font-weight: 400;
-  letter-spacing: 0.02em;
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
 }
 
-// Section titles: white with a dark outline (dark theme) or dark brown (light theme), like the game.
+// Section titles: white capitals with a dark shadow.
 h2 {
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
@@ -186,41 +230,83 @@ h2 {
 // Reusable layout components
 // ---------------------------------------------------------------------------
 
-// Game-style panel: thick dark outline, light bevel on top, darker bevel at the bottom.
+// Panel. Ferro: a black-iron plate with a gold hairline and two gold studs on its top edge.
+// Acciaio: thick dark outline, light bevel on top, darker bevel at the bottom.
 .cn-card {
-  background:
-    var(--cn-surface-sheen), linear-gradient(180deg, var(--cn-surface-2), var(--cn-surface));
-  border: 3px solid var(--cn-panel-border);
-  border-radius: $radius-xl;
-  box-shadow:
-    inset 0 2px 0 var(--cn-panel-highlight),
-    inset 0 -0.25rem 0 var(--cn-panel-bevel),
-    var(--cn-card-shadow);
+  position: relative;
+  background: var(--cn-card-bg);
+  border: var(--cn-card-border-width) solid var(--cn-card-border-color);
+  border-radius: var(--cn-card-radius);
+  box-shadow: var(--cn-card-elevation);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -0.3125rem;
+    width: 0.5625rem;
+    height: 0.5625rem;
+    background: var(--cn-stud);
+    box-shadow: 0 0 0.5rem var(--cn-stud-glow);
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
+
+  &::before {
+    left: 1.375rem;
+  }
+
+  &::after {
+    right: 1.375rem;
+  }
+}
+
+// Panel without studs (tiles whose content reaches the top edge, e.g. a picture).
+.cn-card--plain {
+  &::before,
+  &::after {
+    content: none;
+  }
+}
+
+// Small line above a section title ("Cronache del fronte"): spaced gold capitals.
+.cn-kicker {
+  margin: 0 0 $space-xs;
+  font-family: var(--cn-font-heading);
+  font-weight: 700;
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cn-gold-dark);
 }
 
 // --- Game-style controls ---------------------------------------------------------
 
-// Filled and outlined buttons become the game's chunky green buttons.
+// Filled and outlined buttons are chunky game buttons: black iron with a gold edge (Ferro), green
+// (Acciaio).
 .mat-mdc-unelevated-button.mat-mdc-button-base,
 .mat-mdc-outlined-button.mat-mdc-button-base {
-  --mat-button-filled-container-color: var(--cn-action);
-  --mat-button-filled-label-text-color: var(--cn-on-action);
-  --mat-button-outlined-label-text-color: var(--cn-on-action);
+  --mat-button-filled-container-color: transparent;
+  --mat-button-filled-label-text-color: var(--cn-button-ink);
+  --mat-button-outlined-label-text-color: var(--cn-button-ink);
+  --mat-button-filled-disabled-label-text-color: var(--cn-button-ink);
+  --mat-button-outlined-disabled-label-text-color: var(--cn-button-ink);
   --mat-button-outlined-outline-color: transparent;
-  --mat-button-filled-container-shape: #{$radius-l};
-  --mat-button-outlined-container-shape: #{$radius-l};
-  background: var(--cn-action);
-  border: 2px solid var(--cn-action-border) !important;
+  --mat-button-filled-container-shape: var(--cn-control-radius);
+  --mat-button-outlined-container-shape: var(--cn-control-radius);
+  background: var(--cn-button-bg);
+  border: var(--cn-button-border-width) solid var(--cn-button-border) !important;
   box-shadow:
-    inset 0 2px 0 palette.alpha(var(--cn-light), 25%),
-    inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 25%),
-    0 2px 0 var(--cn-action-border);
-  font-family: var(--cn-font-display);
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 0 var(--cn-action-border);
+    inset 0 2px 0 palette.alpha(var(--cn-light), 28%),
+    inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 28%),
+    0 var(--cn-button-depth-size) 0 var(--cn-button-depth);
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
+  text-shadow: 0 1px 0 var(--cn-button-ink-shadow);
 
   &:active:not([disabled]) {
-    transform: translateY(2px);
+    transform: translateY(var(--cn-button-depth-size));
     box-shadow:
       inset 0 2px 0 palette.alpha(var(--cn-light), 20%),
       inset 0 -1px 0 palette.alpha(var(--cn-shadow), 25%);
@@ -235,8 +321,9 @@ h2 {
 // Text buttons (links like "View details"): gold, display font.
 .mat-mdc-button.mat-mdc-button-base:not(.picker) {
   --mat-button-text-label-text-color: var(--cn-gold-light);
-  font-family: var(--cn-font-display);
-  letter-spacing: 0.02em;
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
 }
 
 // Tabs: display font labels and a thick gold indicator.
@@ -249,18 +336,21 @@ h2 {
   --mat-tab-active-focus-label-text-color: var(--cn-heading);
   --mat-tab-active-hover-label-text-color: var(--cn-heading);
   --mat-tab-inactive-label-text-color: var(--cn-text-muted);
-  --mat-tab-label-text-font: var(--cn-font-display);
-  --mat-tab-label-text-tracking: 0.02em;
+  --mat-tab-label-text-font: var(--cn-font-heading);
+  --mat-tab-label-text-weight: var(--cn-heading-weight);
+  --mat-tab-label-text-tracking: var(--cn-heading-tracking);
+  --mat-tab-divider-color: var(--cn-divider);
 }
 
 // Segmented filters (button toggles): the selected option is a gold game button.
 .mat-button-toggle-group.mat-button-toggle-group-appearance-standard {
-  --mat-button-toggle-shape: #{$radius-l};
+  --mat-button-toggle-shape: var(--cn-control-radius);
   --mat-button-toggle-selected-state-background-color: var(--cn-gold-toggle);
   --mat-button-toggle-selected-state-text-color: var(--cn-on-gold);
   --mat-button-toggle-divider-color: var(--cn-panel-border);
   border: 2px solid var(--cn-panel-border);
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
   box-shadow: 0 2px 0 var(--cn-panel-border);
 }
 
@@ -315,6 +405,24 @@ h2 {
     overscroll-behavior: contain;
     // No padding: the scroll hints (`appScrollFade`) must reach the edges of the area.
   }
+}
+
+// Room above the first panel of a page, for the studs on its top edge. It comes from the top
+// scroll hint itself (not from a padding, which would push the hint down).
+.page__scroll.cn-scroll-fade:not(.page__scroll--bleed) {
+  --cn-fade-gap: 0.375rem;
+}
+
+/*
+ * Scroll area reaching the edges of the content area (its scenic page header scrolls with the
+ * page): it undoes the paddings of the content area, `.page__body` gives them back to the rest.
+ */
+.page__scroll--bleed {
+  margin: calc(-1 * var(--cn-content-pad-top, 0rem)) calc(-1 * var(--cn-content-pad-x, 0rem)) 0;
+}
+
+.page__body {
+  padding: 0 var(--cn-content-pad-x, 0rem);
 }
 
 /*
@@ -411,7 +519,8 @@ mat-sidenav-content > .content:has(> .page--immersive) {
 
   &::before {
     top: 0;
-    margin-bottom: calc(-1 * var(--cn-fade-size));
+    // The band overlays the content, less `--cn-fade-gap` (room kept above the first element).
+    margin-bottom: calc(var(--cn-fade-gap, 0rem) - var(--cn-fade-size));
     background: linear-gradient(
       to bottom,
       color-mix(in srgb, var(--cn-bg) 70%, transparent),
@@ -528,8 +637,8 @@ mat-sidenav-content > .content:has(> .page--immersive) {
  */
 // Solid tint: a gradient on a table row is painted again in every cell (visible bands).
 table tr.cn-row-me.mat-mdc-row {
-  background: color-mix(in srgb, var(--cn-win) 20%, transparent);
-  box-shadow: inset 0.25rem 0 0 var(--cn-win);
+  background: color-mix(in srgb, var(--cn-me) 16%, transparent);
+  box-shadow: inset 0.25rem 0 0 var(--cn-me);
 }
 
 .cn-me-badge {
@@ -537,8 +646,8 @@ table tr.cn-row-me.mat-mdc-row {
   margin-left: $space-s;
   padding: 0.05rem $space-s;
   border-radius: $radius-pill;
-  background: var(--cn-win);
-  color: var(--cn-bg);
+  background: var(--cn-me);
+  color: var(--cn-on-me);
   font-family: var(--cn-font-display);
   font-size: var(--cn-fs-2xs);
   letter-spacing: 0.03em;
@@ -550,11 +659,18 @@ table tr.cn-row-me.mat-mdc-row {
   margin-bottom: $space-l;
 }
 
+// Row of stat tiles: they share the row, up to a maximum width each, centred.
 .cn-grid-kpi {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: $space-m;
   margin-bottom: $space-l;
+
+  > * {
+    flex: 1 1 12.5rem;
+    max-width: 22rem;
+  }
 }
 
 .cn-grid-2 {
@@ -649,6 +765,9 @@ table tr.cn-row-me.mat-mdc-row {
 
 // Responsive tables: horizontal scrolling on narrow screens.
 .cn-table-wrap {
+  // Positioned: absolutely positioned descendants (e.g. `.cn-visually-hidden` texts in the cells)
+  // stay inside it and scroll with the table, instead of widening the page around it.
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 
@@ -663,10 +782,12 @@ table tr.cn-row-me.mat-mdc-row {
     z-index: 2;
     // Header labels on one line, never cut: they set the automatic width of the column.
     white-space: nowrap;
-    font-weight: 600;
+    font-family: var(--cn-font-heading);
+    font-weight: 700;
     text-transform: uppercase;
     font-size: var(--cn-fs-xs);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    border-bottom-color: var(--cn-header-border);
   }
 
   tr.cn-row-link {

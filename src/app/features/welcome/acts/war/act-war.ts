@@ -6,7 +6,7 @@ import { Clan } from '../../../../core/models';
 import { Altar3d } from '../../../../shared/altar-3d/altar-3d';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
 import { ScrollyCounter } from '../../../../shared/scrolly/scrolly-counter';
-import { Crusader } from '../../crusader/crusader';
+import { Crusader } from '../../../../shared/crusader/crusader';
 import { ActHeading } from '../act-heading/act-heading';
 
 /** Picture of the altar when the clan has no Clan War League trophy. */

@@ -1,4 +1,4 @@
-<app-page-header [title]="'join.title' | translate" [subtitle]="'join.subtitle' | translate" />
+<app-page-header scene="dusk" [kicker]="'kicker.join' | translate" [title]="'join.title' | translate" [subtitle]="'join.subtitle' | translate" />
 
 <div appScrollFade class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'join.title' | translate">
   <app-load-state [loading]="clan.isLoading() && !data()" [error]="clan.error()" [empty]="false" (retry)="clan.reload()">

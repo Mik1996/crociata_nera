@@ -31,7 +31,7 @@
   height: 4rem;
   gap: $space-s;
   background: var(--cn-header-bg);
-  border-bottom: 2px solid var(--cn-gold-dark);
+  border-bottom: 1px solid var(--cn-header-border);
   box-shadow: var(--cn-header-shadow);
   color: var(--cn-text);
 }
@@ -81,13 +81,22 @@
 }
 
 .brand__name {
-  font-family: var(--cn-font-display);
-  font-weight: 700;
+  font-family: var(--cn-font-engraved);
+  font-weight: 900;
   font-size: var(--cn-fs-brand);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--cn-text);
-  text-shadow: var(--cn-brand-shadow);
+  letter-spacing: 0.02em;
+  // Letters filled by the theme (black iron with a gold edge, or plain white).
+  background: var(--cn-brand-fill);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--cn-brand-edge);
+  // Shadows as filters: a text-shadow would show through the transparent letters.
+  text-shadow: none;
+  filter: drop-shadow(0 2px 0 var(--cn-ink)) drop-shadow(0 0 0.5rem var(--cn-glow));
+  // Room for the stroke and the swashes of the capitals, which the clipping would cut.
+  padding: 0.1em 0.08em;
+  margin: -0.1em -0.08em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -96,7 +105,8 @@
 .brand__tag {
   font-family: var(--cn-font-body);
   font-size: var(--cn-fs-2xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--cn-text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -123,7 +133,8 @@
 
 .sidenav {
   width: 16.5rem;
-  border-right: 3px solid var(--cn-panel-border);
+  background: var(--cn-sidenav-fill);
+  border-right: 1px solid var(--cn-sidenav-border);
   display: flex;
   flex-direction: column;
 
@@ -133,30 +144,56 @@
     flex-direction: column;
   }
 
-  // Menu entries as game buttons: the active one is a raised gold button.
+  // Menu entries. Ferro: the active one is a crimson banner pointing at the page.
+  // Acciaio: a raised gold button.
   a.mat-mdc-list-item {
-    margin: $space-xs $space-s;
+    margin: 2px var(--cn-nav-item-inset-end) 2px $space-m;
     width: auto;
-    border: 2px solid transparent;
-    border-radius: $radius-l;
-    font-family: var(--cn-font-display);
-    --mat-list-list-item-label-text-font: var(--cn-font-display);
+    border-top: 2px solid transparent;
+    border-radius: var(--cn-nav-item-radius);
+    font-family: var(--cn-font-heading);
+    --mat-list-list-item-label-text-font: var(--cn-font-heading);
+    --mat-list-list-item-label-text-weight: var(--cn-heading-weight);
     --mat-list-list-item-label-text-size: var(--cn-fs-md);
-    --mat-list-list-item-label-text-tracking: 0.01em;
+    --mat-list-list-item-label-text-tracking: var(--cn-heading-tracking);
+    --mat-list-list-item-label-text-color: var(--cn-nav-ink);
+    --mat-list-list-item-leading-icon-color: var(--cn-nav-icon);
+    --mat-list-active-indicator-color: transparent;
+    --mat-list-active-indicator-shape: var(--cn-nav-item-radius);
   }
 
   a.active {
-    --mat-list-list-item-label-text-color: var(--cn-on-gold);
-    --mat-list-list-item-hover-label-text-color: var(--cn-on-gold);
-    --mat-list-list-item-focus-label-text-color: var(--cn-on-gold);
-    --mat-list-list-item-leading-icon-color: var(--cn-on-gold);
-    --mat-list-list-item-hover-leading-icon-color: var(--cn-on-gold);
-    background: var(--cn-gold-fill);
-    border-color: var(--cn-panel-border);
-    box-shadow:
-      inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
-      inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 20%),
-      0 2px 0 var(--cn-panel-border);
+    --mat-list-list-item-label-text-color: var(--cn-nav-active-ink);
+    --mat-list-list-item-hover-label-text-color: var(--cn-nav-active-ink);
+    --mat-list-list-item-focus-label-text-color: var(--cn-nav-active-ink);
+    --mat-list-list-item-leading-icon-color: var(--cn-nav-active-ink);
+    --mat-list-list-item-hover-leading-icon-color: var(--cn-nav-active-ink);
+    background: var(--cn-nav-active-bg);
+    border-top-color: var(--cn-nav-active-edge);
+    clip-path: var(--cn-nav-active-clip);
+  }
+}
+
+// Heading of a group of pages ("Battaglia"): spaced gold capitals and a fading rule.
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+  margin: 0;
+  padding: $space-l $space-l $space-s $space-xl;
+  font-family: var(--cn-font-heading);
+  font-weight: 700;
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-shadow: none;
+  color: var(--cn-nav-group);
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--cn-sidenav-border), transparent);
   }
 }
 
@@ -164,7 +201,7 @@
 .sidenav__bottom {
   margin-top: auto;
   padding-top: $space-xs;
-  border-top: 1px solid var(--cn-border);
+  border-top: 1px solid var(--cn-sidenav-border);
 }
 
 // Pin button at the top of the navigation (tablets and computers).
@@ -201,7 +238,10 @@ mat-sidenav-content {
 .content {
   flex: 1 0 auto;
   // Every page uses the whole width of the content area, also on large screens.
-  padding: $space-l clamp($space-m, 2.5vw, $space-xl) $space-l;
+  // Scenic page headers reach the edges of the content area: they undo these paddings.
+  --cn-content-pad-x: clamp(#{$space-m}, 2.5vw, #{$space-xl});
+  --cn-content-pad-top: #{$space-l};
+  padding: var(--cn-content-pad-top) var(--cn-content-pad-x) $space-l;
   outline: none;
 }
 
@@ -215,7 +255,7 @@ mat-sidenav-content {
   z-index: 2;
   background: var(--cn-bg);
   padding: $space-s clamp($space-m, 2.5vw, $space-xl);
-  border-top: 1px solid var(--cn-border);
+  border-top: 1px solid var(--cn-divider);
   font-size: var(--cn-fs-xs);
   line-height: 1.4;
   text-align: center;
@@ -231,8 +271,8 @@ mat-sidenav-content {
   min-width: 0;
   padding: 0 $space-s;
   color: var(--cn-text);
-  border: 1px solid var(--cn-border);
-  border-radius: $radius-pill;
+  border: 1px solid var(--cn-outline);
+  border-radius: var(--cn-control-radius);
 
   .picker__arrow {
     margin-left: 0.1rem;
@@ -266,11 +306,12 @@ mat-sidenav-content {
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border: 2px solid var(--cn-panel-border);
+  border: 2px solid var(--cn-avatar-border);
   border-radius: 50%;
-  background: var(--cn-gold-fill);
-  color: var(--cn-on-gold);
-  font-family: var(--cn-font-display);
+  background: var(--cn-avatar-bg);
+  color: var(--cn-avatar-ink);
+  font-family: var(--cn-font-engraved);
+  font-weight: 900;
   font-size: var(--cn-fs-sm);
   line-height: 1;
 }

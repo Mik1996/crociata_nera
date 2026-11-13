@@ -1,6 +1,9 @@
+@use 'color-palette' as palette;
 @use 'variables' as *;
 
 :host {
+  // Container of the scoreboard: its layout follows the width it gets.
+  container-type: inline-size;
   display: block;
 }
 
@@ -11,6 +14,10 @@
   gap: $space-s $space-s;
   margin-bottom: $space-m;
   font-size: var(--cn-fs-md);
+}
+
+.meta__muted {
+  color: var(--cn-text-muted);
 }
 
 .time-left {
@@ -28,7 +35,7 @@
 
 .scoreboard {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: $space-l;
 }
@@ -49,7 +56,7 @@
 .side__role {
   font-size: var(--cn-fs-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   color: var(--cn-text-muted);
 }
 
@@ -67,6 +74,58 @@
 
 .side__info {
   font-size: var(--cn-fs-sm);
+  color: var(--cn-text-muted);
+}
+
+// Stars earned out of the stars at stake: ours burns, theirs is cold steel.
+.side__stars {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+  align-self: stretch;
+  margin-top: $space-m;
+}
+
+.side--opponent .side__stars {
+  flex-direction: row-reverse;
+}
+
+.bar {
+  display: flex;
+  flex: 1;
+  height: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: palette.alpha(var(--cn-light), 9%);
+  box-shadow: inset 0 1px 2px var(--cn-shadow);
+}
+
+.side--opponent .bar {
+  justify-content: flex-end;
+}
+
+.bar__fill {
+  border-radius: $radius-pill;
+  background: var(--cn-bar-fire);
+  box-shadow: 0 0 0.625rem palette.alpha(var(--cn-clan-black-flame-2), 60%);
+}
+
+.side--opponent .bar__fill {
+  background: var(--cn-bar-steel);
+  box-shadow: none;
+}
+
+.side__stars-value {
+  flex: none;
+  font-family: var(--cn-font-display);
+  font-weight: 700;
+  font-size: var(--cn-fs-sm);
+  color: var(--cn-gold-light);
+}
+
+.side--opponent .side__stars-value {
+  color: var(--cn-text);
 }
 
 .side__data {
@@ -86,18 +145,26 @@
 
   dd {
     margin: 0;
-    font-weight: 600;
+    font-family: var(--cn-font-display);
+    font-weight: 700;
   }
 }
 
+// The score: a dark plate over the fire.
 .score {
   display: flex;
   align-items: center;
   gap: $space-s;
-  padding: $space-s $space-l;
-  border: 1px solid var(--cn-gold-dark);
-  border-radius: $radius-l;
-  background: radial-gradient(circle, var(--cn-score-glow), transparent 75%);
+  padding: $space-s $space-l $space-m;
+  border: 1px solid var(--cn-altar-plate-edge);
+  border-radius: $radius-s;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 115%, var(--cn-score-glow), transparent 70%),
+    var(--cn-altar-plate);
+  box-shadow:
+    inset 0 0 0 1px var(--cn-shadow),
+    0 0 2.5rem palette.alpha(var(--cn-clan-black-glow-outer), 30%);
+  line-height: 1;
 }
 
 .score__stars {
@@ -105,30 +172,189 @@
   font-size: var(--cn-fs-3xl);
   font-weight: 700;
   color: var(--cn-gold-light);
+  text-shadow: 0 0.1875rem 0 var(--cn-shadow);
 }
 
 .score__stars--theirs {
-  color: var(--cn-text);
+  color: var(--cn-light);
 }
 
 .score__star {
   font-size: var(--cn-fs-xl);
   color: var(--cn-gold);
+  filter: drop-shadow(0 0 0.375rem palette.alpha(var(--cn-clan-black-flame-1), 80%));
 }
 
-@media (max-width: 37.4988rem) {
+// Narrow scoreboard: the score on top, the two sides below it.
+@container (max-width: 34rem) {
   .scoreboard {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .side,
-  .side--opponent {
-    align-items: center;
-    text-align: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .score {
+    grid-column: 1 / -1;
+    grid-row: 1;
     justify-self: center;
+  }
+
+  // The two sides share their rows (role, name, tag, stars, data): a name on two lines makes room
+  // in both, so everything below it stays aligned across the sides.
+  // A subgrid cannot be a container too (containment would cut it off from the shared rows): here
+  // the names size themselves on the scoreboard, of which each side takes about half.
+  .side {
+    container-type: normal;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 2 / span 5;
+    row-gap: 0;
+    align-self: stretch;
+    // A name on one line sits at the top of the room made by the other one.
+    align-items: start;
+  }
+
+  .side__name {
+    font-size: max(var(--cn-fs-md), min(var(--cn-fs-xl), 5.2cqi));
+  }
+
+  .side--opponent {
+    justify-items: end;
+  }
+
+  .side__stars {
+    justify-self: stretch;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Scenic scoreboard (inside a scenic page header): banners over the scene
+// ---------------------------------------------------------------------------
+
+:host(.summary--scenic) {
+  .meta {
+    justify-content: center;
+    margin-bottom: $space-l;
+    color: var(--cn-scene-text);
+  }
+
+  .meta__muted {
+    color: var(--cn-scene-text-muted);
+  }
+
+  .scoreboard {
+    position: relative;
+    isolation: isolate;
+    align-items: end;
+    gap: $space-l $space-xl;
+  }
+
+  // Swallow-tailed banner: its own width is the room the texts have, so nothing spills out.
+  .side {
+    box-sizing: border-box;
+    justify-self: start;
+    width: 100%;
+    max-width: 23rem;
+    padding: $space-l $space-l calc(#{$space-l} + 1.5rem);
+    border-top: 3px solid var(--cn-flag-us-edge);
+    background: var(--cn-flag-us);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.5rem), 0 100%);
+  }
+
+  .side--opponent {
+    justify-self: end;
+    border-top-color: var(--cn-flag-them-edge);
+    background: var(--cn-flag-them);
+  }
+
+  .side__role,
+  .side__info,
+  .side__data dt {
+    color: var(--cn-flag-text-muted);
+  }
+
+  .side__name {
+    font-family: var(--cn-font-engraved);
+    font-weight: 900;
+    font-size: max(var(--cn-fs-md), min(var(--cn-fs-2xl), 11cqi));
+    line-height: 1.1;
+    color: var(--cn-light);
+    text-shadow: 0 2px 0 var(--cn-shadow);
+  }
+
+  .side:not(.side--opponent) .side__name {
+    color: var(--cn-gold-light);
+    text-shadow:
+      0 2px 0 var(--cn-shadow),
+      0 0 0.875rem palette.alpha(var(--cn-clan-black-ember), 45%);
+  }
+
+  .bar {
+    background: palette.alpha(var(--cn-shadow), 45%);
+  }
+
+  .side__data dd,
+  .side--opponent .side__stars-value {
+    color: var(--cn-light);
+  }
+
+  .score {
+    align-self: center;
+    gap: $space-m;
+    padding: $space-l $space-xxl calc(#{$space-l} + #{$space-xs});
+    box-shadow:
+      inset 0 0 0 1px var(--cn-shadow),
+      0 0 3.75rem palette.alpha(var(--cn-clan-black-glow-outer), 45%),
+      0 0.625rem 1.5rem palette.alpha(var(--cn-shadow), 60%);
+  }
+
+  .score__stars {
+    font-size: clamp(2.25rem, 9cqi, 4.25rem);
+  }
+
+  .score__star {
+    font-size: clamp(1.4rem, 5cqi, 2.4rem);
+  }
+
+  // The Crusader stands in the middle, behind the score: both share the centre cell, so he never
+  // reaches the banners at the sides.
+  .figure {
+    --crusader-glow: var(--cn-fire-red);
+    --crusader-fog: var(--cn-hero-ruins-near);
+    grid-column: 2;
+    grid-row: 1;
+    z-index: -1;
+    justify-self: center;
+    align-self: end;
+    height: clamp(11rem, 26cqi, 17rem);
+    margin-bottom: -0.5rem;
+  }
+
+  .score {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  @container (max-width: 34rem) {
+    .scoreboard {
+      gap: $space-m;
+    }
+
+    .figure,
+    .score {
+      grid-column: 1 / -1;
+    }
+
+    .side {
+      padding: $space-m $space-m calc(#{$space-m} + 1rem);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1rem), 0 100%);
+    }
+
+    .side__name {
+      font-size: max(var(--cn-fs-md), min(var(--cn-fs-2xl), 4.6cqi));
+    }
+
+    .side__data {
+      flex-wrap: wrap;
+      gap: $space-xs $space-m;
+    }
   }
 }

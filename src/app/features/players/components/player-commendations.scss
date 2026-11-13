@@ -6,7 +6,7 @@
   align-items: baseline;
   gap: $space-s;
   margin: 0;
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
   font-size: var(--cn-fs-lg);
   color: var(--cn-heading);
 }
@@ -93,7 +93,7 @@
 }
 
 .medal__name {
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
   font-size: var(--cn-fs-xs);
   line-height: 1.15;
   text-shadow: var(--cn-game-text-outline);
@@ -149,7 +149,7 @@
 
   h3 {
     margin: 0 0 $space-s;
-    font-family: var(--cn-font-display);
+    font-family: var(--cn-font-heading);
     font-size: var(--cn-fs-md);
     color: var(--cn-heading);
   }

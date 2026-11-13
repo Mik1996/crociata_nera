@@ -1,4 +1,4 @@
-<app-page-header [title]="'nav.statistics' | translate" [subtitle]="'statistics.subtitle' | translate">
+<app-page-header scene="hall" [kicker]="'kicker.statistics' | translate" [title]="'nav.statistics' | translate" [subtitle]="'statistics.subtitle' | translate">
   @if (monthList().length > 0) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-selector">
       <mat-label>{{ 'statistics.period' | translate }}</mat-label>

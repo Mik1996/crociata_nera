@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { CrusadeOrder } from '../../../core/config/sister-clans';
+import { CrusadeOrder } from '../../core/config/sister-clans';
 
 /**
  * Poses of the Black Crusader, the clan's mascot (pictures in `public/images/crusader/`). The Red

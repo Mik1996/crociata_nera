@@ -23,9 +23,29 @@
   "theme": {
     "change": "Cambia tema (attuale: {{name}})",
     "menu": "Temi disponibili",
-    "dark": "Scuro"
+    "iron": "Ferro",
+    "steel": "Acciaio"
+  },
+  "kicker": {
+    "dashboard": "Il quartier generale",
+    "war": "Cronache del fronte",
+    "cwl": "La Lega delle guerre",
+    "raids": "La Capitale del clan",
+    "history": "Gli annali",
+    "statistics": "L'albo d'onore",
+    "players": "I cavalieri della Crociata",
+    "bases": "L'arsenale",
+    "join": "La chiamata",
+    "profile": "Il tuo giuramento",
+    "settings": "La tua armatura",
+    "admin": "Il consiglio di guerra"
   },
   "nav": {
+    "group": {
+      "battle": "Battaglia",
+      "clan": "Il Clan",
+      "arsenal": "Arsenale"
+    },
     "dashboard": "Dashboard",
     "currentWar": "Guerra corrente",
     "cwl": "Lega (CWL)",
@@ -187,13 +207,15 @@
     "seriesDestruction": "Distruzione"
   },
   "currentWar": {
-    "subtitle": "Situazione in tempo reale dello scontro in corso",
+    "subtitle": "Il campo brucia. Ogni attacco conta.",
     "empty": "Il clan non è attualmente in guerra (oppure il registro guerre del clan è privato). Torna a controllare quando inizierà la prossima!",
     "withoutAttacks": "Senza attacchi",
     "outOfParticipants": "su {{n}} partecipanti",
-    "participants": "Partecipanti"
+    "participants": "Partecipanti",
+    "participantsKicker": "L'esercito schierato"
   },
   "summary": {
+    "starsOutOf": "{{stars}} stelle su {{total}}",
     "versus": "{{n}} contro {{n}}",
     "endedOn": "Terminata il {{date}}",
     "startsIn": "La battaglia inizia tra {{time}}",
