@@ -185,5 +185,8 @@ export const GAME_ICONS = {
   'three-stars': 'game/misc/three-stars.webp',
   'clan-war': 'game/misc/clan-war.webp',
   'capital-gold': 'game/misc/capital-gold.webp',
+  'capital-gold-2': 'game/misc/capital-gold-2.webp',
+  raid: 'game/misc/raid.webp',
+  'raid-medal': 'game/misc/raid-medal.webp',
   'star-neutral': 'game/misc/star-neutral.webp'
 } as const;

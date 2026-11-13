@@ -1,4 +1,6 @@
-@if (icon()) {
+@if (image(); as image) {
+  <img class="kpi__image" [src]="image" [style.--kpi-image-zoom]="imageZoom()" alt="" aria-hidden="true" />
+} @else if (icon()) {
   <mat-icon class="kpi__icon" aria-hidden="true">{{ icon() }}</mat-icon>
 }
 <div class="kpi__text">

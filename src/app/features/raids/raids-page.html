@@ -28,21 +28,24 @@
       </p>
 
       <div class="cn-grid-kpi">
-        <app-kpi-card icon="savings" [label]="'raids.totalLoot' | translate" [value]="(w.totalLoot | localNumber) ?? w.totalLoot" />
+        <app-kpi-card [image]="GAME_ICONS['capital-gold-2']" [imageZoom]="2" [label]="'raids.totalLoot' | translate" [value]="(w.totalLoot | localNumber) ?? w.totalLoot" />
         <app-kpi-card
-          icon="bolt"
+          [image]="GAME_ICONS.raid"
+          [imageZoom]="2.6"
           [label]="'raids.attacks' | translate"
           [value]="w.totalAttacks"
           [hint]="'raids.participants' | translate: { n: w.members.length }"
         />
         <app-kpi-card
           icon="castle"
+          [image]="capitalPeakImage()"
           [label]="'raids.raidsCompleted' | translate"
           [value]="raidsCompleted()"
           [hint]="'raids.districts' | translate: { n: w.districtsDestroyed }"
         />
         <app-kpi-card
-          icon="workspace_premium"
+          [image]="GAME_ICONS['raid-medal']"
+          [imageZoom]="1.6"
           [label]="'raids.rewards' | translate"
           [value]="(MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0"
           [hint]="'raids.rewardsHint' | translate: { offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward, defense: w.defensiveReward }"

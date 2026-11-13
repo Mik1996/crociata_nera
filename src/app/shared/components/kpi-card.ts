@@ -14,5 +14,10 @@ export class KpiCard {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly hint = input<string>();
+  /** Material icon name. */
   readonly icon = input<string>();
+  /** Picture shown in place of the icon (same size). */
+  readonly image = input<string | null>();
+  /** Zoom of the picture, for game art with wide transparent margins (1 = as is). */
+  readonly imageZoom = input(1);
 }

@@ -7,6 +7,8 @@ import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CocApiService } from '../../core/api/coc-api';
+import { capitalHallImage } from '../../core/game/clan-assets';
+import { GAME_ICONS } from '../../core/game/game-assets';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
@@ -70,6 +72,13 @@ export class RaidsPage {
     const weekend = this.weekend();
     return weekend?.attackLog.reduce((sum, log) => sum + (log.districtCount === log.districtsDestroyed ? 1 : 0), 0) ?? 0;
   });
+
+  /** Capital Peak at the clan's Capital Hall level (the castle icon until the clan loads). */
+  protected readonly capitalPeakImage = computed(() =>
+    this.clan.hasValue() ? capitalHallImage(this.clan.value().capitalHallLevel) : null,
+  );
+
+  protected readonly GAME_ICONS = GAME_ICONS;
 
   protected readonly columns = ['rank', 'name', 'attacks', 'looted'];
 

@@ -20,6 +20,12 @@ describe('RaidsPage', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     expect(el.querySelectorAll('app-kpi-card')).toHaveLength(4);
+    expect(Array.from(el.querySelectorAll('app-kpi-card .kpi__image')).map((img) => img.getAttribute('src'))).toEqual([
+      'game/misc/capital-gold-2.webp',
+      'game/misc/raid.webp',
+      'game/capital-halls/capital-hall-10.webp',
+      'game/misc/raid-medal.webp',
+    ]);
     const loot = Array.from(el.querySelectorAll('.members tr.mat-mdc-row td:last-child')).map((td) =>
       Number(td.textContent!.replace(/\D/g, '')),
     );
