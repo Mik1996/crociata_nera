@@ -19,6 +19,11 @@ export interface MedalFinishSpec {
   clearcoatRoughness?: number;
   /** How much the environment map is reflected (default 1). */
   envMapIntensity?: number;
+  /**
+   * Second metal, for the decorations (icon and dashed ring of the face, laurel, studs): a CSS
+   * colour or a palette token. Without it they are made of the medal's own metal.
+   */
+  accent?: string;
 }
 
 /** Built-in finishes; any other medal (another colour, a single medal) passes its own spec. */
@@ -52,9 +57,11 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
     clearcoatRoughness: 0.06,
     envMapIntensity: 1.05,
   },
-  // Candy crimson metal under a mirror varnish: the one-off medals of the highest merit.
+  // Candy crimson metal under a mirror varnish, with gold decorations as in the flat medal: the
+  // one-off medals of the highest merit.
   legendary: {
     color: '--cn-medal-legendary',
+    accent: '--cn-medal-3d-gold',
     metalness: 1,
     roughness: 0.16,
     clearcoat: 1,
@@ -74,7 +81,8 @@ export const LOCKED_FINISH: MedalFinishSpec = {
 };
 
 /**
- * Finish actually rendered: the locked one wins over the medal's own. A palette token is resolved
+ * Finish actually rendered: the locked one wins over the medal's own (and has no second metal). A
+ * palette token is resolved
  * to its colour ('' without the global styles, e.g. in unit tests: the material keeps its default).
  */
 export function resolveFinish(finish: MedalFinish, locked: boolean): Required<MedalFinishSpec> {
@@ -84,6 +92,12 @@ export function resolveFinish(finish: MedalFinish, locked: boolean): Required<Me
     clearcoatRoughness: 0.1,
     envMapIntensity: 1,
     ...spec,
-    color: spec.color.startsWith('--') ? cssColor(spec.color) : spec.color,
+    color: resolveColor(spec.color),
+    // '' = no second metal.
+    accent: spec.accent ? resolveColor(spec.accent) : '',
   };
+}
+
+function resolveColor(color: string): string {
+  return color.startsWith('--') ? cssColor(color) : color;
 }

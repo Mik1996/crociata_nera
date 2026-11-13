@@ -925,6 +925,13 @@ table tr.cn-row-me.mat-mdc-row {
     --cn-medal-dark: var(--cn-medal-silver-dark);
   }
 
+  // Legendary: crimson border and halo (the display case stays dark, as for the other medals).
+  &--legendary {
+    --cn-medal-light: var(--cn-medal-legendary-light);
+    --cn-medal: var(--cn-medal-legendary);
+    --cn-medal-dark: var(--cn-medal-legendary-dark);
+  }
+
   // Not earned yet: the dark grey of the locked medal.
   &--locked {
     --cn-medal-light: var(--cn-medal-locked-light);

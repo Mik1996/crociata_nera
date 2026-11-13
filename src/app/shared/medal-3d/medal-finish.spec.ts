@@ -46,6 +46,14 @@ describe('resolveFinish', () => {
       clearcoat: 0,
       clearcoatRoughness: 0.1,
       envMapIntensity: 1,
+      accent: '',
     });
+  });
+
+  it('gives the legendary medal gold decorations, and none of them once locked', () => {
+    expect(MEDAL_FINISHES.legendary.accent).toBe('--cn-medal-3d-gold');
+    expect(resolveFinish({ color: '#e8364f', accent: '#f7c552', metalness: 1, roughness: 0.2 }, false).accent).toBe('#f7c552');
+    for (const finish of ['bronze', 'silver', 'gold'] as const) expect(resolveFinish(finish, false).accent).toBe('');
+    expect(resolveFinish('legendary', true).accent).toBe('');
   });
 });

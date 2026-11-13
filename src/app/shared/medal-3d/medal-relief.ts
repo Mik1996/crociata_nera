@@ -118,6 +118,28 @@ export function toneMapFromCoverage(
   return out;
 }
 
+/**
+ * Colour of the face (RGBA, sRGB, row 0 at the bottom) of a medal whose decoration is made of a
+ * second metal: the field keeps the `base` colour, the decoration takes the `accent` one (its dark
+ * details a bit darker, so the outlines stay readable). Colours are sRGB triples, 0–1.
+ */
+export function accentMapFromCoverage(
+  { alpha, luminance }: IconCoverage,
+  size: number,
+  base: readonly [number, number, number],
+  accent: readonly [number, number, number],
+): Uint8Array {
+  const out = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const shade = 0.55 + 0.45 * luminance[i];
+    for (let c = 0; c < 3; c++) {
+      out[i * 4 + c] = Math.round(255 * (base[c] + (accent[c] * shade - base[c]) * alpha[i]));
+    }
+    out[i * 4 + 3] = 255;
+  }
+  return out;
+}
+
 /** Height as a grey texture (displacement map: Three.js reads the red channel). */
 export function displacementMapFromHeight(height: Float32Array, size: number): Uint8Array {
   const out = new Uint8Array(size * size * 4);
@@ -197,6 +219,8 @@ export interface MedalReliefMaps {
   roughness: Uint8Array;
   /** Colour multiplier: darker decoration. */
   tone: Uint8Array;
+  /** Where the decoration is, for the medals that make it of a second metal. */
+  coverage: IconCoverage;
   /** Height for the real extrusion of the decoration (vertex displacement). */
   displacement: Uint8Array;
 }
@@ -215,6 +239,7 @@ export async function createReliefMaps(svgText: string, size = 1024): Promise<Me
     normal: normalMapFromHeight(height, size, 0.055),
     roughness: roughnessMapFromHeight(height, size),
     tone: toneMapFromCoverage(softCoverage, size),
+    coverage: softCoverage,
     displacement: displacementMapFromHeight(blur(height, size, Math.round(size / 256)), size),
   };
 }

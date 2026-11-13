@@ -4,6 +4,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
+  ColorSpace,
   DataTexture,
   DirectionalLight,
   DoubleSide,
@@ -34,7 +35,7 @@ import { paletteColor } from '../styles/palette-color-3d';
 import { MedalDecorations } from './medal-decorations';
 import { MedalFinishSpec } from './medal-finish';
 import { createBodyGeometry, createFaceGeometry, frontHeightAt } from './medal-geometry';
-import { MedalReliefMaps } from './medal-relief';
+import { accentMapFromCoverage, MedalReliefMaps } from './medal-relief';
 
 /** Height of the icon extrusion, in medal units (radius 1). */
 const RELIEF_HEIGHT = 0.035;
@@ -52,7 +53,7 @@ const LOCKED_GEM = '--cn-medal-locked-gem';
 export function configureRenderer(renderer: WebGLRenderer): void {
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1;
   renderer.setClearColor(paletteColor('--cn-shadow'), 0);
 }
 
@@ -68,7 +69,14 @@ export class MedalModel {
 
   private readonly bodyMaterial = new MeshPhysicalMaterial();
   private readonly faceMaterial = new MeshPhysicalMaterial();
+  /** Metal of laurel and studs: the medal's own, or its second metal (`MedalFinishSpec.accent`). */
+  private readonly trimMaterial = new MeshPhysicalMaterial();
+  private finish: Required<MedalFinishSpec> | null = null;
+  private relief: MedalReliefMaps | null = null;
   private reliefTextures: DataTexture[] = [];
+  /** Darker decoration (multiplies the metal colour) and, with a second metal, the face colours. */
+  private toneTexture: DataTexture | null = null;
+  private accentTexture: DataTexture | null = null;
   private gemMaterials: { material: MeshPhysicalMaterial; color: string }[] = [];
   private rays: Mesh | null = null;
   private sparkles: { sprite: Sprite; phase: number; size: number }[] = [];
@@ -85,7 +93,8 @@ export class MedalModel {
     this.scene.environment = this.environment;
 
     // Lights fixed in the world: turning the medal makes the specular highlights slide on the metal.
-    const key = new DirectionalLight(paletteColor('--cn-light'), 1.9);
+    // Key light kept moderate: a stronger one burns a white spot on the polished face.
+    const key = new DirectionalLight(paletteColor('--cn-light'), 1.5);
     key.position.set(3, 4, 5);
     const fill = new DirectionalLight(paletteColor('--cn-3d-light-warm'), 0.8);
     fill.position.set(-4, 1, 3);
@@ -101,26 +110,33 @@ export class MedalModel {
     this.scene.add(this.medal);
   }
 
-  /** Metal of the whole medal (body, face, leaves, studs); a locked medal also loses its glows. */
+  /**
+   * Metal of the medal (body, face) and of its trim (leaves, studs, decoration of the face: the
+   * second metal of the finish, if any); a locked medal also loses its glows.
+   */
   setFinish(finish: Required<MedalFinishSpec>, locked: boolean): void {
-    for (const material of [this.bodyMaterial, this.faceMaterial]) {
-      material.color = new Color(finish.color || undefined);
+    for (const material of [this.bodyMaterial, this.faceMaterial, this.trimMaterial]) {
+      const trim = material === this.trimMaterial;
+      material.color = new Color((trim && finish.accent) || finish.color || undefined);
       material.metalness = finish.metalness;
       material.roughness = finish.roughness;
       material.clearcoat = finish.clearcoat;
       material.clearcoatRoughness = finish.clearcoatRoughness;
       material.envMapIntensity = finish.envMapIntensity;
     }
+    this.finish = finish;
     this.locked = locked;
+    this.applyFaceColor();
     this.applyLock();
   }
 
   /** Decoration relief on the face; `null` removes it. */
   setRelief(maps: MedalReliefMaps | null): void {
     this.disposeRelief();
+    this.relief = maps;
     const material = this.faceMaterial;
     if (!maps) {
-      material.map = material.normalMap = material.roughnessMap = material.displacementMap = null;
+      material.normalMap = material.roughnessMap = material.displacementMap = null;
     } else {
       const [tone, normal, roughness, displacement] = [
         maps.tone,
@@ -129,8 +145,7 @@ export class MedalModel {
         maps.displacement,
       ].map((data) => this.dataTexture(data, maps.size));
       this.reliefTextures = [tone, normal, roughness, displacement];
-      // Darker decoration: the tone multiplies the metal colour.
-      material.map = tone;
+      this.toneTexture = tone;
       material.normalMap = normal;
       material.normalScale = new Vector2(1, 1);
       material.roughnessMap = roughness;
@@ -138,8 +153,37 @@ export class MedalModel {
       material.displacementMap = displacement;
       material.displacementScale = RELIEF_HEIGHT;
     }
+    this.applyFaceColor();
     // New maps change the shader program.
     material.needsUpdate = true;
+  }
+
+  /**
+   * Colour of the face, once finish and relief are known. One metal: the decoration is a darker
+   * shade of it (the tone multiplies the metal colour). Two metals: the face is painted with both,
+   * the decoration in the second one.
+   */
+  private applyFaceColor(): void {
+    const material = this.faceMaterial;
+    const hadMap = material.map !== null;
+    this.accentTexture?.dispose();
+    this.accentTexture = null;
+    const { finish, relief } = this;
+    if (finish) material.color = new Color(finish.color || undefined);
+    if (relief && finish?.accent && finish.color) {
+      const base = new Color(finish.color).getRGB({ r: 0, g: 0, b: 0 }, SRGBColorSpace);
+      const accent = new Color(finish.accent).getRGB({ r: 0, g: 0, b: 0 }, SRGBColorSpace);
+      this.accentTexture = this.dataTexture(
+        accentMapFromCoverage(relief.coverage, relief.size, [base.r, base.g, base.b], [accent.r, accent.g, accent.b]),
+        relief.size,
+        SRGBColorSpace,
+      );
+      material.color = new Color(); // white: the map carries both colours
+      material.map = this.accentTexture;
+    } else {
+      material.map = relief ? this.toneTexture : null;
+    }
+    if (hadMap !== (material.map !== null)) material.needsUpdate = true;
   }
 
   /**
@@ -171,6 +215,8 @@ export class MedalModel {
     });
     this.bodyMaterial.dispose();
     this.faceMaterial.dispose();
+    this.trimMaterial.dispose();
+    this.accentTexture?.dispose();
     this.disposeRelief();
     this.environment.dispose();
     this.scene.clear();
@@ -183,7 +229,7 @@ export class MedalModel {
     // Laurel: flattened ellipsoids in the middle plane, sticking out of the rim on both sides.
     const leaf = new SphereGeometry(1, 32, 16);
     for (const l of decorations.leaves) {
-      const mesh = new Mesh(leaf, this.bodyMaterial);
+      const mesh = new Mesh(leaf, this.trimMaterial);
       mesh.position.set(l.x, l.y, 0);
       mesh.scale.set(l.rx, l.ry, LEAF_THICKNESS);
       mesh.rotation.z = l.angle;
@@ -194,7 +240,7 @@ export class MedalModel {
     // Studs: little domes sitting on the front of the rim.
     const stud = new SphereGeometry(1, 20, 10);
     for (const s of decorations.studs) {
-      const mesh = new Mesh(stud, this.bodyMaterial);
+      const mesh = new Mesh(stud, this.trimMaterial);
       mesh.position.set(s.x, s.y, frontHeightAt(Math.hypot(s.x, s.y)));
       mesh.scale.setScalar(s.r);
       this.decorations.add(mesh);
@@ -286,9 +332,9 @@ export class MedalModel {
     for (const { sprite } of this.sparkles) sprite.visible = !this.locked;
   }
 
-  private dataTexture(data: Uint8Array, size: number): DataTexture {
+  private dataTexture(data: Uint8Array, size: number, colorSpace: ColorSpace = NoColorSpace): DataTexture {
     const texture = new DataTexture(data, size, size, RGBAFormat);
-    texture.colorSpace = NoColorSpace;
+    texture.colorSpace = colorSpace;
     texture.generateMipmaps = true;
     texture.minFilter = LinearMipmapLinearFilter;
     texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
@@ -299,6 +345,7 @@ export class MedalModel {
   private disposeRelief(): void {
     for (const texture of this.reliefTextures) texture.dispose();
     this.reliefTextures = [];
+    this.toneTexture = null;
   }
 
   private disposeDecorations(): void {
@@ -310,8 +357,8 @@ export class MedalModel {
         // Sprites share one geometry owned by Three.js: only the meshes' are ours.
         if (object instanceof Mesh) geometries.add(object.geometry);
         const material = object.material as Material & { map?: Texture | null };
-        // The medal metal is owned by the model, not by the decorations.
-        if (material !== this.bodyMaterial) materials.add(material);
+        // The medal metals are owned by the model, not by the decorations.
+        if (material !== this.bodyMaterial && material !== this.trimMaterial) materials.add(material);
         if (material.map) textures.add(material.map);
       }
     });

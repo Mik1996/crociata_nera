@@ -4,6 +4,15 @@ import { provideCocApiTest } from '../../testing/fixtures';
 import { RaidsPage } from './raids-page';
 
 describe('RaidsPage', () => {
+  // The demo weekends are generated from today's date: the clock is fixed (Saturday 7 November 2026,
+  // Raid Weekend of 6–9 November in progress), so the weekends are the same on any day. Only `Date`
+  // is faked: timers keep running, as the page needs them to settle.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-07T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('shows the weekend totals, the members by loot and who did not take part', async () => {
     TestBed.configureTestingModule({ providers: [provideRouter([]), provideCocApiTest()] });
     const fixture = TestBed.createComponent(RaidsPage);
@@ -44,6 +53,7 @@ describe('RaidsPage', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
+    // The weekend before the one in progress.
     expect(el.querySelector('.weekend-state')!.textContent).toContain('30 ott');
     expect(el.querySelectorAll('.members tr.mat-mdc-row').length).toBeGreaterThan(10);
   });

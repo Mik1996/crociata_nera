@@ -1,4 +1,5 @@
 import {
+  accentMapFromCoverage,
   blur,
   coverageFromPixels,
   displacementMapFromHeight,
@@ -66,6 +67,24 @@ describe('relief maps', () => {
   it('blurs without changing a constant field', () => {
     const values = new Float32Array(16 * 16).fill(0.7);
     for (const v of blur(values, 16, 3)) expect(v).toBeCloseTo(0.7);
+  });
+
+  it('paints the decoration with the second metal and leaves the field in the medal colour', () => {
+    // Field, dark outline of the decoration, light body of the decoration.
+    const coverage = {
+      alpha: new Float32Array([0, 1, 1, 0.5]),
+      luminance: new Float32Array([0, 0, 1, 1]),
+    };
+    const map = accentMapFromCoverage(coverage, 2, [1, 0, 0], [1, 0.8, 0]);
+    const pixel = (i: number) => Array.from(map.slice(i * 4, i * 4 + 4));
+    expect(pixel(0)).toEqual([255, 0, 0, 255]); // field: the medal colour
+    expect(pixel(2)).toEqual([255, 204, 0, 255]); // decoration: the second metal
+    // Outline: the same metal, darker.
+    expect(pixel(1)[0]).toBeLessThan(255);
+    expect(pixel(1)[1]).toBeGreaterThan(0);
+    expect(pixel(1)[1]).toBeLessThan(204);
+    // Soft edge: half way between the two.
+    expect(pixel(3)).toEqual([255, 102, 0, 255]);
   });
 
   it('darkens the decoration, its light details less, and leaves the field untouched', () => {
