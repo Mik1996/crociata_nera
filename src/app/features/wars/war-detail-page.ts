@@ -13,6 +13,7 @@ import { PageHeader } from '../../shared/components/page-header';
 import { WarParticipantsTable } from './components/war-participants-table';
 import { WarSummary } from './components/war-summary';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { GAME_ICONS } from '../../core/game/game-assets';
 
 @Component({
   selector: 'app-war-detail-page',
@@ -35,6 +36,8 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
   styleUrl: './war-detail-page.scss',
 })
 export class WarDetailPage {
+  protected readonly GAME_ICONS = GAME_ICONS;
+
   private readonly wars = inject(WarService);
 
   /** Route parameter `:id` (bound automatically by the router). */

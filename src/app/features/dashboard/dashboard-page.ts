@@ -20,6 +20,7 @@ import {
   lineSeries,
   shortDateLabel,
 } from '../../shared/charts/chart-theme';
+import { GAME_ICONS } from '../../core/game/game-assets';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
@@ -52,6 +53,8 @@ const RANKING_SIZE = 5;
   styleUrl: './dashboard-page.scss',
 })
 export class DashboardPage {
+  protected readonly GAME_ICONS = GAME_ICONS;
+
   private readonly wars = inject(WarService);
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);

@@ -20,4 +20,6 @@ export class KpiCard {
   readonly image = input<string | null>();
   /** Zoom of the picture, for game art with wide transparent margins (1 = as is). */
   readonly imageZoom = input(1);
+  /** Shows the picture three times, arranged in a triangle (e.g. three stars). */
+  readonly imageTriangle = input(false);
 }

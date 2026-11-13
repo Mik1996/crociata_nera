@@ -134,12 +134,12 @@
           </ng-container>
 
           <ng-container matColumnDef="averageStars">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStars' | translate">{{ 'players.averageStars' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStars' | translate"><app-star-text [text]="'players.averageStars' | translate" /></th>
             <td mat-cell *matCellDef="let m" class="cn-num"><strong>{{ m.averageStars | localNumber: '1.2-2' }}</strong></td>
           </ng-container>
 
           <ng-container matColumnDef="threeStarRate">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.threeStarRate' | translate">{{ 'players.threeStarRate' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.threeStarRate' | translate"><app-star-text [text]="'players.threeStarRate' | translate" /></th>
             <td mat-cell *matCellDef="let m" class="cn-num">{{ m.threeStarRate | localNumber: '1.0-1' }}%</td>
           </ng-container>
 

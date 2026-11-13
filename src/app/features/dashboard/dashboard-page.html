@@ -28,19 +28,14 @@
   @if (kpi(); as k) {
     <div class="cn-grid-kpi">
       <app-kpi-card
-        icon="bolt"
-        [label]="'common.attacksUsed' | translate"
-        [value]="k.attacksUsed + '/' + k.attacksAvailable"
-        [hint]="'dashboard.available' | translate: { n: k.attacksAvailable - k.attacksUsed }"
-      />
-      <app-kpi-card
-        icon="star"
+        [image]="GAME_ICONS.star"
         [label]="'common.averageStars' | translate"
         [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
         [hint]="'common.perAttack' | translate"
       />
       <app-kpi-card
-        icon="military_tech"
+        [image]="GAME_ICONS.star"
+        [imageTriangle]="true"
         [label]="'common.threeStarAttacks' | translate"
         [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
       />

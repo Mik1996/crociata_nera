@@ -13,15 +13,16 @@
     [value]="s.attacksUsed + '/' + s.attacksAvailable"
     [hint]="'player.unused' | translate: { n: s.attacksAvailable - s.attacksUsed }"
   />
-  <app-kpi-card icon="star" [label]="'player.totalStars' | translate" [value]="s.totalStars" />
+  <app-kpi-card [image]="GAME_ICONS.star" [label]="'player.totalStars' | translate" [value]="s.totalStars" />
   <app-kpi-card
-    icon="star_half"
+    [image]="GAME_ICONS.star"
     [label]="'common.averageStars' | translate"
     [value]="(s.averageStars | localNumber: '1.2-2') ?? '0'"
     [hint]="'player.perAttackUsed' | translate"
   />
   <app-kpi-card
-    icon="military_tech"
+    [image]="GAME_ICONS.star"
+    [imageTriangle]="true"
     [label]="'common.threeStarAttacks' | translate"
     [value]="(s.threeStarRate | localNumber: '1.0-1') + '%'"
   />

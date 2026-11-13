@@ -6,6 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { WarService } from '../../core/services/war.service';
 import { computeWarKpi, participantRows } from '../../core/utils/war-stats';
+import { GAME_ICONS } from '../../core/game/game-assets';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
@@ -33,6 +34,8 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
   styleUrl: './current-war-page.scss',
 })
 export class CurrentWarPage {
+  protected readonly GAME_ICONS = GAME_ICONS;
+
   private readonly wars = inject(WarService);
 
   protected readonly resource = rxResource({ stream: () => this.wars.getCurrentWar() });

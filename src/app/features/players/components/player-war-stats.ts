@@ -19,8 +19,10 @@ import {
 import { KpiCard } from '../../../shared/components/kpi-card';
 import { ResultBadge } from '../../../shared/components/result-badge';
 import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
+import { GAME_ICONS } from '../../../core/game/game-assets';
 
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
+
 @Component({
   selector: 'app-player-war-stats',
   imports: [
@@ -39,6 +41,8 @@ import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
   styleUrl: './player-war-stats.scss',
 })
 export class PlayerWarStats {
+  protected readonly GAME_ICONS = GAME_ICONS;
+
   private readonly language = inject(LanguageService);
   private readonly theme = inject(ThemeService);
 

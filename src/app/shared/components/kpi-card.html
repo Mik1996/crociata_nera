@@ -1,5 +1,13 @@
 @if (image(); as image) {
-  <img class="kpi__image" [src]="image" [style.--kpi-image-zoom]="imageZoom()" alt="" aria-hidden="true" />
+  @if (imageTriangle()) {
+    <span class="kpi__triangle" aria-hidden="true">
+      @for (i of [0, 1, 2]; track i) {
+        <img class="kpi__triangle-image" [src]="image" alt="" />
+      }
+    </span>
+  } @else {
+    <img class="kpi__image" [src]="image" [style.--kpi-image-zoom]="imageZoom()" alt="" aria-hidden="true" />
+  }
 } @else if (icon()) {
   <mat-icon class="kpi__icon" aria-hidden="true">{{ icon() }}</mat-icon>
 }

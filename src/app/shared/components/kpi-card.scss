@@ -35,6 +35,28 @@
   scale: var(--kpi-image-zoom, 1);
 }
 
+// Three copies of the picture in a triangle: one on top, two below, in the same box as a single one.
+.kpi__triangle {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1.25rem);
+  grid-template-rows: repeat(2, 1.25rem);
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.kpi__triangle-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  &:first-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 1.25rem;
+  }
+}
+
 // Container of the value: its width sets how large the value can be.
 .kpi__text {
   container-type: inline-size;

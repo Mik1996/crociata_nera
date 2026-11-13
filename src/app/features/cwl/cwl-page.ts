@@ -18,14 +18,17 @@ import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { StarText } from '../../shared/components/star-text';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
  * season. Seasons are saved by the backend, so past ones stay available.
  */
+
 @Component({
   selector: 'app-cwl-page',
   imports: [
+    StarText,
     TABLE_WRAP,
     TranslatePipe,
     LocalNumberPipe,

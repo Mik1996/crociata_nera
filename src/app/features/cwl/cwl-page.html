@@ -56,7 +56,7 @@
               </ng-container>
               <ng-container matColumnDef="stars">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.stars' | translate }}</th>
-                <td mat-cell *matCellDef="let c" class="cn-num">★ {{ c.stars }}</td>
+                <td mat-cell *matCellDef="let c" class="cn-num"><app-star-text text="★" /> {{ c.stars }}</td>
               </ng-container>
               <ng-container matColumnDef="destruction">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.destruction' | translate }}</th>
@@ -131,7 +131,7 @@
               <td mat-cell *matCellDef="let p" class="cn-num">{{ p.averageStars | localNumber: '1.2-2' }}</td>
             </ng-container>
             <ng-container matColumnDef="threeStars">
-              <th mat-header-cell *matHeaderCellDef>{{ 'cwl.threeStars' | translate }}</th>
+              <th mat-header-cell *matHeaderCellDef><app-star-text [text]="'cwl.threeStars' | translate" /></th>
               <td mat-cell *matCellDef="let p" class="cn-num">{{ p.threeStars }}</td>
             </ng-container>
             <ng-container matColumnDef="destruction">

@@ -29,13 +29,14 @@
         <div class="cn-grid-kpi">
           <app-kpi-card icon="flag" [label]="'common.wars' | translate" [value]="k.wars" [hint]="k.record" />
           <app-kpi-card
-            icon="star"
+            [image]="GAME_ICONS.star"
             [label]="'statistics.averagePerWar' | translate"
             [value]="(k.averageStarsPerWar | localNumber: '1.2-2') + ' / ' + maxStars"
             [hint]="'statistics.perPlayer' | translate"
           />
           <app-kpi-card
-            icon="military_tech"
+            [image]="GAME_ICONS.star"
+            [imageTriangle]="true"
             [label]="'common.threeStarAttacks' | translate"
             [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
           />
@@ -142,7 +143,7 @@
 
             <ng-container matColumnDef="averageStarsPerWar">
               <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStarsPerWar' | translate">
-                {{ 'statistics.averagePerWarShort' | translate }}
+                <app-star-text [text]="'statistics.averagePerWarShort' | translate" />
               </th>
               <td mat-cell *matCellDef="let r">
                 <span class="average">
@@ -155,12 +156,12 @@
             </ng-container>
 
             <ng-container matColumnDef="averageStarsPerAttack">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStarsPerAttack' | translate">{{ 'statistics.perAttackShort' | translate }}</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStarsPerAttack' | translate"><app-star-text [text]="'statistics.perAttackShort' | translate" /></th>
               <td mat-cell *matCellDef="let r" class="cn-num">{{ r.averageStarsPerAttack | localNumber: '1.2-2' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="distribution">
-              <th mat-header-cell *matHeaderCellDef><span [matTooltip]="'statistics.distributionTooltip' | translate">3★·2★·1★·0★</span></th>
+              <th mat-header-cell *matHeaderCellDef><span [matTooltip]="'statistics.distributionTooltip' | translate"><app-star-text text="3★·2★·1★·0★" /></span></th>
               <td mat-cell *matCellDef="let r" class="cn-num distribution">
                 <span
                   [matTooltip]="'statistics.distribution' | translate: { three: r.threeStars, two: r.twoStars, one: r.oneStar, zero: r.zeroStars }"
@@ -172,7 +173,7 @@
             </ng-container>
 
             <ng-container matColumnDef="threeStarRate">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.threeStarRate' | translate">{{ 'players.threeStarRate' | translate }}</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.threeStarRate' | translate"><app-star-text [text]="'players.threeStarRate' | translate" /></th>
               <td mat-cell *matCellDef="let r" class="cn-num">{{ r.threeStarRate | localNumber: '1.0-1' }}%</td>
             </ng-container>
 
@@ -183,7 +184,7 @@
 
             <ng-container matColumnDef="averageStarsConceded">
               <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.starsConceded' | translate">
-                <span [matTooltip]="'statistics.defenseTooltip' | translate">{{ 'statistics.defense' | translate }}</span>
+                <span [matTooltip]="'statistics.defenseTooltip' | translate"><app-star-text [text]="'statistics.defense' | translate" /></span>
               </th>
               <td mat-cell *matCellDef="let r" class="cn-num">{{ r.averageStarsConceded | localNumber: '1.2-2' }}</td>
             </ng-container>

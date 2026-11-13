@@ -24,6 +24,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { CLAN_ROLES, roleKey } from '../../shared/labels';
+import { StarText } from '../../shared/components/star-text';
 
 const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2, member: 3 };
 
@@ -39,6 +40,7 @@ function leagueSortKey(m: PlayerStats): number {
 @Component({
   selector: 'app-players-page',
   imports: [
+    StarText,
     TABLE_WRAP,
     LocalNumberPipe,
     TranslatePipe,

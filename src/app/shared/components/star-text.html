@@ -1,0 +1,2 @@
+<!-- On one line: a line break would add a space between the text and the star. -->
+@for (part of parts(); track $index; let last = $last) {{{ part }}@if (!last) {<img class="star" [src]="star" alt="★" />}}

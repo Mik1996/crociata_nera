@@ -1,11 +1,13 @@
 :host {
   display: inline-flex;
-  letter-spacing: 1px;
+  align-items: center;
+  gap: 0.05rem;
   font-size: var(--cn-fs-md);
   line-height: 1;
-  color: var(--cn-star-empty);
 }
 
-.filled {
-  color: var(--cn-gold);
+.star {
+  width: 1.15em;
+  height: 1.15em;
+  object-fit: contain;
 }

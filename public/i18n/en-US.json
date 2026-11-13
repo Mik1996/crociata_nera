@@ -183,7 +183,6 @@
     "latestWar": "Latest war",
     "warInProgress": "War in progress",
     "noWar": "No war available.",
-    "available": "{{n}} available",
     "withoutAttacks": "{{n}} without attacks",
     "rankingTitle": "Top performers",
     "allPlayers": "All players",

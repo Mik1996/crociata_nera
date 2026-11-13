@@ -27,6 +27,8 @@ import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { GAME_ICONS } from '../../core/game/game-assets';
+import { StarText } from '../../shared/components/star-text';
 
 /** Ranking row: stats + rank + current clan membership. */
 export interface RankingRow extends HistoryPlayerStats {
@@ -40,6 +42,7 @@ const MAX_STARS_PER_WAR = 6;
 @Component({
   selector: 'app-statistics-page',
   imports: [
+    StarText,
     TABLE_WRAP,
     LocalDatePipe,
     LocalNumberPipe,
@@ -66,6 +69,8 @@ const MAX_STARS_PER_WAR = 6;
   styleUrl: './statistics-page.scss',
 })
 export class StatisticsPage {
+  protected readonly GAME_ICONS = GAME_ICONS;
+
   private readonly history = inject(HistoryService);
   private readonly players = inject(PlayerService);
   private readonly language = inject(LanguageService);
