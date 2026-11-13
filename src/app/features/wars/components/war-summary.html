@@ -16,9 +16,23 @@
   }
   @for (side of [w.clan, w.opponent]; track side.tag; let isOpponent = $last) {
     <section class="side" [class.side--opponent]="isOpponent" [attr.aria-label]="(isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate">
-      <span class="side__role">{{ (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate }}</span>
-      <h2 class="side__name">{{ side.name }}</h2>
-      <span class="side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+      <div class="side__head">
+        <div class="side__id">
+          <span class="side__role">{{ (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate }}</span>
+          <h2 class="side__name">{{ side.name }}</h2>
+          <span class="side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+        </div>
+        @if (side.badgeUrl && !failedBadges().has(side.badgeUrl)) {
+          <img
+            class="side__badge"
+            [src]="side.badgeUrl"
+            alt=""
+            width="64"
+            height="64"
+            (error)="badgeFailed(side.badgeUrl)"
+          />
+        }
+      </div>
       <div class="side__stars">
         <div
           class="bar"

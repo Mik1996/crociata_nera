@@ -46,10 +46,44 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  // Both sides fill the row: they always have the same height.
+  align-self: stretch;
 }
 
 .side--opponent {
   text-align: right;
+  align-items: flex-end;
+}
+
+// Badge beside the role, name and tag; on the opponent's side it sits on the right.
+.side__head {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-m;
+  min-width: 0;
+  width: 100%;
+}
+
+.side--opponent .side__head {
+  flex-direction: row-reverse;
+}
+
+.side__badge {
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 0.125rem 0.25rem var(--cn-shadow));
+}
+
+.side__id {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.side--opponent .side__id {
   align-items: flex-end;
 }
 
@@ -197,7 +231,7 @@
     justify-self: center;
   }
 
-  // The two sides share their rows (role, name, tag, stars, data): a name on two lines makes room
+  // The two sides share their rows (badge with role/name/tag, stars, data): a name on two lines makes room
   // in both, so everything below it stays aligned across the sides.
   // A subgrid cannot be a container too (containment would cut it off from the shared rows): here
   // the names size themselves on the scoreboard, of which each side takes about half.
@@ -205,7 +239,7 @@
     container-type: normal;
     display: grid;
     grid-template-rows: subgrid;
-    grid-row: 2 / span 5;
+    grid-row: 2 / span 3;
     row-gap: 0;
     align-self: stretch;
     // A name on one line sits at the top of the room made by the other one.
@@ -240,11 +274,14 @@
     color: var(--cn-scene-text-muted);
   }
 
+  // Two rows: the banners share the bottom one (so they have the same height), the Crusader and
+  // the score span both. Only the flexible top row grows when the Crusader is taller than the banners.
   .scoreboard {
     position: relative;
     isolation: isolate;
+    grid-template-rows: 1fr auto;
     align-items: end;
-    gap: $space-l $space-xl;
+    gap: 0 $space-xl;
   }
 
   // Swallow-tailed banner: its own width is the room the texts have, so nothing spills out.
@@ -257,6 +294,8 @@
     border-top: 3px solid var(--cn-flag-us-edge);
     background: var(--cn-flag-us);
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.5rem), 0 100%);
+    grid-row: 2;
+    align-self: stretch;
   }
 
   .side--opponent {
@@ -269,6 +308,11 @@
   .side__info,
   .side__data dt {
     color: var(--cn-flag-text-muted);
+  }
+
+  .side__badge {
+    width: 4.5rem;
+    height: 4.5rem;
   }
 
   .side__name {
@@ -320,7 +364,7 @@
     --crusader-glow: var(--cn-fire-red);
     --crusader-fog: var(--cn-hero-ruins-near);
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 1 / -1;
     z-index: -1;
     justify-self: center;
     align-self: end;
@@ -330,26 +374,39 @@
 
   .score {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 1 / -1;
   }
 
   @container (max-width: 34rem) {
     .scoreboard {
+      grid-template-rows: none;
       gap: $space-m;
     }
 
     .figure,
     .score {
       grid-column: 1 / -1;
+      grid-row: 1;
     }
 
+    // Back to the shared rows of the narrow scoreboard (badge and name, stars, data).
     .side {
+      grid-row: 2 / span 3;
       padding: $space-m $space-m calc(#{$space-m} + 1rem);
       clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1rem), 0 100%);
     }
 
     .side__name {
       font-size: max(var(--cn-fs-md), min(var(--cn-fs-2xl), 4.6cqi));
+    }
+
+    .side__head {
+      gap: $space-s;
+    }
+
+    .side__badge {
+      width: 2.75rem;
+      height: 2.75rem;
     }
 
     .side__data {

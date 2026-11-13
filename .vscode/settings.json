@@ -15,7 +15,8 @@
     "swagger",
     "theme",
     "general",
-    "favicon"
+    "favicon",
+    "war"
   ],
   "i18n-ally.localesPaths": ["public/i18n"],
   "i18n-ally.enabledFrameworks": ["ngx-translate"],

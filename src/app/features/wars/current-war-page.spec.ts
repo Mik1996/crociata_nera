@@ -1,7 +1,9 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
+import { War } from '../../core/models';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { CurrentWarPage } from './current-war-page';
 
@@ -46,6 +48,27 @@ describe('CurrentWarPage', () => {
     const widths = bars.map((b) => parseFloat(b.querySelector<HTMLElement>('.bar__fill')!.style.width));
     expect(widths[0]).toBeCloseTo((war.clan.stars / total) * 100, 3);
     expect(widths[1]).toBeCloseTo((war.opponent.stars / total) * 100, 3);
+  });
+
+  it('shows the badges of both clans, leaving out one that fails to load', async () => {
+    configure();
+    const api = TestBed.inject(CocApiService);
+    const war = (await new Promise<War | null>((resolve) => api.getCurrentWar().subscribe(resolve)))!;
+    vi.spyOn(api, 'getCurrentWar').mockReturnValue(
+      of({
+        ...war,
+        clan: { ...war.clan, badgeUrl: 'https://example.test/ours.png' },
+        opponent: { ...war.opponent, badgeUrl: 'https://example.test/theirs.png' },
+      }),
+    );
+    const el = await render();
+    const badges = () =>
+      Array.from(el.querySelectorAll<HTMLImageElement>('app-war-summary .side__badge')).map((b) => b.src);
+    expect(badges()).toEqual(['https://example.test/ours.png', 'https://example.test/theirs.png']);
+
+    el.querySelector('app-war-summary .side--opponent .side__badge')!.dispatchEvent(new Event('error'));
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(badges()).toEqual(['https://example.test/ours.png']);
   });
 
   it('shows a message when the clan is not at war', async () => {

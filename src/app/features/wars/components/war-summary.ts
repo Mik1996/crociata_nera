@@ -1,4 +1,4 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -47,6 +47,13 @@ export class WarSummary {
 
   protected totalAttacks(): number {
     return this.war().teamSize * this.war().attacksPerMember;
+  }
+
+  /** Badge URLs that failed to load: their image is left out. */
+  protected readonly failedBadges = signal<ReadonlySet<string>>(new Set());
+
+  protected badgeFailed(url: string): void {
+    this.failedBadges.update((failed) => new Set(failed).add(url));
   }
 
   /** Stars at stake for each side: three per base. */
