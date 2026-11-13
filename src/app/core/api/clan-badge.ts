@@ -4,8 +4,8 @@ import { catchError, map, of } from 'rxjs';
 import { CocApiService } from './coc-api';
 
 /**
- * Official badge of the clan (`badgeUrls.large`), read once and shared: header, favicon and the
- * empty states. `null` until loaded, when missing or when the API is unavailable (callers show
+ * Official badge of the clan (`badgeUrls.large`), read once and shared: header and the empty
+ * states. `null` until loaded, when missing or when the API is unavailable (callers show
  * their fallback).
  */
 @Injectable({ providedIn: 'root' })

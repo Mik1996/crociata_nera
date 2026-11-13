@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DOCUMENT,
   effect,
   inject,
   signal,
@@ -28,7 +27,6 @@ import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
-import { setFavicon } from '../core/theme/favicon';
 import { ThemeService } from '../core/theme/theme.service';
 
 interface MenuItem {
@@ -145,13 +143,6 @@ export class Shell {
   });
 
   constructor() {
-    // The browser tab shows the clan badge from the API (static copies in public/ until then).
-    const document = inject(DOCUMENT);
-    effect(() => {
-      const url = this.badgeUrl();
-      if (url && !this.badgeFailed()) setFavicon(document, url);
-    });
-
     // Signed out (button, expired or revoked session): leave the protected page for the welcome
     // page, remembering where the user was.
     let wasSignedIn = false;
