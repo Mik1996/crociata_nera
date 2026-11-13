@@ -10,7 +10,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,8 +20,9 @@ import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, map } from 'rxjs';
+import { catchError, filter, forkJoin, map, of } from 'rxjs';
 import { ClanBadge } from '../core/api/clan-badge';
+import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
@@ -87,6 +88,7 @@ export class Shell {
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
+  private readonly api = inject(CocApiService);
 
   /**
    * The clans' pages are only for administrators and members of the clans of the Crusade (always
@@ -107,6 +109,36 @@ export class Shell {
    * "Sign in" keeps the page to come back to: the `returnUrl` set by the guard on the welcome
    * page, or the current page itself.
    */
+  /**
+   * Verified game accounts of the signed-in user, to open their player page from the account
+   * menu (only with access to the clans' pages, where the player page lives). Names come from
+   * the API (cached); until they arrive, or if the request fails, the tag is shown.
+   */
+  private readonly accountTags = computed(() =>
+    this.useMock || !this.auth.hasClanAccess()
+      ? []
+      : this.auth.linkedPlayers().filter((p) => p.verified).map((p) => p.tag),
+  );
+  private readonly accountNames = rxResource({
+    params: () => {
+      const tags = this.accountTags();
+      return tags.length ? tags : undefined;
+    },
+    stream: ({ params: tags }) =>
+      forkJoin(
+        tags.map((tag) =>
+          this.api.getPlayer(tag).pipe(
+            map((player) => [tag, player?.name ?? tag] as const),
+            catchError(() => of([tag, tag] as const)),
+          ),
+        ),
+      ).pipe(map((entries) => new Map<string, string>(entries))),
+  });
+  protected readonly myAccounts = computed(() => {
+    const names = this.accountNames.hasValue() ? this.accountNames.value() : null;
+    return this.accountTags().map((tag) => ({ tag, name: names?.get(tag) ?? tag }));
+  });
+
   protected readonly signInParams = computed(() => {
     const url = this.currentUrl();
     return returnUrlParams(this.router.parseUrl(url).queryParams['returnUrl'] ?? url.split('#')[0]);

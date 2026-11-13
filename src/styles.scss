@@ -849,6 +849,12 @@ table tr.cn-row-me.mat-mdc-row {
     overflow-wrap: anywhere;
   }
 
+  .account-menu__players {
+    border-bottom: 1px solid var(--cn-border);
+    padding-bottom: $space-xs;
+    margin-bottom: $space-xs;
+  }
+
   .mat-mdc-menu-item-text {
     display: flex;
     align-items: center;

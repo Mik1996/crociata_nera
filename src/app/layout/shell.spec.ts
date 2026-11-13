@@ -1,7 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { AuthService } from '../core/backend/auth.service';
 import { provideCocApiTest } from '../testing/fixtures';
 import { Shell } from './shell';
 
@@ -19,5 +20,41 @@ describe('Shell', () => {
     expect(items).toEqual(['Benvenuto', 'Unisciti a noi']);
     expect(el.querySelector('.sidenav__bottom a')!.textContent).toContain('Impostazioni');
     expect(el.querySelector('a.account')!.getAttribute('href')).toContain('/sign-in');
+  });
+
+  it('account menu links to the player page of each verified game account, by name', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: false })],
+    });
+    const httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).restoreSession();
+    const players = [
+      { tag: '#AAA', verified: true },
+      { tag: '#BBB', verified: true },
+      { tag: '#OLD', verified: false },
+    ];
+    httpMock.expectOne('/api/v1/auth/refresh').flush({
+      result: {
+        accessToken: 'tok',
+        accessTokenExpiresAt: '',
+        user: { id: '1', email: 'k@c.it', username: 'Knight', roles: ['USER'], players, emailVerified: true, clanAccess: true, createdAt: '' },
+      },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+
+    httpMock.expectOne((r) => r.url.endsWith('/players/%23AAA')).flush({ tag: '#AAA', name: 'Ixion' });
+    httpMock.expectOne((r) => r.url.endsWith('/players/%23BBB')).flush({}, { status: 500, statusText: 'Error' });
+    expect(httpMock.match((r) => r.url.endsWith('/players/%23OLD'))).toEqual([]);
+
+    el.querySelector<HTMLButtonElement>('button.account')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.account-menu__players a'));
+    expect(links.map((a) => a.textContent?.trim())).toEqual(['sports_esportsIxion', 'sports_esports#BBB']);
+    expect(links[0].getAttribute('href')).toBe('/players/%23AAA');
   });
 });

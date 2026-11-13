@@ -155,6 +155,16 @@
           <span class="account-menu__label">{{ 'auth.account.signedInAs' | translate }}</span>
           <span class="account-menu__email">{{ user.email }}</span>
         </div>
+        @if (myAccounts().length) {
+          <div class="account-menu__players">
+            @for (account of myAccounts(); track account.tag) {
+              <a mat-menu-item [routerLink]="['/players', account.tag]">
+                <span class="material-icons" aria-hidden="true">sports_esports</span>
+                <span>{{ account.name }}</span>
+              </a>
+            }
+          </div>
+        }
         <a mat-menu-item routerLink="/profile">
           <span class="material-icons" aria-hidden="true">manage_accounts</span>
           <span>{{ 'auth.account.profile' | translate }}</span>
