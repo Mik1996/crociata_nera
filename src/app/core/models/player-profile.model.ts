@@ -44,7 +44,6 @@ export interface PlayerProfile {
   townHallImage?: string;
   townHallWeapon?: number;
   trophies: number;
-  bestTrophies: number;
   league?: IconItem;
   leagueTier?: IconItem;
   legendTrophies?: number;

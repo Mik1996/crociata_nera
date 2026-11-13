@@ -179,8 +179,9 @@
             <p class="cn-muted achievements-summary">
               {{ 'player.achievementsDone' | translate: { done: achievementsDone(), total: p.achievements.length } }}
             </p>
+            <!-- Tracked by position: the API repeats some names (two "Keep Your Account Safe!"). -->
             <ul class="achievements">
-              @for (a of achievements(); track a.name + a.village) {
+              @for (a of achievements(); track $index) {
                 <li class="achievement" [class.achievement--done]="a.stars >= 3">
                   <span class="achievement__stars" role="img" [attr.aria-label]="'player.achievementStars' | translate: { n: a.stars }">
                     @for (slot of starSlots; track slot) {

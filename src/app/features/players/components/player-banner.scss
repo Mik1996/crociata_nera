@@ -217,20 +217,17 @@
   }
 }
 
-.banner__best {
-  font-size: var(--cn-fs-xs);
-  color: var(--cn-game-panel-muted);
-}
-
-// Narrow banner (phones): one compact row with Town Hall, name and league, then chips and medals
-// full width, each on a single line that scrolls sideways. Leaves the room to the tabs.
+// Narrow banner (phones): the name full width on top, Town Hall and league side by side under it,
+// then chips and medals full width, each on a single line that scrolls sideways.
 @container banner (max-width: 40rem) {
   .banner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
-      'th heading league'
-      'details details details';
+      'heading heading'
+      'th league'
+      'details details';
     gap: $space-s $space-m;
-    padding: $space-s $space-m;
+    padding: $space-m;
   }
 
   .banner__heading {
@@ -238,7 +235,7 @@
   }
 
   .banner__th-image {
-    width: 3.25rem;
+    width: 4rem;
   }
 
   .banner__th-label,
@@ -251,7 +248,7 @@
   }
 
   .banner__league-icon {
-    width: 2.75rem;
+    width: 3.5rem;
   }
 
   .banner__trophies {

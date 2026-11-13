@@ -11,7 +11,6 @@ const PROFILE = {
   expLevel: 233,
   townHall: 16,
   trophies: 6081,
-  bestTrophies: 6705,
   role: 'leader',
   clan: { tag: '#C', name: 'Crociata Nera', level: 20 },
   warPreference: 'in',

@@ -320,7 +320,6 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
     townHallImage: townHallImage(raw.townHallLevel),
     townHallWeapon: raw.townHallWeaponLevel,
     trophies: raw.trophies,
-    bestTrophies: raw.bestTrophies,
     league: iconItem(raw.league),
     leagueTier: iconItem(raw.leagueTier),
     legendTrophies: legend?.legendTrophies,
