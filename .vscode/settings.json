@@ -16,8 +16,9 @@
     "theme",
     "general"
   ],
-  "i18n-ally.localesPaths": [
-    "public/i18n",
-    "src/app/core/i18n"
-  ]
+  "i18n-ally.localesPaths": ["public/i18n"],
+  "i18n-ally.enabledFrameworks": ["ngx-translate"],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.sourceLanguage": "it-IT",
+  "i18n-ally.displayLanguage": "it-IT"
 }
