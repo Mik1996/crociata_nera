@@ -32,7 +32,8 @@ const MINUTE = 60_000;
 export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.SIGN_UP]: { limit: 5, windowMs: 15 * MINUTE },
   [ApiName.SIGN_IN]: { limit: 10, windowMs: 15 * MINUTE },
-  [ApiName.REFRESH]: { limit: 60, windowMs: 15 * MINUTE },
+  // Every page load refreshes, and many players share an IP (home network, mobile carrier NAT).
+  [ApiName.REFRESH]: { limit: 300, windowMs: 15 * MINUTE },
   [ApiName.SIGN_OUT]: { limit: 30, windowMs: 15 * MINUTE },
   [ApiName.ME]: { limit: 120, windowMs: MINUTE },
   [ApiName.PROFILE_UPDATE]: { limit: 20, windowMs: 15 * MINUTE },

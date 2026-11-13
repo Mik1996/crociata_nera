@@ -90,8 +90,10 @@ export async function signIn(input: SignInInput, client: ClientInfo): Promise<Au
 
 /**
  * Rotates a refresh token: the presented session is revoked and replaced by a new one.
- * Presenting a token that was already rotated means it leaked: every session of that
- * user is revoked and they must sign in again.
+ * A token that was already rotated is accepted again only right after its rotation
+ * ({@link REFRESH_REUSE_GRACE_MS}) or when its successor was never used (the browser never got it,
+ * see {@link recoverLostRotation}). Otherwise two clients are using the same chain: the token
+ * leaked, every session of that user is revoked and they must sign in again.
  */
 export async function refresh(refreshToken: string | null, client: ClientInfo): Promise<AuthSession> {
   if (!refreshToken) throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
@@ -102,15 +104,22 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
   }
   const user = await UserModel.findById(session.userId);
   if (!user) {
-    await revokeAllSessions(session.userId);
+    await revokeAllSessions(session.userId, 'user not found');
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
 
   if (session.revokedAt) {
     // Same token sent twice by the same browser (two tabs, a retried request): a new session.
     if (await isRecentRotation(session)) return startSession(user, client);
-    // An old token coming back: treated as theft, every session of the user is revoked.
-    await revokeAllSessions(session.userId);
+    // The response with the new cookie never reached the browser: its successor is retired.
+    const lost = await recoverLostRotation(session);
+    if (lost) {
+      const next = await startSession(user, client);
+      if (lost.retired) await SessionModel.updateOne({ _id: lost.retired }, { $set: { replacedBy: next.sessionId } });
+      return next;
+    }
+    // An old token coming back while its successor is in use: theft, every session is revoked.
+    await revokeAllSessions(session.userId, `reuse of a ${session.revokedReason ?? 'revoked'} refresh token`);
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
 
@@ -122,7 +131,7 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
   if (claimed.modifiedCount === 0) {
     const latest = await SessionModel.findById(session._id);
     if (latest && (await isRecentRotation(latest))) return startSession(user, client);
-    await revokeAllSessions(session.userId);
+    await revokeAllSessions(session.userId, 'refresh token rotated concurrently');
     throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
   }
 
@@ -149,6 +158,31 @@ async function isRecentRotation(session: SessionDocument): Promise<boolean> {
   if (!session.replacedBy) return true; // the concurrent refresh is still creating it
   const successor = await SessionModel.findById(session.replacedBy).select('revokedAt revokedReason');
   return !!successor && (!successor.revokedAt || successor.revokedReason === 'rotated');
+}
+
+/**
+ * A token rotated earlier comes back while its successor was never presented: the refresh that
+ * rotated it did not reach the browser (tab closed or page left while the request was in flight,
+ * mobile browser suspending the page, network drop, backend restarting before answering). The
+ * browser still holds this token and is its only owner, so the unused successor is retired
+ * (`retired`, to point at the session that replaces it) and the client gets a new session.
+ * A successor that was itself rotated means someone else is using the chain: `null`, theft.
+ * A successor rotated moments ago (the recovery's own response lost again) is tolerated as in
+ * {@link isRecentRotation}.
+ */
+async function recoverLostRotation(
+  session: SessionDocument,
+): Promise<{ retired: Types.ObjectId | null } | null> {
+  if (session.revokedReason !== 'rotated') return null;
+  // Rotated but the successor was never recorded (backend stopped half-way): nothing to retire.
+  if (!session.replacedBy) return { retired: null };
+  const claimed = await SessionModel.updateOne(
+    { _id: session.replacedBy, revokedAt: null },
+    { $set: { revokedAt: new Date(), revokedReason: 'rotated' } },
+  );
+  if (claimed.modifiedCount === 1) return { retired: session.replacedBy };
+  const successor = await SessionModel.findById(session.replacedBy);
+  return successor && (await isRecentRotation(successor)) ? { retired: null } : null;
 }
 
 /** Revokes the session of the given refresh token. Idempotent: unknown tokens are ignored. */
@@ -196,7 +230,9 @@ async function grantConfiguredAdmin(user: UserDocument): Promise<void> {
   await UserModel.updateOne({ _id: user._id }, { $addToSet: { roles: UserRole.ADMIN } });
 }
 
-async function revokeAllSessions(userId: Types.ObjectId): Promise<void> {
+/** Signs the user out everywhere. Logged: it is the only sign-out the user did not ask for. */
+async function revokeAllSessions(userId: Types.ObjectId, reason: string): Promise<void> {
+  console.warn(`[auth] every session of user ${userId.toString()} revoked: ${reason}`);
   await SessionModel.updateMany({ userId, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
 }
 

@@ -95,8 +95,11 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   `POST /players/{tag}/verifytoken`, max 10, unique across users) and `pendingPlayerTag` (old
   unverified link). Administrators can only unlink.
 - Sessions: 15 min access token + 30 day rotating refresh cookie (`cn_refresh`). Reuse of a rotated
-  token revokes all sessions, except within `REFRESH_REUSE_GRACE_MS` (30 s) of a rotation whose
-  successor is still alive. The frontend signs out only on a 401 from refresh.
+  token revokes all sessions (logged as `[auth] every session … revoked`), except within
+  `REFRESH_REUSE_GRACE_MS` (30 s) of a rotation whose successor is still alive, or when the successor
+  was never used (refresh response lost: the successor is retired, a new session is issued). The
+  frontend signs out only on a 401 from refresh; the startup restore keeps retrying while the backend
+  is unreachable (guards wait), then retries in the background.
 - Scheduler (`backend/src/lib/scheduler/war-sync-scheduler.ts`) syncs wars, CWL, raids and
   commendations. Commendations are awarded once per closed period and frozen.
 - Donations (`donor` commendation): the in-game `memberList[].donations` counter resets when a

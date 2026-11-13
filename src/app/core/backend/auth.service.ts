@@ -45,6 +45,13 @@ export class AuthService {
   private refreshing$: Observable<string | null> | null = null;
   /** Startup session restore, shared with guards that must wait for it. */
   private restoring$: Observable<unknown> = of(null);
+  /**
+   * The refresh cookie could not be checked yet (backend unreachable): a session may exist.
+   * Tried again later, when the page comes back to the foreground and when the network returns.
+   */
+  private restorePending = false;
+  private restoreTimer: ReturnType<typeof setTimeout> | null = null;
+  private listening = false;
 
   readonly user = computed<BackendUser | null>(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
@@ -130,7 +137,10 @@ export class AuthService {
     return this.http.post<BaseResult<null>>(`${this.baseUrl}/sign-out`, {}, { withCredentials: true }).pipe(
       map(() => undefined),
       catchError(() => of(undefined)),
-      finalize(() => this.session.set(null)),
+      finalize(() => {
+        this.session.set(null);
+        this.stopRestoreRetries();
+      }),
     );
   }
 
@@ -142,22 +152,34 @@ export class AuthService {
    *   the new one.
    * - Only a 401 (session rejected by the backend) signs out. Temporary failures (backend
    *   restarting during a deploy, no network, rate limit) are retried, then the session is kept:
-   *   the next request tries again.
+   *   the next request tries again. Without a session yet (startup restore) it is tried again later.
    */
   refresh(): Observable<string | null> {
+    return this.refreshWithRetries(REFRESH_RETRIES);
+  }
+
+  private refreshWithRetries(retries: number): Observable<string | null> {
     const request = this.http.post<BaseResult<AuthResult>>(`${this.baseUrl}/refresh`, {}, { withCredentials: true });
     this.refreshing$ ??= underRefreshLock(request)
       .pipe(
         retry({
-          count: REFRESH_RETRIES,
+          count: retries,
           delay: (error: unknown, attempt) =>
             isSessionRejected(error) ? throwError(() => error) : timer(attempt * REFRESH_RETRY_DELAY_MS),
         }),
         map((response) => response.result),
-        tap((result) => this.session.set(result)),
+        tap((result) => {
+          this.session.set(result);
+          this.stopRestoreRetries();
+        }),
         map((result) => result?.accessToken ?? null),
         catchError((error: unknown) => {
-          if (isSessionRejected(error)) this.session.set(null);
+          if (isSessionRejected(error)) {
+            this.session.set(null);
+            this.stopRestoreRetries();
+          } else if (!this.session()) {
+            this.scheduleRestoreRetry();
+          }
           return of(null);
         }),
         finalize(() => (this.refreshing$ = null)),
@@ -166,9 +188,17 @@ export class AuthService {
     return this.refreshing$;
   }
 
-  /** Called once at startup: silently restores the session if the refresh cookie is valid. */
+  /**
+   * Called once at startup: silently restores the session if the refresh cookie is valid.
+   * While the backend is unreachable (restarting during a deploy) it keeps trying for a while
+   * ({@link STARTUP_REFRESH_RETRIES}): the guards wait, instead of treating the user as signed out.
+   * After that it tries again in the background.
+   */
   restoreSession(): void {
-    this.restoring$ = this.refresh().pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    this.listenForRestoreChances();
+    this.restoring$ = this.refreshWithRetries(STARTUP_REFRESH_RETRIES).pipe(
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
     this.restoring$.subscribe();
   }
 
@@ -180,6 +210,39 @@ export class AuthService {
     );
   }
 
+  private scheduleRestoreRetry(): void {
+    this.restorePending = true;
+    if (this.restoreTimer) return;
+    this.restoreTimer = setTimeout(() => {
+      this.restoreTimer = null;
+      this.retryRestore();
+    }, RESTORE_RETRY_MS);
+  }
+
+  private stopRestoreRetries(): void {
+    this.restorePending = false;
+    if (this.restoreTimer) clearTimeout(this.restoreTimer);
+    this.restoreTimer = null;
+  }
+
+  /** Tries the pending restore again (no-op once it got an answer or the user signed in). */
+  private retryRestore(): void {
+    if (!this.restorePending || this.session()) return;
+    if (this.restoreTimer) clearTimeout(this.restoreTimer);
+    this.restoreTimer = null;
+    this.refresh().subscribe();
+  }
+
+  /** A suspended mobile tab or a lost connection is when the backend is most likely back. */
+  private listenForRestoreChances(): void {
+    if (this.listening || typeof window === 'undefined' || typeof document === 'undefined') return;
+    this.listening = true;
+    window.addEventListener('online', () => this.retryRestore());
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') this.retryRestore();
+    });
+  }
+
   /** Replaces the user in the current session (after a profile change). */
   private patchUser(user: BackendUser): void {
     const session = this.session();
@@ -188,7 +251,10 @@ export class AuthService {
 
   private post(path: 'sign-up' | 'sign-in', body: SignUpRequest | SignInRequest): Observable<BackendUser> {
     return this.http.post<BaseResult<AuthResult>>(`${this.baseUrl}/${path}`, body, { withCredentials: true }).pipe(
-      tap((response) => this.session.set(response.result)),
+      tap((response) => {
+        this.session.set(response.result);
+        this.stopRestoreRetries();
+      }),
       map((response) => response.result!.user),
     );
   }
@@ -196,8 +262,15 @@ export class AuthService {
 
 /** Extra attempts of a refresh that failed for a temporary reason. */
 const REFRESH_RETRIES = 2;
+/**
+ * Extra attempts of the startup restore: 1 + 2 + … + 6 s ≈ 21 s, enough for the backend to
+ * restart during a deploy. Only a backend that is unreachable makes the startup wait that long.
+ */
+export const STARTUP_REFRESH_RETRIES = 6;
 /** Wait before the n-th retry: n × this delay (1 s, then 2 s). */
 export const REFRESH_RETRY_DELAY_MS = 1000;
+/** Background retry of a startup restore that never got an answer from the backend. */
+export const RESTORE_RETRY_MS = 30_000;
 
 /** The backend rejected the refresh cookie (expired, revoked, missing): the session is over. */
 function isSessionRejected(error: unknown): boolean {
