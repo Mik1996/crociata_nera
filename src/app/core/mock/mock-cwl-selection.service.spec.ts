@@ -20,7 +20,10 @@ describe('mockSelection', () => {
     );
     const players = selection.players;
     expect(selection.maxTownHall).toBe(18);
-    expect(selection.seasons).toEqual(['2026-10', '2026-09', '2026-08', '2026-07']);
+    expect(selection.cwlSeason).toBe('2026-10');
+    // Who was not in the last CWL can earn its 25 points in the regular wars.
+    expect(players.filter((p) => !p.cwl).every((p) => p.war.maxPoints === 65)).toBe(true);
+    expect(players.filter((p) => p.cwl).every((p) => p.war.maxPoints === 40)).toBe(true);
     expect(players.filter((p) => p.status === 'starter')).toHaveLength(15);
     expect(players.filter((p) => p.status === 'reserve')).toHaveLength(3);
     const firstIneligible = players.findIndex((p) => !p.eligible);

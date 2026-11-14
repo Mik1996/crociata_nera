@@ -22,7 +22,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Rank the members for the Clan War League line-up',
     description:
-      'Current members of the clan ranked to pick the Clan War League line-up: 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clan, not excluded by an administrator). Score out of 100: CWL commendations of the last 4 ended seasons (up to 30), stars and destruction in their league wars (up to 20), regular wars of the last 90 days (up to 25), hero levels and equipment (up to 15), highest town hall (10); penalties for CWL attacks missed (up to -15), new arrivals (-5) and no regular war attack in the last 30 days (-10). The latest season weighs most. Excluded players keep their place and take no slot.',
+      'Current members of the main clan ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clan, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 25); highest town hall (10). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals (-5). Excluded players keep their place and take no slot.',
     access: 'leader',
     rateLimit: ApiName.WARS_READ,
     responses: { 200: { description: 'The ranking.', result: CwlSelection } },

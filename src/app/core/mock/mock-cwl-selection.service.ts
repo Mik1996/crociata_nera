@@ -14,8 +14,9 @@ import { Random } from './random';
 
 const STARTERS = 15;
 const RESERVES = 3;
-const SEASONS = 4;
 const DAY = 86_400_000;
+/** Order of the roles on equal score and town hall (same as the backend). */
+const ROLE_ORDER: readonly ClanMember['role'][] = ['leader', 'coLeader', 'elder', 'member'];
 const API_ROLES: Record<ClanMember['role'], string> = {
   leader: 'leader',
   coLeader: 'coLeader',
@@ -50,6 +51,9 @@ export class MockCwlSelectionService extends CwlSelectionService {
   }
 }
 
+/** Clans where the mock players fought the last CWL. */
+const CWL_CLANS = ['#2J8JVVCLC', '#2JU8RPR2G', '#2RRYUGQYJ'];
+
 export function mockSelection(
   members: ClanMember[],
   now: Date,
@@ -60,16 +64,8 @@ export function mockSelection(
   const scored = members.map((m) => {
     const townHallOk = m.townHall >= maxTownHall - 1;
     const strength = random.range(0.2, 1);
-    const cwl = { allAttacks: 0, gold: 0, silver: 0, bronze: 0 };
-    for (let season = 0; season < SEASONS; season++) {
-      if (random.chance(strength)) cwl.allAttacks += 1;
-      const roll = random.next() * strength;
-      const tier = roll > 0.7 ? 'gold' : roll > 0.5 ? 'silver' : roll > 0.3 ? 'bronze' : null;
-      if (tier) cwl[tier] += 1;
-    }
-    const cwlWars = random.int(0, 4 * 7) * (townHallOk ? 1 : 0.3);
-    const cwlAttacks = Math.round(cwlWars * random.range(0.8, 1));
-    const cwlStars = Math.min(3, round(1.2 + strength * 1.8, 2));
+    // About two players out of three were in the last CWL, mostly with Crociata Nera.
+    const inCwl = random.chance(townHallOk ? 0.7 : 0.3);
     const wars = random.int(0, 12);
     const attacksAvailable = wars * 2;
     const attacksUsed = Math.round(attacksAvailable * random.range(0.6, 1));
@@ -79,26 +75,53 @@ export function mockSelection(
       : null;
     const joinedAt = random.chance(0.1) ? new Date(now.getTime() - random.int(1, 13) * DAY) : null;
     const newcomer = joinedAt !== null;
-    const inactive = attacksUsed === 0;
-    const missed = Math.round(cwlWars) - cwlAttacks;
+
+    let cwl: CwlSelectionPlayer['cwl'] = null;
+    if (inCwl) {
+      const cwlWars = random.int(3, 7);
+      const attacks = Math.max(0, cwlWars - (random.chance(0.2) ? random.int(1, 2) : 0));
+      const stars = round(Math.min(3, 1.2 + strength * 1.8), 2);
+      const roll = random.next() * strength;
+      cwl = {
+        clanTag: random.chance(0.75) ? CWL_CLANS[0] : random.pick(CWL_CLANS.slice(1)),
+        allAttacks: attacks === cwlWars,
+        striker:
+          attacks >= 3
+            ? roll > 0.6
+              ? 'gold'
+              : roll > 0.45
+                ? 'silver'
+                : roll > 0.3
+                  ? 'bronze'
+                  : null
+            : null,
+        wars: cwlWars,
+        attacks,
+        missed: cwlWars - attacks,
+        averageStarsPerAttack: attacks ? stars : 0,
+        averageDestruction: attacks ? round(60 + (stars / 3) * 40) : 0,
+      };
+    }
+    const maxPoints = cwl ? 40 : 65;
+    const strikerPoints = cwl?.striker ? { gold: 7, silver: 5, bronze: 3 }[cwl.striker] : 0;
     const breakdown: CwlScoreBreakdown = {
-      cwlCommendations: round(
-        (30 * (cwl.allAttacks * 5 + cwl.gold * 7 + cwl.silver * 5 + cwl.bronze * 3)) / 48,
-      ),
-      cwlPerformance: cwlAttacks ? round(20 * (cwlStars / 3) * Math.min(1, cwlAttacks / 5)) : 0,
+      cwlCommendations: cwl ? round((12 * ((cwl.allAttacks ? 5 : 0) + strikerPoints)) / 12) : 0,
+      cwlPerformance: cwl?.attacks
+        ? round(13 * (cwl.averageStarsPerAttack / 3) * Math.min(1, cwl.attacks / 3))
+        : 0,
       war: attacksAvailable
         ? round(
-            25 *
+            maxPoints *
               (0.75 * (warStars / 3) + 0.25 * (attacksUsed / attacksAvailable)) *
               Math.min(1, attacksUsed / 8),
           )
         : 0,
       heroes: heroes
-        ? round(15 * ((2 / 3) * (heroes.levels / 100) + (1 / 3) * (heroes.equipment / 100)))
+        ? round(25 * ((2 / 3) * (heroes.levels / 100) + (1 / 3) * (heroes.equipment / 100)))
         : 0,
       townHall: m.townHall === maxTownHall ? 10 : 0,
-      missedAttacks: -Math.min(15, missed * 2),
-      activity: -((newcomer ? 5 : 0) + (inactive ? 10 : 0)),
+      missedAttacks: cwl ? -Math.min(15, cwl.missed * 3) : 0,
+      activity: newcomer ? -5 : 0,
     };
     const total = Object.values(breakdown).reduce((sum, part) => sum + part, 0);
     return {
@@ -106,35 +129,26 @@ export function mockSelection(
       townHallOk,
       score: Math.max(0, Math.min(100, total)),
       breakdown,
-      cwl: {
-        ...cwl,
-        wars: Math.round(cwlWars),
-        attacks: cwlAttacks,
-        missed,
-        averageStarsPerAttack: cwlAttacks ? cwlStars : 0,
-        averageDestruction: cwlAttacks ? round(60 + (cwlStars / 3) * 40) : 0,
-      },
+      cwl,
       war: {
         wars,
         attacksUsed,
         attacksAvailable,
         averageStarsPerAttack: warStars,
         averageDestruction: attacksUsed ? round(50 + (warStars / 3) * 50) : 0,
+        maxPoints,
       },
       heroes,
-      activity: {
-        joinedAt: joinedAt?.toISOString() ?? null,
-        newcomer,
-        inactive,
-        recentAttacks: Math.min(attacksUsed, 4),
-      },
+      activity: { joinedAt: joinedAt?.toISOString() ?? null, newcomer },
     };
   });
   scored.sort(
     (a, b) =>
       Number(b.townHallOk) - Number(a.townHallOk) ||
       b.score - a.score ||
-      b.member.townHall - a.member.townHall,
+      b.member.townHall - a.member.townHall ||
+      ROLE_ORDER.indexOf(a.member.role) - ROLE_ORDER.indexOf(b.member.role) ||
+      a.member.name.localeCompare(b.member.name),
   );
   let slotsTaken = 0;
   const players = scored.map((s, index): CwlSelectionPlayer => {
@@ -168,17 +182,14 @@ export function mockSelection(
       exclusion,
     };
   });
-  const month = (offset: number) => {
-    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1));
-    return date.toISOString().slice(0, 7);
-  };
+  const lastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
   return {
     generatedAt: now.toISOString(),
     starters: STARTERS,
     reserves: RESERVES,
     maxTownHall,
     minEligibleTownHall: maxTownHall - 1,
-    seasons: [1, 2, 3, 4].map(month),
+    cwlSeason: lastMonth.toISOString().slice(0, 7),
     warWindow: { from: new Date(now.getTime() - 90 * DAY).toISOString(), days: 90, wars: 24 },
     players,
   };

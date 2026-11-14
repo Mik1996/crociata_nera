@@ -166,19 +166,19 @@ export interface CwlExclusion {
 
 /** Parts of the score of a player for the CWL line-up (penalties are negative). */
 export interface CwlScoreBreakdown {
-  /** 0–30. */
+  /** Commendations of the last CWL, 0–12. */
   cwlCommendations: number;
-  /** 0–20. */
+  /** Attacks of the last CWL, 0–13. */
   cwlPerformance: number;
-  /** 0–25. */
+  /** 0–40, or 0–65 for who was not in the last CWL (`war.maxPoints`). */
   war: number;
-  /** 0–15. */
+  /** 0–25. */
   heroes: number;
   /** 10 for the highest town hall of the clan, else 0. */
   townHall: number;
-  /** -15–0. */
+  /** League attacks missed in the last CWL, -15–0. */
   missedAttacks: number;
-  /** -15–0. */
+  /** New arrival, -5 or 0. */
   activity: number;
 }
 
@@ -195,33 +195,30 @@ export interface CwlSelectionPlayer {
   /** 0–100: the parts of `breakdown` added up, never below 0. */
   score: number;
   breakdown: CwlScoreBreakdown;
+  /** Regular wars of the window, in any clan of the Crusade. */
   war: {
     wars: number;
     attacksUsed: number;
     attacksAvailable: number;
     averageStarsPerAttack: number;
     averageDestruction: number;
+    /** 40, or 65 for who was not in the last CWL. */
+    maxPoints: number;
   };
-  /** CWL commendations and league wars of the seasons considered. */
+  /** The last CWL, fought in any clan of the Crusade; `null` when not in its line-up. */
   cwl: {
-    allAttacks: number;
-    gold: number;
-    silver: number;
-    bronze: number;
+    clanTag: string;
+    allAttacks: boolean;
+    striker: 'gold' | 'silver' | 'bronze' | null;
     wars: number;
     attacks: number;
     missed: number;
     averageStarsPerAttack: number;
     averageDestruction: number;
-  };
+  } | null;
   /** Percentages of the highest levels of the game; `null` while the profile was never read. */
   heroes: { levels: number; equipment: number } | null;
-  activity: {
-    joinedAt: string | null;
-    newcomer: boolean;
-    inactive: boolean;
-    recentAttacks: number;
-  };
+  activity: { joinedAt: string | null; newcomer: boolean };
   exclusion: CwlExclusion | null;
 }
 
@@ -232,8 +229,8 @@ export interface CwlSelection {
   reserves: number;
   maxTownHall: number | null;
   minEligibleTownHall: number | null;
-  /** Ended CWL seasons considered (`YYYY-MM`), most recent first. */
-  seasons: string[];
+  /** Last ended CWL season of the clans of the Crusade (`YYYY-MM`); `null` if none. */
+  cwlSeason: string | null;
   warWindow: { from: string; days: number; wars: number };
   players: CwlSelectionPlayer[];
 }

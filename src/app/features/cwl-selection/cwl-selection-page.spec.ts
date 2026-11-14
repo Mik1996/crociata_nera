@@ -24,7 +24,7 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
       heroes: 12,
       townHall: 10,
       missedAttacks: rank === 2 ? -3 : 0,
-      activity: rank === 3 ? -10 : 0,
+      activity: rank === 5 ? -5 : 0,
     },
     war: {
       wars: 3,
@@ -32,24 +32,25 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
       attacksAvailable: 6,
       averageStarsPerAttack: 2.6,
       averageDestruction: 91,
+      maxPoints: rank === 3 ? 65 : 40,
     },
-    cwl: {
-      allAttacks: rank === 1 ? 2 : 0,
-      gold: rank === 1 ? 1 : 0,
-      silver: 0,
-      bronze: 0,
-      wars: 7,
-      attacks: rank === 2 ? 6 : 7,
-      missed: rank === 2 ? 1 : 0,
-      averageStarsPerAttack: 2.4,
-      averageDestruction: 88,
-    },
+    cwl:
+      rank === 3
+        ? null
+        : {
+            clanTag: rank === 2 ? '#2JU8RPR2G' : '#2J8JVVCLC',
+            allAttacks: rank === 1,
+            striker: rank === 1 ? 'gold' : null,
+            wars: 7,
+            attacks: rank === 2 ? 6 : 7,
+            missed: rank === 2 ? 1 : 0,
+            averageStarsPerAttack: 2.4,
+            averageDestruction: 88,
+          },
     heroes: rank === 4 ? null : { levels: 92, equipment: 80 },
     activity: {
       joinedAt: rank === 5 ? '2026-11-10T00:00:00.000Z' : null,
       newcomer: rank === 5,
-      inactive: rank === 3,
-      recentAttacks: rank === 3 ? 0 : 2,
     },
     exclusion:
       status === 'excluded'
@@ -64,7 +65,7 @@ const SELECTION: CwlSelection = {
   reserves: 3,
   maxTownHall: 17,
   minEligibleTownHall: 16,
-  seasons: ['2026-10', '2026-09'],
+  cwlSeason: '2026-10',
   warWindow: { from: '2026-08-16T10:00:00.000Z', days: 90, wars: 20 },
   players: [
     player(1, 'excluded'),
@@ -120,18 +121,22 @@ describe('CwlSelectionPage', () => {
     expect(rows[0].textContent).toContain('Co-capo');
   });
 
-  it('shows league attacks missed, penalties, new and inactive players and heroes', async () => {
+  it('shows the last CWL with its clan, attacks missed, penalties, new players and heroes', async () => {
     const { el } = await render();
     const rows = el.querySelectorAll('tr.mat-mdc-row');
+    expect(rows[1].querySelector('.cwl-clan')!.textContent).toContain('Crociata Rossa');
     expect(rows[1].querySelector('.missing')!.textContent).toContain('1 saltati');
     expect(rows[1].querySelector('.penalty')!.textContent).toContain('-3');
-    expect(rows[2].querySelector('.flag--alert')!.textContent).toContain('Inattivo in guerra');
+    // Not in the last CWL: its points move to the regular wars.
+    expect(rows[2].textContent).toContain('Non schierato');
+    expect(rows[2].querySelector('.war-bonus')!.textContent).toContain('Fino a 65 punti');
+    expect(rows[1].querySelector('.war-bonus')).toBeNull();
     expect(rows[4].querySelector('.flag')!.textContent).toContain('Nuovo');
     expect(rows[3].textContent).toContain('In attesa');
     expect(rows[0].textContent).toContain('92%');
     // The score explains its parts.
     expect(rows[1].querySelector('.score')!.getAttribute('aria-label')).toContain(
-      'Attacchi di Lega saltati: -3,0',
+      'Attacchi saltati ultima CWL: -3,0',
     );
   });
 
@@ -139,7 +144,8 @@ describe('CwlSelectionPage', () => {
     const { el } = await render();
     const facts = el.querySelector('.facts')!.textContent!;
     expect(facts).toContain('TH 16–17');
-    expect(facts).toContain('Ultimi 90 giorni (20 guerre)');
+    expect(facts).toContain('Ultimi 90 giorni, tutti i clan (20 guerre)');
+    expect(facts).toContain('ottobre 2026');
     expect(el.querySelector('.legend')!.textContent).toContain('Esclusi: 1');
   });
 

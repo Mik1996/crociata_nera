@@ -1001,22 +1001,22 @@
     "facts": {
       "townHall": "Eligible town halls",
       "townHallRange": "TH {{min}}–{{max}}",
-      "seasons": "CWL seasons considered",
       "noSeasons": "No closed season",
       "wars": "Wars considered",
-      "warsValue": "Last {{days}} days ({{n}} wars)"
+      "warsValue": "Last {{days}} days, all clans ({{n}} wars)",
+      "lastCwl": "Last CWL"
     },
     "rules": {
       "title": "How the ranking is computed",
-      "eligibility": "Eligible: the players with the highest town hall of the clan and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
-      "cwl": "League commendations (up to 30 points): Certezza di Lega is worth 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7, for each of the last 4 closed seasons; the latest season counts in full, the earlier ones at 75%, 50% and 25%.",
-      "war": "Regular wars of the last 90 days (up to 25 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
-      "order": "On equal scores the higher town hall goes first. The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
-      "cwlPerformance": "League performance (up to 20 points): stars per attack and destruction in the league wars of the same seasons, with the same weights; with fewer than 5 attacks the score is reduced in proportion.",
-      "heroes": "Heroes (up to 15 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
+      "eligibility": "Eligible: the players of Crociata Nera with the highest town hall of the clan and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
+      "cwl": "Last CWL, fought in Crociata Nera, Rossa or d'Oro (up to 25 points): commendations up to 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) and stars per attack and destruction up to 13; with fewer than 3 attacks the performance is reduced in proportion.",
+      "war": "Regular wars of the last 90 days, in every clan of the Crusade (up to 40 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
+      "order": "On equal scores the higher town hall goes first, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
+      "heroes": "Heroes (up to 25 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
       "townHall": "Town hall: 10 points to those with the highest town hall of the clan.",
-      "penalties": "Penalties: 3 points for each league attack missed (weighted by season, at most 15); 5 points for those in the clan for less than 14 days; 10 points for those who did not attack in war in the last 30 days while the clan fought at least 2.",
-      "exclusions": "Administrators can exclude a player (for example for an announced absence): the player keeps their place in the ranking, marked as excluded, and their slot goes to the next one."
+      "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for those who joined the clans of the Crusade less than 14 days ago.",
+      "exclusions": "Administrators can exclude a player (for example for an announced absence): the player keeps their place in the ranking, marked as excluded, and their slot goes to the next one.",
+      "noCwl": "Who was not in the line-up of the last CWL keeps its 25 points: they move to the regular wars, worth up to 65. So 100 can be reached without the CWL too."
     },
     "generatedAt": "Computed on {{date}}",
     "ranking": "Ranking ({{n}})",
@@ -1037,23 +1037,21 @@
     "excludedBy": "Excluded by {{name}}",
     "flags": {
       "newcomer": "New",
-      "newcomerHint": "In the clan since {{date}}",
-      "inactive": "Inactive in war",
-      "inactiveHint": "No war attack in the last 30 days"
+      "newcomerHint": "In the clan since {{date}}"
     },
     "parts": {
-      "cwlCommendations": "League commendations",
-      "cwlPerformance": "League performance",
+      "cwlCommendations": "Last CWL commendations",
+      "cwlPerformance": "Last CWL performance",
       "war": "Wars",
       "heroes": "Heroes",
       "townHall": "Town hall",
-      "missedAttacks": "League attacks missed",
+      "missedAttacks": "Last CWL attacks missed",
       "activity": "Activity"
     },
     "penalty": "Penalty {{n}}",
     "cwlWars": "{{stars}} ★ · {{attacks}}/{{wars}} attacks",
     "missed": "{{n}} missed",
-    "noCwl": "No League",
+    "noCwl": "Not fielded",
     "heroes": "Heroes",
     "heroLevelsHint": "Hero levels against the highest of the game",
     "equipment": "Equip. {{n}}%",
@@ -1068,6 +1066,9 @@
       "reason": "Reason (optional)",
       "reasonHint": "For example: away for the whole season",
       "confirm": "Exclude"
-    }
+    },
+    "cwlCommendations": "Commendations of the last CWL",
+    "noCwlHint": "Not in the line-up of the last CWL: the 25 CWL points move to the regular wars",
+    "warMax": "Up to {{n}} points"
   }
 }

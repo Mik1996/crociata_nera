@@ -1001,22 +1001,22 @@
     "facts": {
       "townHall": "Municipi idonei",
       "townHallRange": "TH {{min}}–{{max}}",
-      "seasons": "Stagioni CWL considerate",
       "noSeasons": "Nessuna stagione chiusa",
       "wars": "Guerre considerate",
-      "warsValue": "Ultimi {{days}} giorni ({{n}} guerre)"
+      "warsValue": "Ultimi {{days}} giorni, tutti i clan ({{n}} guerre)",
+      "lastCwl": "Ultima CWL"
     },
     "rules": {
       "title": "Come si calcola la classifica",
-      "eligibility": "Idonei: i giocatori con il municipio più alto del clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
-      "cwl": "Encomi di Lega (fino a 30 punti): Certezza di Lega vale 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7, per ognuna delle ultime 4 stagioni chiuse; l'ultima stagione pesa per intero, le precedenti al 75%, 50% e 25%.",
-      "war": "Guerre normali degli ultimi 90 giorni (fino a 25 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
-      "order": "A parità di punteggio passa avanti il municipio più alto. I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
-      "cwlPerformance": "Rendimento in Lega (fino a 20 punti): stelle per attacco e distruzione nelle guerre di Lega delle stesse stagioni, con gli stessi pesi; con meno di 5 attacchi il punteggio si riduce in proporzione.",
-      "heroes": "Eroi (fino a 15 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
+      "eligibility": "Idonei: i giocatori di Crociata Nera con il municipio più alto del clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
+      "cwl": "Ultima CWL, giocata in Crociata Nera, Rossa o d'Oro (fino a 25 punti): encomi fino a 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) e stelle per attacco e distruzione fino a 13; con meno di 3 attacchi il rendimento si riduce in proporzione.",
+      "war": "Guerre normali degli ultimi 90 giorni, in tutti i clan della Crociata (fino a 40 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
+      "order": "A parità di punteggio passa avanti il municipio più alto, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
+      "heroes": "Eroi (fino a 25 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
       "townHall": "Municipio: 10 punti a chi ha il municipio più alto del clan.",
-      "penalties": "Penalità: 3 punti per ogni attacco di Lega saltato (pesati per stagione, al massimo 15); 5 punti a chi è nel clan da meno di 14 giorni; 10 punti a chi non ha attaccato in guerra negli ultimi 30 giorni mentre il clan ne ha giocate almeno 2.",
-      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo."
+      "penalties": "Penalità: 3 punti per ogni attacco saltato nell'ultima CWL (al massimo 15); 5 punti a chi è entrato nei clan della Crociata da meno di 14 giorni.",
+      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo.",
+      "noCwl": "Chi non era nello schieramento dell'ultima CWL non perde i suoi 25 punti: passano alle guerre normali, che valgono fino a 65. Così anche senza CWL si può arrivare a 100."
     },
     "generatedAt": "Calcolata il {{date}}",
     "ranking": "Classifica ({{n}})",
@@ -1037,23 +1037,21 @@
     "excludedBy": "Escluso da {{name}}",
     "flags": {
       "newcomer": "Nuovo",
-      "newcomerHint": "Nel clan dal {{date}}",
-      "inactive": "Inattivo in guerra",
-      "inactiveHint": "Nessun attacco in guerra negli ultimi 30 giorni"
+      "newcomerHint": "Nel clan dal {{date}}"
     },
     "parts": {
-      "cwlCommendations": "Encomi di Lega",
-      "cwlPerformance": "Rendimento in Lega",
+      "cwlCommendations": "Encomi ultima CWL",
+      "cwlPerformance": "Rendimento ultima CWL",
       "war": "Guerre",
       "heroes": "Eroi",
       "townHall": "Municipio",
-      "missedAttacks": "Attacchi di Lega saltati",
+      "missedAttacks": "Attacchi saltati ultima CWL",
       "activity": "Attività"
     },
     "penalty": "Penalità {{n}}",
     "cwlWars": "{{stars}} ★ · {{attacks}}/{{wars}} attacchi",
     "missed": "{{n}} saltati",
-    "noCwl": "Nessuna Lega",
+    "noCwl": "Non schierato",
     "heroes": "Eroi",
     "heroLevelsHint": "Livelli degli eroi rispetto ai massimi del gioco",
     "equipment": "Equip. {{n}}%",
@@ -1068,6 +1066,9 @@
       "reason": "Motivo (facoltativo)",
       "reasonHint": "Ad esempio: assente per tutta la stagione",
       "confirm": "Escludi"
-    }
+    },
+    "cwlCommendations": "Encomi dell'ultima CWL",
+    "noCwlHint": "Non era nello schieramento dell'ultima CWL: i 25 punti della CWL passano alle guerre normali",
+    "warMax": "Fino a {{n}} punti"
   }
 }

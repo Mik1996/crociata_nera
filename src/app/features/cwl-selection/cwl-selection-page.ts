@@ -17,6 +17,7 @@ import {
 import { backendErrors } from '../../core/backend/backend-errors';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
 import { APP_CONFIG } from '../../core/config/app-config';
+import { SISTER_CLANS } from '../../core/config/sister-clans';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { ClanRole } from '../../core/models';
@@ -37,13 +38,6 @@ const ROLES: Record<string, ClanRole> = {
   admin: 'elder',
   member: 'member',
 };
-
-/** Tier medals of `cwlStriker`, best first: count field and medal of each. */
-const STRIKER_TIERS = [
-  { tier: 'gold', emblem: 'cwlStriker-gold' },
-  { tier: 'silver', emblem: 'cwlStriker-silver' },
-  { tier: 'bronze', emblem: 'cwlStriker-bronze' },
-] as const;
 
 /** Parts of the score, in the order of the explanation; the first five fill the score bar. */
 const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
@@ -95,7 +89,8 @@ export class CwlSelectionPage {
   private readonly auth = inject(AuthService);
   protected readonly isMine = this.auth.isMyPlayer;
   /** Only administrators exclude players (always with mock data, for the demo). */
-  private readonly useMock = inject(APP_CONFIG).useMockApi;
+  private readonly config = inject(APP_CONFIG);
+  private readonly useMock = this.config.useMockApi;
   protected readonly canExclude = computed(() => this.useMock || this.auth.isAdmin());
 
   protected readonly resource = rxResource({ stream: () => this.service.get() });
@@ -117,7 +112,6 @@ export class CwlSelectionPage {
   /** Tag of the player whose exclusion is being removed. */
   protected readonly readmitting = signal<string | null>(null);
 
-  protected readonly strikerTiers = STRIKER_TIERS;
   protected readonly barParts = BAR_PARTS;
   private readonly baseColumns = [
     'rank',
@@ -133,17 +127,26 @@ export class CwlSelectionPage {
     this.canExclude() ? [...this.baseColumns, 'actions'] : this.baseColumns,
   );
 
-  /** CWL seasons considered, as short month names (`ott 2026`). */
-  protected readonly seasonLabels = computed(() => {
-    const format = new Intl.DateTimeFormat(this.language.current(), {
-      month: 'short',
+  /** The last CWL season, as month name (`ott 2026`); `null` if none. */
+  protected readonly cwlSeasonLabel = computed(() => {
+    const season = this.selection()?.cwlSeason;
+    if (!season) return null;
+    return new Intl.DateTimeFormat(this.language.current(), {
+      month: 'long',
       year: 'numeric',
       timeZone: 'UTC',
-    });
-    return (this.selection()?.seasons ?? []).map((season) =>
-      format.format(new Date(`${season}-01`)),
-    );
+    }).format(new Date(`${season}-01`));
   });
+
+  /** Names of the clans of the Crusade, for the clan a player fought the last CWL with. */
+  private readonly clanNames = new Map<string, string>([
+    [this.config.clanTag, this.config.clanName],
+    ...SISTER_CLANS.map((c) => [c.tag, c.name] as [string, string]),
+  ]);
+
+  protected clanName(tag: string): string {
+    return this.clanNames.get(tag) ?? tag;
+  }
 
   protected roleLabel(role: string | null): string | null {
     const clanRole = role ? ROLES[role] : undefined;
@@ -159,10 +162,11 @@ export class CwlSelectionPage {
     });
     return BREAKDOWN_PARTS.filter((part) => part !== 'missedAttacks' || row.breakdown[part] !== 0)
       .filter((part) => part !== 'activity' || row.breakdown[part] !== 0)
-      .map(
-        (part) =>
-          `${this.language.t(`cwlSelection.parts.${part}`)}: ${number.format(row.breakdown[part])}`,
-      )
+      .map((part) => {
+        const label = this.language.t(`cwlSelection.parts.${part}`);
+        const max = part === 'war' ? ` / ${row.war.maxPoints}` : '';
+        return `${label}: ${number.format(row.breakdown[part])}${max}`;
+      })
       .join('\n');
   }
 

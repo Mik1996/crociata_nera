@@ -55,10 +55,10 @@
             </dd>
           </div>
           <div>
-            <dt>{{ 'cwlSelection.facts.seasons' | translate }}</dt>
+            <dt>{{ 'cwlSelection.facts.lastCwl' | translate }}</dt>
             <dd>
-              @if (seasonLabels().length) {
-                {{ seasonLabels().join(', ') }}
+              @if (cwlSeasonLabel(); as season) {
+                {{ season }}
               } @else {
                 {{ 'cwlSelection.facts.noSeasons' | translate }}
               }
@@ -83,8 +83,8 @@
           <ul>
             <li>{{ 'cwlSelection.rules.eligibility' | translate }}</li>
             <li>{{ 'cwlSelection.rules.cwl' | translate }}</li>
-            <li>{{ 'cwlSelection.rules.cwlPerformance' | translate }}</li>
             <li>{{ 'cwlSelection.rules.war' | translate }}</li>
+            <li>{{ 'cwlSelection.rules.noCwl' | translate }}</li>
             <li>{{ 'cwlSelection.rules.heroes' | translate }}</li>
             <li>{{ 'cwlSelection.rules.townHall' | translate }}</li>
             <li>{{ 'cwlSelection.rules.penalties' | translate }}</li>
@@ -132,27 +132,17 @@
                     <span>· {{ role | translate }}</span>
                   }
                 </div>
-                @if (p.activity.newcomer || p.activity.inactive) {
+                @if (p.activity.newcomer) {
                   <div class="flags">
-                    @if (p.activity.newcomer) {
-                      <span
-                        class="flag"
-                        [matTooltip]="
-                          'cwlSelection.flags.newcomerHint'
-                            | translate: { date: (p.activity.joinedAt | localDate) }
-                        "
-                        tabindex="0"
-                        >{{ 'cwlSelection.flags.newcomer' | translate }}</span
-                      >
-                    }
-                    @if (p.activity.inactive) {
-                      <span
-                        class="flag flag--alert"
-                        [matTooltip]="'cwlSelection.flags.inactiveHint' | translate"
-                        tabindex="0"
-                        >{{ 'cwlSelection.flags.inactive' | translate }}</span
-                      >
-                    }
+                    <span
+                      class="flag"
+                      [matTooltip]="
+                        'cwlSelection.flags.newcomerHint'
+                          | translate: { date: (p.activity.joinedAt | localDate) }
+                      "
+                      tabindex="0"
+                      >{{ 'cwlSelection.flags.newcomer' | translate }}</span
+                    >
                   </div>
                 }
               </td>
@@ -236,49 +226,60 @@
             <ng-container matColumnDef="cwl">
               <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.cwl' | translate }}</th>
               <td mat-cell *matCellDef="let p">
-                <ul class="medals" [attr.aria-label]="'cwlSelection.cwl' | translate">
-                  @if (p.cwl.allAttacks) {
-                    @let allName = 'commendations.cwlAllAttacks.legendary' | translate;
-                    <li
-                      [matTooltip]="allName"
-                      [attr.aria-label]="allName + ' ×' + p.cwl.allAttacks"
+                @if (p.cwl; as cwl) {
+                  <div class="cwl-clan">{{ clanName(cwl.clanTag) }}</div>
+                  @if (cwl.allAttacks || cwl.striker) {
+                    <ul
+                      class="medals"
+                      [attr.aria-label]="'cwlSelection.cwlCommendations' | translate"
                     >
-                      <crn-commendation-medal emblem="cwlAllAttacks-legendary" />
-                      <span class="medals__count">×{{ p.cwl.allAttacks }}</span>
-                    </li>
+                      @if (cwl.allAttacks) {
+                        @let allName = 'commendations.cwlAllAttacks.legendary' | translate;
+                        <li [matTooltip]="allName" [attr.aria-label]="allName">
+                          <crn-commendation-medal emblem="cwlAllAttacks-legendary" />
+                        </li>
+                      }
+                      @if (cwl.striker === 'gold') {
+                        @let goldName = 'commendations.cwlStriker.gold' | translate;
+                        <li [matTooltip]="goldName" [attr.aria-label]="goldName">
+                          <crn-commendation-medal emblem="cwlStriker-gold" />
+                        </li>
+                      } @else if (cwl.striker === 'silver') {
+                        @let silverName = 'commendations.cwlStriker.silver' | translate;
+                        <li [matTooltip]="silverName" [attr.aria-label]="silverName">
+                          <crn-commendation-medal emblem="cwlStriker-silver" />
+                        </li>
+                      } @else if (cwl.striker === 'bronze') {
+                        @let bronzeName = 'commendations.cwlStriker.bronze' | translate;
+                        <li [matTooltip]="bronzeName" [attr.aria-label]="bronzeName">
+                          <crn-commendation-medal emblem="cwlStriker-bronze" />
+                        </li>
+                      }
+                    </ul>
                   }
-                  @for (medal of strikerTiers; track medal.tier) {
-                    @if (p.cwl[medal.tier]) {
-                      @let tierName = 'commendations.cwlStriker.' + medal.tier | translate;
-                      <li
-                        [matTooltip]="tierName"
-                        [attr.aria-label]="tierName + ' ×' + p.cwl[medal.tier]"
-                      >
-                        <crn-commendation-medal [emblem]="medal.emblem" />
-                        <span class="medals__count">×{{ p.cwl[medal.tier] }}</span>
-                      </li>
-                    }
-                  }
-                </ul>
-                @if (p.cwl.wars) {
                   <div class="cn-muted meta">
                     {{
                       'cwlSelection.cwlWars'
                         | translate
                           : {
-                              stars: (p.cwl.averageStarsPerAttack | localNumber: '1.2-2'),
-                              attacks: p.cwl.attacks,
-                              wars: p.cwl.wars,
+                              stars: (cwl.averageStarsPerAttack | localNumber: '1.2-2'),
+                              attacks: cwl.attacks,
+                              wars: cwl.wars,
                             }
                     }}
                   </div>
-                  @if (p.cwl.missed) {
+                  @if (cwl.missed) {
                     <div class="meta missing">
-                      {{ 'cwlSelection.missed' | translate: { n: p.cwl.missed } }}
+                      {{ 'cwlSelection.missed' | translate: { n: cwl.missed } }}
                     </div>
                   }
-                } @else if (!p.cwl.allAttacks && !p.cwl.gold && !p.cwl.silver && !p.cwl.bronze) {
-                  <span class="cn-muted">{{ 'cwlSelection.noCwl' | translate }}</span>
+                } @else {
+                  <span
+                    class="cn-muted"
+                    [matTooltip]="'cwlSelection.noCwlHint' | translate"
+                    tabindex="0"
+                    >{{ 'cwlSelection.noCwl' | translate }}</span
+                  >
                 }
               </td>
             </ng-container>
@@ -299,6 +300,11 @@
                         | translate: { used: p.war.attacksUsed, available: p.war.attacksAvailable }
                     }}
                   </div>
+                  @if (p.war.maxPoints > 40) {
+                    <div class="meta war-bonus">
+                      {{ 'cwlSelection.warMax' | translate: { n: p.war.maxPoints } }}
+                    </div>
+                  }
                 } @else {
                   <span class="cn-muted">{{ 'cwlSelection.noWars' | translate }}</span>
                 }
