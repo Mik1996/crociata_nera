@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
+import { CocApiService } from '../api/coc-api';
+import { SISTER_CLANS } from '../config/sister-clans';
+import { Clan } from '../models';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { PlayerService } from './player.service';
 
@@ -40,5 +43,34 @@ describe('PlayerService', () => {
     const [first] = await firstValueFrom(service.getMembers());
     expect((await firstValueFrom(service.getPlayerStats(first.tag)))?.name).toBe(first.name);
     expect(await firstValueFrom(service.getPlayerStats('#DOESNOTEXIST'))).toBeNull();
+  });
+
+  describe('getCrusadeMemberTags', () => {
+    const clanWith = (clan: Clan, tags: string[]): Clan => ({
+      ...clan,
+      members: tags.map((tag, i) => ({ ...clan.members[0], tag, name: `P${i}` })),
+    });
+
+    it('joins the members of the three clans of the Crusade', async () => {
+      const service = create();
+      const api = TestBed.inject(CocApiService);
+      const own = await firstValueFrom(api.getClan());
+      vi.spyOn(api, 'getClan').mockReturnValue(of(clanWith(own, ['#BLACK'])));
+      const byTag = vi
+        .spyOn(api, 'getClanByTag')
+        .mockImplementation((tag) => of(clanWith(own, [`#${tag === SISTER_CLANS[0].tag ? 'RED' : 'GOLD'}`])));
+
+      const tags = await firstValueFrom(service.getCrusadeMemberTags());
+      expect(byTag.mock.calls.map(([tag]) => tag)).toEqual(SISTER_CLANS.map((s) => s.tag));
+      expect([...tags!].sort()).toEqual(['#BLACK', '#GOLD', '#RED']);
+    });
+
+    it('returns null when a member list cannot be read', async () => {
+      const service = create();
+      vi.spyOn(TestBed.inject(CocApiService), 'getClanByTag').mockReturnValue(
+        throwError(() => new Error('down')),
+      );
+      expect(await firstValueFrom(service.getCrusadeMemberTags())).toBeNull();
+    });
   });
 });

@@ -11,7 +11,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
@@ -30,7 +29,7 @@ import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { StarText } from '../../shared/components/star-text';
 
-/** Ranking row: stats + rank + current clan membership. */
+/** Ranking row: stats + rank + current membership of a clan of the Crusade. */
 export interface RankingRow extends HistoryPlayerStats {
   rank: number;
   isCurrentMember: boolean;
@@ -90,14 +89,11 @@ export class StatisticsPage {
     params: () => this.period(),
     stream: ({ params }) => this.history.getPeriod(params),
   });
-  /** Current members: only used to tell former members apart, so an error does not block the page. */
-  private readonly members = rxResource({
-    stream: () =>
-      this.players.getMembers().pipe(
-        map((m) => new Set(m.map((x) => x.tag))),
-        catchError(() => of(null)),
-      ),
-  });
+  /**
+   * Current members of the three clans of the Crusade: only used to tell former members apart, so
+   * an error does not block the page.
+   */
+  private readonly members = rxResource({ stream: () => this.players.getCrusadeMemberTags() });
 
   protected readonly monthList = computed(() =>
     this.months.hasValue() ? this.months.value() : [],

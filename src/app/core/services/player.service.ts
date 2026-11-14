@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { combineLatest, map, Observable } from 'rxjs';
+import { catchError, combineLatest, forkJoin, map, Observable, of } from 'rxjs';
 import { CocApiService } from '../api/coc-api';
 import { APP_CONFIG } from '../config/app-config';
+import { SISTER_CLANS } from '../config/sister-clans';
 import { ClanMember, PlayerProfile, PlayerStats } from '../models';
 import { computePlayerStats } from '../utils/war-stats';
 import { WarService } from './war.service';
@@ -15,6 +16,21 @@ export class PlayerService {
 
   getMembers(): Observable<ClanMember[]> {
     return this.api.getClan().pipe(map((clan) => clan.members));
+  }
+
+  /**
+   * Tags of the current members of the three clans of the Crusade (Crociata Nera and its sister
+   * clans): whoever is not in any of them is a former member. `null` when a member list cannot be
+   * read, so nobody is wrongly labelled as a former member.
+   */
+  getCrusadeMemberTags(): Observable<Set<string> | null> {
+    return forkJoin([
+      this.api.getClan(),
+      ...SISTER_CLANS.map((sister) => this.api.getClanByTag(sister.tag)),
+    ]).pipe(
+      map((clans) => new Set(clans.flatMap((clan) => clan.members.map((m) => m.tag)))),
+      catchError(() => of(null)),
+    );
   }
 
   /**
