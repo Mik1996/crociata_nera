@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Icon } from './icon';
-import { IconName, MATERIAL_ICONS } from './material-icons';
+import { IconName } from './icon-names';
 
 describe('Icon', () => {
   function render(name: IconName, label?: string) {
@@ -11,13 +11,11 @@ describe('Icon', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('draws the bundled SVG of the icon, coloured by the text', () => {
+  it('draws the SVG file of the icon from the assets folder', () => {
     const el = render('refresh');
     const svg = el.querySelector('svg')!;
     expect(svg.getAttribute('viewBox')).toBe('0 0 24 24');
-    expect(svg.querySelector('path')?.getAttribute('d')).toBe(
-      /d="([^"]+)"/.exec(MATERIAL_ICONS.refresh)![1],
-    );
+    expect(svg.querySelector('use')?.getAttribute('href')).toBe('assets/icons/refresh.svg#icon');
     expect(el.getAttribute('data-icon')).toBe('refresh');
     expect(el.classList).toContain('mat-icon');
   });
@@ -36,9 +34,4 @@ describe('Icon', () => {
     expect(el.getAttribute('aria-label')).toBe('Verified');
   });
 
-  it('bundles only plain SVG shapes', () => {
-    for (const [name, body] of Object.entries(MATERIAL_ICONS)) {
-      expect(body, name).toMatch(/^(<(path|circle)\b[^<>]*\/>)+$/);
-    }
-  });
 });

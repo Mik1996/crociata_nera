@@ -361,6 +361,12 @@ mat-sidenav-content {
     padding: 0;
     border-radius: 50%;
 
+    // Material spaces a button icon from its label (margins -4px / 8px): alone, it would sit
+    // off-centre in the circle.
+    .account__icon {
+      margin: 0;
+    }
+
     .account__name,
     .picker__arrow {
       display: none;
@@ -391,11 +397,11 @@ mat-sidenav-content {
     height: 2.25rem;
   }
 
-  .picker {
+  .picker:not(.account) {
     padding: 0 $space-s;
+  }
 
-    .picker__arrow {
-      display: none;
-    }
+  .picker .picker__arrow {
+    display: none;
   }
 }

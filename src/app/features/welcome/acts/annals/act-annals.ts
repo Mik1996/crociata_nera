@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Icon } from '../../../../shared/icon/icon';
-import { IconName } from '../../../../shared/icon/material-icons';
+import { IconName } from '../../../../shared/icon/icon-names';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalDatePipe, LocalNumberPipe } from '../../../../core/i18n/locale-pipes';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';

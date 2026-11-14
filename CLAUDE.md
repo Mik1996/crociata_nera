@@ -93,8 +93,10 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   localStorage (no token, no email; `isUnconfirmed()`), confirmed or signed out when the backend
   answers. Network state: `Connectivity` (`core/pwa/connectivity.ts`): offline banner in the shell,
   "offline" error messages, `<app-load-state>` retries by itself when the connection comes back.
-- Icons: `<app-icon name="..." />` (`src/app/shared/icon/`), SVGs bundled with the app (no icon
-  font). Names are typed: add a new one to `scripts/generate-icons.mjs` and run `npm run icons`.
+- Icons: `<app-icon name="..." />` (`src/app/shared/icon/`) draws `public/assets/icons/<name>.svg`
+  with `<use href="…#icon">` (no icon font); the files paint with `currentColor`, so set `color` to
+  colour them. Precached by the service worker. Names are typed: add a new one to
+  `scripts/generate-icons.mjs` and run `npm run icons` (writes the SVGs and `icon-names.ts`).
   Inside Material buttons add `matButtonIcon`, inside menu items `matMenuItemIcon` (projection slots).
 - Service worker (production build only, `ngsw-config.json`): app files precached, pictures cached
   on first use, `/api/coc` and the clan data (`clan-data` group, dropped at sign-out) network-first

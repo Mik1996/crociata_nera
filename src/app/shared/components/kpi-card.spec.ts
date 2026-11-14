@@ -28,6 +28,6 @@ describe('KpiCard', () => {
   it('shows the icon when there is no picture', () => {
     const el = render({ icon: 'groups' });
     expect(el.querySelector('app-icon')?.getAttribute('data-icon')).toBe('groups');
-    expect(el.querySelector('app-icon svg path')).not.toBeNull();
+    expect(el.querySelector('app-icon svg use')?.getAttribute('href')).toBe('assets/icons/groups.svg#icon');
   });
 });

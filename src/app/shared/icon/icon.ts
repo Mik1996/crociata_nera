@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { IconName, MATERIAL_ICONS } from './material-icons';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { IconName } from './icon-names';
+
+/** Folder of the icon files, relative to the base href (`public/assets/icons/`). */
+export const ICONS_PATH = 'assets/icons/';
 
 /**
- * SVG icon bundled with the app (no icon font, no network: it shows up offline too).
- * The colour follows the text (`currentColor`), the size follows `font-size` (1em, 1.5rem by
- * default), like the old Material icon font. Decorative unless `label` is given.
+ * SVG icon from `public/assets/icons/<name>.svg`, drawn with `<use>` so it stays inline SVG: the
+ * files paint with `currentColor`, so the colour follows the text (`color` in the stylesheets),
+ * and the size follows `font-size` (1em, 1.5rem by default), like the old Material icon font.
+ * The service worker precaches the files, so icons show up offline too. Decorative unless
+ * `label` is given.
  *
  * Carries the `mat-icon` class, so Material buttons, lists and form fields lay it out as their own.
  */
@@ -27,10 +31,6 @@ export class Icon {
   /** Accessible name; without it the icon is hidden from assistive technologies. */
   readonly label = input<string | null>();
 
-  private readonly sanitizer = inject(DomSanitizer);
-
-  /** The icons are generated from a trusted package (scripts/generate-icons.mjs), never from input. */
-  protected readonly body = computed(() =>
-    this.sanitizer.bypassSecurityTrustHtml(MATERIAL_ICONS[this.name()] ?? ''),
-  );
+  /** `#icon` is the id of the root `<svg>` of every file (scripts/generate-icons.mjs). */
+  protected readonly href = computed(() => `${ICONS_PATH}${this.name()}.svg#icon`);
 }

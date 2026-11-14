@@ -16,6 +16,7 @@
           "/*.js",
           "/i18n/*.json",
           "/icons/favicon-32.png",
+          "/assets/icons/*.svg",
           "/images/clan-crest-*.webp",
           "/flags/*.svg"
         ]

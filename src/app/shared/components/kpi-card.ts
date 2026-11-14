@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Icon } from '../icon/icon';
-import { IconName } from '../icon/material-icons';
+import { IconName } from '../icon/icon-names';
 
 /** Card showing a numeric indicator. */
 @Component({

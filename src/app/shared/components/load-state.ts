@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Icon } from '../icon/icon';
-import { IconName } from '../icon/material-icons';
+import { IconName } from '../icon/icon-names';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CREST_URL, ClanBadge } from '../../core/api/clan-badge';

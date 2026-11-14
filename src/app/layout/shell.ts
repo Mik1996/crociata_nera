@@ -13,7 +13,7 @@ import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-int
 import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Icon } from '../shared/icon/icon';
-import { IconName } from '../shared/icon/material-icons';
+import { IconName } from '../shared/icon/icon-names';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
