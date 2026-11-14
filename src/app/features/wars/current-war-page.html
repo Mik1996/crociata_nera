@@ -6,13 +6,8 @@
     [title]="'nav.currentWar' | translate"
     [subtitle]="'currentWar.subtitle' | translate"
   >
-    <button
-      mat-stroked-button
-      type="button"
-      (click)="refresh()"
-      [disabled]="resource.isLoading()"
-    >
-      <mat-icon aria-hidden="true">refresh</mat-icon> {{ 'common.refresh' | translate }}
+    <button mat-stroked-button type="button" (click)="refresh()" [disabled]="resource.isLoading()">
+      <app-icon matButtonIcon name="refresh" /> {{ 'common.refresh' | translate }}
     </button>
     @if (war(); as w) {
       <app-war-summary pageHero scenic [war]="w" />

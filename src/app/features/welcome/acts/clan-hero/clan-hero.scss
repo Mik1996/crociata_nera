@@ -418,7 +418,7 @@ $night: var(--cn-welcome-night);
   align-items: center;
   gap: $space-xs;
 
-  mat-icon {
+  app-icon {
     width: 1.125rem;
     height: 1.125rem;
     font-size: 1.125rem;
@@ -505,7 +505,7 @@ $night: var(--cn-welcome-night);
   color: $muted;
   opacity: clamp(0, 1 - var(--p) * 6, 1);
 
-  mat-icon {
+  app-icon {
     color: var(--cn-game-gold);
     animation: hint-bounce 1.6s ease-in-out infinite;
   }
@@ -598,7 +598,7 @@ $night: var(--cn-welcome-night);
   .hero__fog,
   .clan-name__fire,
   .clan-name__metal,
-  .hero__hint mat-icon {
+  .hero__hint app-icon {
     animation: none;
   }
 

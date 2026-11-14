@@ -1,8 +1,11 @@
-<app-auth-panel [heading]="'auth.signIn.title' | translate" [subtitle]="'auth.signIn.subtitle' | translate">
+<app-auth-panel
+  [heading]="'auth.signIn.title' | translate"
+  [subtitle]="'auth.signIn.subtitle' | translate"
+>
   <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     @if (generalErrors().length) {
       <div class="auth-form__alert" role="alert">
-        <mat-icon aria-hidden="true">error</mat-icon>
+        <app-icon name="error" />
         <div>
           @for (message of generalErrors(); track message.key) {
             <p>{{ message.key | translate: message.params }}</p>
@@ -13,8 +16,14 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.identifier' | translate }}</mat-label>
-      <mat-icon matPrefix aria-hidden="true">person</mat-icon>
-      <input matInput formControlName="identifier" autocomplete="username" autocapitalize="none" spellcheck="false" />
+      <app-icon matPrefix name="person" />
+      <input
+        matInput
+        formControlName="identifier"
+        autocomplete="username"
+        autocapitalize="none"
+        spellcheck="false"
+      />
       @if (errorKey(form.controls.identifier, identifierErrors); as key) {
         <mat-error>{{ key | translate }}</mat-error>
       }
@@ -22,7 +31,7 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.password' | translate }}</mat-label>
-      <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+      <app-icon matPrefix name="lock" />
       <input
         matInput
         formControlName="password"
@@ -38,14 +47,16 @@
         [attr.aria-pressed]="showPassword()"
         (click)="showPassword.set(!showPassword())"
       >
-        <mat-icon aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
       </button>
       @if (errorKey(form.controls.password, passwordErrors); as key) {
         <mat-error>{{ key | translate }}</mat-error>
       }
     </mat-form-field>
 
-    <a class="auth-form__forgot" routerLink="/forgot-password">{{ 'auth.signIn.forgot' | translate }}</a>
+    <a class="auth-form__forgot" routerLink="/forgot-password">{{
+      'auth.signIn.forgot' | translate
+    }}</a>
 
     <button mat-flat-button type="submit" class="auth-form__submit" [disabled]="submitting()">
       @if (submitting()) {
@@ -59,6 +70,8 @@
 
   <p authFooter>
     {{ 'auth.signIn.noAccount' | translate }}
-    <a routerLink="/sign-up" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}">{{ 'auth.signIn.toSignUp' | translate }}</a>
+    <a routerLink="/sign-up" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}">{{
+      'auth.signIn.toSignUp' | translate
+    }}</a>
   </p>
 </app-auth-panel>

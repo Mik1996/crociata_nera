@@ -60,11 +60,11 @@
         @if (preview(); as src) {
           <img class="drop__preview" [src]="src" [alt]="'bases.form.imagePreview' | translate" />
           <span class="drop__change">
-            <mat-icon aria-hidden="true">photo_camera</mat-icon>
+            <app-icon name="photo_camera" />
             {{ 'bases.form.imageChange' | translate }}
           </span>
         } @else {
-          <mat-icon class="drop__icon" aria-hidden="true">add_photo_alternate</mat-icon>
+          <app-icon class="drop__icon" name="add_photo_alternate" />
           <span>{{ 'bases.form.imageDrop' | translate }}</span>
           <span class="cn-muted drop__formats">{{ 'bases.form.imageFormats' | translate }}</span>
         }

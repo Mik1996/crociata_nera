@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -54,7 +54,7 @@ const MAX_STARS_PER_WAR = 6;
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatIconModule,
+    Icon,
     MatTooltipModule,
     PageHeader,
     LoadState,

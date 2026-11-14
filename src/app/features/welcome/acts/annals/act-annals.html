@@ -13,7 +13,12 @@
     />
 
     <div class="annals__viewport">
-      <ul class="annals__track" appScrollyTrack [style.--n]="list.length" [attr.aria-label]="'welcome.records.title' | translate">
+      <ul
+        class="annals__track"
+        appScrollyTrack
+        [style.--n]="list.length"
+        [attr.aria-label]="'welcome.records.title' | translate"
+      >
         @for (r of list; track r.id; let i = $index) {
           <li class="record" [attr.data-record]="r.id" [style.--i]="i">
             <span class="record__icon" aria-hidden="true">
@@ -26,7 +31,7 @@
                   }
                 </span>
               } @else {
-                <mat-icon>{{ r.icon }}</mat-icon>
+                <app-icon [name]="r.icon ?? 'emoji_events'" />
               }
             </span>
             <span class="record__value cn-num" [class.record__value--text]="r.text">
@@ -40,7 +45,9 @@
             </span>
             <span class="record__label">{{ r.label | translate: { country: r.country } }}</span>
             @if (r.achievedAt) {
-              <span class="record__date">{{ 'welcome.records.achievedAt' | translate: { date: (r.achievedAt | localDate) } }}</span>
+              <span class="record__date">{{
+                'welcome.records.achievedAt' | translate: { date: (r.achievedAt | localDate) }
+              }}</span>
             }
           </li>
         }

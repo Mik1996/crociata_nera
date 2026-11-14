@@ -1,6 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { Icon } from '../../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CRESTS } from '../../../../core/api/clan-badge';
 import { CrusadeOrder } from '../../../../core/config/sister-clans';
@@ -21,7 +30,7 @@ const FINALE_AT = 0.6;
  */
 @Component({
   selector: 'app-clan-hero',
-  imports: [NgTemplateOutlet, MatIconModule, TranslatePipe, Crusader],
+  imports: [NgTemplateOutlet, Icon, TranslatePipe, Crusader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-hero.html',
   styleUrl: './clan-hero.scss',

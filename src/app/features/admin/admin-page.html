@@ -1,4 +1,6 @@
-<app-page-header scene="candle" [kicker]="'kicker.admin' | translate"
+<app-page-header
+  scene="candle"
+  [kicker]="'kicker.admin' | translate"
   [title]="'admin.title' | translate"
   [subtitle]="'admin.subtitle' | translate: { n: total() }"
 />
@@ -8,7 +10,7 @@
     <form class="cn-filters search" (ngSubmit)="search()">
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>{{ 'admin.search' | translate }}</mat-label>
-        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+        <app-icon matPrefix name="search" />
         <input
           matInput
           name="search"
@@ -59,19 +61,19 @@
                 <span class="tag-cell">
                   <span class="cn-num">{{ p.tag }}</span>
                   @if (p.verified) {
-                    <mat-icon
+                    <app-icon
                       class="ok"
                       [matTooltip]="'admin.tagVerified' | translate"
-                      [attr.aria-label]="'admin.tagVerified' | translate"
-                      >verified</mat-icon
-                    >
+                      [label]="'admin.tagVerified' | translate"
+                      name="verified"
+                    />
                   } @else {
-                    <mat-icon
+                    <app-icon
                       class="unverified"
                       [matTooltip]="'admin.tagUnverified' | translate"
-                      [attr.aria-label]="'admin.tagUnverified' | translate"
-                      >gpp_maybe</mat-icon
-                    >
+                      [label]="'admin.tagUnverified' | translate"
+                      name="gpp_maybe"
+                    />
                   }
                 </span>
               } @empty {
@@ -97,15 +99,17 @@
             <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.verified' | translate }}</th>
             <td mat-cell *matCellDef="let u">
               @if (u.emailVerified) {
-                <mat-icon class="ok" [attr.aria-label]="'profile.account.verified' | translate"
-                  >verified</mat-icon
-                >
+                <app-icon
+                  class="ok"
+                  [label]="'profile.account.verified' | translate"
+                  name="verified"
+                />
               } @else {
-                <mat-icon
+                <app-icon
                   class="cn-muted"
-                  [attr.aria-label]="'profile.account.notVerified' | translate"
-                  >schedule</mat-icon
-                >
+                  [label]="'profile.account.notVerified' | translate"
+                  name="schedule"
+                />
               }
             </td>
           </ng-container>
@@ -128,7 +132,7 @@
                   [matTooltip]="'admin.actions.link' | translate"
                   [attr.aria-label]="'admin.actions.linkOf' | translate: { name: u.username }"
                 >
-                  <mat-icon aria-hidden="true">add_link</mat-icon>
+                  <app-icon name="add_link" />
                 </button>
                 <button
                   mat-icon-button
@@ -139,7 +143,7 @@
                   [matTooltip]="'admin.actions.unlink' | translate"
                   [attr.aria-label]="'admin.actions.unlinkOf' | translate: { name: u.username }"
                 >
-                  <mat-icon aria-hidden="true">link_off</mat-icon>
+                  <app-icon name="link_off" />
                 </button>
                 <span
                   [matTooltip]="
@@ -156,7 +160,7 @@
                     (click)="openDelete(u)"
                     [attr.aria-label]="'admin.actions.deleteOf' | translate: { name: u.username }"
                   >
-                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    <app-icon name="delete" />
                   </button>
                 </span>
               </div>

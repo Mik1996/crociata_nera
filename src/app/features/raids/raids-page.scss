@@ -69,7 +69,7 @@
   margin: 0;
   font-weight: 600;
 
-  mat-icon {
+  app-icon {
     color: var(--cn-all-in);
   }
 }
@@ -80,7 +80,7 @@
   align-items: flex-start;
   margin-top: $space-l;
 
-  mat-icon {
+  app-icon {
     flex: none;
     color: var(--cn-gold);
   }

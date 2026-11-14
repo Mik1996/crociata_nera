@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
@@ -68,7 +68,7 @@ function rowFromWar(w: War): HistoryRow {
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule,
+    Icon,
     MatButtonToggleModule,
     PageHeader,
     LoadState,
@@ -93,12 +93,19 @@ export class WarHistoryPage {
   private readonly sort = signal<SortState>({ field: 'date', direction: 'desc' });
   protected readonly page = signal({ index: 0, size: 10 });
 
-  private readonly rows = computed(() => (this.resource.hasValue() ? this.resource.value().map(rowFromWar) : []));
+  private readonly rows = computed(() =>
+    this.resource.hasValue() ? this.resource.value().map(rowFromWar) : [],
+  );
 
   protected readonly record = computed(() => {
     const rows = this.rows();
     const count = (r: WarResult) => rows.filter((x) => x.result === r).length;
-    return { total: rows.length, victories: count('victory'), defeats: count('defeat'), draws: count('draw') };
+    return {
+      total: rows.length,
+      victories: count('victory'),
+      defeats: count('defeat'),
+      draws: count('draw'),
+    };
   });
 
   protected readonly filteredRows = computed(() => {

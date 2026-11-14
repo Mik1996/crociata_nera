@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -11,7 +18,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -56,10 +63,14 @@ export function clanCastleFitsValidator(group: AbstractControl): ValidationError
   const townHall = layoutLinkTownHall(group.get('layoutUrl')?.value ?? '');
   const troops: ClanCastleTroop[] = group.get('clanCastleTroops')?.value ?? [];
   if (!townHall || !troops.length) return null;
-  return housingSpaceUsed(troops) > clanCastleCapacity(townHall) ? { clanCastleOverCapacity: true } : null;
+  return housingSpaceUsed(troops) > clanCastleCapacity(townHall)
+    ? { clanCastleOverCapacity: true }
+    : null;
 }
 
-export function layoutLinkValidator(control: AbstractControl<string | null>): ValidationErrors | null {
+export function layoutLinkValidator(
+  control: AbstractControl<string | null>,
+): ValidationErrors | null {
   const value = control.value?.trim();
   return !value || layoutLinkTownHall(value) ? null : { layoutLink: true };
 }
@@ -76,7 +87,7 @@ export function layoutLinkValidator(control: AbstractControl<string | null>): Va
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     MatInputModule,
     MatProgressSpinnerModule,
     TranslatePipe,
@@ -95,27 +106,29 @@ export class BaseFormDialog {
   protected readonly accept = ACCEPTED_IMAGE_TYPES.join(',');
   protected readonly maxDescription = MAX_DESCRIPTION_LENGTH;
 
-  protected readonly form = new FormGroup({
-    layoutUrl: new FormControl(this.data.base?.layoutUrl ?? '', {
-      nonNullable: true,
-      validators: [Validators.required, layoutLinkValidator],
-    }),
-    description: new FormControl(this.data.base?.description ?? '', {
-      nonNullable: true,
-      validators: [Validators.maxLength(MAX_DESCRIPTION_LENGTH)],
-    }),
-    clanCastleTroops: new FormControl<ClanCastleTroop[]>(this.data.base?.clanCastleTroops ?? [], {
-      nonNullable: true,
-    }),
-  }, { validators: clanCastleFitsValidator });
+  protected readonly form = new FormGroup(
+    {
+      layoutUrl: new FormControl(this.data.base?.layoutUrl ?? '', {
+        nonNullable: true,
+        validators: [Validators.required, layoutLinkValidator],
+      }),
+      description: new FormControl(this.data.base?.description ?? '', {
+        nonNullable: true,
+        validators: [Validators.maxLength(MAX_DESCRIPTION_LENGTH)],
+      }),
+      clanCastleTroops: new FormControl<ClanCastleTroop[]>(this.data.base?.clanCastleTroops ?? [], {
+        nonNullable: true,
+      }),
+    },
+    { validators: clanCastleFitsValidator },
+  );
 
   private readonly layoutUrl = toSignal(this.form.controls.layoutUrl.valueChanges, {
     initialValue: this.form.controls.layoutUrl.value,
   });
-  protected readonly descriptionText = toSignal(
-    this.form.controls.description.valueChanges,
-    { initialValue: this.form.controls.description.value },
-  );
+  protected readonly descriptionText = toSignal(this.form.controls.description.valueChanges, {
+    initialValue: this.form.controls.description.value,
+  });
   /** Town hall level read from the link as it is typed. */
   protected readonly townHall = computed(() => layoutLinkTownHall(this.layoutUrl()));
   /** Housing space of the clan castle of that town hall; `null` while the link is not valid. */
@@ -165,7 +178,9 @@ export class BaseFormDialog {
 
   /** A screenshot pasted anywhere in the dialog (text pastes are left alone). */
   protected onPaste(event: ClipboardEvent): void {
-    const file = Array.from(event.clipboardData?.files ?? []).find((f) => f.type.startsWith('image/'));
+    const file = Array.from(event.clipboardData?.files ?? []).find((f) =>
+      f.type.startsWith('image/'),
+    );
     if (!file) return;
     event.preventDefault();
     void this.pick(file);
@@ -233,7 +248,8 @@ export class BaseFormDialog {
     const description = this.form.controls.description.value.trim();
     const clanCastleTroops = this.form.controls.clanCastleTroops.value;
     const base = this.data.base;
-    if (!base) return this.service.create({ layoutUrl, description, clanCastleTroops, image: image! });
+    if (!base)
+      return this.service.create({ layoutUrl, description, clanCastleTroops, image: image! });
 
     const changes: DefenseBaseChanges = {};
     if (layoutUrl !== base.layoutUrl) changes.layoutUrl = layoutUrl;

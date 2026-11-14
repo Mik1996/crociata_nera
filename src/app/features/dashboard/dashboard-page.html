@@ -1,13 +1,24 @@
-<app-page-header scene="army" [kicker]="'kicker.dashboard' | translate" crusader="guard" [title]="'nav.dashboard' | translate" [subtitle]="'dashboard.subtitle' | translate" />
+<app-page-header
+  scene="army"
+  [kicker]="'kicker.dashboard' | translate"
+  crusader="guard"
+  [title]="'nav.dashboard' | translate"
+  [subtitle]="'dashboard.subtitle' | translate"
+/>
 
 <div appScrollFade class="page__scroll">
   <!-- Latest war and KPIs -->
   <section class="cn-card cn-section" aria-labelledby="latest-war-title">
     <div class="section-header">
-      <h2 id="latest-war-title">{{ (war()?.state === 'ended' ? 'dashboard.latestWar' : 'dashboard.warInProgress') | translate }}</h2>
+      <h2 id="latest-war-title">
+        {{
+          (war()?.state === 'ended' ? 'dashboard.latestWar' : 'dashboard.warInProgress') | translate
+        }}
+      </h2>
       @if (war(); as w) {
         <a mat-button [routerLink]="w.state === 'ended' ? ['/wars', w.id] : ['/current-war']">
-          {{ 'common.viewDetails' | translate }} <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+          {{ 'common.viewDetails' | translate }}
+          <app-icon matButtonIcon iconPositionEnd name="arrow_forward" />
         </a>
       }
     </div>
@@ -53,7 +64,8 @@
     <div class="section-header">
       <h2 id="ranking-title">{{ 'dashboard.rankingTitle' | translate }}</h2>
       <a mat-button routerLink="/players">
-        {{ 'dashboard.allPlayers' | translate }} <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+        {{ 'dashboard.allPlayers' | translate }}
+        <app-icon matButtonIcon iconPositionEnd name="arrow_forward" />
       </a>
     </div>
     <p class="cn-muted note" [innerHTML]="'dashboard.rankingNote' | translate"></p>
@@ -67,7 +79,7 @@
       <div class="rankings">
         @for (list of rankings(); track list.title) {
           <div class="ranking" [class]="'ranking--' + list.modifier">
-            <h3><mat-icon aria-hidden="true">{{ list.icon }}</mat-icon> {{ list.title | translate }}</h3>
+            <h3><app-icon [name]="list.icon" /> {{ list.title | translate }}</h3>
             <ol>
               @for (s of list.entries; track s.tag; let i = $index) {
                 <li>
@@ -75,12 +87,17 @@
                   <span class="ranking__name">
                     <a class="cn-link-cell" [routerLink]="['/players', s.tag]">{{ s.name }}</a>
                     <span class="cn-muted">{{
-                      'dashboard.playerInfo' | translate: { th: s.townHall, used: s.attacksUsed, available: s.attacksAvailable }
+                      'dashboard.playerInfo'
+                        | translate
+                          : { th: s.townHall, used: s.attacksUsed, available: s.attacksAvailable }
                     }}</span>
                   </span>
                   <span class="ranking__value cn-num">
                     <strong>{{ efficiency(s) | localNumber: '1.2-2' }}</strong>
-                    <span class="cn-muted">{{ 'dashboard.averagePerAttack' | translate: { average: (s.averageStars | localNumber: '1.2-2') } }}</span>
+                    <span class="cn-muted">{{
+                      'dashboard.averagePerAttack'
+                        | translate: { average: (s.averageStars | localNumber: '1.2-2') }
+                    }}</span>
                   </span>
                 </li>
               }
@@ -93,7 +110,9 @@
 
   <!-- Trend -->
   <section aria-labelledby="trend-title">
-    <h2 id="trend-title" class="trend-title">{{ 'dashboard.trend' | translate: { n: trend().length } }}</h2>
+    <h2 id="trend-title" class="trend-title">
+      {{ 'dashboard.trend' | translate: { n: trend().length } }}
+    </h2>
     <app-load-state
       [loading]="history.isLoading()"
       [error]="history.error()"

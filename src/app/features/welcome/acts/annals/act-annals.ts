@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../../shared/icon/icon';
+import { IconName } from '../../../../shared/icon/material-icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalDatePipe, LocalNumberPipe } from '../../../../core/i18n/locale-pipes';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
@@ -15,10 +16,10 @@ export interface RecordTile {
   value?: number;
   rank?: number;
   text?: string;
-  /** Game picture, waving Italian flag, or a Material icon. */
+  /** Game picture, waving Italian flag, or an icon. */
   image?: string;
   flag?: boolean;
-  icon?: string;
+  icon?: IconName;
   achievedAt: string | null;
 }
 
@@ -28,7 +29,7 @@ export interface RecordTile {
  */
 @Component({
   selector: 'app-act-annals',
-  imports: [MatIconModule, TranslatePipe, LocalNumberPipe, LocalDatePipe, ActHeading, ScrollyTrack],
+  imports: [Icon, TranslatePipe, LocalNumberPipe, LocalDatePipe, ActHeading, ScrollyTrack],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],
   templateUrl: './act-annals.html',

@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService } from '../../../core/backend/admin.service';
 import { AdminUser, BackendMessage } from '../../../core/backend/backend-api.types';
@@ -30,7 +30,7 @@ export const normalizePlayerTag = (text: string) =>
     MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

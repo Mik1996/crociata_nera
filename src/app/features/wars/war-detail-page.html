@@ -1,4 +1,6 @@
-<app-page-header scene="war" [kicker]="'kicker.war' | translate"
+<app-page-header
+  scene="war"
+  [kicker]="'kicker.war' | translate"
   [title]="
     war()
       ? ('warDetail.versus' | translate: { name: war()!.opponent.name })
@@ -7,7 +9,7 @@
   [subtitle]="'warDetail.subtitle' | translate"
 >
   <a mat-stroked-button routerLink="/wars">
-    <mat-icon aria-hidden="true">arrow_back</mat-icon> {{ 'warDetail.back' | translate }}
+    <app-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
   </a>
 </app-page-header>
 
@@ -27,7 +29,7 @@
 
       @if (!w.hasDetails) {
         <section class="cn-card cn-section notice" role="note">
-          <mat-icon aria-hidden="true">info</mat-icon>
+          <app-icon name="info" />
           <div>
             <h2>{{ 'warDetail.noticeTitle' | translate }}</h2>
             <p class="cn-muted">{{ 'warDetail.noticeText' | translate }}</p>

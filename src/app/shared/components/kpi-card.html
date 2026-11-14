@@ -6,10 +6,16 @@
       }
     </span>
   } @else {
-    <img class="kpi__image" [src]="image" [style.--kpi-image-zoom]="imageZoom()" alt="" aria-hidden="true" />
+    <img
+      class="kpi__image"
+      [src]="image"
+      [style.--kpi-image-zoom]="imageZoom()"
+      alt=""
+      aria-hidden="true"
+    />
   }
-} @else if (icon()) {
-  <mat-icon class="kpi__icon" aria-hidden="true">{{ icon() }}</mat-icon>
+} @else if (icon(); as icon) {
+  <app-icon class="kpi__icon" [name]="icon" />
 }
 <div class="kpi__text">
   <span class="kpi__label">{{ label() }}</span>

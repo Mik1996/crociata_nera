@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
@@ -33,7 +33,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     RouterLink,
     MatFormFieldModule,
     MatSelectModule,
-    MatIconModule,
+    Icon,
     MatTableModule,
     PageHeader,
     LoadState,
@@ -70,7 +70,12 @@ export class RaidsPage {
 
   protected readonly raidsCompleted = computed(() => {
     const weekend = this.weekend();
-    return weekend?.attackLog.reduce((sum, log) => sum + (log.districtCount === log.districtsDestroyed ? 1 : 0), 0) ?? 0;
+    return (
+      weekend?.attackLog.reduce(
+        (sum, log) => sum + (log.districtCount === log.districtsDestroyed ? 1 : 0),
+        0,
+      ) ?? 0
+    );
   });
 
   /** Capital Peak at the clan's Capital Hall level (the castle icon until the clan loads). */

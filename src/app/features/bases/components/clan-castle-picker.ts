@@ -1,7 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  forwardRef,
+  input,
+  signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -23,7 +30,7 @@ const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
  */
 @Component({
   selector: 'app-clan-castle-picker',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe],
+  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ClanCastlePicker), multi: true },

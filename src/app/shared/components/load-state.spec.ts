@@ -58,7 +58,7 @@ describe('LoadState', () => {
     expect(text(f)).toContain('Vuoto!');
     const img = f.nativeElement.querySelector('.state--empty img') as HTMLImageElement;
     expect(img.getAttribute('src')).toBe(CLAN_CREST_URL);
-    expect(f.nativeElement.querySelector('.state--empty mat-icon')).toBeNull();
+    expect(f.nativeElement.querySelector('.state--empty app-icon')).toBeNull();
   });
 
   it('shows the clan badge in the empty state, then the logo, then the icon as they fail', async () => {
@@ -68,7 +68,7 @@ describe('LoadState', () => {
     await f.whenStable();
     const img = f.nativeElement.querySelector('.state--empty img') as HTMLImageElement;
     expect(img.getAttribute('src')).toBe('https://cdn.test/badge.png');
-    expect(f.nativeElement.querySelector('.state--empty mat-icon')).toBeNull();
+    expect(f.nativeElement.querySelector('.state--empty app-icon')).toBeNull();
 
     img.dispatchEvent(new Event('error'));
     await f.whenStable();
@@ -77,7 +77,7 @@ describe('LoadState', () => {
     img.dispatchEvent(new Event('error'));
     await f.whenStable();
     expect(f.nativeElement.querySelector('.state--empty img')).toBeNull();
-    expect(f.nativeElement.querySelector('.state--empty mat-icon')).not.toBeNull();
+    expect(f.nativeElement.querySelector('.state--empty app-icon')).not.toBeNull();
   });
 
   it('errorMessage handles errors of different types', () => {

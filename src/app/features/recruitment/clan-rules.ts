@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 
 /** Clan rules (`welcome.rules.<key>.<n>`), from the clan's own regulations. */
@@ -20,7 +20,7 @@ export type ClanRulesVariant = 'card' | 'scroll';
  */
 @Component({
   selector: 'app-clan-rules',
-  imports: [MatIconModule, TranslatePipe],
+  imports: [Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-rules.html',
   styleUrl: './clan-rules.scss',

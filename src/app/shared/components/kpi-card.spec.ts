@@ -15,7 +15,7 @@ describe('KpiCard', () => {
     const el = render({ image: 'game/misc/star.webp', icon: 'star' });
     expect(el.querySelectorAll('.kpi__image')).toHaveLength(1);
     expect(el.querySelector('.kpi__triangle')).toBeNull();
-    expect(el.querySelector('mat-icon')).toBeNull();
+    expect(el.querySelector('app-icon')).toBeNull();
   });
 
   it('shows the picture three times in a triangle', () => {
@@ -25,8 +25,9 @@ describe('KpiCard', () => {
     expect(el.querySelector('.kpi__image')).toBeNull();
   });
 
-  it('shows the Material icon when there is no picture', () => {
+  it('shows the icon when there is no picture', () => {
     const el = render({ icon: 'groups' });
-    expect(el.querySelector('mat-icon')?.textContent).toBe('groups');
+    expect(el.querySelector('app-icon')?.getAttribute('data-icon')).toBe('groups');
+    expect(el.querySelector('app-icon svg path')).not.toBeNull();
   });
 });

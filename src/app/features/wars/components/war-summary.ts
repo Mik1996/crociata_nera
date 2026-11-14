@@ -1,6 +1,14 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { map, timer } from 'rxjs';
 import { CLAN_CREST_URL } from '../../../core/api/clan-badge';
@@ -19,7 +27,7 @@ import { warStateKey } from '../../../shared/labels';
  */
 @Component({
   selector: 'app-war-summary',
-  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, MatIconModule, ResultBadge, Crusader],
+  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, Icon, ResultBadge, Crusader],
   host: { '[class.summary--scenic]': 'scenic()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './war-summary.html',
@@ -42,8 +50,13 @@ export class WarSummary {
     if (w.state === 'ended') return null;
     const target = new Date(w.state === 'preparation' ? w.startTime : w.endTime).getTime();
     const minutes = Math.max(0, Math.round((target - this.now()) / 60_000));
-    const time = this.language.t('summary.time', { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
-    return this.language.t(w.state === 'preparation' ? 'summary.startsIn' : 'summary.endsIn', { time });
+    const time = this.language.t('summary.time', {
+      hours: Math.floor(minutes / 60),
+      minutes: minutes % 60,
+    });
+    return this.language.t(w.state === 'preparation' ? 'summary.startsIn' : 'summary.endsIn', {
+      time,
+    });
   });
 
   protected totalAttacks(): number {

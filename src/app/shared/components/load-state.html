@@ -5,13 +5,13 @@
   </div>
 } @else if (error()) {
   <div class="state state--error" role="alert">
-    <mat-icon aria-hidden="true">error_outline</mat-icon>
+    <app-icon name="error_outline" />
     <p>
       <strong>{{ 'status.errorTitle' | translate }}</strong>
     </p>
     <p class="detail">{{ errorText() }}</p>
     <button mat-stroked-button type="button" (click)="retry.emit()">
-      <mat-icon aria-hidden="true">refresh</mat-icon> {{ 'status.retry' | translate }}
+      <app-icon matButtonIcon name="refresh" /> {{ 'status.retry' | translate }}
     </button>
   </div>
 } @else if (empty()) {
@@ -27,7 +27,7 @@
         (error)="url && !badgeFailed() ? badgeFailed.set(true) : crestFailed.set(true)"
       />
     } @else {
-      <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
+      <app-icon [name]="emptyIcon()" />
     }
     <p>{{ emptyMessage() ?? ('status.noData' | translate) }}</p>
   </div>

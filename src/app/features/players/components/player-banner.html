@@ -44,17 +44,35 @@
     @if (medals().length) {
       <ul class="banner__medals cn-hscroll" [attr.aria-label]="'commendations.title' | translate">
         @for (m of medals(); track m.type) {
-          @let name = ('commendations.' + m.type + '.' + m.tier | translate) + ' (' + ('commendations.tiers.' + m.tier | translate) + ')';
-          @let description = 'commendations.' + m.type + '.description' | translate: { n: (m.threshold | localNumber) };
+          @let name =
+            ('commendations.' + m.type + '.' + m.tier | translate) +
+            ' (' +
+            ('commendations.tiers.' + m.tier | translate) +
+            ')';
+          @let description =
+            'commendations.' + m.type + '.description'
+              | translate: { n: (m.threshold | localNumber) };
           <li class="banner__medal">
             <button
               type="button"
               class="banner__medal-button"
-              [attr.aria-label]="name + ': ' + description + ' (' + m.period + '). ' + ('commendations.viewer.open' | translate)"
+              [attr.aria-label]="
+                name +
+                ': ' +
+                description +
+                ' (' +
+                m.period +
+                '). ' +
+                ('commendations.viewer.open' | translate)
+              "
               [matTooltip]="name + ' — ' + description + ' (' + m.period + ')'"
               (click)="open3d(m)"
             >
-              <app-medal-3d-image [svgUrl]="'commendations/' + m.emblem + '.svg'" [finish]="m.tier" [size]="medalSize" />
+              <app-medal-3d-image
+                [svgUrl]="'commendations/' + m.emblem + '.svg'"
+                [finish]="m.tier"
+                [size]="medalSize"
+              />
             </button>
           </li>
         }
@@ -70,7 +88,7 @@
       <span class="banner__league-name">{{ league.name }}</span>
     }
     <span class="banner__trophies">
-      <mat-icon aria-hidden="true">emoji_events</mat-icon>
+      <app-icon name="emoji_events" />
       <span class="cn-visually-hidden">{{ 'player.trophies' | translate }}:</span>
       {{ p.trophies | localNumber }}
     </span>

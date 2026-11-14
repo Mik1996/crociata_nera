@@ -12,7 +12,8 @@ import {
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../shared/icon/icon';
+import { IconName } from '../shared/icon/material-icons';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
@@ -33,7 +34,7 @@ interface MenuItem {
   path: string;
   /** Translation key. */
   label: string;
-  icon: string;
+  icon: IconName;
   /** Open to everyone (signed out, or signed in without access to the clans' pages). */
   public?: boolean;
 }
@@ -60,7 +61,7 @@ interface MenuGroup {
     MatToolbarModule,
     MatSidenavModule,
     MatListModule,
-    MatIconModule,
+    Icon,
     MatButtonModule,
     MatMenuModule,
     TranslatePipe,
@@ -116,7 +117,10 @@ export class Shell {
   private readonly accountTags = computed(() =>
     this.useMock || !this.auth.hasClanAccess()
       ? []
-      : this.auth.linkedPlayers().filter((p) => p.verified).map((p) => p.tag),
+      : this.auth
+          .linkedPlayers()
+          .filter((p) => p.verified)
+          .map((p) => p.tag),
   );
   private readonly accountNames = rxResource({
     params: () => {
@@ -150,7 +154,9 @@ export class Shell {
     effect(() => {
       const signedIn = this.auth.isAuthenticated();
       if (wasSignedIn && !signedIn && !this.useMock) {
-        untracked(() => void this.router.navigateByUrl(guestRedirect(this.router, this.router.url)));
+        untracked(
+          () => void this.router.navigateByUrl(guestRedirect(this.router, this.router.url)),
+        );
       }
       wasSignedIn = signedIn;
     });
@@ -206,7 +212,12 @@ export class Shell {
       .map((group) => ({ ...group, items: group.items.filter((i) => open || i.public) }))
       .filter((group) => group.items.length > 0);
   });
-  protected readonly settingsItem: MenuItem = { path: '/settings', label: 'nav.settings', icon: 'settings', public: true };
+  protected readonly settingsItem: MenuItem = {
+    path: '/settings',
+    label: 'nav.settings',
+    icon: 'settings',
+    public: true,
+  };
 
   protected readonly mobile = toSignal(
     inject(BreakpointObserver)
@@ -233,7 +244,9 @@ export class Shell {
    * Pinned: the navigation sits next to the page and stays open. Otherwise it floats over the
    * page and closes with a click outside, on Escape or after choosing a page.
    */
-  protected readonly pinned = computed(() => this.canPin() && (this.pinPreference() ?? !this.mobile()));
+  protected readonly pinned = computed(
+    () => this.canPin() && (this.pinPreference() ?? !this.mobile()),
+  );
 
   protected togglePin(): void {
     const pinned = !this.pinned();

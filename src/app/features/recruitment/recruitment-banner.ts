@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CRESTS } from '../../core/api/clan-badge';
 import { LoadedSisterClan } from '../../core/api/sister-clans';
@@ -30,7 +30,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-recruitment-banner',
-  imports: [MatIconModule, TranslatePipe],
+  imports: [Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recruitment-banner.html',
   styleUrl: './recruitment-banner.scss',

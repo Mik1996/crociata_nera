@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../icon/icon';
+import { IconName } from '../icon/material-icons';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CREST_URL, ClanBadge } from '../../core/api/clan-badge';
@@ -11,7 +20,10 @@ import { LanguageService } from '../../core/i18n/language.service';
  * Extracts a readable message from an unknown error.
  * `translate` resolves translation keys (API errors and the generic message).
  */
-export function errorMessage(error: unknown, translate: (key: string, params?: object) => string): string {
+export function errorMessage(
+  error: unknown,
+  translate: (key: string, params?: object) => string,
+): string {
   if (isTranslatableError(error)) return translate(error.i18nKey, error.i18nParams).trim();
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === 'string') return error;
@@ -24,7 +36,7 @@ export function errorMessage(error: unknown, translate: (key: string, params?: o
  */
 @Component({
   selector: 'app-load-state',
-  imports: [MatProgressSpinnerModule, MatIconModule, MatButtonModule, TranslatePipe],
+  imports: [MatProgressSpinnerModule, Icon, MatButtonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './load-state.html',
   styleUrl: './load-state.scss',
@@ -37,7 +49,7 @@ export class LoadState {
   readonly loadingMessage = input<string>();
   readonly emptyMessage = input<string>();
   /** Shown in the empty state only when neither the clan badge nor the clan logo loads. */
-  readonly emptyIcon = input('inbox');
+  readonly emptyIcon = input<IconName>('inbox');
   readonly retry = output<void>();
 
   private readonly language = inject(LanguageService);
@@ -48,6 +60,8 @@ export class LoadState {
   protected readonly crestUrl = CLAN_CREST_URL;
   protected readonly crestFailed = signal(false);
   protected readonly errorText = computed(() =>
-    errorMessage(this.error(), (key, params) => this.language.t(key, params as Record<string, unknown>)),
+    errorMessage(this.error(), (key, params) =>
+      this.language.t(key, params as Record<string, unknown>),
+    ),
   );
 }

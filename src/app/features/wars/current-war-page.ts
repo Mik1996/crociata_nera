@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { WarService } from '../../core/services/war.service';
@@ -20,7 +20,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
     LocalNumberPipe,
     TranslatePipe,
     MatButtonModule,
-    MatIconModule,
+    Icon,
     PageHeader,
     LoadState,
     KpiCard,
@@ -39,7 +39,9 @@ export class CurrentWarPage {
   private readonly wars = inject(WarService);
 
   protected readonly resource = rxResource({ stream: () => this.wars.getCurrentWar() });
-  protected readonly war = computed(() => (this.resource.hasValue() ? this.resource.value() : null));
+  protected readonly war = computed(() =>
+    this.resource.hasValue() ? this.resource.value() : null,
+  );
 
   /** "Refresh" skips the cache: the current war is read again from the API. */
   protected refresh(): void {

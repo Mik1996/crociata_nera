@@ -1,11 +1,18 @@
-<app-page-header scene="dusk" [kicker]="'kicker.cwl' | translate" [title]="'nav.cwl' | translate" [subtitle]="'cwl.subtitle' | translate">
+<app-page-header
+  scene="dusk"
+  [kicker]="'kicker.cwl' | translate"
+  [title]="'nav.cwl' | translate"
+  [subtitle]="'cwl.subtitle' | translate"
+>
   @if (seasonList().length > 1) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="season-selector">
       <mat-label>{{ 'cwl.season' | translate }}</mat-label>
-      <mat-icon matPrefix aria-hidden="true">calendar_month</mat-icon>
+      <app-icon matPrefix name="calendar_month" />
       <mat-select [value]="selected()" (valueChange)="changeSeason($event)">
         @for (s of seasonList(); track s.season) {
-          <mat-option [value]="s.season">{{ periodLabel(s.season) }} · {{ 'cwl.state.' + s.state | translate }}</mat-option>
+          <mat-option [value]="s.season"
+            >{{ periodLabel(s.season) }} · {{ 'cwl.state.' + s.state | translate }}</mat-option
+          >
         }
       </mat-select>
     </mat-form-field>
@@ -23,7 +30,9 @@
   >
     @if (season(); as s) {
       <p class="season-state">
-        <span class="state-chip" [class.state-chip--live]="s.state !== 'ended'">{{ 'cwl.state.' + s.state | translate }}</span>
+        <span class="state-chip" [class.state-chip--live]="s.state !== 'ended'">{{
+          'cwl.state.' + s.state | translate
+        }}</span>
         {{ periodLabel(s.season) }}
       </p>
 
@@ -32,20 +41,42 @@
         <section class="cn-card cn-section" aria-labelledby="standings-title">
           <h2 id="standings-title">{{ 'cwl.standings' | translate }}</h2>
           <div class="cn-table-wrap">
-            <table mat-table [dataSource]="s.standings" class="standings" [attr.aria-label]="'cwl.standings' | translate">
+            <table
+              mat-table
+              [dataSource]="s.standings"
+              class="standings"
+              [attr.aria-label]="'cwl.standings' | translate"
+            >
               <ng-container matColumnDef="rank">
                 <th mat-header-cell *matHeaderCellDef>{{ 'statistics.position' | translate }}</th>
                 <td mat-cell *matCellDef="let c">
-                  <span class="pos" [class.pos--1]="c.rank === 1" [class.pos--2]="c.rank === 2" [class.pos--3]="c.rank === 3">{{ c.rank }}</span>
+                  <span
+                    class="pos"
+                    [class.pos--1]="c.rank === 1"
+                    [class.pos--2]="c.rank === 2"
+                    [class.pos--3]="c.rank === 3"
+                    >{{ c.rank }}</span
+                  >
                 </td>
               </ng-container>
               <ng-container matColumnDef="clan">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.clan' | translate }}</th>
                 <td mat-cell *matCellDef="let c">
                   <span class="clan-cell">
-                    @let badge = c.badgeUrl && !failedBadges().has(c.badgeUrl) ? c.badgeUrl : c.isOwn ? crestUrl : null;
+                    @let badge =
+                      c.badgeUrl && !failedBadges().has(c.badgeUrl)
+                        ? c.badgeUrl
+                        : c.isOwn
+                          ? crestUrl
+                          : null;
                     @if (badge && !failedBadges().has(badge)) {
-                      <img [src]="badge" alt="" width="28" height="28" (error)="badgeFailed(badge)" />
+                      <img
+                        [src]="badge"
+                        alt=""
+                        width="28"
+                        height="28"
+                        (error)="badgeFailed(badge)"
+                      />
                     }
                     <span [class.own-clan]="c.isOwn">{{ c.name }}</span>
                   </span>
@@ -57,14 +88,22 @@
               </ng-container>
               <ng-container matColumnDef="stars">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.stars' | translate }}</th>
-                <td mat-cell *matCellDef="let c" class="cn-num"><app-star-text text="★" /> {{ c.stars }}</td>
+                <td mat-cell *matCellDef="let c" class="cn-num">
+                  <app-star-text text="★" /> {{ c.stars }}
+                </td>
               </ng-container>
               <ng-container matColumnDef="destruction">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.destruction' | translate }}</th>
-                <td mat-cell *matCellDef="let c" class="cn-num">{{ c.destruction | localNumber: '1.0-0' }}%</td>
+                <td mat-cell *matCellDef="let c" class="cn-num">
+                  {{ c.destruction | localNumber: '1.0-0' }}%
+                </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="standingColumns"></tr>
-              <tr mat-row *matRowDef="let c; columns: standingColumns" [class.cn-row-me]="c.isOwn"></tr>
+              <tr
+                mat-row
+                *matRowDef="let c; columns: standingColumns"
+                [class.cn-row-me]="c.isOwn"
+              ></tr>
             </table>
           </div>
           <p class="cn-muted note">{{ 'cwl.standingsNote' | translate }}</p>
@@ -78,15 +117,22 @@
               <li class="round" [class.round--scheduled]="!r.war">
                 <span class="round__number">{{ 'cwl.round' | translate: { n: r.round } }}</span>
                 @if (r.war; as w) {
-                  <span class="round__opponent">{{ 'cwl.versus' | translate: { name: w.opponent.name } }}</span>
+                  <span class="round__opponent">{{
+                    'cwl.versus' | translate: { name: w.opponent.name }
+                  }}</span>
                   <span class="round__score cn-num">
                     ★ {{ w.clan.stars }} – {{ w.opponent.stars }}
-                    <small>{{ w.clan.destructionPercentage | localNumber: '1.0-1' }}% – {{ w.opponent.destructionPercentage | localNumber: '1.0-1' }}%</small>
+                    <small
+                      >{{ w.clan.destructionPercentage | localNumber: '1.0-1' }}% –
+                      {{ w.opponent.destructionPercentage | localNumber: '1.0-1' }}%</small
+                    >
                   </span>
                   @if (w.state === 'ended') {
                     <app-result-badge [result]="result(r)" />
                   } @else {
-                    <span class="state-chip state-chip--live">{{ 'cwl.warState.' + w.state | translate }}</span>
+                    <span class="state-chip state-chip--live">{{
+                      'cwl.warState.' + w.state | translate
+                    }}</span>
                   }
                 } @else {
                   <span class="round__opponent cn-muted">{{ 'cwl.notScheduled' | translate }}</span>
@@ -101,10 +147,17 @@
       <section class="cn-card cn-section" aria-labelledby="players-title">
         <h2 id="players-title">{{ 'cwl.players' | translate }}</h2>
         <div class="cn-table-wrap">
-          <table mat-table [dataSource]="s.players" class="players" [attr.aria-label]="'cwl.players' | translate">
+          <table
+            mat-table
+            [dataSource]="s.players"
+            class="players"
+            [attr.aria-label]="'cwl.players' | translate"
+          >
             <ng-container matColumnDef="index">
               <th mat-header-cell *matHeaderCellDef class="index-cell">#</th>
-              <td mat-cell *matCellDef="let p; let i = index" class="cn-num index-cell">{{ i + 1 }}</td>
+              <td mat-cell *matCellDef="let p; let i = index" class="cn-num index-cell">
+                {{ i + 1 }}
+              </td>
             </ng-container>
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
@@ -121,7 +174,14 @@
             </ng-container>
             <ng-container matColumnDef="attacks">
               <th mat-header-cell *matHeaderCellDef>{{ 'cwl.attacks' | translate }}</th>
-              <td mat-cell *matCellDef="let p" class="cn-num" [class.missing]="s.state === 'ended' && p.attacks < p.wars">{{ p.attacks }}/{{ p.wars }}</td>
+              <td
+                mat-cell
+                *matCellDef="let p"
+                class="cn-num"
+                [class.missing]="s.state === 'ended' && p.attacks < p.wars"
+              >
+                {{ p.attacks }}/{{ p.wars }}
+              </td>
             </ng-container>
             <ng-container matColumnDef="stars">
               <th mat-header-cell *matHeaderCellDef>{{ 'cwl.stars' | translate }}</th>
@@ -129,18 +189,28 @@
             </ng-container>
             <ng-container matColumnDef="averageStars">
               <th mat-header-cell *matHeaderCellDef>{{ 'cwl.averageStars' | translate }}</th>
-              <td mat-cell *matCellDef="let p" class="cn-num">{{ p.averageStars | localNumber: '1.2-2' }}</td>
+              <td mat-cell *matCellDef="let p" class="cn-num">
+                {{ p.averageStars | localNumber: '1.2-2' }}
+              </td>
             </ng-container>
             <ng-container matColumnDef="threeStars">
-              <th mat-header-cell *matHeaderCellDef><app-star-text [text]="'cwl.threeStars' | translate" /></th>
+              <th mat-header-cell *matHeaderCellDef>
+                <app-star-text [text]="'cwl.threeStars' | translate" />
+              </th>
               <td mat-cell *matCellDef="let p" class="cn-num">{{ p.threeStars }}</td>
             </ng-container>
             <ng-container matColumnDef="destruction">
               <th mat-header-cell *matHeaderCellDef>{{ 'cwl.averageDestruction' | translate }}</th>
-              <td mat-cell *matCellDef="let p" class="cn-num">{{ p.averageDestruction | localNumber: '1.0-1' }}%</td>
+              <td mat-cell *matCellDef="let p" class="cn-num">
+                {{ p.averageDestruction | localNumber: '1.0-1' }}%
+              </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="playerColumns"></tr>
-            <tr mat-row *matRowDef="let p; columns: playerColumns" [class.cn-row-me]="isMine(p.tag)"></tr>
+            <tr
+              mat-row
+              *matRowDef="let p; columns: playerColumns"
+              [class.cn-row-me]="isMine(p.tag)"
+            ></tr>
           </table>
         </div>
       </section>

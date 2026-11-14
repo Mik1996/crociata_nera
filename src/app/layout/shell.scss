@@ -194,13 +194,13 @@
   button {
     color: var(--cn-text-muted);
 
-    mat-icon {
+    app-icon {
       transform: rotate(45deg);
       transition: transform 150ms ease;
     }
   }
 
-  button.active mat-icon {
+  button.active app-icon {
     transform: none;
   }
 

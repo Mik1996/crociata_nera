@@ -10,11 +10,22 @@
   <div class="recruit__clans">
     @for (e of enlistments(); track e.clan.tag; let i = $index) {
       @let c = e.clan;
-      <aside class="enlist" [attr.data-order]="e.order" [attr.aria-labelledby]="titleId + '-clan-' + i">
+      <aside
+        class="enlist"
+        [attr.data-order]="e.order"
+        [attr.aria-labelledby]="titleId + '-clan-' + i"
+      >
         <h3 class="enlist__clan" [id]="titleId + '-clan-' + i">
           @let badge = c.badgeUrl && !failedBadges().has(c.badgeUrl) ? c.badgeUrl : crests[e.order];
           @if (badge && !failedBadges().has(badge)) {
-            <img class="enlist__clan-badge" [src]="badge" alt="" width="48" height="48" (error)="badgeFailed(badge)" />
+            <img
+              class="enlist__clan-badge"
+              [src]="badge"
+              alt=""
+              width="48"
+              height="48"
+              (error)="badgeFailed(badge)"
+            />
           }
           <span class="enlist__clan-name">{{ c.name }}</span>
         </h3>
@@ -22,7 +33,10 @@
         <p class="enlist__slots" [class.enlist__slots--full]="e.openSlots === 0">
           @if (e.openSlots > 0) {
             <span class="enlist__slots-value cn-num">{{ e.openSlots }}</span>
-            {{ (e.openSlots === 1 ? 'welcome.recruit.openSlot' : 'welcome.recruit.openSlots') | translate }}
+            {{
+              (e.openSlots === 1 ? 'welcome.recruit.openSlot' : 'welcome.recruit.openSlots')
+                | translate
+            }}
           } @else {
             {{ 'welcome.recruit.full' | translate }}
           }
@@ -46,7 +60,13 @@
                 <dt>{{ 'welcome.recruit.requiredLeague' | translate }}</dt>
                 <dd>
                   @if (league.iconUrl) {
-                    <img class="enlist__badge" [src]="league.iconUrl" alt="" width="96" height="96" />
+                    <img
+                      class="enlist__badge"
+                      [src]="league.iconUrl"
+                      alt=""
+                      width="96"
+                      height="96"
+                    />
                   }
                   <span>{{ league.name }}</span>
                 </dd>
@@ -63,9 +83,11 @@
           target="_blank"
           rel="noopener"
         >
-          <mat-icon aria-hidden="true">shield</mat-icon>
+          <app-icon name="shield" />
           {{ 'welcome.recruit.cta' | translate }}
-          <span class="cn-visually-hidden">{{ c.name }} ({{ 'common.opensInNewTab' | translate }})</span>
+          <span class="cn-visually-hidden"
+            >{{ c.name }} ({{ 'common.opensInNewTab' | translate }})</span
+          >
         </a>
       </aside>
     }

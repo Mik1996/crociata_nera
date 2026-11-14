@@ -825,6 +825,14 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+// Icons inside the text of a menu item (not in Material's icon slot): sized by their font-size,
+// spaced by the gap of the text, without the margin Material gives to `.mat-icon`.
+.mat-mdc-menu-item .mat-mdc-menu-item-text > .app-icon {
+  width: 1em;
+  height: 1em;
+  margin-right: 0;
+}
+
 /* Language and theme picker menus (rendered in an overlay, outside the shell). */
 .account-menu {
   .mat-mdc-menu-content {

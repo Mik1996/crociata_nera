@@ -2,7 +2,12 @@
 <section class="scrolly-stage hero" [attr.aria-labelledby]="titleId()">
   <!-- Scenery, from the farthest layer -->
   <div class="hero__sky" aria-hidden="true"></div>
-  <svg class="hero__ruins hero__ruins--far" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <svg
+    class="hero__ruins hero__ruins--far"
+    viewBox="0 0 1600 300"
+    preserveAspectRatio="xMidYMax slice"
+    aria-hidden="true"
+  >
     <path
       d="M0 300V210l60-10v-40h20v-10h10v10h20v40l70-10v-70h12v-14h10v14h12v-14h10v14h12v84l116 15 100-25v-40h30v-40l15-25 15 25v40h30v40l120 20 100-30 60 15v-35h16v-12h10v12h16v35l124 20 100-15v-60h14v-12h10v12h14v-12h10v12h14v60l136 10 110-25v-55h26v-30l13-20 13 20v30h26v55l138 20 150-10v115Z"
     />
@@ -30,15 +35,35 @@
         (error)="crestFailed.set(true)"
       />
     } @else {
-      <svg class="badge-stage__badge" viewBox="0 0 64 72" role="img" [attr.aria-label]="'welcome.badgeAlt' | translate: { name: c.name }">
-        <path d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z" class="crest__shield" stroke-width="3" />
+      <svg
+        class="badge-stage__badge"
+        viewBox="0 0 64 72"
+        role="img"
+        [attr.aria-label]="'welcome.badgeAlt' | translate: { name: c.name }"
+      >
+        <path
+          d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z"
+          class="crest__shield"
+          stroke-width="3"
+        />
         <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" class="crest__field" />
         <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" class="crest__cross" />
       </svg>
     }
   </div>
-  <app-crusader class="hero__crusader" pose="stand" [order]="order()" [priority]="priority()" sizes="min(60vh, 90vw)" />
-  <svg class="hero__ruins hero__ruins--near" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <app-crusader
+    class="hero__crusader"
+    pose="stand"
+    [order]="order()"
+    [priority]="priority()"
+    sizes="min(60vh, 90vw)"
+  />
+  <svg
+    class="hero__ruins hero__ruins--near"
+    viewBox="0 0 1600 300"
+    preserveAspectRatio="xMidYMax slice"
+    aria-hidden="true"
+  >
     <path
       d="M0 300v-52q190-34 380-6l40-4v-40h14v-12h12v12h14v-12h12v12h14v42l120 8q240-24 480 4l40-6v-34h12v-10h10v10h12v36q260-22 510 0v60Z"
     />
@@ -73,7 +98,7 @@
       <span>{{ 'welcome.clanLevel' | translate: { n: c.level } }}</span>
       @if (c.location) {
         <span aria-hidden="true">·</span>
-        <span class="hero__location"><mat-icon aria-hidden="true">public</mat-icon>{{ c.location }}</span>
+        <span class="hero__location"><app-icon name="public" />{{ c.location }}</span>
       }
     </p>
   </div>
@@ -91,7 +116,7 @@
       [attr.rel]="ctaExternal() ? 'noopener' : null"
       (click)="cta.emit($event)"
     >
-      <mat-icon aria-hidden="true">shield</mat-icon>
+      <app-icon name="shield" />
       {{ ctaLabel() }}
       @if (ctaExternal()) {
         <span class="cn-visually-hidden">({{ 'common.opensInNewTab' | translate }})</span>
@@ -102,7 +127,7 @@
   @if (hint()) {
     <p class="hero__hint" aria-hidden="true">
       {{ 'welcome.acts.scrollHint' | translate }}
-      <mat-icon>keyboard_double_arrow_down</mat-icon>
+      <app-icon name="keyboard_double_arrow_down" />
     </p>
   }
 </section>

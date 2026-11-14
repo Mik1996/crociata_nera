@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { concatMap, from, last } from 'rxjs';
 import { AdminService } from '../../../core/backend/admin.service';
@@ -18,7 +17,7 @@ export interface UnlinkPlayersDialogData extends AdminUserDialogData {
 /** Unlinks the Clash of Clans accounts of a user picked from a list. Closes with the updated user. */
 @Component({
   selector: 'app-unlink-players-dialog',
-  imports: [MatButtonModule, MatCheckboxModule, MatDialogModule, MatIconModule, TranslatePipe],
+  imports: [MatButtonModule, MatCheckboxModule, MatDialogModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './unlink-players-dialog.html',
   styleUrl: './unlink-players-dialog.scss',

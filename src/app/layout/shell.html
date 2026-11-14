@@ -11,7 +11,7 @@
     aria-controls="navigation"
     (click)="toggleNav()"
   >
-    <mat-icon>{{ navOpen() ? 'menu_open' : 'menu' }}</mat-icon>
+    <app-icon [name]="navOpen() ? 'menu_open' : 'menu'" />
   </button>
 
   <a
@@ -54,7 +54,7 @@
     >
       <span class="swatch" [style.background]="activeTheme.swatch" aria-hidden="true"></span>
       <span class="theme-picker__label">{{ activeTheme.labelKey | translate }}</span>
-      <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+      <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
     </button>
     <mat-menu
       #themeMenu="matMenu"
@@ -73,7 +73,7 @@
           <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
           <span class="theme-name">{{ t.labelKey | translate }}</span>
           @if (t.name === activeTheme.name) {
-            <span class="check material-icons" aria-hidden="true">check</span>
+            <app-icon class="check" name="check" />
           }
         </button>
       }
@@ -90,7 +90,7 @@
   >
     <img class="flag" [src]="active.flag" alt="" width="24" height="16" />
     <span class="language__code">{{ active.code.slice(0, 2) }}</span>
-    <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+    <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
   </button>
   <mat-menu
     #languageMenu="matMenu"
@@ -110,7 +110,7 @@
         <img class="flag" [src]="l.flag" alt="" width="24" height="16" />
         <span class="language-name">{{ l.name }}</span>
         @if (l.code === active.code) {
-          <span class="check material-icons" aria-hidden="true">check</span>
+          <app-icon class="check" name="check" />
         }
       </button>
     }
@@ -129,7 +129,7 @@
           user.username.charAt(0).toUpperCase()
         }}</span>
         <span class="account__name">{{ user.username }}</span>
-        <mat-icon class="picker__arrow" iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+        <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
       </button>
       <mat-menu
         #accountMenu="matMenu"
@@ -145,24 +145,24 @@
           <div class="account-menu__players">
             @for (account of myAccounts(); track account.tag) {
               <a mat-menu-item [routerLink]="['/players', account.tag]">
-                <span class="material-icons" aria-hidden="true">sports_esports</span>
+                <app-icon name="sports_esports" />
                 <span>{{ account.name }}</span>
               </a>
             }
           </div>
         }
         <a mat-menu-item routerLink="/profile">
-          <span class="material-icons" aria-hidden="true">manage_accounts</span>
+          <app-icon name="manage_accounts" />
           <span>{{ 'auth.account.profile' | translate }}</span>
         </a>
         @if (auth.isAdmin()) {
           <a mat-menu-item routerLink="/admin">
-            <span class="material-icons" aria-hidden="true">admin_panel_settings</span>
+            <app-icon name="admin_panel_settings" />
             <span>{{ 'auth.account.admin' | translate }}</span>
           </a>
         }
         <button mat-menu-item type="button" (click)="signOut()">
-          <span class="material-icons" aria-hidden="true">logout</span>
+          <app-icon name="logout" />
           <span>{{ 'auth.account.signOut' | translate }}</span>
         </button>
       </mat-menu>
@@ -174,7 +174,7 @@
         [queryParams]="signInParams()"
         [attr.aria-label]="'auth.account.signIn' | translate"
       >
-        <span class="material-icons account__icon" aria-hidden="true">login</span>
+        <app-icon matButtonIcon class="account__icon" name="login" />
         <span class="account__name">{{ 'auth.account.signIn' | translate }}</span>
       </a>
     }
@@ -203,7 +203,7 @@
           [title]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
           (click)="togglePin()"
         >
-          <mat-icon aria-hidden="true">push_pin</mat-icon>
+          <app-icon name="push_pin" />
         </button>
       </div>
     }
@@ -236,7 +236,7 @@
       [attr.aria-current]="rla.isActive ? 'page' : null"
       (click)="closeIfFloating()"
     >
-      <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+      <app-icon matListItemIcon [name]="item.icon" />
       <span matListItemTitle>{{ item.label | translate }}</span>
     </a>
   </ng-template>

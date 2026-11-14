@@ -181,7 +181,7 @@ h2 {
   border-radius: $radius-pill;
   font-size: var(--cn-fs-xs);
 
-  mat-icon {
+  app-icon {
     width: 1rem;
     height: 1rem;
     font-size: 1rem;
@@ -213,7 +213,7 @@ h2 {
   background: color-mix(in srgb, var(--cn-win) 14%, transparent);
   font-size: var(--cn-fs-sm);
 
-  mat-icon {
+  app-icon {
     color: var(--cn-win);
   }
 }
@@ -222,7 +222,7 @@ h2 {
 .linked--unverified {
   background: color-mix(in srgb, var(--cn-gold) 14%, transparent);
 
-  > mat-icon {
+  > app-icon {
     color: var(--cn-gold);
   }
 }
@@ -260,7 +260,7 @@ h2 {
 .linked--none {
   background: var(--cn-tint-neutral);
 
-  > mat-icon {
+  > app-icon {
     color: var(--cn-text-muted);
   }
 }

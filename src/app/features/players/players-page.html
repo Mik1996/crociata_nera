@@ -1,4 +1,10 @@
-<app-page-header scene="dusk" [kicker]="'kicker.players' | translate" crusader="stand" [title]="'nav.players' | translate" [subtitle]="'players.subtitle' | translate: { n: statsWindow }" />
+<app-page-header
+  scene="dusk"
+  [kicker]="'kicker.players' | translate"
+  crusader="stand"
+  [title]="'nav.players' | translate"
+  [subtitle]="'players.subtitle' | translate: { n: statsWindow }"
+/>
 
 <div appScrollFade class="page__scroll">
   <app-load-state
@@ -11,9 +17,10 @@
   >
     @if (noArchivedWars()) {
       <section class="cn-card cn-section notice" role="note">
-        <mat-icon aria-hidden="true">info</mat-icon>
+        <app-icon name="info" />
         <p>
-          <strong>{{ 'players.noticeTitle' | translate }}</strong>&nbsp;
+          <strong>{{ 'players.noticeTitle' | translate }}</strong
+          >&nbsp;
           <span>{{ 'players.noticeText' | translate }}</span>
         </p>
       </section>
@@ -25,8 +32,13 @@
       <div class="cn-filters" role="search" [attr.aria-label]="'players.filter' | translate">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'players.search' | translate }}</mat-label>
-          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-          <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="'common.nameOrTag' | translate" />
+          <app-icon matPrefix name="search" />
+          <input
+            matInput
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            [placeholder]="'common.nameOrTag' | translate"
+          />
         </mat-form-field>
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'players.role' | translate }}</mat-label>
@@ -50,7 +62,14 @@
           [attr.aria-label]="'players.table' | translate"
         >
           <ng-container matColumnDef="league">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.league' | translate">{{ 'players.league' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.league' | translate"
+            >
+              {{ 'players.league' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m" class="league-cell">
               @if (m.league; as league) {
                 @if (league.iconUrl) {
@@ -74,9 +93,21 @@
           </ng-container>
 
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.name' | translate">{{ 'common.player' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.name' | translate"
+            >
+              {{ 'common.player' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m">
-              <a class="cn-link-cell" [routerLink]="['/players', m.tag]" (click)="$event.stopPropagation()">{{ m.name }}</a>
+              <a
+                class="cn-link-cell"
+                [routerLink]="['/players', m.tag]"
+                (click)="$event.stopPropagation()"
+                >{{ m.name }}</a
+              >
               @if (isMine(m.tag)) {
                 <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
               }
@@ -85,7 +116,11 @@
                 @if (commendations().get(m.tag); as items) {
                   <ul class="medals" [attr.aria-label]="'commendations.short' | translate">
                     @for (c of items; track c.type) {
-                      @let name = ('commendations.' + c.type + '.' + c.tier | translate) + ' (' + ('commendations.tiers.' + c.tier | translate) + ')';
+                      @let name =
+                        ('commendations.' + c.type + '.' + c.tier | translate) +
+                        ' (' +
+                        ('commendations.tiers.' + c.tier | translate) +
+                        ')';
                       <li [matTooltip]="name" [attr.aria-label]="name">
                         <app-commendation-medal [emblem]="emblemOf(c)" />
                       </li>
@@ -97,61 +132,151 @@
           </ng-container>
 
           <ng-container matColumnDef="role">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.role' | translate">{{ 'players.role' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.role' | translate"
+            >
+              {{ 'players.role' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m">{{ roleKey(m.role) | translate }}</td>
           </ng-container>
 
           <ng-container matColumnDef="townHall">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.townHall' | translate">{{ 'common.th' | translate }}</th>
-            <td mat-cell *matCellDef="let m"><span class="cn-th" [attr.aria-label]="'common.townHallN' | translate: { n: m.townHall }">{{ m.townHall }}</span></td>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.townHall' | translate"
+            >
+              {{ 'common.th' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let m">
+              <span
+                class="cn-th"
+                [attr.aria-label]="'common.townHallN' | translate: { n: m.townHall }"
+                >{{ m.townHall }}</span
+              >
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="warsPlayed">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.warsPlayed' | translate">{{ 'common.wars' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.warsPlayed' | translate"
+            >
+              {{ 'common.wars' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m" class="cn-num">{{ m.warsPlayed }}</td>
           </ng-container>
 
           <ng-container matColumnDef="attendance">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.attendance' | translate">{{ 'players.attendance' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.attendance' | translate"
+            >
+              {{ 'players.attendance' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m" class="cn-num">
               <span class="attendance">
-                <span class="attendance__bar" aria-hidden="true"><span [style.width.%]="m.attendance"></span></span>
+                <span class="attendance__bar" aria-hidden="true"
+                  ><span [style.width.%]="m.attendance"></span
+                ></span>
                 {{ m.attendance | localNumber: '1.0-0' }}%
               </span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="attacksUsed">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.attacksUsed' | translate">{{ 'common.attacks' | translate }}</th>
-            <td mat-cell *matCellDef="let m" class="cn-num" [class.missing-attacks]="m.attacksUsed < m.attacksAvailable">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.attacksUsed' | translate"
+            >
+              {{ 'common.attacks' | translate }}
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let m"
+              class="cn-num"
+              [class.missing-attacks]="m.attacksUsed < m.attacksAvailable"
+            >
               {{ m.attacksUsed }}/{{ m.attacksAvailable }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="totalStars">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.totalStars' | translate">{{ 'common.stars' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.totalStars' | translate"
+            >
+              {{ 'common.stars' | translate }}
+            </th>
             <td mat-cell *matCellDef="let m" class="cn-num">{{ m.totalStars }}</td>
           </ng-container>
 
           <ng-container matColumnDef="averageStars">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageStars' | translate"><app-star-text [text]="'players.averageStars' | translate" /></th>
-            <td mat-cell *matCellDef="let m" class="cn-num"><strong>{{ m.averageStars | localNumber: '1.2-2' }}</strong></td>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.averageStars' | translate"
+            >
+              <app-star-text [text]="'players.averageStars' | translate" />
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              <strong>{{ m.averageStars | localNumber: '1.2-2' }}</strong>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="threeStarRate">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.threeStarRate' | translate"><app-star-text [text]="'players.threeStarRate' | translate" /></th>
-            <td mat-cell *matCellDef="let m" class="cn-num">{{ m.threeStarRate | localNumber: '1.0-1' }}%</td>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.threeStarRate' | translate"
+            >
+              <app-star-text [text]="'players.threeStarRate' | translate" />
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              {{ m.threeStarRate | localNumber: '1.0-1' }}%
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="averageDestruction">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.averageDestruction' | translate">{{ 'players.destructionRate' | translate }}</th>
-            <td mat-cell *matCellDef="let m" class="cn-num">{{ m.averageDestruction | localNumber: '1.0-1' }}%</td>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.averageDestruction' | translate"
+            >
+              {{ 'players.destructionRate' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              {{ m.averageDestruction | localNumber: '1.0-1' }}%
+            </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let m; columns: columns" class="cn-row-link" [class.cn-row-me]="isMine(m.tag)" (click)="open(m)"></tr>
+          <tr
+            mat-row
+            *matRowDef="let m; columns: columns"
+            class="cn-row-link"
+            [class.cn-row-me]="isMine(m.tag)"
+            (click)="open(m)"
+          ></tr>
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell no-results" [attr.colspan]="columns.length">{{ 'players.noResults' | translate }}</td>
+            <td class="mat-cell no-results" [attr.colspan]="columns.length">
+              {{ 'players.noResults' | translate }}
+            </td>
           </tr>
         </table>
       </div>

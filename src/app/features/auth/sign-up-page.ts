@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
@@ -11,7 +11,13 @@ import { safeReturnUrl } from '../../core/backend/auth.guards';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage, SignUpRequest } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
-import { applyServerErrors, errorKey, passwordsMatch, strongPassword, USERNAME_PATTERN } from './auth-form';
+import {
+  applyServerErrors,
+  errorKey,
+  passwordsMatch,
+  strongPassword,
+  USERNAME_PATTERN,
+} from './auth-form';
 import { AuthPanel } from './components/auth-panel';
 
 /** Account creation; on success the user is signed in. */
@@ -22,7 +28,7 @@ import { AuthPanel } from './components/auth-panel';
     RouterLink,
     MatButtonModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     MatInputModule,
     MatProgressSpinnerModule,
     TranslatePipe,
@@ -55,14 +61,24 @@ export class SignUpPage {
 
   protected readonly errorKey = errorKey;
   protected readonly errors = {
-    email: { required: 'ERROR.EMAIL_SHOULD_NOT_BE_EMPTY', email: 'ERROR.EMAIL_MUST_BE_AN_EMAIL', maxlength: 'ERROR.EMAIL_MUST_BE_AN_EMAIL' },
-    username: { required: 'ERROR.USERNAME_SHOULD_NOT_BE_EMPTY', pattern: 'ERROR.USERNAME_IS_NOT_VALID' },
+    email: {
+      required: 'ERROR.EMAIL_SHOULD_NOT_BE_EMPTY',
+      email: 'ERROR.EMAIL_MUST_BE_AN_EMAIL',
+      maxlength: 'ERROR.EMAIL_MUST_BE_AN_EMAIL',
+    },
+    username: {
+      required: 'ERROR.USERNAME_SHOULD_NOT_BE_EMPTY',
+      pattern: 'ERROR.USERNAME_IS_NOT_VALID',
+    },
     password: {
       required: 'ERROR.PASSWORD_SHOULD_NOT_BE_EMPTY',
       weak: 'ERROR.PASSWORD_IS_NOT_STRONG_ENOUGH',
       tooLong: 'ERROR.PASSWORD_IS_TOO_LONG',
     },
-    repeatPassword: { required: 'ERROR.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY', mismatch: 'ERROR.PASSWORDS_DO_NOT_MATCH' },
+    repeatPassword: {
+      required: 'ERROR.REPEAT_PASSWORD_SHOULD_NOT_BE_EMPTY',
+      mismatch: 'ERROR.PASSWORDS_DO_NOT_MATCH',
+    },
   };
 
   protected submit(): void {

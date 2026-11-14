@@ -94,7 +94,7 @@ describe('Shell', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.account-menu__players a'));
-    expect(links.map((a) => a.textContent?.trim())).toEqual(['sports_esportsIxion', 'sports_esports#BBB']);
+    expect(links.map((a) => a.textContent?.trim())).toEqual(['Ixion', '#BBB']);
     expect(links[0].getAttribute('href')).toBe('/players/%23AAA');
   });
 });

@@ -1,7 +1,7 @@
 @use 'variables' as *;
 @use 'color-palette' as palette;
 
-.add mat-icon {
+.add app-icon {
   margin-inline-end: $space-xs;
 }
 
@@ -127,7 +127,7 @@
 .base__copy {
   flex: 1;
 
-  mat-icon {
+  app-icon {
     margin-inline-end: $space-xs;
   }
 }

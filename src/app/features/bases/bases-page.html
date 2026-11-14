@@ -1,7 +1,12 @@
-<app-page-header scene="candle" [kicker]="'kicker.bases' | translate" [title]="'bases.title' | translate" [subtitle]="'bases.subtitle' | translate">
+<app-page-header
+  scene="candle"
+  [kicker]="'kicker.bases' | translate"
+  [title]="'bases.title' | translate"
+  [subtitle]="'bases.subtitle' | translate"
+>
   @if (canEdit()) {
     <button mat-flat-button type="button" class="add" (click)="openCreate()">
-      <mat-icon aria-hidden="true">add</mat-icon>
+      <app-icon matButtonIcon name="add" />
       {{ 'bases.add' | translate }}
     </button>
   }
@@ -100,7 +105,7 @@
                   rel="noopener noreferrer"
                   [attr.aria-label]="'bases.copyOf' | translate: { n: base.townHallLevel }"
                 >
-                  <mat-icon aria-hidden="true">download</mat-icon>
+                  <app-icon matButtonIcon name="download" />
                   {{ 'bases.copy' | translate }}
                 </a>
                 @if (canEdit()) {
@@ -111,7 +116,7 @@
                     [matTooltip]="'bases.edit' | translate"
                     [attr.aria-label]="'bases.editOf' | translate: { n: base.townHallLevel }"
                   >
-                    <mat-icon aria-hidden="true">edit</mat-icon>
+                    <app-icon name="edit" />
                   </button>
                   <button
                     mat-icon-button
@@ -121,7 +126,7 @@
                     [matTooltip]="'bases.delete' | translate"
                     [attr.aria-label]="'bases.deleteOf' | translate: { n: base.townHallLevel }"
                   >
-                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    <app-icon name="delete" />
                   </button>
                 }
               </div>
@@ -140,7 +145,7 @@
         <div role="alert" class="feed-end__error">
           <p>{{ 'bases.loadMoreError' | translate }}</p>
           <button mat-stroked-button type="button" (click)="feed().retry()">
-            <mat-icon aria-hidden="true">refresh</mat-icon> {{ 'status.retry' | translate }}
+            <app-icon matButtonIcon name="refresh" /> {{ 'status.retry' | translate }}
           </button>
         </div>
       } @else if (feed().complete()) {

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { RouterLink } from '@angular/router';
 import { ChartData } from 'chart.js';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -39,7 +39,7 @@ const RANKING_SIZE = 5;
     TranslatePipe,
     RouterLink,
     MatButtonModule,
-    MatIconModule,
+    Icon,
     BaseChartDirective,
     PageHeader,
     LoadState,
@@ -76,13 +76,21 @@ export class DashboardPage {
     rankPerformers(this.members.hasValue() ? this.members.value() : []),
   );
   protected readonly best = computed(() => this.ranking().slice(0, RANKING_SIZE));
-  protected readonly worst = computed(() =>
-    this.ranking().slice(-RANKING_SIZE).reverse(),
-  );
+  protected readonly worst = computed(() => this.ranking().slice(-RANKING_SIZE).reverse());
   protected readonly efficiency = (s: PlayerStats) => efficiency(s);
   protected readonly rankings = computed(() => [
-    { title: 'dashboard.best', icon: 'emoji_events', entries: this.best(), modifier: 'top' },
-    { title: 'dashboard.worst', icon: 'trending_down', entries: this.worst(), modifier: 'flop' },
+    {
+      title: 'dashboard.best',
+      icon: 'emoji_events' as const,
+      entries: this.best(),
+      modifier: 'top',
+    },
+    {
+      title: 'dashboard.worst',
+      icon: 'trending_down' as const,
+      entries: this.worst(),
+      modifier: 'flop',
+    },
   ]);
 
   // --- Charts -------------------------------------------------------------
@@ -100,8 +108,18 @@ export class DashboardPage {
   protected readonly starsData = computed<ChartData<'line', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      lineSeries(this.language.t('dashboard.seriesStarsEarned'), this.trend().map((p) => p.stars), this.chrome().series1, this.chrome()),
-      lineSeries(this.language.t('dashboard.seriesStarsConceded'), this.trend().map((p) => p.starsConceded), this.chrome().series2, this.chrome()),
+      lineSeries(
+        this.language.t('dashboard.seriesStarsEarned'),
+        this.trend().map((p) => p.stars),
+        this.chrome().series1,
+        this.chrome(),
+      ),
+      lineSeries(
+        this.language.t('dashboard.seriesStarsConceded'),
+        this.trend().map((p) => p.starsConceded),
+        this.chrome().series2,
+        this.chrome(),
+      ),
     ],
   }));
 
@@ -111,7 +129,12 @@ export class DashboardPage {
   protected readonly participationData = computed<ChartData<'bar', number[]>>(() => ({
     labels: this.labels(),
     datasets: [
-      barSeries(this.language.t('dashboard.seriesAttacksUsed'), this.trend().map((p) => p.participation), this.chrome().series1, this.chrome()),
+      barSeries(
+        this.language.t('dashboard.seriesAttacksUsed'),
+        this.trend().map((p) => p.participation),
+        this.chrome().series1,
+        this.chrome(),
+      ),
     ],
   }));
 

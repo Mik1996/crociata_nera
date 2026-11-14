@@ -1,4 +1,7 @@
-<app-page-header scene="candle" [kicker]="'kicker.profile' | translate" crusader="oath"
+<app-page-header
+  scene="candle"
+  [kicker]="'kicker.profile' | translate"
+  crusader="oath"
   [title]="'profile.title' | translate"
   [subtitle]="'profile.subtitle' | translate"
 />
@@ -7,13 +10,13 @@
   @if (user(); as u) {
     @if (!hasClanAccess()) {
       <aside class="cn-card access-notice" role="note" aria-labelledby="access-title">
-        <mat-icon class="access-notice__icon" aria-hidden="true">lock</mat-icon>
+        <app-icon class="access-notice__icon" name="lock" />
         <div class="access-notice__body">
           <h2 id="access-title">{{ 'profile.access.title' | translate }}</h2>
           <p>{{ 'profile.access.text' | translate }}</p>
           <p class="cn-muted">{{ 'profile.access.notMember' | translate }}</p>
           <a mat-stroked-button routerLink="/join">
-            <mat-icon aria-hidden="true">person_add</mat-icon> {{ 'nav.join' | translate }}
+            <app-icon matButtonIcon name="person_add" /> {{ 'nav.join' | translate }}
           </a>
         </div>
       </aside>
@@ -40,13 +43,13 @@
               <span class="email">{{ u.email }}</span>
               @if (u.emailVerified) {
                 <span class="badge badge--ok"
-                  ><mat-icon aria-hidden="true">verified</mat-icon
-                  >{{ 'profile.account.verified' | translate }}</span
+                  ><app-icon name="verified" />{{ 'profile.account.verified' | translate }}</span
                 >
               } @else {
                 <span class="badge badge--warn"
-                  ><mat-icon aria-hidden="true">mark_email_unread</mat-icon
-                  >{{ 'profile.account.notVerified' | translate }}</span
+                  ><app-icon name="mark_email_unread" />{{
+                    'profile.account.notVerified' | translate
+                  }}</span
                 >
               }
             </dd>
@@ -70,7 +73,7 @@
             (click)="resendVerification()"
             [disabled]="resending()"
           >
-            <mat-icon aria-hidden="true">send</mat-icon> {{ 'profile.account.resend' | translate }}
+            <app-icon matButtonIcon name="send" /> {{ 'profile.account.resend' | translate }}
           </button>
         }
         @if (verifyFeedback(); as f) {
@@ -98,7 +101,7 @@
         >
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.currentPassword' | translate }}</mat-label>
-            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+            <app-icon matPrefix name="lock" />
             <input
               matInput
               formControlName="currentPassword"
@@ -114,9 +117,7 @@
               [attr.aria-pressed]="showPassword()"
               (click)="showPassword.set(!showPassword())"
             >
-              <mat-icon aria-hidden="true">{{
-                showPassword() ? 'visibility_off' : 'visibility'
-              }}</mat-icon>
+              <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
             </button>
             @if (
               errorKey(passwordForm.controls.currentPassword, passwordErrors.currentPassword);
@@ -127,7 +128,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.newPassword' | translate }}</mat-label>
-            <mat-icon matPrefix aria-hidden="true">key</mat-icon>
+            <app-icon matPrefix name="key" />
             <input
               matInput
               formControlName="password"
@@ -141,7 +142,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.repeatPassword' | translate }}</mat-label>
-            <mat-icon matPrefix aria-hidden="true">lock_reset</mat-icon>
+            <app-icon matPrefix name="lock_reset" />
             <input
               matInput
               formControlName="repeatPassword"
@@ -187,15 +188,17 @@
                 <ul class="linked-list">
                   @for (p of linkedPlayers(); track p.tag) {
                     <li class="linked" [class.linked--unverified]="!p.verified">
-                      <mat-icon aria-hidden="true">{{
-                        p.verified ? 'verified' : 'gpp_maybe'
-                      }}</mat-icon>
+                      <app-icon [name]="p.verified ? 'verified' : 'gpp_maybe'" />
                       <span class="linked__text">
                         @if (p.member; as m) {
                           {{
                             'profile.player.linkedTo'
                               | translate
-                                : { name: m.name, role: (roleKey(m.role) | translate), clan: p.clanName }
+                                : {
+                                    name: m.name,
+                                    role: (roleKey(m.role) | translate),
+                                    clan: p.clanName,
+                                  }
                           }}
                         } @else {
                           {{ 'profile.player.linkedTag' | translate: { tag: p.tag } }}
@@ -219,8 +222,9 @@
                         (click)="unlinkPlayer(p.tag)"
                         [attr.aria-label]="'profile.player.unlinkTag' | translate: { tag: p.tag }"
                       >
-                        <mat-icon aria-hidden="true">link_off</mat-icon
-                        >{{ 'profile.player.unlink' | translate }}
+                        <app-icon matButtonIcon name="link_off" />{{
+                          'profile.player.unlink' | translate
+                        }}
                       </button>
                     </li>
                   }
@@ -228,8 +232,7 @@
               </div>
             } @else {
               <p class="linked linked--none">
-                <mat-icon aria-hidden="true">link_off</mat-icon
-                >{{ 'profile.player.none' | translate }}
+                <app-icon name="link_off" />{{ 'profile.player.none' | translate }}
               </p>
             }
           </div>
@@ -256,7 +259,7 @@
               >
                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
                   <mat-label>{{ 'auth.fields.playerTag' | translate }}</mat-label>
-                  <mat-icon matPrefix aria-hidden="true">tag</mat-icon>
+                  <app-icon matPrefix name="tag" />
                   <input
                     matInput
                     formControlName="playerTag"
@@ -271,7 +274,7 @@
                 </mat-form-field>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
                   <mat-label>{{ 'profile.player.token' | translate }}</mat-label>
-                  <mat-icon matPrefix aria-hidden="true">key</mat-icon>
+                  <app-icon matPrefix name="key" />
                   <input
                     matInput
                     formControlName="token"

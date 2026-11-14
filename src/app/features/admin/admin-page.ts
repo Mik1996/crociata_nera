@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
@@ -38,7 +38,7 @@ const DIALOG_CONFIG = {
     FormsModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     MatInputModule,
     MatSlideToggleModule,
     MatTableModule,

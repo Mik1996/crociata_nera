@@ -1,0 +1,19 @@
+// Same box as the old icon font: a 1em square, 1.5rem by default. Setting `font-size` scales it,
+// setting `width` / `height` sizes the box (the drawing is centred and fills the smaller side).
+:host {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  font-size: 1.5rem;
+  line-height: 1;
+  overflow: hidden;
+  fill: currentColor;
+  user-select: none;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

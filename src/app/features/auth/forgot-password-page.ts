@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
@@ -21,7 +21,7 @@ import { AuthPanel } from './components/auth-panel';
     RouterLink,
     MatButtonModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     MatInputModule,
     MatProgressSpinnerModule,
     TranslatePipe,

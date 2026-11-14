@@ -211,7 +211,7 @@
   font-size: var(--cn-fs-xl);
   text-shadow: var(--cn-game-text-outline);
 
-  mat-icon {
+  app-icon {
     color: var(--cn-game-gold);
     filter: drop-shadow(0 1px 0 var(--cn-ink));
   }
@@ -254,7 +254,7 @@
   .banner__trophies {
     font-size: var(--cn-fs-md);
 
-    mat-icon {
+    app-icon {
       font-size: 1.125rem;
       width: 1.125rem;
       height: 1.125rem;

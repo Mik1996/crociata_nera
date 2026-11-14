@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -33,7 +33,7 @@ import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatIconModule,
+    Icon,
     MatButtonModule,
     MatTooltipModule,
     Stars,

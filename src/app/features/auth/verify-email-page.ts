@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -13,7 +13,7 @@ import { AuthPanel } from './components/auth-panel';
 /** Confirms the email address from the link (`/verify-email?token=…`) as soon as it opens. */
 @Component({
   selector: 'app-verify-email-page',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule, TranslatePipe, AuthPanel],
+  imports: [RouterLink, MatButtonModule, Icon, MatProgressSpinnerModule, TranslatePipe, AuthPanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './verify-email-page.html',
   styleUrl: './verify-email-page.scss',

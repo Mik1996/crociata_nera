@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
@@ -22,7 +22,7 @@ import { GAME_ICONS } from '../../core/game/game-assets';
     TranslatePipe,
     RouterLink,
     MatButtonModule,
-    MatIconModule,
+    Icon,
     PageHeader,
     LoadState,
     KpiCard,
@@ -47,7 +47,9 @@ export class WarDetailPage {
     params: () => this.id(),
     stream: ({ params }) => this.wars.getWar(params),
   });
-  protected readonly war = computed(() => (this.resource.hasValue() ? this.resource.value() : null));
+  protected readonly war = computed(() =>
+    this.resource.hasValue() ? this.resource.value() : null,
+  );
   protected readonly rows = computed(() => {
     const w = this.war();
     return w ? participantRows(w) : [];

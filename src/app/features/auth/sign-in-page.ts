@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
@@ -22,7 +22,7 @@ import { AuthPanel } from './components/auth-panel';
     RouterLink,
     MatButtonModule,
     MatFormFieldModule,
-    MatIconModule,
+    Icon,
     MatInputModule,
     MatProgressSpinnerModule,
     TranslatePipe,
@@ -49,7 +49,10 @@ export class SignInPage {
   protected readonly generalErrors = signal<BackendMessage[]>([]);
 
   protected readonly errorKey = errorKey;
-  protected readonly identifierErrors = { required: 'ERROR.IDENTIFIER_SHOULD_NOT_BE_EMPTY', maxlength: 'ERROR.INVALID_CREDENTIALS' };
+  protected readonly identifierErrors = {
+    required: 'ERROR.IDENTIFIER_SHOULD_NOT_BE_EMPTY',
+    maxlength: 'ERROR.INVALID_CREDENTIALS',
+  };
   protected readonly passwordErrors = { required: 'ERROR.PASSWORD_SHOULD_NOT_BE_EMPTY' };
 
   protected submit(): void {

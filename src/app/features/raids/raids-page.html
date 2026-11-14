@@ -1,11 +1,18 @@
-<app-page-header scene="capital" [kicker]="'kicker.raids' | translate" [title]="'nav.raids' | translate" [subtitle]="'raids.subtitle' | translate">
+<app-page-header
+  scene="capital"
+  [kicker]="'kicker.raids' | translate"
+  [title]="'nav.raids' | translate"
+  [subtitle]="'raids.subtitle' | translate"
+>
   @if (weekends().length > 1) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="weekend-selector">
       <mat-label>{{ 'raids.weekend' | translate }}</mat-label>
-      <mat-icon matPrefix aria-hidden="true">calendar_month</mat-icon>
+      <app-icon matPrefix name="calendar_month" />
       <mat-select [value]="weekend()?.id" (valueChange)="changeWeekend($event)">
         @for (w of weekends(); track w.id) {
-          <mat-option [value]="w.id">{{ label(w) }} · {{ 'raids.state.' + w.state | translate }}</mat-option>
+          <mat-option [value]="w.id"
+            >{{ label(w) }} · {{ 'raids.state.' + w.state | translate }}</mat-option
+          >
         }
       </mat-select>
     </mat-form-field>
@@ -23,12 +30,19 @@
   >
     @if (weekend(); as w) {
       <p class="weekend-state">
-        <span class="state-chip" [class.state-chip--live]="w.state === 'ongoing'">{{ 'raids.state.' + w.state | translate }}</span>
+        <span class="state-chip" [class.state-chip--live]="w.state === 'ongoing'">{{
+          'raids.state.' + w.state | translate
+        }}</span>
         {{ label(w) }}
       </p>
 
       <div class="cn-grid-kpi">
-        <app-kpi-card [image]="GAME_ICONS['capital-gold-2']" [imageZoom]="2" [label]="'raids.totalLoot' | translate" [value]="(w.totalLoot | localNumber) ?? w.totalLoot" />
+        <app-kpi-card
+          [image]="GAME_ICONS['capital-gold-2']"
+          [imageZoom]="2"
+          [label]="'raids.totalLoot' | translate"
+          [value]="(w.totalLoot | localNumber) ?? w.totalLoot"
+        />
         <app-kpi-card
           [image]="GAME_ICONS.raid"
           [imageZoom]="2.6"
@@ -47,8 +61,14 @@
           [image]="GAME_ICONS['raid-medal']"
           [imageZoom]="1.6"
           [label]="'raids.rewards' | translate"
-          [value]="(MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0"
-          [hint]="'raids.rewardsHint' | translate: { offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward, defense: w.defensiveReward }"
+          [value]="
+            (MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0
+          "
+          [hint]="
+            'raids.rewardsHint'
+              | translate
+                : { offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward, defense: w.defensiveReward }
+          "
         />
       </div>
 
@@ -57,7 +77,12 @@
           <section class="cn-card cn-section" aria-labelledby="raid-members-title">
             <h2 id="raid-members-title">{{ 'raids.members' | translate }}</h2>
             <div class="cn-table-wrap">
-              <table mat-table [dataSource]="w.members" class="members" [attr.aria-label]="'raids.members' | translate">
+              <table
+                mat-table
+                [dataSource]="w.members"
+                class="members"
+                [attr.aria-label]="'raids.members' | translate"
+              >
                 <ng-container matColumnDef="rank">
                   <th mat-header-cell *matHeaderCellDef>{{ 'statistics.position' | translate }}</th>
                   <td mat-cell *matCellDef="let m; let i = index" class="cn-num">{{ i + 1 }}</td>
@@ -73,7 +98,12 @@
                 </ng-container>
                 <ng-container matColumnDef="attacks">
                   <th mat-header-cell *matHeaderCellDef>{{ 'raids.attacksColumn' | translate }}</th>
-                  <td mat-cell *matCellDef="let m" class="cn-num" [class.missing]="w.state === 'ended' && m.attacks < m.attackLimit">
+                  <td
+                    mat-cell
+                    *matCellDef="let m"
+                    class="cn-num"
+                    [class.missing]="w.state === 'ended' && m.attacks < m.attackLimit"
+                  >
                     {{ m.attacks }}/{{ m.attackLimit }}
                   </td>
                 </ng-container>
@@ -82,7 +112,11 @@
                   <td mat-cell *matCellDef="let m" class="cn-num">{{ m.looted | localNumber }}</td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="columns"></tr>
-                <tr mat-row *matRowDef="let m; columns: columns" [class.cn-row-me]="isMine(m.tag)"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let m; columns: columns"
+                  [class.cn-row-me]="isMine(m.tag)"
+                ></tr>
               </table>
             </div>
           </section>
@@ -90,23 +124,29 @@
           <section class="cn-card cn-section" aria-labelledby="raid-absent-title">
             <h2 id="raid-absent-title">{{ 'raids.absent' | translate: { n: absent().length } }}</h2>
             @if (absent().length) {
-              <p class="cn-muted">{{ (w.state === 'ongoing' ? 'raids.absentOngoing' : 'raids.absentEnded') | translate }}</p>
+              <p class="cn-muted">
+                {{
+                  (w.state === 'ongoing' ? 'raids.absentOngoing' : 'raids.absentEnded') | translate
+                }}
+              </p>
               <ul class="absent">
                 @for (m of absent(); track m.tag) {
                   <li>
                     <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
-                    <span class="cn-muted">{{ 'common.townHallN' | translate: { n: m.townHall } }}</span>
+                    <span class="cn-muted">{{
+                      'common.townHallN' | translate: { n: m.townHall }
+                    }}</span>
                   </li>
                 }
               </ul>
             } @else {
-              <p class="all-in"><mat-icon aria-hidden="true">check_circle</mat-icon>{{ 'raids.allIn' | translate }}</p>
+              <p class="all-in"><app-icon name="check_circle" />{{ 'raids.allIn' | translate }}</p>
             }
           </section>
         </div>
       } @else {
         <section class="cn-card cn-section notice" role="note">
-          <mat-icon aria-hidden="true">info</mat-icon>
+          <app-icon name="info" />
           <div>
             <strong>{{ 'raids.noMembersTitle' | translate }}</strong>
             <p>{{ 'raids.noMembersText' | translate }}</p>

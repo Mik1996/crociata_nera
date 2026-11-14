@@ -1,11 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../../shared/icon/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
-import { Commendation, CommendationType, PlayerCommendations, PlayerProfile } from '../../../core/models';
+import {
+  Commendation,
+  CommendationType,
+  PlayerCommendations,
+  PlayerProfile,
+} from '../../../core/models';
 import { COMMENDATION_THRESHOLDS, emblemOf } from '../../../core/utils/commendations';
 import { periodLabel } from '../../../core/utils/monthly-history';
 import { XpBadge } from '../../../shared/game/xp-badge';
@@ -19,7 +24,7 @@ import { openCommendationDialog } from './open-commendation-dialog';
  */
 @Component({
   selector: 'app-player-banner',
-  imports: [MatIconModule, MatTooltipModule, TranslatePipe, LocalNumberPipe, XpBadge, Medal3dImage],
+  imports: [Icon, MatTooltipModule, TranslatePipe, LocalNumberPipe, XpBadge, Medal3dImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-banner.html',
   styleUrl: './player-banner.scss',
@@ -39,7 +44,11 @@ export class PlayerBanner {
     const c = this.commendations();
     if (!c) return [];
     const locale = this.language.current();
-    const day = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: 'Europe/Rome' });
+    const day = new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Europe/Rome',
+    });
     // Period of each kind of commendation, shown in the tooltip.
     const periods: Partial<Record<CommendationType, string>> = {
       capitalRaider: c.raidWeekend
@@ -60,6 +69,10 @@ export class PlayerBanner {
 
   /** Opens the medal in 3D, with the period it was earned in. */
   protected open3d(medal: Commendation & { period: string }): Promise<void> {
-    return openCommendationDialog(this.dialog, { type: medal.type, tier: medal.tier, period: medal.period });
+    return openCommendationDialog(this.dialog, {
+      type: medal.type,
+      tier: medal.tier,
+      period: medal.period,
+    });
   }
 }

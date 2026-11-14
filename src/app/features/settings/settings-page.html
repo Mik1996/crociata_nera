@@ -1,4 +1,10 @@
-<app-page-header scene="candle" [kicker]="'kicker.settings' | translate" crusader="oath" [title]="'settings.title' | translate" [subtitle]="'settings.subtitle' | translate" />
+<app-page-header
+  scene="candle"
+  [kicker]="'kicker.settings' | translate"
+  crusader="oath"
+  [title]="'settings.title' | translate"
+  [subtitle]="'settings.subtitle' | translate"
+/>
 
 <div appScrollFade class="page__scroll">
   <div class="settings">
@@ -19,7 +25,7 @@
               <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
               <span class="option__label">{{ t.labelKey | translate }}</span>
               @if (selected) {
-                <mat-icon class="option__check" aria-hidden="true">check_circle</mat-icon>
+                <app-icon class="option__check" name="check_circle" />
               }
             </button>
           }
@@ -44,7 +50,7 @@
             <img class="flag" [src]="l.flag" alt="" width="32" height="22" />
             <span class="option__label">{{ l.name }}</span>
             @if (selected) {
-              <mat-icon class="option__check" aria-hidden="true">check_circle</mat-icon>
+              <app-icon class="option__check" name="check_circle" />
             }
           </button>
         }

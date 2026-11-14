@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ interface ArmySection {
     LocalNumberPipe,
     RouterLink,
     MatButtonModule,
-    MatIconModule,
+    Icon,
     MatTabsModule,
     LoadState,
     UnitTile,
@@ -84,8 +84,12 @@ export class PlayerDetailPage {
     stream: ({ params }) => this.commendationService.forPlayer(params),
   });
 
-  protected readonly profile = computed(() => (this.profileResource.hasValue() ? this.profileResource.value() : null));
-  protected readonly stats = computed(() => (this.statsResource.hasValue() ? this.statsResource.value() : null));
+  protected readonly profile = computed(() =>
+    this.profileResource.hasValue() ? this.profileResource.value() : null,
+  );
+  protected readonly stats = computed(() =>
+    this.statsResource.hasValue() ? this.statsResource.value() : null,
+  );
   /** Commendations are a bonus: while loading or on error the banner simply shows none. */
   protected readonly commendations = computed(() =>
     this.commendationsResource.hasValue() ? this.commendationsResource.value() : null,
@@ -118,7 +122,9 @@ export class PlayerDetailPage {
   );
   /** Incomplete achievements first, then the completed ones. */
   protected readonly achievements = computed(() =>
-    [...(this.profile()?.achievements ?? [])].sort((a, b) => Number(a.stars >= 3) - Number(b.stars >= 3)),
+    [...(this.profile()?.achievements ?? [])].sort(
+      (a, b) => Number(a.stars >= 3) - Number(b.stars >= 3),
+    ),
   );
 
   protected readonly starSlots = [0, 1, 2];

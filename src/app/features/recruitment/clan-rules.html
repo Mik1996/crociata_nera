@@ -4,10 +4,13 @@
     @for (group of ruleGroups; track group.key) {
       <section class="rule-group" [attr.aria-labelledby]="'rules-' + group.key">
         <h3 class="rule-group__title" [id]="'rules-' + group.key">
-          <mat-icon aria-hidden="true">{{ group.icon }}</mat-icon>
+          <app-icon [name]="group.icon" />
           {{ 'welcome.rules.' + group.key + '.title' | translate }}
         </h3>
-        <ul class="rule-group__list" [class.rule-group__list--forbidden]="group.key === 'forbidden'">
+        <ul
+          class="rule-group__list"
+          [class.rule-group__list--forbidden]="group.key === 'forbidden'"
+        >
           @for (n of group.items; track n) {
             <li>{{ 'welcome.rules.' + group.key + '.' + n | translate }}</li>
           }

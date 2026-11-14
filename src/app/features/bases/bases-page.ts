@@ -11,7 +11,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -56,7 +56,7 @@ export interface TownHallGroup {
   imports: [
     MatButtonModule,
     MatChipsModule,
-    MatIconModule,
+    Icon,
     MatProgressSpinnerModule,
     MatTooltipModule,
     TranslatePipe,

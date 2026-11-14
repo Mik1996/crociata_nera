@@ -4,9 +4,11 @@
   <span>{{ state() | translate }}</span>
   <span class="meta__muted">· {{ 'summary.versus' | translate: { n: w.teamSize } }}</span>
   @if (timeLeft(); as t) {
-    <span class="time-left"><mat-icon aria-hidden="true">schedule</mat-icon>{{ t }}</span>
+    <span class="time-left"><app-icon name="schedule" />{{ t }}</span>
   } @else {
-    <span class="meta__muted">· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span>
+    <span class="meta__muted"
+      >· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span
+    >
   }
 </div>
 
@@ -15,41 +17,75 @@
     <app-crusader class="figure crusader--soft" pose="fist" sizes="12rem" />
   }
   @for (side of [w.clan, w.opponent]; track side.tag; let isOpponent = $last) {
-    <section class="side" [class.side--opponent]="isOpponent" [attr.aria-label]="(isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate">
+    <section
+      class="side"
+      [class.side--opponent]="isOpponent"
+      [attr.aria-label]="(isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate"
+    >
       <div class="side__head">
         <div class="side__id">
-          <span class="side__role">{{ (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate }}</span>
+          <span class="side__role">{{
+            (isOpponent ? 'summary.opponent' : 'summary.ourClan') | translate
+          }}</span>
           <h2 class="side__name">{{ side.name }}</h2>
-          <span class="side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
+          <span class="side__info"
+            >{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span
+          >
         </div>
-        @let badge = side.badgeUrl && !failedBadges().has(side.badgeUrl) ? side.badgeUrl : isOpponent ? null : crestUrl;
+        @let badge =
+          side.badgeUrl && !failedBadges().has(side.badgeUrl)
+            ? side.badgeUrl
+            : isOpponent
+              ? null
+              : crestUrl;
         @if (badge && !failedBadges().has(badge)) {
-          <img class="side__badge" [src]="badge" alt="" width="64" height="64" (error)="badgeFailed(badge)" />
+          <img
+            class="side__badge"
+            [src]="badge"
+            alt=""
+            width="64"
+            height="64"
+            (error)="badgeFailed(badge)"
+          />
         }
       </div>
       <div class="side__stars">
         <div
           class="bar"
           role="img"
-          [attr.aria-label]="'summary.starsOutOf' | translate: { stars: side.stars, total: maxStars() }"
+          [attr.aria-label]="
+            'summary.starsOutOf' | translate: { stars: side.stars, total: maxStars() }
+          "
         >
           <span class="bar__fill" [style.width.%]="starsShare(side.stars)"></span>
         </div>
-        <span class="side__stars-value cn-num" aria-hidden="true">★ {{ side.stars }}/{{ maxStars() }}</span>
+        <span class="side__stars-value cn-num" aria-hidden="true"
+          >★ {{ side.stars }}/{{ maxStars() }}</span
+        >
       </div>
       <dl class="side__data">
-        <div><dt>{{ 'common.destruction' | translate }}</dt><dd class="cn-num">{{ side.destructionPercentage | localNumber: '1.1-1' }}%</dd></div>
-        <div><dt>{{ 'common.attacks' | translate }}</dt><dd class="cn-num">{{ side.attacksUsed || (w.hasDetails ? 0 : '—') }}/{{ totalAttacks() }}</dd></div>
+        <div>
+          <dt>{{ 'common.destruction' | translate }}</dt>
+          <dd class="cn-num">{{ side.destructionPercentage | localNumber: '1.1-1' }}%</dd>
+        </div>
+        <div>
+          <dt>{{ 'common.attacks' | translate }}</dt>
+          <dd class="cn-num">
+            {{ side.attacksUsed || (w.hasDetails ? 0 : '—') }}/{{ totalAttacks() }}
+          </dd>
+        </div>
       </dl>
     </section>
     @if (!isOpponent) {
       <div class="score" role="group" [attr.aria-label]="'summary.score' | translate">
         <span class="score__stars cn-num">
-          <span class="cn-visually-hidden">{{ 'summary.starsEarned' | translate }}</span>{{ w.clan.stars }}
+          <span class="cn-visually-hidden">{{ 'summary.starsEarned' | translate }}</span
+          >{{ w.clan.stars }}
         </span>
         <span class="score__star" aria-hidden="true">★</span>
         <span class="score__stars score__stars--theirs cn-num">
-          <span class="cn-visually-hidden">{{ 'summary.starsConceded' | translate }}</span>{{ w.opponent.stars }}
+          <span class="cn-visually-hidden">{{ 'summary.starsConceded' | translate }}</span
+          >{{ w.opponent.stars }}
         </span>
       </div>
     }

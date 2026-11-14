@@ -1,4 +1,10 @@
-<app-page-header scene="hall" [kicker]="'kicker.history' | translate" crusader="stand" [title]="'nav.history' | translate" [subtitle]="'history.subtitle' | translate" />
+<app-page-header
+  scene="hall"
+  [kicker]="'kicker.history' | translate"
+  crusader="stand"
+  [title]="'nav.history' | translate"
+  [subtitle]="'history.subtitle' | translate"
+/>
 
 <div appScrollFade class="page__scroll">
   <app-load-state
@@ -11,14 +17,26 @@
   >
     @let totals = record();
     <div class="cn-grid-kpi">
-      <app-kpi-card icon="flag" [label]="'history.warsAnalyzed' | translate" [value]="totals.total" />
       <app-kpi-card
-      icon="emoji_events"
-      [label]="'history.victories' | translate"
-      [value]="totals.victories"
-      [hint]="'history.ofTotal' | translate: { percent: ((totals.victories / totals.total) * 100 | localNumber: '1.0-0') }"
-    />
-      <app-kpi-card icon="heart_broken" [label]="'history.defeats' | translate" [value]="totals.defeats" />
+        icon="flag"
+        [label]="'history.warsAnalyzed' | translate"
+        [value]="totals.total"
+      />
+      <app-kpi-card
+        icon="emoji_events"
+        [label]="'history.victories' | translate"
+        [value]="totals.victories"
+        [hint]="
+          'history.ofTotal'
+            | translate
+              : { percent: ((totals.victories / totals.total) * 100 | localNumber: '1.0-0') }
+        "
+      />
+      <app-kpi-card
+        icon="heart_broken"
+        [label]="'history.defeats' | translate"
+        [value]="totals.defeats"
+      />
       <app-kpi-card icon="balance" [label]="'history.draws' | translate" [value]="totals.draws" />
     </div>
 
@@ -28,8 +46,13 @@
       <div class="cn-filters" role="search" [attr.aria-label]="'history.filter' | translate">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'history.search' | translate }}</mat-label>
-          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-          <input matInput [ngModel]="search()" (ngModelChange)="updateSearch($event)" [placeholder]="'history.searchPlaceholder' | translate" />
+          <app-icon matPrefix name="search" />
+          <input
+            matInput
+            [ngModel]="search()"
+            (ngModelChange)="updateSearch($event)"
+            [placeholder]="'history.searchPlaceholder' | translate"
+          />
         </mat-form-field>
 
         <mat-button-toggle-group
@@ -39,13 +62,17 @@
           hideSingleSelectionIndicator
         >
           <mat-button-toggle value="all">{{ 'common.allFeminine' | translate }}</mat-button-toggle>
-          <mat-button-toggle value="victory">{{ 'history.victories' | translate }}</mat-button-toggle>
+          <mat-button-toggle value="victory">{{
+            'history.victories' | translate
+          }}</mat-button-toggle>
           <mat-button-toggle value="defeat">{{ 'history.defeats' | translate }}</mat-button-toggle>
           <mat-button-toggle value="draw">{{ 'history.draws' | translate }}</mat-button-toggle>
         </mat-button-toggle-group>
       </div>
 
-      <p class="cn-visually-hidden" aria-live="polite">{{ 'history.found' | translate: { n: filteredRows().length } }}</p>
+      <p class="cn-visually-hidden" aria-live="polite">
+        {{ 'history.found' | translate: { n: filteredRows().length } }}
+      </p>
 
       <div class="cn-table-wrap">
         <table
@@ -58,52 +85,115 @@
           [attr.aria-label]="'history.table' | translate"
         >
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.date' | translate">{{ 'common.date' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.date' | translate"
+            >
+              {{ 'common.date' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row" class="cn-num">{{ row.date | localDate }}</td>
           </ng-container>
 
           <ng-container matColumnDef="opponent">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.opponent' | translate">{{ 'common.opponent' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.opponent' | translate"
+            >
+              {{ 'common.opponent' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row">
-              <a class="cn-link-cell" [routerLink]="['/wars', row.id]" (click)="$event.stopPropagation()">{{ row.opponent }}</a>
+              <a
+                class="cn-link-cell"
+                [routerLink]="['/wars', row.id]"
+                (click)="$event.stopPropagation()"
+                >{{ row.opponent }}</a
+              >
               <div class="cn-muted" style="font-size: 0.75rem">
                 {{ row.opponentTag }}
                 @if (!row.hasDetails) {
-                  <span class="summary-only" [title]="'history.summaryOnlyTitle' | translate">{{ 'history.summaryOnly' | translate }}</span>
+                  <span class="summary-only" [title]="'history.summaryOnlyTitle' | translate">{{
+                    'history.summaryOnly' | translate
+                  }}</span>
                 }
               </div>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="teamSize">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.size' | translate">{{ 'common.size' | translate }}</th>
-            <td mat-cell *matCellDef="let row" class="cn-num">{{ 'common.sizeVs' | translate: { n: row.teamSize } }}</td>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.size' | translate"
+            >
+              {{ 'common.size' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="cn-num">
+              {{ 'common.sizeVs' | translate: { n: row.teamSize } }}
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="result">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.result' | translate">{{ 'common.result' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.result' | translate"
+            >
+              {{ 'common.result' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row"><app-result-badge [result]="row.result" /></td>
           </ng-container>
 
           <ng-container matColumnDef="stars">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.stars' | translate">{{ 'common.stars' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.stars' | translate"
+            >
+              {{ 'common.stars' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row" class="cn-num">
-              <strong>{{ row.stars }}</strong> <span class="cn-muted">&nbsp;– {{ row.starsConceded }}</span>
+              <strong>{{ row.stars }}</strong>
+              <span class="cn-muted">&nbsp;– {{ row.starsConceded }}</span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="destruction">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'sort.destruction' | translate">{{ 'common.destruction' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.destruction' | translate"
+            >
+              {{ 'common.destruction' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row" class="cn-num">
               <strong>{{ row.destruction | localNumber: '1.1-1' }}%</strong>
-              <span class="cn-muted">&nbsp;– {{ row.destructionConceded | localNumber: '1.1-1' }}%</span>
+              <span class="cn-muted"
+                >&nbsp;– {{ row.destructionConceded | localNumber: '1.1-1' }}%</span
+              >
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let row; columns: columns" class="cn-row-link" (click)="open(row)"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: columns"
+            class="cn-row-link"
+            (click)="open(row)"
+          ></tr>
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="columns.length" style="padding: 2rem; text-align: center">
+            <td
+              class="mat-cell"
+              [attr.colspan]="columns.length"
+              style="padding: 2rem; text-align: center"
+            >
               {{ 'history.noResults' | translate }}
             </td>
           </tr>

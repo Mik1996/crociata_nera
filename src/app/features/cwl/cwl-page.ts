@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../../shared/icon/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
@@ -36,7 +36,7 @@ import { StarText } from '../../shared/components/star-text';
     RouterLink,
     MatFormFieldModule,
     MatSelectModule,
-    MatIconModule,
+    Icon,
     MatTableModule,
     PageHeader,
     LoadState,

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Icon } from '../icon/icon';
+import { IconName } from '../icon/material-icons';
 
 /** Card showing a numeric indicator. */
 @Component({
   selector: 'app-kpi-card',
-  imports: [MatIconModule],
+  imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'cn-card kpi', role: 'group', '[attr.aria-label]': 'label()' },
   templateUrl: './kpi-card.html',
@@ -14,8 +15,8 @@ export class KpiCard {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly hint = input<string>();
-  /** Material icon name. */
-  readonly icon = input<string>();
+  /** Icon shown when there is no picture. */
+  readonly icon = input<IconName>();
   /** Picture shown in place of the icon (same size). */
   readonly image = input<string | null>();
   /** Zoom of the picture, for game art with wide transparent margins (1 = as is). */
