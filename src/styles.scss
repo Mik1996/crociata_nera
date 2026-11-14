@@ -647,6 +647,76 @@ table tr.cn-row-me.mat-mdc-row {
   text-align: start;
 }
 
+/*
+ * Score breakdown of the CWL selection (`cn-tooltip-lines cn-tooltip-score`): one line per part,
+ * never wrapped, each starting with a dot in the colour of its segment of the score bar (same
+ * order: CWL commendations, CWL performance, wars, heroes, town hall; the CWL lines are left out
+ * with `cn-tooltip-score--no-cwl`). Material tooltips take
+ * plain text only, so the dots are drawn as backgrounds, one per line (line height fixed in em).
+ */
+.cn-tooltip-score {
+  --cn-tooltip-line: 1.5em;
+  --cn-tooltip-dot: 0.3em;
+
+  .mdc-tooltip__surface {
+    max-width: none;
+    padding-inline-start: 1.6em;
+    line-height: var(--cn-tooltip-line);
+    white-space: pre;
+    background-image:
+      radial-gradient(
+        circle,
+        var(--cn-gold) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      ),
+      radial-gradient(
+        circle,
+        var(--cn-gold-dark) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      ),
+      radial-gradient(
+        circle,
+        var(--cn-red-mid) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      ),
+      radial-gradient(
+        circle,
+        var(--cn-chart-series-2) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      ),
+      radial-gradient(
+        circle,
+        var(--cn-text-muted) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      );
+    background-repeat: no-repeat;
+    background-size: var(--cn-tooltip-line) var(--cn-tooltip-line);
+    background-origin: content-box;
+    background-position:
+      -1.5em 0,
+      -1.5em calc(1 * var(--cn-tooltip-line)),
+      -1.5em calc(2 * var(--cn-tooltip-line)),
+      -1.5em calc(3 * var(--cn-tooltip-line)),
+      -1.5em calc(4 * var(--cn-tooltip-line));
+  }
+
+  // Not in the last CWL: no CWL lines, so the first two dots go and the others move up.
+  &.cn-tooltip-score--no-cwl .mdc-tooltip__surface {
+    background-size:
+      0 0,
+      0 0,
+      var(--cn-tooltip-line) var(--cn-tooltip-line),
+      var(--cn-tooltip-line) var(--cn-tooltip-line),
+      var(--cn-tooltip-line) var(--cn-tooltip-line);
+    background-position:
+      -1.5em 0,
+      -1.5em 0,
+      -1.5em 0,
+      -1.5em calc(1 * var(--cn-tooltip-line)),
+      -1.5em calc(2 * var(--cn-tooltip-line));
+  }
+}
+
 .cn-me-badge {
   display: inline-block;
   margin-left: $space-s;

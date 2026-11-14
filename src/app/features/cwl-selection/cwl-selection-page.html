@@ -192,7 +192,11 @@
                 <span
                   class="score"
                   [matTooltip]="breakdownText(p)"
-                  matTooltipClass="cn-tooltip-lines"
+                  [matTooltipClass]="
+                    p.cwl
+                      ? 'cn-tooltip-lines cn-tooltip-score'
+                      : 'cn-tooltip-lines cn-tooltip-score cn-tooltip-score--no-cwl'
+                  "
                   [attr.aria-label]="breakdownText(p)"
                   tabindex="0"
                 >

@@ -50,6 +50,15 @@ const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
   'activity',
 ];
 const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 5);
+/** Parts that come from the last CWL, left out for who was not in its line-up. */
+const CWL_PARTS: readonly (keyof CwlScoreBreakdown)[] = ['cwlCommendations', 'cwlPerformance'];
+/** Highest points of each part of the bar (the wars depend on the player: `war.maxPoints`). */
+const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
+  cwlCommendations: 12,
+  cwlPerformance: 13,
+  heroes: 25,
+  townHall: 10,
+};
 
 /**
  * Ranking of the clan members for the CWL line-up (administrators, leaders and co-leaders): always
@@ -158,16 +167,25 @@ export class CwlSelectionPage {
     const number = new Intl.NumberFormat(this.language.current(), {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
-      signDisplay: 'exceptZero',
     });
-    return BREAKDOWN_PARTS.filter((part) => part !== 'missedAttacks' || row.breakdown[part] !== 0)
-      .filter((part) => part !== 'activity' || row.breakdown[part] !== 0)
-      .map((part) => {
-        const label = this.language.t(`cwlSelection.parts.${part}`);
-        const max = part === 'war' ? ` / ${row.war.maxPoints}` : '';
-        return `${label}: ${number.format(row.breakdown[part])}${max}`;
-      })
-      .join('\n');
+    const maxPoints: Partial<Record<keyof CwlScoreBreakdown, number>> = {
+      ...PART_MAX_POINTS,
+      war: row.war.maxPoints,
+    };
+    return (
+      BREAKDOWN_PARTS
+        // Not in the last CWL: its parts are 0 (and its points moved to the wars).
+        .filter((part) => row.cwl || !CWL_PARTS.includes(part))
+        // Penalties only when there are any.
+        .filter((part) => maxPoints[part] !== undefined || row.breakdown[part] !== 0)
+        .map((part) => {
+          const label = this.language.t(`cwlSelection.parts.${part}`);
+          const max = maxPoints[part];
+          const total = max === undefined ? '' : ` / ${max}`;
+          return `${label}: ${number.format(row.breakdown[part])}${total}`;
+        })
+        .join('\n')
+    );
   }
 
   /** Tooltip of the "excluded" label: reason, who and when. */
