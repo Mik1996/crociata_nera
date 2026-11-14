@@ -7,7 +7,7 @@ WORKDIR /app
 ENV NODE_OPTIONS=--max-old-space-size=1536
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
-COPY angular.json tsconfig.json tsconfig.app.json ./
+COPY angular.json ngsw-config.json tsconfig.json tsconfig.app.json ./
 COPY public ./public
 COPY src ./src
 RUN npx ng build --configuration production

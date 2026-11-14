@@ -14,7 +14,12 @@
     "mainNavigation": "Main navigation",
     "motto": "Deus vult · No attack wasted",
     "fanContent": "This material is unofficial and is not endorsed by Supercell. For more information see <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Supercell's Fan Content Policy</a>.",
-    "goToHome": "{{name}} – go to the home page"
+    "goToHome": "{{name}} – go to the home page",
+    "update": {
+      "ready": "A new version of the site is available.",
+      "broken": "The site has been updated: reload the page to continue.",
+      "reload": "Update"
+    }
   },
   "language": {
     "change": "Change language (current: {{name}})",

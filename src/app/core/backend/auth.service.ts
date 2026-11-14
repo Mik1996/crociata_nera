@@ -18,6 +18,7 @@ import {
 } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { LanguageService } from '../i18n/language.service';
+import { clearPrivateOfflineData } from '../pwa/offline-data';
 import {
   AuthResult,
   BackendUser,
@@ -140,6 +141,7 @@ export class AuthService {
       finalize(() => {
         this.session.set(null);
         this.stopRestoreRetries();
+        void clearPrivateOfflineData();
       }),
     );
   }
@@ -177,6 +179,7 @@ export class AuthService {
           if (isSessionRejected(error)) {
             this.session.set(null);
             this.stopRestoreRetries();
+            void clearPrivateOfflineData();
           } else if (!this.session()) {
             this.scheduleRestoreRetry();
           }

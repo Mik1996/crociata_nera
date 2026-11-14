@@ -14,7 +14,12 @@
     "mainNavigation": "Navigazione principale",
     "motto": "Deus vult · Nessun attacco sprecato",
     "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la <a href=\"https://supercell.com/en/fan-content-policy/\" target=\"_blank\" rel=\"noopener\">Fan Content Policy di Supercell</a>.",
-    "goToHome": "{{name}} – vai alla pagina iniziale"
+    "goToHome": "{{name}} – vai alla pagina iniziale",
+    "update": {
+      "ready": "È disponibile una nuova versione del sito.",
+      "broken": "Il sito è stato aggiornato: ricarica la pagina per continuare.",
+      "reload": "Aggiorna"
+    }
   },
   "language": {
     "change": "Cambia lingua (attuale: {{name}})",

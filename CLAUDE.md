@@ -23,6 +23,9 @@ Request routing (same in dev via `proxy.conf.json` and in prod via `deploy/Caddy
 ```sh
 npm start                 # frontend on :4200 (needs proxy + backend for real data)
 npm run start:mock        # frontend with mock data, no backend needed (no signed-in user)
+npm run start:prod        # builds, then serves dist/ like Caddy on :4400 to test the service worker (not
+                          # `ng serve`: its files fail the worker's hash check). Own port: the worker stays
+                          # registered. Needs http://localhost:4400 in FRONTEND_URL of backend/.env.local
 npm run server            # CoC proxy on :3000 (reads root .env)
 npm run backend           # backend on :3001 (reads backend/.env.local)
 
@@ -86,6 +89,14 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Material tooltips set `touch-action: none`; a global rule in `styles.scss` restores scrolling.
 - Signed-in user: `AuthService` (`accessToken` in memory, refresh cookie httpOnly). "Your" rows in
   tables: `isMine = inject(AuthService).isMyPlayer` and `[class.cn-row-me]="isMine(row.tag)"`.
+- Icons: `<app-icon name="..." />` (`src/app/shared/icon/`), SVGs bundled with the app (no icon
+  font). Names are typed: add a new one to `scripts/generate-icons.mjs` and run `npm run icons`.
+  Inside Material buttons add `matButtonIcon`, inside menu items `matMenuItemIcon` (projection slots).
+- Service worker (production build only, `ngsw-config.json`): app files precached, pictures cached
+  on first use, `/api/coc` and the clan data (`clan-data` group, dropped at sign-out) network-first
+  with the cache as offline fallback. A new deploy reaches open tabs through the "Update" prompt
+  (`core/pwa/app-updates.ts`). A new private `/api/v1` GET must not join a cached data group
+  unless it is cleared at sign-out too.
 - Check visual changes in a real browser before declaring them done (mock server
   `npm run start:mock` for public pages; pages needing a session cannot be seen in mock mode).
 

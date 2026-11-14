@@ -1,0 +1,88 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/**/*__*/**", "!/api/**"],
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/site.webmanifest",
+          "/*.css",
+          "/*.js",
+          "/i18n/*.json",
+          "/icons/favicon-32.png",
+          "/images/clan-crest-*.webp",
+          "/flags/*.svg"
+        ]
+      }
+    },
+    {
+      "name": "media",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/media/**",
+          "/images/**",
+          "/game/**",
+          "/flags/**",
+          "/commendations/**",
+          "/icons/**"
+        ]
+      }
+    },
+    {
+      "name": "fonts",
+      "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "urls": ["https://fonts.googleapis.com/**", "https://fonts.gstatic.com/**"]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "base-images",
+      "urls": ["/api/v1/base-images/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 200,
+        "maxAge": "30d"
+      }
+    },
+    {
+      "name": "clan-data",
+      "urls": [
+        "/api/v1/wars",
+        "/api/v1/history",
+        "/api/v1/cwl/seasons",
+        "/api/v1/raids/seasons",
+        "/api/v1/donations/seasons",
+        "/api/v1/players/",
+        "/api/v1/bases",
+        "/api/v1/clan/records"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "8s",
+        "maxSize": 300,
+        "maxAge": "30d"
+      }
+    },
+    {
+      "name": "coc-api",
+      "urls": ["/api/coc/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "8s",
+        "maxSize": 300,
+        "maxAge": "7d"
+      }
+    }
+  ]
+}

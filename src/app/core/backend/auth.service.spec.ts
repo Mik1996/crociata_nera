@@ -197,4 +197,23 @@ describe('AuthService and authInterceptor', () => {
     await done;
     expect(auth.isAuthenticated()).toBe(false);
   });
+
+  it('drops the clan data kept for offline use when the session ends', async () => {
+    const deleted: string[] = [];
+    vi.stubGlobal('caches', {
+      keys: async () => ['ngsw:/:1:data:clan-data:cache', 'ngsw:/:1:data:coc-api:cache'],
+      delete: async (name: string) => deleted.push(name) > 0,
+    });
+    try {
+      auth.restoreSession();
+      httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t6')));
+
+      const done = firstValueFrom(auth.signOut());
+      httpMock.expectOne('/api/v1/auth/sign-out').flush(ok(null));
+      await done;
+      await vi.waitFor(() => expect(deleted).toEqual(['ngsw:/:1:data:clan-data:cache']));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
