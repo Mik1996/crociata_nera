@@ -713,6 +713,28 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+/*
+ * Sticky header driven by the scroll (directive `StickyTableHeader`, which sets the timeline name
+ * on the scrolling area and measures the range): the browser moves the header cells in the same
+ * frame as the scroll, so they never shake.
+ */
+@keyframes cn-sticky-table-header {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(var(--cn-sticky-distance, 0));
+  }
+}
+
+.cn-table-wrap--scroll-driven :is(thead th, tr.mat-mdc-header-row > th) {
+  animation: cn-sticky-table-header linear both;
+  animation-timeline: --cn-table-scroll;
+  animation-range: var(--cn-sticky-start, 0)
+    calc(var(--cn-sticky-start, 0) + var(--cn-sticky-distance, 0));
+}
+
 // Header stuck at the top of the scrolling area: a shadow separates it from the rows below.
 .cn-table-wrap--stuck th.mat-mdc-header-cell {
   box-shadow: 0 0.375rem 0.5rem -0.25rem palette.alpha(var(--cn-shadow), 45%);
