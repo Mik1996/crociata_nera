@@ -33,8 +33,9 @@ const AFTER_END_DELAY_MS = 60 * 1000;
  * 3. completes ended wars with the war log (final stars, destruction, result, clan XP).
  *
  * Every step is idempotent: running it twice, or from two instances, gives the same data.
+ * Runs for one clan: the main one (`CLAN_TAG`) unless another clan of the Crusade is given.
  */
-export async function syncWars(now = new Date()): Promise<WarSyncReport> {
+export async function syncWars(now = new Date(), clanTag: string | null = env().CLAN_TAG ?? null): Promise<WarSyncReport> {
   const report: WarSyncReport = {
     ranAt: now.toISOString(),
     currentState: null,
@@ -45,7 +46,6 @@ export async function syncWars(now = new Date()): Promise<WarSyncReport> {
     nextCheckAt: null,
     error: null,
   };
-  const clanTag = env().CLAN_TAG;
   if (!clanTag) {
     report.error = { status: 0, reason: 'config.missingClanTag', message: 'CLAN_TAG is not set' };
     return report;
@@ -66,7 +66,7 @@ export async function syncWars(now = new Date()): Promise<WarSyncReport> {
       }
     }
 
-    report.finalized = await finalizeUnseenEndings(report.warKey, now);
+    report.finalized = await finalizeUnseenEndings(clanTag, report.warKey, now);
     report.warLogMatched = await matchWarLog(clanTag, now);
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;
@@ -75,9 +75,10 @@ export async function syncWars(now = new Date()): Promise<WarSyncReport> {
   return report;
 }
 
-/** Closes wars past their end time that are still stored as preparation/battle day. */
-async function finalizeUnseenEndings(currentWarKey: string | null, now: Date): Promise<string[]> {
+/** Closes the clan's wars past their end time that are still stored as preparation/battle day. */
+async function finalizeUnseenEndings(clanTag: string, currentWarKey: string | null, now: Date): Promise<string[]> {
   const stale = await WarModel.find({
+    clanTag,
     state: { $ne: 'warEnded' },
     endTime: { $lte: now },
     ...(currentWarKey ? { warKey: { $ne: currentWarKey } } : {}),
@@ -102,6 +103,7 @@ async function finalizeUnseenEndings(currentWarKey: string | null, now: Date): P
  */
 async function matchWarLog(clanTag: string, now: Date): Promise<string[]> {
   const pending = await WarModel.find({
+    clanTag,
     state: 'warEnded',
     warLogMatched: false,
     endTime: { $gte: new Date(now.getTime() - WAR_LOG_LOOKBACK_MS) },

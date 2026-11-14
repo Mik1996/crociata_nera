@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { env } from '@/lib/config/env';
 import { CocApiError, fetchPlayer } from '@/lib/coc/coc-client';
 import { PlayerModel } from './player.model';
 
@@ -22,13 +23,15 @@ export interface ProfileSyncResult {
 }
 
 /**
- * Reads the profile (`GET /players/{tag}`) of the current members never read or read more than
+ * Reads the profile (`GET /players/{tag}`) of the current members of the main clan never read or read more than
  * {@link PROFILE_TTL_MS} ago, at most {@link PROFILES_PER_RUN}, oldest first, and saves their home
  * village heroes and the equipment the heroes wear (CWL line-up). A failure skips that player only.
  */
 export async function syncPlayerProfiles(now = new Date()): Promise<ProfileSyncResult> {
   const due = await PlayerModel.find({
+    // The CWL line-up is of the main clan (players saved before the clan was tracked included).
     inClan: true,
+    clanTag: { $in: [env().CLAN_TAG ?? null, null] },
     $or: [{ profileSyncedAt: null }, { profileSyncedAt: { $lt: new Date(now.getTime() - PROFILE_TTL_MS) } }],
   })
     .sort({ profileSyncedAt: 1 })

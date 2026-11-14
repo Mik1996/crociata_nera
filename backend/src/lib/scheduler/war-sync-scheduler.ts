@@ -1,4 +1,5 @@
 import { env } from '../config/env';
+import { crusadeClanTags, primaryClanTag } from '../coc/crusade-clans';
 import { connectToDatabase } from '../db/mongoose';
 import { syncCommendations } from '@/modules/commendations/commendation-sync.service';
 import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
@@ -67,6 +68,7 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     const report = await syncWars();
     state.lastReport = report;
     logReport(report);
+    await runOtherClansWarSync(report);
     await runCwlSync();
     await runRaidSync();
     await runRecordSync();
@@ -80,27 +82,59 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
   }
 }
 
-/** Clan War League group and wars: a failure here must not stop the regular war sync. */
-async function runCwlSync(): Promise<void> {
-  try {
-    const cwl = await syncCwl();
-    if (cwl.error) console.warn(`[cwl-sync] ${cwl.error.reason} (${cwl.error.status}): ${cwl.error.message}`);
-    if (cwl.closed.length) console.info(`[cwl-sync] seasons closed after the group disappeared: ${cwl.closed.join(', ')}`);
-    if (!cwl.error && cwl.season) console.info(`[cwl-sync] season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
-  } catch (error) {
-    console.error('[cwl-sync] run failed:', error);
+/** The other clans of the Crusade (not `CLAN_TAG`). */
+function otherClanTags(): string[] {
+  return crusadeClanTags().filter((tag) => tag !== primaryClanTag());
+}
+
+/**
+ * Regular wars of the other clans of the Crusade (their commendations and the CWL line-up). The
+ * report stays the main clan's, but wakes up for the earliest war end of all the clans.
+ */
+async function runOtherClansWarSync(report: WarSyncReport): Promise<void> {
+  for (const clanTag of otherClanTags()) {
+    try {
+      const other = await syncWars(new Date(), clanTag);
+      if (other.error) console.warn(`[war-sync] ${clanTag}: ${other.error.reason} (${other.error.status}): ${other.error.message}`);
+      if (other.nextCheckAt && (!report.nextCheckAt || other.nextCheckAt < report.nextCheckAt)) {
+        report.nextCheckAt = other.nextCheckAt;
+      }
+    } catch (error) {
+      console.error(`[war-sync] ${clanTag} run failed:`, error);
+    }
   }
 }
 
-/** Raid Weekends (members are only listed while the weekend is in progress). */
-async function runRaidSync(): Promise<void> {
-  try {
-    const raids = await syncRaids();
-    state.raidCheckAt = raids.nextCheckAt ? new Date(raids.nextCheckAt) : null;
-    if (raids.error) console.warn(`[raid-sync] ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
-  } catch (error) {
-    console.error('[raid-sync] run failed:', error);
+/** Clan War League group and wars of every clan: a failure here must not stop the regular war sync. */
+async function runCwlSync(): Promise<void> {
+  for (const clanTag of crusadeClanTags()) {
+    try {
+      const cwl = await syncCwl(new Date(), clanTag);
+      if (cwl.error) console.warn(`[cwl-sync] ${clanTag}: ${cwl.error.reason} (${cwl.error.status}): ${cwl.error.message}`);
+      if (cwl.closed.length) console.info(`[cwl-sync] ${clanTag}: seasons closed after the group disappeared: ${cwl.closed.join(', ')}`);
+      if (!cwl.error && cwl.season) {
+        console.info(`[cwl-sync] ${clanTag}: season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
+      }
+    } catch (error) {
+      console.error(`[cwl-sync] ${clanTag} run failed:`, error);
+    }
   }
+}
+
+/** Raid Weekends of every clan (members are only listed while the weekend is in progress). */
+async function runRaidSync(): Promise<void> {
+  let checkAt: Date | null = null;
+  for (const clanTag of crusadeClanTags()) {
+    try {
+      const raids = await syncRaids(new Date(), clanTag);
+      const next = raids.nextCheckAt ? new Date(raids.nextCheckAt) : null;
+      if (next && (!checkAt || next < checkAt)) checkAt = next;
+      if (raids.error) console.warn(`[raid-sync] ${clanTag}: ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
+    } catch (error) {
+      console.error(`[raid-sync] ${clanTag} run failed:`, error);
+    }
+  }
+  state.raidCheckAt = checkAt;
 }
 
 /** Clan records: perfect wars of the wars saved above, best values read from the API. */

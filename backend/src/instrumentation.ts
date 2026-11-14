@@ -15,7 +15,11 @@ export async function register(): Promise<void> {
   // Data migrations of the saved documents (no-op once done).
   const { connectToDatabase } = await import('./lib/db/mongoose');
   const { migrateLinkedPlayers } = await import('./modules/auth/user.model');
+  const { migrateCwlSeasonIndex } = await import('./modules/cwl/cwl.model');
   connectToDatabase()
     .then(migrateLinkedPlayers)
     .catch((error: unknown) => console.error('[migrations] linked players:', (error as Error).message));
+  connectToDatabase()
+    .then(migrateCwlSeasonIndex)
+    .catch((error: unknown) => console.error('[migrations] CWL season index:', (error as Error).message));
 }

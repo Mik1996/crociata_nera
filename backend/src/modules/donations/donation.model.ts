@@ -25,6 +25,8 @@ const donationTotalSchema = new Schema(
     season: { type: String, required: true },
     playerTag: { type: String, required: true },
     playerName: { type: String, required: true },
+    /** Clan of the Crusade of the last donation counted; `null` for totals saved before it was tracked. */
+    clanTag: { type: String, default: null },
     donations: { type: Number, required: true, default: 0 },
     updatedAt: { type: Date, required: true },
   },

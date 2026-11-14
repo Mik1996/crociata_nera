@@ -1,15 +1,15 @@
 import { Types } from 'mongoose';
 import { UserRole } from '@/lib/auth/user-role';
 import { fetchClan } from '@/lib/coc/coc-client';
-import { env } from '@/lib/config/env';
+import { crusadeClanTags } from '@/lib/coc/crusade-clans';
 import { PublicUser, toPublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
 import { ClanRosterModel } from './clan-roster.model';
 
 /**
- * Clans of the Crusade: Crociata Nera, Crociata Rossa and Crociata d'Oro. Their members (with a
- * verified linked account) see the whole site; everybody else only the public pages.
+ * Members of the clans of the Crusade (with a verified linked account) see the whole site;
+ * everybody else only the public pages.
  */
-export const CRUSADE_CLAN_TAGS: readonly string[] = ['#2J8JVVCLC', '#2JU8RPR2G', '#2RRYUGQYJ'];
+export { CRUSADE_CLAN_TAGS, crusadeClanTags } from '@/lib/coc/crusade-clans';
 
 /** How long a member list read from the Clash of Clans API is trusted. */
 export const ROSTER_TTL_MS = 5 * 60_000;
@@ -32,12 +32,6 @@ export const LEADER_ROLES: readonly string[] = ['leader', 'coLeader'];
 
 let cache: MemberCache | null = null;
 let loading: Promise<Members> | null = null;
-
-/** The clans of the Crusade, including the configured `CLAN_TAG`. */
-export function crusadeClanTags(): string[] {
-  const configured = env().CLAN_TAG;
-  return [...new Set([...CRUSADE_CLAN_TAGS, ...(configured ? [configured] : [])])];
-}
 
 /**
  * Tags (upper case) of the current members of the clans of the Crusade. Each clan's list is read

@@ -19,8 +19,8 @@ const leagueWarSchema = new Schema(
  */
 const cwlSeasonSchema = new Schema(
   {
-    /** Season, `YYYY-MM`. */
-    season: { type: String, required: true, unique: true },
+    /** Season, `YYYY-MM`: one document per clan of the Crusade and season. */
+    season: { type: String, required: true },
     clanTag: { type: String, required: true },
     /** `preparation`, `inWar` or `ended`. */
     state: { type: String, required: true },
@@ -33,8 +33,23 @@ const cwlSeasonSchema = new Schema(
   { collection: 'CwlSeasons', timestamps: true, versionKey: false },
 );
 
+cwlSeasonSchema.index({ clanTag: 1, season: 1 }, { unique: true });
+
 export type CwlSeason = InferSchemaType<typeof cwlSeasonSchema>;
 export type CwlSeasonDocument = HydratedDocument<CwlSeason>;
 
 export const CwlSeasonModel: Model<CwlSeason> =
   (models.CwlSeason as Model<CwlSeason>) ?? model<CwlSeason>('CwlSeason', cwlSeasonSchema);
+
+/**
+ * One-time migration: seasons were unique by `season` while only the main clan was tracked; now
+ * by clan and season. Drops the old index (no-op once done).
+ */
+export async function migrateCwlSeasonIndex(): Promise<void> {
+  try {
+    await CwlSeasonModel.collection.dropIndex('season_1');
+  } catch {
+    // Already dropped (or never created).
+  }
+  await CwlSeasonModel.syncIndexes();
+}

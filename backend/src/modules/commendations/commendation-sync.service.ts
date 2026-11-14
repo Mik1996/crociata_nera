@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { env } from '@/lib/config/env';
 import { CocApiError, fetchClan } from '@/lib/coc/coc-client';
+import { crusadeClanTags, periodSuffix } from '@/lib/coc/crusade-clans';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { DonationSeasonRecord, endedSeasons, ongoingSeason, recordDonations } from '@/modules/donations/donation.service';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
@@ -63,9 +64,9 @@ export function previousMonth(now: Date): string {
 }
 
 /**
- * 1. Updates the Clash of Clans data of the current members (`Players`).
- * 2. Awards the commendations of every period closed since the last run (completed months,
- *    ended Raid Weekends with their members, ended CWL seasons), once: the period is then
+ * 1. Updates the Clash of Clans data of the current members of the clans of the Crusade (`Players`).
+ * 2. Awards the commendations of every period closed since the last run, in every clan of the
+ *    Crusade (completed months, ended Raid Weekends with their members, ended CWL seasons), once: the period is then
  *    marked as processed and never recomputed, so the history survives rule changes.
  * 3. Awards `donor` during the game season, as soon as a tier is reached (raised later to the
  *    higher tiers); an ended season is frozen after one last pass.
@@ -75,8 +76,7 @@ export function previousMonth(now: Date): string {
  */
 export async function syncCommendations(now = new Date()): Promise<CommendationSyncReport> {
   const report: CommendationSyncReport = { membersUpdated: 0, periodsProcessed: [], awards: 0, nextCheckAt: null, error: null };
-  const clanTag = env().CLAN_TAG;
-  if (!clanTag) return report;
+  if (!env().CLAN_TAG) return report;
 
   try {
     const members = await syncMembers(now);
@@ -152,67 +152,104 @@ export interface MembersSyncResult {
 }
 
 /**
- * Saves the current members of the clan in `Players`: creates the missing ones and refreshes the
- * Clash of Clans data of the others; players no longer listed are marked as gone. Also counts
- * the troops donated since the last read (`recordDonations`). Commendations are left untouched.
- * Throws {@link CocApiError} if the clan cannot be read.
+ * Saves the current members of the clans of the Crusade in `Players`: creates the missing ones
+ * and refreshes the Clash of Clans data (and clan) of the others; players no longer in any of the
+ * clans are marked as gone. Also counts the troops donated since the last read (`recordDonations`).
+ * Commendations are left untouched.
+ *
+ * Throws {@link CocApiError} if the main clan (`CLAN_TAG`) cannot be read. Another clan that
+ * cannot be read is skipped: its players keep their saved data and are not marked as gone.
  */
 export async function syncMembers(now = new Date()): Promise<MembersSyncResult> {
-  const clanTag = env().CLAN_TAG;
-  if (!clanTag) throw new CocApiError(0, 'config.missingClanTag', 'CLAN_TAG is not set');
-  const { memberList } = clanSchema.parse(await fetchClan(clanTag));
-  const result: MembersSyncResult = { created: [], updated: 0, left: 0, nextCheckAt: null };
-  // Members not in the clan at the last read have just joined (or come back).
-  const known = new Set((await PlayerModel.find({ inClan: true }).select('tag').lean()).map((p) => p.tag));
-  for (const m of memberList) {
-    const write = await PlayerModel.updateOne(
-      { tag: m.tag },
-      {
-        $set: {
-          name: m.name,
-          role: m.role ?? null,
-          townHallLevel: m.townHallLevel ?? null,
-          expLevel: m.expLevel ?? null,
-          trophies: m.trophies ?? null,
-          league: m.leagueTier
-            ? { id: m.leagueTier.id, name: m.leagueTier.name, iconUrl: m.leagueTier.iconUrls?.large ?? m.leagueTier.iconUrls?.small }
-            : null,
-          inClan: true,
-          lastSeenAt: now,
-          ...(known.has(m.tag) ? {} : { joinedAt: now }),
-        },
-      },
-      { upsert: true },
-    );
-    if (write.upsertedCount) result.created.push({ tag: m.tag, name: m.name });
-    else result.updated++;
+  const primary = env().CLAN_TAG;
+  if (!primary) throw new CocApiError(0, 'config.missingClanTag', 'CLAN_TAG is not set');
+  const rosters: { clanTag: string; members: z.infer<typeof memberSchema>[] }[] = [];
+  const unreadable: string[] = [];
+  for (const clanTag of crusadeClanTags()) {
+    try {
+      rosters.push({ clanTag, members: clanSchema.parse(await fetchClan(clanTag)).memberList });
+    } catch (error) {
+      if (clanTag === primary || !(error instanceof CocApiError || error instanceof z.ZodError)) throw error;
+      unreadable.push(clanTag);
+      console.warn(`[commendations] members of ${clanTag} not read: ${(error as Error).message}`);
+    }
   }
+
+  const result: MembersSyncResult = { created: [], updated: 0, left: 0, nextCheckAt: null };
+  // Players not in the Crusade at the last read have just joined (or come back); moving between
+  // the clans of the Crusade is not joining.
+  const known = new Set((await PlayerModel.find({ inClan: true }).select('tag').lean()).map((p) => p.tag));
+  for (const { clanTag, members } of rosters) {
+    for (const m of members) {
+      const write = await PlayerModel.updateOne(
+        { tag: m.tag },
+        {
+          $set: {
+            name: m.name,
+            clanTag,
+            role: m.role ?? null,
+            townHallLevel: m.townHallLevel ?? null,
+            expLevel: m.expLevel ?? null,
+            trophies: m.trophies ?? null,
+            league: m.leagueTier
+              ? { id: m.leagueTier.id, name: m.leagueTier.name, iconUrl: m.leagueTier.iconUrls?.large ?? m.leagueTier.iconUrls?.small }
+              : null,
+            inClan: true,
+            lastSeenAt: now,
+            ...(known.has(m.tag) ? {} : { joinedAt: now }),
+          },
+        },
+        { upsert: true },
+      );
+      if (write.upsertedCount) result.created.push({ tag: m.tag, name: m.name });
+      else result.updated++;
+    }
+  }
+  const seen = rosters.flatMap((r) => r.members.map((m) => m.tag));
+  // Players last seen in a clan that could not be read: unknown, kept as they are.
+  const keep = unreadable.length
+    ? (await PlayerModel.find({ inClan: true, clanTag: { $in: unreadable } }).select('tag').lean()).map((p) => p.tag)
+    : [];
   const gone = await PlayerModel.updateMany(
-    { tag: { $nin: memberList.map((m) => m.tag) }, inClan: true },
+    { tag: { $nin: [...seen, ...keep] }, inClan: true },
     { $set: { inClan: false } },
   );
   result.left = gone.modifiedCount;
-  result.nextCheckAt = (await recordDonations(memberList, now))?.toISOString() ?? null;
+  const donors = rosters.flatMap(({ clanTag, members }) => members.map((m) => ({ ...m, clanTag })));
+  result.nextCheckAt = (await recordDonations(donors, now, new Set(keep)))?.toISOString() ?? null;
   return result;
 }
 
-/** Periods closed and not processed yet, with their commendations computed now. */
+/** Periods closed and not processed yet, with their commendations computed now, for every clan. */
 async function closedPeriods(now: Date, processed: Set<string>): Promise<ClosedPeriod[]> {
   const periods: ClosedPeriod[] = [];
-  const clanTag = env().CLAN_TAG!;
+  for (const clanTag of crusadeClanTags()) periods.push(...(await closedPeriodsOf(clanTag, now, processed)));
+  return periods;
+}
+
+/**
+ * Closed periods of one clan. Keys carry the clan (`periodSuffix`), except for the main clan.
+ * For the other clans the first month with saved wars is skipped: their wars are saved only
+ * since they are tracked, so that month is incomplete.
+ */
+async function closedPeriodsOf(clanTag: string, now: Date, processed: Set<string>): Promise<ClosedPeriod[]> {
+  const periods: ClosedPeriod[] = [];
+  const suffix = periodSuffix(clanTag);
 
   // Completed months of the war history.
   const lastMonth = previousMonth(now);
-  for (const { month } of await listMonths()) {
-    const key = `month:${month}`;
-    if (month > lastMonth || processed.has(key)) continue;
-    const period = await getPeriod(month);
+  const months = await listMonths(clanTag);
+  const firstTracked = suffix ? months.at(-1)?.month : undefined;
+  for (const { month } of months) {
+    const key = `month:${month}${suffix}`;
+    if (month > lastMonth || month === firstTracked || processed.has(key)) continue;
+    const period = await getPeriod(month, clanTag);
     periods.push({ key, awards: awardMonthCommendations(period), names: new Map(period.players.map((p) => [p.tag, p.name])) });
   }
 
   // Ended Raid Weekends whose members were saved.
   for (const raid of await RaidSeasonModel.find({ clanTag, state: 'ended', hasMembers: true })) {
-    const key = `raid:${raid.startTime.toISOString()}`;
+    const key = `raid:${raid.startTime.toISOString()}${suffix}`;
     if (processed.has(key)) continue;
     const members = ((raid.season as Record<string, unknown>)['members'] ?? []) as {
       tag: string;
@@ -224,7 +261,7 @@ async function closedPeriods(now: Date, processed: Set<string>): Promise<ClosedP
 
   // Ended Clan War League seasons.
   for (const season of await CwlSeasonModel.find({ clanTag, state: 'ended' })) {
-    const key = `cwl:${season.season}`;
+    const key = `cwl:${season.season}${suffix}`;
     if (processed.has(key)) continue;
     const players = cwlPlayers(season.wars.map((w) => w.war as LeagueWar), clanTag);
     periods.push({ key, awards: awardCwlCommendations(players), names: new Map(players.map((p) => [p.tag, p.name])) });

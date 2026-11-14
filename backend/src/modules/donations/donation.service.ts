@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { env } from '@/lib/config/env';
 import { CocApiError, fetchGoldPassSeason } from '@/lib/coc/coc-client';
 import { cocDate } from '@/lib/coc/coc-date';
 import { DonationCounterModel, DonationSeasonModel, DonationTotalModel } from './donation.model';
@@ -8,6 +9,8 @@ export interface MemberDonations {
   tag: string;
   name: string;
   donations: number;
+  /** Clan of the Crusade the member is in. */
+  clanTag?: string;
 }
 
 /** Season with the troops donated by each player (most first). */
@@ -58,13 +61,19 @@ export async function currentSeason(now: Date): Promise<{ season: string; startT
  * the clan and at the end of the season. So, for each member:
  * - counter >= last read: donated `counter - last`;
  * - counter < last read: the counter was reset in between, donated `counter` (since the reset).
- * Players no longer in the clan get their last read set to 0, so what they donate after coming
- * back is counted from zero. The last read is updated only if nobody else changed it meanwhile,
+ * Players no longer in the clans of the Crusade get their last read set to 0, so what they
+ * donate after coming back is counted from zero (except those in `keep`: in a clan that could not
+ * be read, their counter is unknown). Moving to another clan of the Crusade resets the counter too:
+ * the next read is lower, so it counts from zero. The last read is updated only if nobody else changed it meanwhile,
  * so two concurrent runs never count the same troops twice.
  *
  * Returns when to read again for the last time before the season ends (`null` if no season).
  */
-export async function recordDonations(members: MemberDonations[], now: Date): Promise<Date | null> {
+export async function recordDonations(
+  members: MemberDonations[],
+  now: Date,
+  keep: ReadonlySet<string> = new Set(),
+): Promise<Date | null> {
   const season = await currentSeason(now);
   // Without a season the reads are kept as they are: the next run counts the difference.
   if (!season) return null;
@@ -80,12 +89,12 @@ export async function recordDonations(members: MemberDonations[], now: Date): Pr
     if (!(await advanceCounter(m.tag, previous, m.donations, now)) || donated <= 0) continue;
     await DonationTotalModel.updateOne(
       { season: season.season, playerTag: m.tag },
-      { $inc: { donations: donated }, $set: { playerName: m.name, updatedAt: now } },
+      { $inc: { donations: donated }, $set: { playerName: m.name, updatedAt: now, ...(m.clanTag ? { clanTag: m.clanTag } : {}) } },
       { upsert: true },
     );
   }
   await DonationCounterModel.updateMany(
-    { playerTag: { $nin: tags }, counter: { $gt: 0 } },
+    { playerTag: { $nin: [...tags, ...keep] }, counter: { $gt: 0 } },
     { $set: { counter: 0, readAt: now } },
   );
 
@@ -119,17 +128,24 @@ export async function ongoingSeason(now: Date): Promise<DonationSeasonRecord | n
   return season ? seasonRecord(season, now) : null;
 }
 
-/** Saved seasons, most recent first (the one in progress included), with their totals. */
+/** Saved seasons, most recent first (the one in progress included), with the totals of the main clan. */
 export async function listDonationSeasons(limit: number, now = new Date()): Promise<DonationSeasonRecord[]> {
   const seasons = await DonationSeasonModel.find().sort({ startTime: -1 }).limit(limit).lean();
-  return Promise.all(seasons.map((s) => seasonRecord(s, now)));
+  return Promise.all(seasons.map((s) => seasonRecord(s, now, env().CLAN_TAG)));
 }
 
+/**
+ * A season with its totals: of every player (`donor` commendations, across the clans of the
+ * Crusade), or only of those who last donated in one clan (the pages show the main clan).
+ */
 async function seasonRecord(
   s: { season: string; startTime: Date; endTime: Date },
   now: Date,
+  clanTag?: string,
 ): Promise<DonationSeasonRecord> {
-  const totals = await DonationTotalModel.find({ season: s.season }).sort({ donations: -1 }).lean();
+  // Totals saved before the clans were tracked have no clan: they are the main clan's.
+  const clanFilter = clanTag ? { clanTag: { $in: [clanTag, null] } } : {};
+  const totals = await DonationTotalModel.find({ season: s.season, ...clanFilter }).sort({ donations: -1 }).lean();
   return {
     season: s.season,
     startTime: s.startTime.toISOString(),

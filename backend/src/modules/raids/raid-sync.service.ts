@@ -27,10 +27,10 @@ const listSchema = z.object({ items: z.array(z.unknown()) });
 /**
  * Saves the recent Raid Weekends. For a past weekend the API no longer lists the members: the
  * ones saved while it was in progress are kept, only the final totals are updated. Idempotent.
+ * Runs for one clan: the main one (`CLAN_TAG`) unless another clan of the Crusade is given.
  */
-export async function syncRaids(now = new Date()): Promise<RaidSyncReport> {
+export async function syncRaids(now = new Date(), clanTag: string | null = env().CLAN_TAG ?? null): Promise<RaidSyncReport> {
   const report: RaidSyncReport = { saved: 0, ongoing: null, nextCheckAt: null, error: null };
-  const clanTag = env().CLAN_TAG;
   if (!clanTag) return report;
 
   try {

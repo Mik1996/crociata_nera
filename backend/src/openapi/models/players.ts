@@ -32,7 +32,7 @@ export const PlayerRecord = model(
       })
       .nullable()
       .describe('League tier; `null` when unknown.'),
-    inClan: z.boolean().describe('`false` once the player has left the clan.'),
+    inClan: z.boolean().describe('`false` once the player has left the clans of the Crusade.'),
     lastSeenAt: nullableDateTime('Last time the player was seen in the clan member list.'),
     commendations: z.array(EarnedCommendation).describe('Commendations earned.'),
   }),

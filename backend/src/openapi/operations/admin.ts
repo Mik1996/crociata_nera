@@ -109,9 +109,9 @@ export const ADMIN_OPERATIONS: ApiOperation[] = [
     path: '/admin/players/sync',
     operationId: 'syncPlayers',
     tag: 'Admin',
-    summary: 'Synchronise the clan members',
+    summary: 'Synchronise the members of the clans',
     description:
-      'Reads the clan from the Clash of Clans API and saves its members: creates the missing players, refreshes the others, marks those who left. The scheduler does the same at every run; commendations are not touched.',
+      'Reads the clans of the Crusade from the Clash of Clans API and saves their members: creates the missing players, refreshes the others (with their clan), marks those who left all the clans. The scheduler does the same at every run; commendations are not touched.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     responses: { 200: { description: 'Members saved.', result: MembersSyncResult } },

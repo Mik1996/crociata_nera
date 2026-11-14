@@ -1,3 +1,4 @@
+import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { CwlSeasonModel } from './cwl.model';
@@ -17,14 +18,17 @@ export interface CwlSeasonDetail extends CwlSeasonSummary {
   wars: Record<string, unknown>[];
 }
 
-/** Saved seasons, most recent first. */
+/** Filter on the main clan (`CLAN_TAG`): the pages show its seasons. */
+const mainClan = () => (env().CLAN_TAG ? { clanTag: env().CLAN_TAG } : {});
+
+/** Saved seasons of the main clan, most recent first. */
 export async function listCwlSeasons(limit = 12): Promise<CwlSeasonSummary[]> {
-  const seasons = await CwlSeasonModel.find().sort({ season: -1 }).limit(limit).select('season state lastSyncedAt');
+  const seasons = await CwlSeasonModel.find(mainClan()).sort({ season: -1 }).limit(limit).select('season state lastSyncedAt');
   return seasons.map((s) => ({ season: s.season, state: s.state, lastSyncedAt: s.lastSyncedAt.toISOString() }));
 }
 
 export async function getCwlSeason(season: string): Promise<CwlSeasonDetail> {
-  const doc = await CwlSeasonModel.findOne({ season });
+  const doc = await CwlSeasonModel.findOne({ ...mainClan(), season });
   if (!doc) throwException(404, MessageKey.CWL_SEASON_NOT_FOUND);
   const plain = doc.toObject();
   return {

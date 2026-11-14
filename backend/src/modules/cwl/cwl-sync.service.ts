@@ -31,11 +31,11 @@ const warSchema = z.object({ state: z.string() }).passthrough();
  * Saves the current Clan War League group and its wars. Outside the CWL days the API answers
  * 404 (or `notInWar`): then only saved seasons not marked `ended` yet are completed (see
  * `closeOpenSeasons`). Wars already ended are not read again; the season is marked `ended` once
- * all its scheduled wars have ended. Idempotent.
+ * all its scheduled wars have ended. Idempotent. Runs for one clan: the main one (`CLAN_TAG`)
+ * unless another clan of the Crusade is given.
  */
-export async function syncCwl(now = new Date()): Promise<CwlSyncReport> {
+export async function syncCwl(now = new Date(), clanTag: string | null = env().CLAN_TAG ?? null): Promise<CwlSyncReport> {
   const report: CwlSyncReport = { season: null, state: null, warsFetched: 0, closed: [], error: null };
-  const clanTag = env().CLAN_TAG;
   if (!clanTag) return report;
 
   try {
@@ -57,7 +57,7 @@ export async function syncCwl(now = new Date()): Promise<CwlSyncReport> {
     const key = group.season.slice(0, 7);
     report.season = key;
 
-    const season = (await CwlSeasonModel.findOne({ season: key })) ?? new CwlSeasonModel({ season: key });
+    const season = (await CwlSeasonModel.findOne({ clanTag, season: key })) ?? new CwlSeasonModel({ clanTag, season: key });
     const wars = await readWars(season, group.rounds, report);
     const state = group.state === 'ended' || allWarsEnded(group.rounds, wars) ? 'ended' : group.state;
     report.state = state;

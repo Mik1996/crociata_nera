@@ -40,7 +40,9 @@ const playerSchema = new Schema(
       type: new Schema({ id: Number, name: String, iconUrl: String }, { _id: false }),
       default: null,
     },
-    /** `false` once the player has left the clan. */
+    /** Clan of the Crusade the player is (or was last seen) in; `null` for players saved before it was tracked. */
+    clanTag: { type: String, default: null },
+    /** `false` once the player has left the clans of the Crusade. */
     inClan: { type: Boolean, default: false },
     /** Last time the player was seen in the clan member list. */
     lastSeenAt: { type: Date, default: null },

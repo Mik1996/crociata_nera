@@ -208,8 +208,8 @@ export function aggregatePlayers(wars: HistoryWar[]): HistoryPlayerStats[] {
     .sort(compareForRanking);
 }
 
-async function endedWars(): Promise<{ wars: HistoryWar[]; updatedAt: string | null }> {
-  const clanTag = env().CLAN_TAG;
+/** Ended wars of a clan: the main one (`CLAN_TAG`) unless another clan of the Crusade is given. */
+async function endedWars(clanTag: string | undefined = env().CLAN_TAG): Promise<{ wars: HistoryWar[]; updatedAt: string | null }> {
   const docs = await WarModel.find({ state: 'warEnded', ...(clanTag ? { clanTag } : {}) }).sort({ endTime: -1 });
   const wars = docs.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
   const updatedAt = docs.reduce<Date | null>((max, d) => (!max || d.updatedAt > max ? d.updatedAt : max), null);
@@ -217,8 +217,8 @@ async function endedWars(): Promise<{ wars: HistoryWar[]; updatedAt: string | nu
 }
 
 /** `GET /history`: months with recorded wars, most recent first. */
-export async function listMonths(): Promise<MonthSummary[]> {
-  const { wars, updatedAt } = await endedWars();
+export async function listMonths(clanTag?: string): Promise<MonthSummary[]> {
+  const { wars, updatedAt } = await endedWars(clanTag);
   const months = new Map<string, HistoryWar[]>();
   for (const war of wars) months.set(monthOf(war.endTime), [...(months.get(monthOf(war.endTime)) ?? []), war]);
   return [...months.entries()]
@@ -234,9 +234,9 @@ export async function listMonths(): Promise<MonthSummary[]> {
 }
 
 /** `GET /history/{YYYY-MM|all}`: wars and ranking of a period; 404 for a month without wars. */
-export async function getPeriod(period: string): Promise<HistoryPeriod> {
+export async function getPeriod(period: string, clanTag?: string): Promise<HistoryPeriod> {
   if (period !== 'all' && !MONTH_REGEX.test(period)) throwException(400, MessageKey.PERIOD_IS_NOT_VALID);
-  const { wars, updatedAt } = await endedWars();
+  const { wars, updatedAt } = await endedWars(clanTag);
   const selected = period === 'all' ? wars : wars.filter((w) => monthOf(w.endTime) === period);
   if (period !== 'all' && !selected.length) throwException(404, MessageKey.HISTORY_NOT_FOUND);
   return { period, updatedAt, wars: selected, players: aggregatePlayers(selected) };
