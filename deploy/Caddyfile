@@ -30,13 +30,14 @@ www.{$DOMAIN} {
 		reverse_proxy backend:3001
 	}
 
-	# Angular app. Hashed bundles (main-AB12CD34.js) never change: cached for a year.
-	# Everything else, including index.html served for deep links such as /players, is
-	# revalidated on every visit, so a new deploy shows up at once.
+	# Angular app. Hashed bundles (main-AB12CD34.js, chunk-9LTWR-4v.js: the 8-character hash may
+	# contain - and _) never change: cached for a year. Everything else, including index.html served
+	# for deep links such as /players and the service worker (ngsw-worker.js, ngsw.json), is
+	# revalidated on every visit, so a new deploy is found at once.
 	handle {
 		root * /srv
-		@hashed path_regexp \.[0-9a-zA-Z]{8,}\.(js|css)$
-		@other not path_regexp \.[0-9a-zA-Z]{8,}\.(js|css)$
+		@hashed path_regexp -[0-9a-zA-Z_-]{8}\.(js|css)$
+		@other not path_regexp -[0-9a-zA-Z_-]{8}\.(js|css)$
 		header @hashed Cache-Control "public, max-age=31536000, immutable"
 		header @other Cache-Control "no-cache"
 		try_files {path} /index.html
