@@ -15,7 +15,7 @@ import { AuthPanel } from './components/auth-panel';
 
 /** "Forgot password": asks for the email and sends a reset link. */
 @Component({
-  selector: 'app-forgot-password-page',
+  selector: 'crn-forgot-password-page',
   imports: [
     ReactiveFormsModule,
     RouterLink,

@@ -7,7 +7,7 @@ import { CommendationEmblem } from '../../core/models';
  * Default width 72px (square medal); the parent can resize it by setting `width` on the element.
  */
 @Component({
-  selector: 'app-commendation-medal',
+  selector: 'crn-commendation-medal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './commendation-medal.html',
   styleUrl: './commendation-medal.scss',

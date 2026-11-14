@@ -194,13 +194,13 @@
   button {
     color: var(--cn-text-muted);
 
-    app-icon {
+    crn-icon {
       transform: rotate(45deg);
       transition: transform 150ms ease;
     }
   }
 
-  button.active app-icon {
+  button.active crn-icon {
     transform: none;
   }
 
@@ -242,7 +242,7 @@ mat-sidenav-content {
   font-size: var(--cn-fs-xs);
   text-align: center;
 
-  app-icon {
+  crn-icon {
     font-size: 1.125rem;
   }
 }

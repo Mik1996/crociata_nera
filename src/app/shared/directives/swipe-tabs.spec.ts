@@ -6,7 +6,7 @@ import { SwipeTabs } from './swipe-tabs';
 @Component({
   imports: [MatTabsModule, SwipeTabs],
   template: `
-    <mat-tab-group appSwipeTabs>
+    <mat-tab-group crnSwipeTabs>
       <mat-tab label="One">1</mat-tab>
       <mat-tab label="Two">2</mat-tab>
     </mat-tab-group>

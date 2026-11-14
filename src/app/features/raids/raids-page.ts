@@ -25,7 +25,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
  * member, and the current members who did not take part (capital raids are mandatory).
  */
 @Component({
-  selector: 'app-raids-page',
+  selector: 'crn-raids-page',
   imports: [
     TABLE_WRAP,
     TranslatePipe,

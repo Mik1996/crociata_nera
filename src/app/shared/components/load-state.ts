@@ -39,7 +39,7 @@ export function errorMessage(
  * emitted by itself when the network comes back.
  */
 @Component({
-  selector: 'app-load-state',
+  selector: 'crn-load-state',
   imports: [MatProgressSpinnerModule, Icon, MatButtonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './load-state.html',

@@ -51,7 +51,7 @@
       </svg>
     }
   </div>
-  <app-crusader
+  <crn-crusader
     class="hero__crusader"
     pose="stand"
     [order]="order()"
@@ -98,7 +98,7 @@
       <span>{{ 'welcome.clanLevel' | translate: { n: c.level } }}</span>
       @if (c.location) {
         <span aria-hidden="true">·</span>
-        <span class="hero__location"><app-icon name="public" />{{ c.location }}</span>
+        <span class="hero__location"><crn-icon name="public" />{{ c.location }}</span>
       }
     </p>
   </div>
@@ -116,7 +116,7 @@
       [attr.rel]="ctaExternal() ? 'noopener' : null"
       (click)="cta.emit($event)"
     >
-      <app-icon name="shield" />
+      <crn-icon name="shield" />
       {{ ctaLabel() }}
       @if (ctaExternal()) {
         <span class="cn-visually-hidden">({{ 'common.opensInNewTab' | translate }})</span>
@@ -127,7 +127,7 @@
   @if (hint()) {
     <p class="hero__hint" aria-hidden="true">
       {{ 'welcome.acts.scrollHint' | translate }}
-      <app-icon name="keyboard_double_arrow_down" />
+      <crn-icon name="keyboard_double_arrow_down" />
     </p>
   }
 </section>

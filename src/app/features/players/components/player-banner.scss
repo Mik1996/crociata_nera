@@ -190,7 +190,7 @@
     transition: none;
   }
 
-  app-medal-3d-image {
+  crn-medal-3d-image {
     display: block;
     width: 5rem;
   }
@@ -211,7 +211,7 @@
   font-size: var(--cn-fs-xl);
   text-shadow: var(--cn-game-text-outline);
 
-  app-icon {
+  crn-icon {
     color: var(--cn-game-gold);
     filter: drop-shadow(0 1px 0 var(--cn-ink));
   }
@@ -254,7 +254,7 @@
   .banner__trophies {
     font-size: var(--cn-fs-md);
 
-    app-icon {
+    crn-icon {
       font-size: 1.125rem;
       width: 1.125rem;
       height: 1.125rem;
@@ -281,7 +281,7 @@
     gap: $space-s;
   }
 
-  .banner__medal-button app-medal-3d-image {
+  .banner__medal-button crn-medal-3d-image {
     width: 3.75rem;
   }
 }

@@ -39,7 +39,7 @@ export interface RankingRow extends HistoryPlayerStats {
 const MAX_STARS_PER_WAR = 6;
 
 @Component({
-  selector: 'app-statistics-page',
+  selector: 'crn-statistics-page',
   imports: [
     StarText,
     TABLE_WRAP,

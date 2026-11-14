@@ -12,7 +12,7 @@ import { AuthPanel } from './components/auth-panel';
 
 /** Confirms the email address from the link (`/verify-email?token=…`) as soon as it opens. */
 @Component({
-  selector: 'app-verify-email-page',
+  selector: 'crn-verify-email-page',
   imports: [RouterLink, MatButtonModule, Icon, MatProgressSpinnerModule, TranslatePipe, AuthPanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './verify-email-page.html',

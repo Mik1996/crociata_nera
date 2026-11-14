@@ -5,11 +5,11 @@ import { PageHeader } from './page-header';
 @Component({
   imports: [PageHeader],
   template: `
-    <app-page-header title="Guerra corrente" subtitle="Il campo brucia" kicker="Cronache del fronte" scene="war" crusader="fist" flush>
+    <crn-page-header title="Guerra corrente" subtitle="Il campo brucia" kicker="Cronache del fronte" scene="war" crusader="fist" flush>
       <button type="button">Aggiorna</button>
       <p pageHero class="hero">24 – 30</p>
-    </app-page-header>
-    <app-page-header title="Giocatori" />
+    </crn-page-header>
+    <crn-page-header title="Giocatori" />
   `,
 })
 class Host {}
@@ -18,7 +18,7 @@ describe('PageHeader', () => {
   async function render() {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();
-    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('app-page-header'));
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('crn-page-header'));
   }
 
   it('shows kicker, title and tagline over the chosen scene, with the Crusader', async () => {
@@ -28,7 +28,7 @@ describe('PageHeader', () => {
     expect(header.querySelector('.kicker')!.textContent).toContain('Cronache del fronte');
     expect(header.querySelector('h1')!.textContent).toBe('Guerra corrente');
     expect(header.querySelector('.subtitle')!.textContent).toBe('Il campo brucia');
-    expect(header.querySelector('app-crusader')!.getAttribute('data-pose')).toBe('fist');
+    expect(header.querySelector('crn-crusader')!.getAttribute('data-pose')).toBe('fist');
     // The scene is decoration only.
     expect(header.querySelector('.scene')!.getAttribute('aria-hidden')).toBe('true');
   });
@@ -47,6 +47,6 @@ describe('PageHeader', () => {
     expect(header.classList.contains('page-header--flush')).toBe(false);
     expect(header.querySelector('.kicker')).toBeNull();
     expect(header.querySelector('.subtitle')).toBeNull();
-    expect(header.querySelector('app-crusader')).toBeNull();
+    expect(header.querySelector('crn-crusader')).toBeNull();
   });
 });

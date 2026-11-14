@@ -16,7 +16,7 @@ import { AuthPanel } from './components/auth-panel';
 
 /** Sign-in with email or username and password. */
 @Component({
-  selector: 'app-sign-in-page',
+  selector: 'crn-sign-in-page',
   imports: [
     ReactiveFormsModule,
     RouterLink,

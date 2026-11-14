@@ -10,7 +10,7 @@ import { ClanHero } from '../clan-hero/clan-hero';
  * jumps to the last act, the one to join the clan.
  */
 @Component({
-  selector: 'app-act-prologue',
+  selector: 'crn-act-prologue',
   imports: [TranslatePipe, ClanHero],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

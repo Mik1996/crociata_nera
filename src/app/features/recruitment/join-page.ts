@@ -14,7 +14,7 @@ import { RecruitmentBanner } from './recruitment-banner';
  * of its sister clans, and the clan rules.
  */
 @Component({
-  selector: 'app-join-page',
+  selector: 'crn-join-page',
   imports: [TranslatePipe, LoadState, PageHeader, ScrollFade, RecruitmentBanner, ClanRules],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

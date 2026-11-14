@@ -44,6 +44,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 ## Conventions
 
 - Every Angular component has separate `.ts` / `.html` / `.scss` files (no inline template/styles).
+- Selector prefix `crn` (Crociata Nera): components `crn-xxx`, directives `[crnXxx]` (set in `angular.json`).
 - Prettier: `printWidth` 100, single quotes, Angular parser for HTML. The user's editor formats on
   save, so diffs often contain formatting changes.
 - Colours: the **only** place with colour literals is `src/styles/_color-palette.scss` (theme tokens
@@ -79,8 +80,8 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Tables: wrap them in `<div class="cn-table-wrap">` and import `TABLE_WRAP`
   (`src/app/shared/directives/table-wrap.ts`): sticky header + resizable columns. Header labels never wrap.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
-  `appScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
-- Empty/loading/error states: `<app-load-state>` (shows the clan badge in empty states, `ClanBadge`).
+  `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
+- Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).
 - Responsive layout by available width: prefer **container queries**. A container query never
   applies to the container itself, so put `container-type` on a parent. Mind rule order: base rules
   must come before the `@container` block (same specificity, later wins). Text that must fit its box
@@ -92,8 +93,8 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   Offline (backend unreachable) the user of the last session is remembered from a minimal profile in
   localStorage (no token, no email; `isUnconfirmed()`), confirmed or signed out when the backend
   answers. Network state: `Connectivity` (`core/pwa/connectivity.ts`): offline banner in the shell,
-  "offline" error messages, `<app-load-state>` retries by itself when the connection comes back.
-- Icons: `<app-icon name="..." />` (`src/app/shared/icon/`) draws `public/assets/icons/<name>.svg`
+  "offline" error messages, `<crn-load-state>` retries by itself when the connection comes back.
+- Icons: `<crn-icon name="..." />` (`src/app/shared/icon/`) draws `public/assets/icons/<name>.svg`
   with `<use href="…#icon">` (no icon font); the files paint with `currentColor`, so set `color` to
   colour them. Precached by the service worker. Names are typed: add a new one to
   `scripts/generate-icons.mjs` and run `npm run icons` (writes the SVGs and `icon-names.ts`).

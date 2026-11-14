@@ -19,8 +19,8 @@ describe('RaidsPage', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
 
-    expect(el.querySelectorAll('app-kpi-card')).toHaveLength(4);
-    expect(Array.from(el.querySelectorAll('app-kpi-card .kpi__image')).map((img) => img.getAttribute('src'))).toEqual([
+    expect(el.querySelectorAll('crn-kpi-card')).toHaveLength(4);
+    expect(Array.from(el.querySelectorAll('crn-kpi-card .kpi__image')).map((img) => img.getAttribute('src'))).toEqual([
       'game/misc/capital-gold-2.webp',
       'game/misc/raid.webp',
       'game/capital-halls/capital-hall-10.webp',
@@ -47,7 +47,7 @@ describe('RaidsPage', () => {
     expect(el.querySelector('.members')).toBeNull();
     expect(el.querySelector('.notice')!.textContent).toContain('Dettaglio dei membri non disponibile');
     // The totals of the weekend are still shown.
-    expect(el.querySelectorAll('app-kpi-card')).toHaveLength(4);
+    expect(el.querySelectorAll('crn-kpi-card')).toHaveLength(4);
   });
 
   it('switching to another weekend shows its members', async () => {

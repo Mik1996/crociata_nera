@@ -14,7 +14,7 @@ export interface BaseDeleteDialogData {
 
 /** Asks for confirmation, then deletes the base. Closes with `true` once deleted. */
 @Component({
-  selector: 'app-base-delete-dialog',
+  selector: 'crn-base-delete-dialog',
   imports: [MatButtonModule, MatDialogModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-delete-dialog.html',

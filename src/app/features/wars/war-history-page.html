@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="hall"
   [kicker]="'kicker.history' | translate"
   crusader="stand"
@@ -6,8 +6,8 @@
   [subtitle]="'history.subtitle' | translate"
 />
 
-<div appScrollFade class="page__scroll">
-  <app-load-state
+<div crnScrollFade class="page__scroll">
+  <crn-load-state
     [loading]="resource.isLoading()"
     [error]="resource.error()"
     [empty]="record().total === 0"
@@ -17,12 +17,12 @@
   >
     @let totals = record();
     <div class="cn-grid-kpi">
-      <app-kpi-card
+      <crn-kpi-card
         icon="flag"
         [label]="'history.warsAnalyzed' | translate"
         [value]="totals.total"
       />
-      <app-kpi-card
+      <crn-kpi-card
         icon="emoji_events"
         [label]="'history.victories' | translate"
         [value]="totals.victories"
@@ -32,12 +32,12 @@
               : { percent: ((totals.victories / totals.total) * 100 | localNumber: '1.0-0') }
         "
       />
-      <app-kpi-card
+      <crn-kpi-card
         icon="heart_broken"
         [label]="'history.defeats' | translate"
         [value]="totals.defeats"
       />
-      <app-kpi-card icon="balance" [label]="'history.draws' | translate" [value]="totals.draws" />
+      <crn-kpi-card icon="balance" [label]="'history.draws' | translate" [value]="totals.draws" />
     </div>
 
     <section class="cn-card cn-section" aria-labelledby="history-title">
@@ -46,7 +46,7 @@
       <div class="cn-filters" role="search" [attr.aria-label]="'history.filter' | translate">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'history.search' | translate }}</mat-label>
-          <app-icon matPrefix name="search" />
+          <crn-icon matPrefix name="search" />
           <input
             matInput
             [ngModel]="search()"
@@ -146,7 +146,7 @@
             >
               {{ 'common.result' | translate }}
             </th>
-            <td mat-cell *matCellDef="let row"><app-result-badge [result]="row.result" /></td>
+            <td mat-cell *matCellDef="let row"><crn-result-badge [result]="row.result" /></td>
           </ng-container>
 
           <ng-container matColumnDef="stars">
@@ -210,5 +210,5 @@
         [attr.aria-label]="'history.paginator' | translate"
       />
     </section>
-  </app-load-state>
+  </crn-load-state>
 </div>

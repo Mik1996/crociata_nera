@@ -26,7 +26,7 @@ import { warStateKey } from '../../../shared/labels';
  * sides hang as banners over the scene, the Crusader stands in the middle behind the score.
  */
 @Component({
-  selector: 'app-war-summary',
+  selector: 'crn-war-summary',
   imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, Icon, ResultBadge, Crusader],
   host: { '[class.summary--scenic]': 'scenic()' },
   changeDetection: ChangeDetectionStrategy.OnPush,

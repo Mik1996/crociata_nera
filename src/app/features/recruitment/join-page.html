@@ -1,10 +1,10 @@
-<app-page-header scene="dusk" [kicker]="'kicker.join' | translate" [title]="'join.title' | translate" [subtitle]="'join.subtitle' | translate" />
+<crn-page-header scene="dusk" [kicker]="'kicker.join' | translate" [title]="'join.title' | translate" [subtitle]="'join.subtitle' | translate" />
 
-<div appScrollFade class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'join.title' | translate">
-  <app-load-state [loading]="clan.isLoading() && !data()" [error]="clan.error()" [empty]="false" (retry)="clan.reload()">
+<div crnScrollFade class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'join.title' | translate">
+  <crn-load-state [loading]="clan.isLoading() && !data()" [error]="clan.error()" [empty]="false" (retry)="clan.reload()">
     @if (data(); as c) {
-      <app-recruitment-banner class="join__banner" [clan]="c" [sisters]="sisters()" />
-      <app-clan-rules />
+      <crn-recruitment-banner class="join__banner" [clan]="c" [sisters]="sisters()" />
+      <crn-clan-rules />
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

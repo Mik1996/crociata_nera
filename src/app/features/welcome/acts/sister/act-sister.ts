@@ -12,7 +12,7 @@ import { ClanHero } from '../clan-hero/clan-hero';
  * Crusader and tones ({@link ClanHero}); the call to action opens the clan in the game.
  */
 @Component({
-  selector: 'app-act-sister',
+  selector: 'crn-act-sister',
   imports: [TranslatePipe, ClanHero],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

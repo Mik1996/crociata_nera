@@ -223,7 +223,7 @@ vengono richiamate.
 
 ## Aree scorrevoli e riga del giocatore
 
-- **Indicatore di scorrimento:** la direttiva `appScrollFade` (`src/app/shared/directives/scroll-fade.ts`) aggiunge in
+- **Indicatore di scorrimento:** la direttiva `crnScrollFade` (`src/app/shared/directives/scroll-fade.ts`) aggiunge in
   cima e in fondo alle aree scorrevoli una leggera fascia sfocata, visibile solo se in quella direzione c'è altro
   contenuto. Vale per le pagine e per le schede del giocatore. Si aggiorna quando si scorre, quando cambiano le
   dimensioni e quando arrivano i dati. Gli stili `.cn-scroll-fade` sono in `styles.scss`.

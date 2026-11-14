@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="dusk"
   [kicker]="'kicker.cwl' | translate"
   [title]="'nav.cwl' | translate"
@@ -7,7 +7,7 @@
   @if (seasonList().length > 1) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="season-selector">
       <mat-label>{{ 'cwl.season' | translate }}</mat-label>
-      <app-icon matPrefix name="calendar_month" />
+      <crn-icon matPrefix name="calendar_month" />
       <mat-select [value]="selected()" (valueChange)="changeSeason($event)">
         @for (s of seasonList(); track s.season) {
           <mat-option [value]="s.season"
@@ -17,10 +17,10 @@
       </mat-select>
     </mat-form-field>
   }
-</app-page-header>
+</crn-page-header>
 
-<div appScrollFade class="page__scroll">
-  <app-load-state
+<div crnScrollFade class="page__scroll">
+  <crn-load-state
     [loading]="seasons.isLoading() || data.isLoading()"
     [error]="seasons.error() ?? data.error()"
     [empty]="!seasons.isLoading() && !season()"
@@ -89,7 +89,7 @@
               <ng-container matColumnDef="stars">
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.stars' | translate }}</th>
                 <td mat-cell *matCellDef="let c" class="cn-num">
-                  <app-star-text text="★" /> {{ c.stars }}
+                  <crn-star-text text="★" /> {{ c.stars }}
                 </td>
               </ng-container>
               <ng-container matColumnDef="destruction">
@@ -128,7 +128,7 @@
                     >
                   </span>
                   @if (w.state === 'ended') {
-                    <app-result-badge [result]="result(r)" />
+                    <crn-result-badge [result]="result(r)" />
                   } @else {
                     <span class="state-chip state-chip--live">{{
                       'cwl.warState.' + w.state | translate
@@ -195,7 +195,7 @@
             </ng-container>
             <ng-container matColumnDef="threeStars">
               <th mat-header-cell *matHeaderCellDef>
-                <app-star-text [text]="'cwl.threeStars' | translate" />
+                <crn-star-text [text]="'cwl.threeStars' | translate" />
               </th>
               <td mat-cell *matCellDef="let p" class="cn-num">{{ p.threeStars }}</td>
             </ng-container>
@@ -215,5 +215,5 @@
         </div>
       </section>
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

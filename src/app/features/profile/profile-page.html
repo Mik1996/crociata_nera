@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="candle"
   [kicker]="'kicker.profile' | translate"
   crusader="oath"
@@ -6,17 +6,17 @@
   [subtitle]="'profile.subtitle' | translate"
 />
 
-<div appScrollFade class="page__scroll">
+<div crnScrollFade class="page__scroll">
   @if (user(); as u) {
     @if (!hasClanAccess()) {
       <aside class="cn-card access-notice" role="note" aria-labelledby="access-title">
-        <app-icon class="access-notice__icon" name="lock" />
+        <crn-icon class="access-notice__icon" name="lock" />
         <div class="access-notice__body">
           <h2 id="access-title">{{ 'profile.access.title' | translate }}</h2>
           <p>{{ 'profile.access.text' | translate }}</p>
           <p class="cn-muted">{{ 'profile.access.notMember' | translate }}</p>
           <a mat-stroked-button routerLink="/join">
-            <app-icon matButtonIcon name="person_add" /> {{ 'nav.join' | translate }}
+            <crn-icon matButtonIcon name="person_add" /> {{ 'nav.join' | translate }}
           </a>
         </div>
       </aside>
@@ -43,11 +43,11 @@
               <span class="email">{{ u.email }}</span>
               @if (u.emailVerified) {
                 <span class="badge badge--ok"
-                  ><app-icon name="verified" />{{ 'profile.account.verified' | translate }}</span
+                  ><crn-icon name="verified" />{{ 'profile.account.verified' | translate }}</span
                 >
               } @else {
                 <span class="badge badge--warn"
-                  ><app-icon name="mark_email_unread" />{{
+                  ><crn-icon name="mark_email_unread" />{{
                     'profile.account.notVerified' | translate
                   }}</span
                 >
@@ -73,7 +73,7 @@
             (click)="resendVerification()"
             [disabled]="resending()"
           >
-            <app-icon matButtonIcon name="send" /> {{ 'profile.account.resend' | translate }}
+            <crn-icon matButtonIcon name="send" /> {{ 'profile.account.resend' | translate }}
           </button>
         }
         @if (verifyFeedback(); as f) {
@@ -101,7 +101,7 @@
         >
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.currentPassword' | translate }}</mat-label>
-            <app-icon matPrefix name="lock" />
+            <crn-icon matPrefix name="lock" />
             <input
               matInput
               formControlName="currentPassword"
@@ -117,7 +117,7 @@
               [attr.aria-pressed]="showPassword()"
               (click)="showPassword.set(!showPassword())"
             >
-              <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
+              <crn-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
             </button>
             @if (
               errorKey(passwordForm.controls.currentPassword, passwordErrors.currentPassword);
@@ -128,7 +128,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.newPassword' | translate }}</mat-label>
-            <app-icon matPrefix name="key" />
+            <crn-icon matPrefix name="key" />
             <input
               matInput
               formControlName="password"
@@ -142,7 +142,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.repeatPassword' | translate }}</mat-label>
-            <app-icon matPrefix name="lock_reset" />
+            <crn-icon matPrefix name="lock_reset" />
             <input
               matInput
               formControlName="repeatPassword"
@@ -184,11 +184,11 @@
           <div class="players-linked">
             @if (linkedPlayers().length) {
               <!-- Large screens: as tall as the form next to it, the list scrolls inside. -->
-              <div class="players-scroll" appScrollFade>
+              <div class="players-scroll" crnScrollFade>
                 <ul class="linked-list">
                   @for (p of linkedPlayers(); track p.tag) {
                     <li class="linked" [class.linked--unverified]="!p.verified">
-                      <app-icon [name]="p.verified ? 'verified' : 'gpp_maybe'" />
+                      <crn-icon [name]="p.verified ? 'verified' : 'gpp_maybe'" />
                       <span class="linked__text">
                         @if (p.member; as m) {
                           {{
@@ -222,7 +222,7 @@
                         (click)="unlinkPlayer(p.tag)"
                         [attr.aria-label]="'profile.player.unlinkTag' | translate: { tag: p.tag }"
                       >
-                        <app-icon matButtonIcon name="link_off" />{{
+                        <crn-icon matButtonIcon name="link_off" />{{
                           'profile.player.unlink' | translate
                         }}
                       </button>
@@ -232,7 +232,7 @@
               </div>
             } @else {
               <p class="linked linked--none">
-                <app-icon name="link_off" />{{ 'profile.player.none' | translate }}
+                <crn-icon name="link_off" />{{ 'profile.player.none' | translate }}
               </p>
             }
           </div>
@@ -259,7 +259,7 @@
               >
                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
                   <mat-label>{{ 'auth.fields.playerTag' | translate }}</mat-label>
-                  <app-icon matPrefix name="tag" />
+                  <crn-icon matPrefix name="tag" />
                   <input
                     matInput
                     formControlName="playerTag"
@@ -274,7 +274,7 @@
                 </mat-form-field>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
                   <mat-label>{{ 'profile.player.token' | translate }}</mat-label>
-                  <app-icon matPrefix name="key" />
+                  <crn-icon matPrefix name="key" />
                   <input
                     matInput
                     formControlName="token"

@@ -6,7 +6,7 @@
   </div>
 
   <div class="annals__content" data-scrolly-fit>
-    <app-act-heading
+    <crn-act-heading
       titleId="records-title"
       [title]="'welcome.acts.annals.title' | translate"
       [tagline]="'welcome.acts.annals.tagline' | translate"
@@ -15,7 +15,7 @@
     <div class="annals__viewport">
       <ul
         class="annals__track"
-        appScrollyTrack
+        crnScrollyTrack
         [style.--n]="list.length"
         [attr.aria-label]="'welcome.records.title' | translate"
       >
@@ -31,7 +31,7 @@
                   }
                 </span>
               } @else {
-                <app-icon [name]="r.icon ?? 'emoji_events'" />
+                <crn-icon [name]="r.icon ?? 'emoji_events'" />
               }
             </span>
             <span class="record__value cn-num" [class.record__value--text]="r.text">

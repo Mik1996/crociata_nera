@@ -2,10 +2,10 @@
 @let r = record();
 <section class="scrolly-stage war" aria-labelledby="war-title">
   <div class="war__backdrop" aria-hidden="true"></div>
-  <app-crusader class="war__crusader" pose="fist" />
+  <crn-crusader class="war__crusader" pose="fist" />
 
   <div class="war__content" data-scrolly-fit>
-    <app-act-heading
+    <crn-act-heading
       titleId="war-title"
       [title]="'welcome.acts.war.title' | translate"
       [tagline]="'welcome.acts.war.tagline' | translate"
@@ -22,7 +22,7 @@
           height="192"
         />
         @defer (when act.seen()) {
-          <app-altar-3d class="war__altar-3d" [imageUrl]="trophy()" (ready)="altarReady.set($event)" />
+          <crn-altar-3d class="war__altar-3d" [imageUrl]="trophy()" (ready)="altarReady.set($event)" />
         }
       </div>
       <figcaption>
@@ -42,7 +42,7 @@
             <dt>{{ part.label | translate }}</dt>
             <dd class="cn-num">
               <span class="cn-visually-hidden">{{ part.value | localNumber }}</span>
-              <span [appScrollyCounter]="part.value" [counterFrom]="0.3" [counterTo]="0.7"></span>
+              <span [crnScrollyCounter]="part.value" [counterFrom]="0.3" [counterTo]="0.7"></span>
             </dd>
           </div>
         }
@@ -51,7 +51,7 @@
             <dt>{{ 'welcome.warLeague.winRate' | translate }}</dt>
             <dd class="cn-num">
               <span class="cn-visually-hidden">{{ r.winRate }}%</span>
-              <span aria-hidden="true"><span [appScrollyCounter]="r.winRate" [counterFrom]="0.3" [counterTo]="0.7"></span>%</span>
+              <span aria-hidden="true"><span [crnScrollyCounter]="r.winRate" [counterFrom]="0.3" [counterTo]="0.7"></span>%</span>
             </dd>
           </div>
         }

@@ -32,7 +32,7 @@ const DIALOG_CONFIG = {
 
 /** Administration: registered users, ADMIN role, linked player tags and deletion of users. */
 @Component({
-  selector: 'app-admin-page',
+  selector: 'crn-admin-page',
   imports: [
     TABLE_WRAP,
     FormsModule,

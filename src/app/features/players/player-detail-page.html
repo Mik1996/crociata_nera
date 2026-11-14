@@ -1,11 +1,11 @@
-<div appScrollFade class="page__scroll" #scroller>
+<div crnScrollFade class="page__scroll" #scroller>
   <div class="back">
     <a mat-button routerLink="/players">
-      <app-icon matButtonIcon name="arrow_back" /> {{ 'player.allPlayers' | translate }}
+      <crn-icon matButtonIcon name="arrow_back" /> {{ 'player.allPlayers' | translate }}
     </a>
   </div>
 
-  <app-load-state
+  <crn-load-state
     [loading]="profileResource.isLoading()"
     [error]="profileResource.error()"
     [empty]="!profile()"
@@ -14,10 +14,10 @@
     (retry)="profileResource.reload()"
   >
     @if (profile(); as p) {
-      <app-player-banner [profile]="p" [commendations]="commendations()" />
+      <crn-player-banner [profile]="p" [commendations]="commendations()" />
 
       <mat-tab-group
-        appSwipeTabs
+        crnSwipeTabs
         class="player-tabs"
         mat-stretch-tabs="false"
         animationDuration="200ms"
@@ -39,17 +39,17 @@
                 <span class="stat__label">{{ 'player.attackWins' | translate }}</span>
               </li>
               <li class="stat">
-                <app-icon class="stat__icon" name="shield" />
+                <crn-icon class="stat__icon" name="shield" />
                 <span class="stat__value">{{ p.defenseWins | localNumber }}</span>
                 <span class="stat__label">{{ 'player.defenseWins' | translate }}</span>
               </li>
               <li class="stat">
-                <app-icon class="stat__icon" name="volunteer_activism" />
+                <crn-icon class="stat__icon" name="volunteer_activism" />
                 <span class="stat__value">{{ p.donations | localNumber }}</span>
                 <span class="stat__label">{{ 'player.donations' | translate }}</span>
               </li>
               <li class="stat">
-                <app-icon class="stat__icon" name="move_to_inbox" />
+                <crn-icon class="stat__icon" name="move_to_inbox" />
                 <span class="stat__value">{{ p.donationsReceived | localNumber }}</span>
                 <span class="stat__label">{{ 'player.donationsReceived' | translate }}</span>
               </li>
@@ -60,7 +60,7 @@
               </li>
               @if (p.legendTrophies !== undefined) {
                 <li class="stat">
-                  <app-icon class="stat__icon" name="workspace_premium" />
+                  <crn-icon class="stat__icon" name="workspace_premium" />
                   <span class="stat__value">{{ p.legendTrophies | localNumber }}</span>
                   <span class="stat__label">
                     {{ 'player.legendTrophies' | translate }}
@@ -72,7 +72,7 @@
               }
               @if (p.builderHall) {
                 <li class="stat">
-                  <app-icon class="stat__icon" name="construction" />
+                  <crn-icon class="stat__icon" name="construction" />
                   <span class="stat__value">{{ p.builderBaseTrophies ?? 0 | localNumber }}</span>
                   <span class="stat__label">
                     {{ 'player.builderHall' | translate: { n: p.builderHall } }}
@@ -94,7 +94,7 @@
                         @if (hero.icon) {
                           <img [src]="hero.icon" alt="" width="96" height="96" loading="lazy" />
                         }
-                        <app-level-badge
+                        <crn-level-badge
                           class="hero__level"
                           [level]="hero.level"
                           [maxed]="hero.level >= hero.maxLevel"
@@ -124,7 +124,7 @@
                             [attr.aria-label]="'player.equipment' | translate"
                           >
                             @for (item of hero.equipment; track item.name) {
-                              <app-unit-tile [unit]="item" [small]="true" />
+                              <crn-unit-tile [unit]="item" [small]="true" />
                             }
                           </div>
                         }
@@ -145,7 +145,7 @@
               role="region"
               [attr.aria-label]="'player.tabCommendations' | translate"
             >
-              <app-player-commendations [tag]="p.tag" />
+              <crn-player-commendations [tag]="p.tag" />
             </div>
           </ng-template>
         </mat-tab>
@@ -153,7 +153,7 @@
         <!-- Wars -->
         <mat-tab [label]="'player.tabWars' | translate">
           <div class="tab" role="region" [attr.aria-label]="'player.tabWars' | translate">
-            <app-load-state
+            <crn-load-state
               [loading]="statsResource.isLoading()"
               [error]="statsResource.error()"
               [empty]="!stats()"
@@ -162,9 +162,9 @@
               (retry)="statsResource.reload()"
             >
               @if (stats(); as s) {
-                <app-player-war-stats [stats]="s" />
+                <crn-player-war-stats [stats]="s" />
               }
-            </app-load-state>
+            </crn-load-state>
           </div>
         </mat-tab>
 
@@ -182,7 +182,7 @@
                 </h2>
                 <div class="unit-grid" role="list">
                   @for (unit of section.units; track unit.name) {
-                    <app-unit-tile [unit]="unit" [inactive]="unit.active === false" />
+                    <crn-unit-tile [unit]="unit" [inactive]="unit.active === false" />
                   }
                 </div>
               </section>
@@ -245,5 +245,5 @@
         </mat-tab>
       </mat-tab-group>
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

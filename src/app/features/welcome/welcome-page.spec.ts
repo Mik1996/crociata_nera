@@ -94,13 +94,13 @@ describe('WelcomePage', () => {
     expect(el.querySelector('#army .act-heading__kicker')!.textContent).toContain('Atto I');
     expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto VIII');
     // The Black Crusader changes pose from act to act.
-    const poses = Array.from(el.querySelectorAll('app-crusader')).map((c) => c.getAttribute('data-pose'));
+    const poses = Array.from(el.querySelectorAll('crn-crusader')).map((c) => c.getAttribute('data-pose'));
     expect(poses).toEqual(['stand', 'guard', 'heart', 'fist', 'oath', 'stand', 'stand']);
     // The call gathers the three Crusaders of the Crusade in one picture.
     expect(el.querySelector<HTMLImageElement>('#call .call__figures')!.getAttribute('src')).toBe(
       'images/crusader/crusader-trio-800.webp',
     );
-    expect(el.querySelector<HTMLImageElement>('#prologue app-crusader img')!.getAttribute('src')).toBe(
+    expect(el.querySelector<HTMLImageElement>('#prologue crn-crusader img')!.getAttribute('src')).toBe(
       'images/crusader/crusader-stand-640.webp',
     );
   });
@@ -109,10 +109,10 @@ describe('WelcomePage', () => {
     const el = await render(clan);
 
     const red = el.querySelector('#sister-red')!;
-    expect(red.querySelector('app-clan-hero')!.classList).toContain('clan-hero--red');
+    expect(red.querySelector('crn-clan-hero')!.classList).toContain('clan-hero--red');
     expect(red.querySelector('h2.clan-name .clan-name__metal')!.textContent!.trim()).toBe('Crociata Rossa');
     expect(red.querySelector('.hero__kicker')!.textContent).toContain('Atto VI · Clan gemello');
-    expect(red.querySelector<HTMLImageElement>('app-crusader img')!.getAttribute('src')).toBe(
+    expect(red.querySelector<HTMLImageElement>('crn-crusader img')!.getAttribute('src')).toBe(
       'images/crusader/crusader-red-stand-640.webp',
     );
     const cta = red.querySelector<HTMLAnchorElement>('.hero__cta')!;
@@ -121,7 +121,7 @@ describe('WelcomePage', () => {
 
     const gold = el.querySelector('#sister-gold')!;
     expect(gold.querySelector('.hero__kicker')!.textContent).toContain('Atto VII');
-    expect(gold.querySelector<HTMLImageElement>('app-crusader img')!.getAttribute('src')).toBe(
+    expect(gold.querySelector<HTMLImageElement>('crn-crusader img')!.getAttribute('src')).toBe(
       'images/crusader/crusader-gold-stand-640.webp',
     );
     // Only Crociata Nera has the page title.
@@ -293,7 +293,7 @@ describe('WelcomePage', () => {
 
   it('leaves the annals out when the backend cannot answer', async () => {
     const el = await render(clan, undefined, throwError(() => new Error('offline')));
-    expect(el.querySelector('app-act-annals')).toBeNull();
+    expect(el.querySelector('crn-act-annals')).toBeNull();
     expect(Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim())).not.toContain('Gli Annali');
     expect(el.querySelector('.clan-name__metal')).not.toBeNull();
   });
@@ -359,7 +359,7 @@ describe('WelcomePage', () => {
   it('shows the clan rules on the scroll of the code', async () => {
     const el = await render(clan);
 
-    expect(el.querySelector('#code app-clan-rules')!.classList).toContain('clan-rules--scroll');
+    expect(el.querySelector('#code crn-clan-rules')!.classList).toContain('clan-rules--scroll');
     expect(el.querySelector('.rules__title')!.textContent).toContain('Le regole del clan');
     expect(el.querySelectorAll('.rule-group')).toHaveLength(5);
     expect(el.textContent).toContain('Assalti alla capitale obbligatori');

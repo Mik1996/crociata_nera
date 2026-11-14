@@ -1,16 +1,16 @@
-<div appScrollyRoot class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'nav.welcome' | translate">
-  <app-load-state
+<div crnScrollyRoot class="page__scroll" tabindex="0" role="region" [attr.aria-label]="'nav.welcome' | translate">
+  <crn-load-state
     [loading]="clan.isLoading() && !data()"
     [error]="clan.error()"
     [empty]="false"
     (retry)="clan.reload()"
   >
     @if (data(); as c) {
-      <app-scrolly-index [label]="'welcome.acts.index' | translate" />
+      <crn-scrolly-index [label]="'welcome.acts.index' | translate" />
 
       <!-- The story, act by act. `actLength`: scrollports of scrolling while the act is pinned. -->
-      <app-act-prologue actId="prologue" [actLabel]="'welcome.acts.prologueTitle' | translate" [actLength]="2.2" [clan]="c" />
-      <app-act-army
+      <crn-act-prologue actId="prologue" [actLabel]="'welcome.acts.prologueTitle' | translate" [actLength]="2.2" [clan]="c" />
+      <crn-act-army
         actId="army"
         [actLabel]="'welcome.acts.army.title' | translate"
         [actLength]="2.2"
@@ -18,19 +18,19 @@
         [ranks]="ranks()"
         [country]="country()"
       />
-      <app-act-capital actId="capital" [actLabel]="'welcome.acts.capital.title' | translate" [actLength]="2.2" [clan]="c" />
-      <app-act-war actId="war" [actLabel]="'welcome.acts.war.title' | translate" [actLength]="2.5" [clan]="c" />
+      <crn-act-capital actId="capital" [actLabel]="'welcome.acts.capital.title' | translate" [actLength]="2.2" [clan]="c" />
+      <crn-act-war actId="war" [actLabel]="'welcome.acts.war.title' | translate" [actLength]="2.5" [clan]="c" />
       @if (records(); as list) {
-        <app-act-annals
+        <crn-act-annals
           actId="annals"
           [actLabel]="'welcome.acts.annals.title' | translate"
           [actLength]="annalsLength()"
           [records]="list"
         />
       }
-      <app-act-code actId="code" [actLabel]="'welcome.acts.code.title' | translate" />
+      <crn-act-code actId="code" [actLabel]="'welcome.acts.code.title' | translate" />
       @for (s of sisters(); track s.sister.tag) {
-        <app-act-sister
+        <crn-act-sister
           [actId]="'sister-' + s.sister.order"
           [actLabel]="s.clan.name"
           [actLength]="2.2"
@@ -38,7 +38,7 @@
           [sister]="s.sister"
         />
       }
-      <app-act-call actId="call" [actLabel]="'welcome.acts.call.title' | translate" [clan]="c" [sisters]="sisters()" />
+      <crn-act-call actId="call" [actLabel]="'welcome.acts.call.title' | translate" [clan]="c" [sisters]="sisters()" />
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

@@ -19,7 +19,7 @@ export type ClanRulesVariant = 'card' | 'scroll';
  * welcome page (`scroll`: the sheet inside the unrolling scroll of the "Code" act).
  */
 @Component({
-  selector: 'app-clan-rules',
+  selector: 'crn-clan-rules',
   imports: [Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-rules.html',

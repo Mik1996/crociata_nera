@@ -181,7 +181,7 @@ h2 {
   border-radius: $radius-pill;
   font-size: var(--cn-fs-xs);
 
-  app-icon {
+  crn-icon {
     width: 1rem;
     height: 1rem;
     font-size: 1rem;
@@ -213,7 +213,7 @@ h2 {
   background: color-mix(in srgb, var(--cn-win) 14%, transparent);
   font-size: var(--cn-fs-sm);
 
-  app-icon {
+  crn-icon {
     color: var(--cn-win);
   }
 }
@@ -222,7 +222,7 @@ h2 {
 .linked--unverified {
   background: color-mix(in srgb, var(--cn-gold) 14%, transparent);
 
-  > app-icon {
+  > crn-icon {
     color: var(--cn-gold);
   }
 }
@@ -260,7 +260,7 @@ h2 {
 .linked--none {
   background: var(--cn-tint-neutral);
 
-  > app-icon {
+  > crn-icon {
     color: var(--cn-text-muted);
   }
 }

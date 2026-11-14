@@ -1,5 +1,5 @@
-<div appScrollFade class="page__scroll page__scroll--bleed">
-  <app-page-header
+<div crnScrollFade class="page__scroll page__scroll--bleed">
+  <crn-page-header
     flush
     scene="war"
     [kicker]="'kicker.war' | translate"
@@ -7,15 +7,15 @@
     [subtitle]="'currentWar.subtitle' | translate"
   >
     <button mat-stroked-button type="button" (click)="refresh()" [disabled]="resource.isLoading()">
-      <app-icon matButtonIcon name="refresh" /> {{ 'common.refresh' | translate }}
+      <crn-icon matButtonIcon name="refresh" /> {{ 'common.refresh' | translate }}
     </button>
     @if (war(); as w) {
-      <app-war-summary pageHero scenic [war]="w" />
+      <crn-war-summary pageHero scenic [war]="w" />
     }
-  </app-page-header>
+  </crn-page-header>
 
   <div class="page__body">
-    <app-load-state
+    <crn-load-state
       [loading]="resource.isLoading()"
       [error]="resource.error()"
       [empty]="!war()"
@@ -26,19 +26,19 @@
       @if (war(); as w) {
         @if (kpi(); as k) {
           <div class="cn-grid-kpi">
-            <app-kpi-card
+            <crn-kpi-card
               [image]="GAME_ICONS.star"
               [label]="'common.averageStars' | translate"
               [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
               [hint]="'common.perAttack' | translate"
             />
-            <app-kpi-card
+            <crn-kpi-card
               [image]="GAME_ICONS.star"
               [imageTriangle]="true"
               [label]="'common.threeStarAttacks' | translate"
               [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
             />
-            <app-kpi-card
+            <crn-kpi-card
               icon="hourglass_empty"
               [label]="'currentWar.withoutAttacks' | translate"
               [value]="k.participantsWithoutAttacks"
@@ -50,7 +50,7 @@
         <section class="cn-card cn-section" aria-labelledby="participants-title">
           <p class="cn-kicker">{{ 'currentWar.participantsKicker' | translate }}</p>
           <h2 id="participants-title">{{ 'currentWar.participants' | translate }}</h2>
-          <app-war-participants-table
+          <crn-war-participants-table
             [rows]="rows()"
             [attacksPerMember]="w.attacksPerMember"
             [inProgress]="w.state !== 'ended'"
@@ -58,6 +58,6 @@
           />
         </section>
       }
-    </app-load-state>
+    </crn-load-state>
   </div>
 </div>

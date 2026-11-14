@@ -29,7 +29,7 @@ let nextId = 0;
  * Used on the welcome page and on the "Join us" page.
  */
 @Component({
-  selector: 'app-recruitment-banner',
+  selector: 'crn-recruitment-banner',
   imports: [Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recruitment-banner.html',

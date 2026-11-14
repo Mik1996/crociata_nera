@@ -60,11 +60,11 @@
         @if (preview(); as src) {
           <img class="drop__preview" [src]="src" [alt]="'bases.form.imagePreview' | translate" />
           <span class="drop__change">
-            <app-icon name="photo_camera" />
+            <crn-icon name="photo_camera" />
             {{ 'bases.form.imageChange' | translate }}
           </span>
         } @else {
-          <app-icon class="drop__icon" name="add_photo_alternate" />
+          <crn-icon class="drop__icon" name="add_photo_alternate" />
           <span>{{ 'bases.form.imageDrop' | translate }}</span>
           <span class="cn-muted drop__formats">{{ 'bases.form.imageFormats' | translate }}</span>
         }
@@ -80,7 +80,7 @@
       }
     </div>
 
-    <app-clan-castle-picker
+    <crn-clan-castle-picker
       formControlName="clanCastleTroops"
       [capacity]="castleCapacity()"
       (click)="castleError.set(null)"

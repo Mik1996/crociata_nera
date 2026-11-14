@@ -11,16 +11,16 @@ export type ParallaxMetric = 'p' | 't';
  * Inside a pinned stage use the default metric `p`; for a layer of a non-pinned act use `t`.
  */
 @Directive({
-  selector: '[appParallax]',
+  selector: '[crnParallax]',
   host: {
     class: 'scrolly-layer',
     '[class.scrolly-layer--x]': "parallaxAxis() === 'x'",
     '[class.scrolly-layer--t]': "parallaxOn() === 't'",
-    '[style.--depth]': 'appParallax()',
+    '[style.--depth]': 'crnParallax()',
   },
 })
 export class ScrollyParallax {
-  readonly appParallax = input.required<number>();
+  readonly crnParallax = input.required<number>();
   readonly parallaxAxis = input<'x' | 'y'>('y');
   readonly parallaxOn = input<ParallaxMetric>('p');
 }

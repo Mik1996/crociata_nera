@@ -1,7 +1,7 @@
-<app-auth-panel [heading]="'auth.verify.title' | translate">
+<crn-auth-panel [heading]="'auth.verify.title' | translate">
   @if (!token()) {
     <div class="auth-form__alert" role="alert">
-      <app-icon name="link_off" />
+      <crn-icon name="link_off" />
       <p>{{ 'ERROR.INVALID_OR_EXPIRED_VERIFY_TOKEN' | translate }}</p>
     </div>
   } @else if (verification.isLoading()) {
@@ -11,7 +11,7 @@
     </div>
   } @else if (verification.error()) {
     <div class="auth-form__alert" role="alert">
-      <app-icon name="error" />
+      <crn-icon name="error" />
       <div>
         @for (message of errorKeys(); track message.key) {
           <p>{{ message.key | translate: message.params }}</p>
@@ -20,7 +20,7 @@
     </div>
   } @else {
     <div class="auth-form__success" role="status">
-      <app-icon name="verified" />
+      <crn-icon name="verified" />
       <p>{{ 'auth.verify.done' | translate }}</p>
     </div>
   }
@@ -32,4 +32,4 @@
       <a routerLink="/sign-in">{{ 'auth.backToSignIn' | translate }}</a>
     }
   </p>
-</app-auth-panel>
+</crn-auth-panel>

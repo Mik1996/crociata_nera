@@ -18,7 +18,7 @@ const NO_LEAGUE_IMAGE = 'game/misc/clan-war.webp';
  * when the act gets close; until then, and without WebGL, the trophy picture is shown.
  */
 @Component({
-  selector: 'app-act-war',
+  selector: 'crn-act-war',
   imports: [TranslatePipe, LocalNumberPipe, ActHeading, Crusader, ScrollyCounter, Altar3d],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

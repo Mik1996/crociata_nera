@@ -3,7 +3,7 @@ import { GAME_ICONS } from '../../core/game/game-assets';
 
 /** Text where every ★ is drawn with the in-game star (e.g. table headers like "3★ %"). */
 @Component({
-  selector: 'app-star-text',
+  selector: 'crn-star-text',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './star-text.html',
   styleUrl: './star-text.scss',

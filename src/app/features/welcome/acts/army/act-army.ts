@@ -30,7 +30,7 @@ export interface ArmyStat {
  * in front of his army.
  */
 @Component({
-  selector: 'app-act-army',
+  selector: 'crn-act-army',
   imports: [TranslatePipe, LocalNumberPipe, ActHeading, Crusader, ScrollyCounter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

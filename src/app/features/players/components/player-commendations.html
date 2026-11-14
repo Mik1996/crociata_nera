@@ -1,4 +1,4 @@
-<app-load-state [loading]="history.isLoading()" [error]="history.error()" [empty]="false" (retry)="history.reload()">
+<crn-load-state [loading]="history.isLoading()" [error]="history.error()" [empty]="false" (retry)="history.reload()">
   <p class="summary">
     <span class="summary__total cn-num">{{ total() }}</span>
     {{ (total() === 1 ? 'commendations.history.earnedOne' : 'commendations.history.earned') | translate }}
@@ -21,7 +21,7 @@
                 [matTooltip]="name + ' (' + tier + ') — ' + description"
                 (click)="open3d(row.type, m.tier, m.count)"
               >
-                <app-medal-3d-image
+                <crn-medal-3d-image
                   [svgUrl]="'commendations/' + m.emblem + '.svg'"
                   [finish]="m.tier"
                   [locked]="m.count === 0"
@@ -53,4 +53,4 @@
       </ul>
     </section>
   }
-</app-load-state>
+</crn-load-state>

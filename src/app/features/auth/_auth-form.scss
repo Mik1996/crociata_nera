@@ -12,7 +12,7 @@
     margin-bottom: $space-s;
   }
 
-  app-icon[matPrefix] {
+  crn-icon[matPrefix] {
     margin: 0 $space-xs 0 $space-s;
     color: var(--cn-text-muted);
   }
@@ -30,7 +30,7 @@
   color: var(--cn-red-text);
   font-size: var(--cn-fs-sm);
 
-  app-icon {
+  crn-icon {
     flex: none;
   }
 
@@ -82,7 +82,7 @@
     margin: 0;
   }
 
-  app-icon {
+  crn-icon {
     flex: none;
   }
 }
@@ -92,7 +92,7 @@
   background: color-mix(in srgb, var(--cn-win) 14%, transparent);
   color: var(--cn-text);
 
-  app-icon {
+  crn-icon {
     color: var(--cn-win);
   }
 }

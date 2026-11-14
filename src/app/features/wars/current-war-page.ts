@@ -15,7 +15,7 @@ import { WarSummary } from './components/war-summary';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 @Component({
-  selector: 'app-current-war-page',
+  selector: 'crn-current-war-page',
   imports: [
     LocalNumberPipe,
     TranslatePipe,

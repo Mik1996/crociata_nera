@@ -55,7 +55,7 @@ function rowFromWar(w: War): HistoryRow {
 }
 
 @Component({
-  selector: 'app-war-history-page',
+  selector: 'crn-war-history-page',
   imports: [
     TABLE_WRAP,
     LocalDatePipe,

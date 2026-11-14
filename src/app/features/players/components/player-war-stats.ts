@@ -24,7 +24,7 @@ import { GAME_ICONS } from '../../../core/game/game-assets';
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
 
 @Component({
-  selector: 'app-player-war-stats',
+  selector: 'crn-player-war-stats',
   imports: [
     TABLE_WRAP,
     LocalDatePipe,

@@ -53,7 +53,7 @@ interface MenuGroup {
  * settings (theme and language).
  */
 @Component({
-  selector: 'app-shell',
+  selector: 'crn-shell',
   imports: [
     NgTemplateOutlet,
     RouterOutlet,

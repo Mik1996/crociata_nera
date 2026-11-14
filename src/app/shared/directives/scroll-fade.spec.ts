@@ -4,7 +4,7 @@ import { ScrollFade } from './scroll-fade';
 
 @Component({
   imports: [ScrollFade],
-  template: `<div appScrollFade id="area"><p>content</p></div>`,
+  template: `<div crnScrollFade id="area"><p>content</p></div>`,
 })
 class Host {}
 

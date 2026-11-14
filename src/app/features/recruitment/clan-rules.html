@@ -4,7 +4,7 @@
     @for (group of ruleGroups; track group.key) {
       <section class="rule-group" [attr.aria-labelledby]="'rules-' + group.key">
         <h3 class="rule-group__title" [id]="'rules-' + group.key">
-          <app-icon [name]="group.icon" />
+          <crn-icon [name]="group.icon" />
           {{ 'welcome.rules.' + group.key + '.title' | translate }}
         </h3>
         <ul

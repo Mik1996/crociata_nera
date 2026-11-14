@@ -4,7 +4,7 @@ import { Altar3d } from './altar-3d';
 
 @Component({
   imports: [Altar3d],
-  template: `<app-altar-3d imageUrl="game/war-leagues/master-1.webp" (ready)="ready.set($event)" />`,
+  template: `<crn-altar-3d imageUrl="game/war-leagues/master-1.webp" (ready)="ready.set($event)" />`,
 })
 class Host {
   readonly ready = signal<boolean | null>(null);
@@ -17,7 +17,7 @@ describe('Altar3d', () => {
 
     // jsdom has no WebGL: the scene cannot start.
     expect(fixture.componentInstance.ready()).toBe(false);
-    const altar = (fixture.nativeElement as HTMLElement).querySelector('app-altar-3d')!;
+    const altar = (fixture.nativeElement as HTMLElement).querySelector('crn-altar-3d')!;
     expect(altar.getAttribute('aria-hidden')).toBe('true');
     expect(altar.classList).not.toContain('altar-3d--ready');
   });

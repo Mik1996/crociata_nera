@@ -27,7 +27,7 @@ import { StarText } from '../../shared/components/star-text';
  */
 
 @Component({
-  selector: 'app-cwl-page',
+  selector: 'crn-cwl-page',
   imports: [
     StarText,
     TABLE_WRAP,

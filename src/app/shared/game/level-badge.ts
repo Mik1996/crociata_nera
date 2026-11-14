@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * accessible text. Position it from the parent; size it with the `--size` custom property.
  */
 @Component({
-  selector: 'app-level-badge',
+  selector: 'crn-level-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'aria-hidden': 'true', '[class.level--max]': 'maxed()' },
   templateUrl: './level-badge.html',

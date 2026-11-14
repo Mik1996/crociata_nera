@@ -22,7 +22,7 @@ import { AuthPanel } from './components/auth-panel';
 
 /** Account creation; on success the user is signed in. */
 @Component({
-  selector: 'app-sign-up-page',
+  selector: 'crn-sign-up-page',
   imports: [
     ReactiveFormsModule,
     RouterLink,

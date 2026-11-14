@@ -39,7 +39,7 @@
   padding: 0;
   list-style: none;
 
-  app-commendation-medal {
+  crn-commendation-medal {
     width: 1.375rem;
     filter: drop-shadow(0 1px 1px palette.alpha(var(--cn-shadow), 40%));
   }
@@ -84,7 +84,7 @@
   gap: $space-l;
   align-items: flex-start;
 
-  app-icon {
+  crn-icon {
     flex: none;
     color: var(--cn-gold);
   }

@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-not-found-page',
+  selector: 'crn-not-found-page',
   imports: [RouterLink, MatButtonModule, Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './not-found-page.html',

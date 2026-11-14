@@ -11,7 +11,7 @@ import { ActHeading } from '../act-heading/act-heading';
  * recruitment banner with the in-game links to join Crociata Nera and its sister clans.
  */
 @Component({
-  selector: 'app-act-call',
+  selector: 'crn-act-call',
   imports: [TranslatePipe, ActHeading, RecruitmentBanner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

@@ -8,7 +8,7 @@ import { merge } from 'rxjs';
  * `.cn-swipe-tabs` in `styles.scss`). The selected or keyboard-focused tab is brought into view.
  */
 @Directive({
-  selector: 'mat-tab-group[appSwipeTabs]',
+  selector: 'mat-tab-group[crnSwipeTabs]',
   host: { class: 'cn-swipe-tabs' },
 })
 export class SwipeTabs {

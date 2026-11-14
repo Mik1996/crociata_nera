@@ -20,7 +20,7 @@ describe('PlayerDetailPage', () => {
     const { el, member } = await render();
     expect(el.querySelector('#player-name')?.textContent).toContain(member.name);
     expect(el.querySelector('.banner__th-label')?.textContent).toContain(`Municipio ${member.townHall}`);
-    expect(el.querySelector('app-xp-badge')?.getAttribute('aria-label')).toBe(`Livello esperienza ${member.expLevel}`);
+    expect(el.querySelector('crn-xp-badge')?.getAttribute('aria-label')).toBe(`Livello esperienza ${member.expLevel}`);
   });
 
   it('offers the Profile, Commendations, Wars, Army and Achievements tabs, with heroes in the profile', async () => {

@@ -24,7 +24,7 @@ export const normalizePlayerTag = (text: string) =>
  * each one). Closes with the updated user.
  */
 @Component({
-  selector: 'app-link-players-dialog',
+  selector: 'crn-link-players-dialog',
   imports: [
     MatButtonModule,
     MatChipsModule,

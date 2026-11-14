@@ -23,7 +23,7 @@ import { openCommendationDialog } from './open-commendation-dialog';
  * the commendations (last completed month, last Raid Weekend, last Clan War League, last season).
  */
 @Component({
-  selector: 'app-player-banner',
+  selector: 'crn-player-banner',
   imports: [Icon, MatTooltipModule, TranslatePipe, LocalNumberPipe, XpBadge, Medal3dImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-banner.html',

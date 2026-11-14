@@ -9,7 +9,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 /** Settings (public): theme and language, as large options that are easy to tap on phones. */
 @Component({
-  selector: 'app-settings-page',
+  selector: 'crn-settings-page',
   imports: [Icon, TranslatePipe, PageHeader, ScrollFade],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

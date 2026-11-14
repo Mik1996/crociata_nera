@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="capital"
   [kicker]="'kicker.raids' | translate"
   [title]="'nav.raids' | translate"
@@ -7,7 +7,7 @@
   @if (weekends().length > 1) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="weekend-selector">
       <mat-label>{{ 'raids.weekend' | translate }}</mat-label>
-      <app-icon matPrefix name="calendar_month" />
+      <crn-icon matPrefix name="calendar_month" />
       <mat-select [value]="weekend()?.id" (valueChange)="changeWeekend($event)">
         @for (w of weekends(); track w.id) {
           <mat-option [value]="w.id"
@@ -17,10 +17,10 @@
       </mat-select>
     </mat-form-field>
   }
-</app-page-header>
+</crn-page-header>
 
-<div appScrollFade class="page__scroll">
-  <app-load-state
+<div crnScrollFade class="page__scroll">
+  <crn-load-state
     [loading]="raids.isLoading()"
     [error]="raids.error()"
     [empty]="!weekend()"
@@ -37,27 +37,27 @@
       </p>
 
       <div class="cn-grid-kpi">
-        <app-kpi-card
+        <crn-kpi-card
           [image]="GAME_ICONS['capital-gold-2']"
           [imageZoom]="2"
           [label]="'raids.totalLoot' | translate"
           [value]="(w.totalLoot | localNumber) ?? w.totalLoot"
         />
-        <app-kpi-card
+        <crn-kpi-card
           [image]="GAME_ICONS.raid"
           [imageZoom]="2.6"
           [label]="'raids.attacks' | translate"
           [value]="w.totalAttacks"
           [hint]="'raids.participants' | translate: { n: w.members.length }"
         />
-        <app-kpi-card
+        <crn-kpi-card
           icon="castle"
           [image]="capitalPeakImage()"
           [label]="'raids.raidsCompleted' | translate"
           [value]="raidsCompleted()"
           [hint]="'raids.districts' | translate: { n: w.districtsDestroyed }"
         />
-        <app-kpi-card
+        <crn-kpi-card
           [image]="GAME_ICONS['raid-medal']"
           [imageZoom]="1.6"
           [label]="'raids.rewards' | translate"
@@ -140,13 +140,13 @@
                 }
               </ul>
             } @else {
-              <p class="all-in"><app-icon name="check_circle" />{{ 'raids.allIn' | translate }}</p>
+              <p class="all-in"><crn-icon name="check_circle" />{{ 'raids.allIn' | translate }}</p>
             }
           </section>
         </div>
       } @else {
         <section class="cn-card cn-section notice" role="note">
-          <app-icon name="info" />
+          <crn-icon name="info" />
           <div>
             <strong>{{ 'raids.noMembersTitle' | translate }}</strong>
             <p>{{ 'raids.noMembersText' | translate }}</p>
@@ -154,5 +154,5 @@
         </section>
       }
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

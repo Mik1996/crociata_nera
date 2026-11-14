@@ -16,7 +16,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { GAME_ICONS } from '../../core/game/game-assets';
 
 @Component({
-  selector: 'app-war-detail-page',
+  selector: 'crn-war-detail-page',
   imports: [
     LocalNumberPipe,
     TranslatePipe,

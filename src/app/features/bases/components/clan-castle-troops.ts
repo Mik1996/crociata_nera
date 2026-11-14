@@ -10,7 +10,7 @@ import {
 
 /** Clan castle reinforcements of a base (read only): troop pictures with their count. */
 @Component({
-  selector: 'app-clan-castle-troops',
+  selector: 'crn-clan-castle-troops',
   imports: [MatTooltipModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-castle-troops.html',

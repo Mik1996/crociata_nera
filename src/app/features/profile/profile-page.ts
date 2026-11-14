@@ -38,7 +38,7 @@ type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null
 
 /** "My profile": account details, email verification, linked player tag, password change. */
 @Component({
-  selector: 'app-profile-page',
+  selector: 'crn-profile-page',
   imports: [
     ReactiveFormsModule,
     RouterLink,

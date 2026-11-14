@@ -48,7 +48,7 @@ describe('PlayerBanner', () => {
 
     const medals = el.querySelectorAll('.banner__medals > li.banner__medal');
     expect(medals).toHaveLength(2);
-    expect(medals[0].querySelector('app-medal-3d-image img')!.getAttribute('src')).toBe(
+    expect(medals[0].querySelector('crn-medal-3d-image img')!.getAttribute('src')).toBe(
       'blob:commendations/wall-silver.svg',
     );
     expect(snapshot).toHaveBeenCalledWith('commendations/present-bronze.svg', 'bronze', false, 80);

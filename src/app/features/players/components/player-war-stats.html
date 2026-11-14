@@ -1,37 +1,37 @@
 @let s = stats();
 <div class="cn-grid-kpi">
-  <app-kpi-card
+  <crn-kpi-card
     icon="flag"
     [label]="'player.warsPlayed' | translate"
     [value]="s.warsPlayed"
     [hint]="'player.outOfAnalyzed' | translate: { n: s.warsTotal }"
   />
-  <app-kpi-card icon="event_available" [label]="'player.attendance' | translate" [value]="(s.attendance | localNumber: '1.0-0') + '%'" />
-  <app-kpi-card
+  <crn-kpi-card icon="event_available" [label]="'player.attendance' | translate" [value]="(s.attendance | localNumber: '1.0-0') + '%'" />
+  <crn-kpi-card
     icon="bolt"
     [label]="'common.attacksUsed' | translate"
     [value]="s.attacksUsed + '/' + s.attacksAvailable"
     [hint]="'player.unused' | translate: { n: s.attacksAvailable - s.attacksUsed }"
   />
-  <app-kpi-card [image]="GAME_ICONS.star" [label]="'player.totalStars' | translate" [value]="s.totalStars" />
-  <app-kpi-card
+  <crn-kpi-card [image]="GAME_ICONS.star" [label]="'player.totalStars' | translate" [value]="s.totalStars" />
+  <crn-kpi-card
     [image]="GAME_ICONS.star"
     [label]="'common.averageStars' | translate"
     [value]="(s.averageStars | localNumber: '1.2-2') ?? '0'"
     [hint]="'player.perAttackUsed' | translate"
   />
-  <app-kpi-card
+  <crn-kpi-card
     [image]="GAME_ICONS.star"
     [imageTriangle]="true"
     [label]="'common.threeStarAttacks' | translate"
     [value]="(s.threeStarRate | localNumber: '1.0-1') + '%'"
   />
-  <app-kpi-card
+  <crn-kpi-card
     icon="local_fire_department"
     [label]="'player.averageDestruction' | translate"
     [value]="(s.averageDestruction | localNumber: '1.0-1') + '%'"
   />
-  <app-kpi-card
+  <crn-kpi-card
     icon="speed"
     [label]="'player.efficiency' | translate"
     [value]="(efficiency() | localNumber: '1.2-2') ?? '0'"
@@ -85,7 +85,7 @@
         </ng-container>
         <ng-container matColumnDef="result">
           <th mat-header-cell *matHeaderCellDef>{{ 'common.result' | translate }}</th>
-          <td mat-cell *matCellDef="let p"><app-result-badge [result]="p.result" /></td>
+          <td mat-cell *matCellDef="let p"><crn-result-badge [result]="p.result" /></td>
         </ng-container>
         <ng-container matColumnDef="mapPosition">
           <th mat-header-cell *matHeaderCellDef>{{ 'common.position' | translate }}</th>

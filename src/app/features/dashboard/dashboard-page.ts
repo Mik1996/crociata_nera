@@ -33,7 +33,7 @@ const CHART_WARS = 15;
 const RANKING_SIZE = 5;
 
 @Component({
-  selector: 'app-dashboard-page',
+  selector: 'crn-dashboard-page',
   imports: [
     LocalNumberPipe,
     TranslatePipe,

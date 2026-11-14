@@ -7,7 +7,7 @@ import { LanguageService } from '../../core/i18n/language.service';
  * so long levels (e.g. 288) can overflow the star like in the game.
  */
 @Component({
-  selector: 'app-xp-badge',
+  selector: 'crn-xp-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { role: 'img', '[attr.aria-label]': 'label()' },
   templateUrl: './xp-badge.html',

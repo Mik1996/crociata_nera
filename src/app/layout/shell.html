@@ -11,7 +11,7 @@
     aria-controls="navigation"
     (click)="toggleNav()"
   >
-    <app-icon [name]="navOpen() ? 'menu_open' : 'menu'" />
+    <crn-icon [name]="navOpen() ? 'menu_open' : 'menu'" />
   </button>
 
   <a
@@ -54,7 +54,7 @@
     >
       <span class="swatch" [style.background]="activeTheme.swatch" aria-hidden="true"></span>
       <span class="theme-picker__label">{{ activeTheme.labelKey | translate }}</span>
-      <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
+      <crn-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
     </button>
     <mat-menu
       #themeMenu="matMenu"
@@ -73,7 +73,7 @@
           <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
           <span class="theme-name">{{ t.labelKey | translate }}</span>
           @if (t.name === activeTheme.name) {
-            <app-icon class="check" name="check" />
+            <crn-icon class="check" name="check" />
           }
         </button>
       }
@@ -90,7 +90,7 @@
   >
     <img class="flag" [src]="active.flag" alt="" width="24" height="16" />
     <span class="language__code">{{ active.code.slice(0, 2) }}</span>
-    <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
+    <crn-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
   </button>
   <mat-menu
     #languageMenu="matMenu"
@@ -110,7 +110,7 @@
         <img class="flag" [src]="l.flag" alt="" width="24" height="16" />
         <span class="language-name">{{ l.name }}</span>
         @if (l.code === active.code) {
-          <app-icon class="check" name="check" />
+          <crn-icon class="check" name="check" />
         }
       </button>
     }
@@ -129,7 +129,7 @@
           user.username.charAt(0).toUpperCase()
         }}</span>
         <span class="account__name">{{ user.username }}</span>
-        <app-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
+        <crn-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
       </button>
       <mat-menu
         #accountMenu="matMenu"
@@ -145,24 +145,24 @@
           <div class="account-menu__players">
             @for (account of myAccounts(); track account.tag) {
               <a mat-menu-item [routerLink]="['/players', account.tag]">
-                <app-icon name="sports_esports" />
+                <crn-icon name="sports_esports" />
                 <span>{{ account.name }}</span>
               </a>
             }
           </div>
         }
         <a mat-menu-item routerLink="/profile">
-          <app-icon name="manage_accounts" />
+          <crn-icon name="manage_accounts" />
           <span>{{ 'auth.account.profile' | translate }}</span>
         </a>
         @if (auth.isAdmin()) {
           <a mat-menu-item routerLink="/admin">
-            <app-icon name="admin_panel_settings" />
+            <crn-icon name="admin_panel_settings" />
             <span>{{ 'auth.account.admin' | translate }}</span>
           </a>
         }
         <button mat-menu-item type="button" (click)="signOut()">
-          <app-icon name="logout" />
+          <crn-icon name="logout" />
           <span>{{ 'auth.account.signOut' | translate }}</span>
         </button>
       </mat-menu>
@@ -174,7 +174,7 @@
         [queryParams]="signInParams()"
         [attr.aria-label]="'auth.account.signIn' | translate"
       >
-        <app-icon matButtonIcon class="account__icon" name="login" />
+        <crn-icon matButtonIcon class="account__icon" name="login" />
         <span class="account__name">{{ 'auth.account.signIn' | translate }}</span>
       </a>
     }
@@ -203,7 +203,7 @@
           [title]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
           (click)="togglePin()"
         >
-          <app-icon name="push_pin" />
+          <crn-icon name="push_pin" />
         </button>
       </div>
     }
@@ -236,7 +236,7 @@
       [attr.aria-current]="rla.isActive ? 'page' : null"
       (click)="closeIfFloating()"
     >
-      <app-icon matListItemIcon [name]="item.icon" />
+      <crn-icon matListItemIcon [name]="item.icon" />
       <span matListItemTitle>{{ item.label | translate }}</span>
     </a>
   </ng-template>
@@ -244,7 +244,7 @@
   <mat-sidenav-content>
     @if (!connectivity.online()) {
       <div class="offline-banner" role="status">
-        <app-icon name="wifi_off" />
+        <crn-icon name="wifi_off" />
         <span>{{
           (auth.isUnconfirmed() ? 'app.offline.bannerSignedIn' : 'app.offline.banner') | translate
         }}</span>

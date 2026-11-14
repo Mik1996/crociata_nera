@@ -1,7 +1,7 @@
 <div class="cn-filters" role="search" [attr.aria-label]="'participants.filter' | translate">
   <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>{{ 'participants.search' | translate }}</mat-label>
-    <app-icon matPrefix name="search" />
+    <crn-icon matPrefix name="search" />
     <input
       matInput
       [ngModel]="search()"
@@ -41,7 +41,7 @@
 
   @if (filtersActive()) {
     <button mat-button type="button" (click)="clearFilters()">
-      <app-icon matButtonIcon name="clear" /> {{ 'common.clearFilters' | translate }}
+      <crn-icon matButtonIcon name="clear" /> {{ 'common.clearFilters' | translate }}
     </button>
   }
 </div>
@@ -90,7 +90,7 @@
           <!-- Preparation day: nobody can attack yet. -->
         } @else if (!r.hasAttacked) {
           <span class="attack-status attack-status--none">
-            <app-icon [name]="inProgress() ? 'hourglass_empty' : 'block'" />
+            <crn-icon [name]="inProgress() ? 'hourglass_empty' : 'block'" />
             {{
               (inProgress()
                 ? isMine(r.tag)
@@ -102,7 +102,7 @@
           </span>
         } @else if (r.attacksUsed < r.attacksAvailable) {
           <span class="attack-status attack-status--partial">
-            <app-icon [name]="inProgress() ? 'pending' : 'warning_amber'" />
+            <crn-icon [name]="inProgress() ? 'pending' : 'warning_amber'" />
             {{
               (inProgress() ? 'participants.attackAvailable' : 'participants.attackUnused')
                 | translate
@@ -183,7 +183,7 @@
                 <span class="cn-visually-hidden">{{
                   'participants.targetScreenReader' | translate: { name: t.name, th: t.townHall }
                 }}</span>
-                <app-stars [value]="t.stars" />
+                <crn-stars [value]="t.stars" />
                 <span class="cn-num cn-muted">{{ t.destruction }}%</span>
               </li>
             }

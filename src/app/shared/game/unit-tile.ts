@@ -9,7 +9,7 @@ import { LevelBadge } from './level-badge';
  * (gold when the unit is maxed). Falls back to the initials when no icon is available.
  */
 @Component({
-  selector: 'app-unit-tile',
+  selector: 'crn-unit-tile',
   imports: [MatTooltipModule, TranslatePipe, LevelBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

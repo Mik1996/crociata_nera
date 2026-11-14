@@ -31,7 +31,7 @@ export function scrollReveal({ top, height, viewport }: ActMetrics): number {
  * The scroll is an act of its own (without a label), for its position.
  */
 @Component({
-  selector: 'app-act-code',
+  selector: 'crn-act-code',
   imports: [TranslatePipe, ActHeading, Crusader, ClanRules, ScrollyAct],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

@@ -3,10 +3,10 @@
   <!-- The Clan Capital above the clouds: the camera glides over it while the act scrolls -->
   <div class="capital__wallpaper" aria-hidden="true"></div>
   <div class="capital__scrim" aria-hidden="true"></div>
-  <app-crusader class="capital__crusader" pose="heart" />
+  <crn-crusader class="capital__crusader" pose="heart" />
 
   <div class="capital__content" data-scrolly-fit>
-    <app-act-heading
+    <crn-act-heading
       titleId="capital-title"
       [title]="'welcome.acts.capital.title' | translate"
       [tagline]="'welcome.acts.capital.tagline' | translate"
@@ -66,7 +66,7 @@
           <img src="game/misc/capital-trophy.webp" alt="" width="40" height="40" />
           <span class="cn-num">
             <span class="cn-visually-hidden">{{ c.capitalPoints | localNumber }}</span>
-            <span [appScrollyCounter]="c.capitalPoints" [counterFrom]="0.6" [counterTo]="0.9"></span>
+            <span [crnScrollyCounter]="c.capitalPoints" [counterFrom]="0.6" [counterTo]="0.9"></span>
           </span>
         </dd>
       </div>

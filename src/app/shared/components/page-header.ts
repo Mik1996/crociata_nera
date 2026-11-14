@@ -19,7 +19,7 @@ export type PageScene = 'dusk' | 'war' | 'army' | 'capital' | 'hall' | 'candle';
  * The scenes are the same in every theme.
  */
 @Component({
-  selector: 'app-page-header',
+  selector: 'crn-page-header',
   imports: [Crusader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[attr.data-scene]': 'scene()', '[class.page-header--flush]': 'flush()' },

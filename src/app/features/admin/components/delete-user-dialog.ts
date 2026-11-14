@@ -15,7 +15,7 @@ import type { AdminUserDialogData } from './link-players-dialog';
  * (the backend checks it again). Closes with `true` once deleted.
  */
 @Component({
-  selector: 'app-delete-user-dialog',
+  selector: 'crn-delete-user-dialog',
   imports: [
     FormsModule,
     MatButtonModule,

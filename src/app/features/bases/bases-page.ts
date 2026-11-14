@@ -52,7 +52,7 @@ export interface TownHallGroup {
  * the clans read it; administrators add, edit and delete bases.
  */
 @Component({
-  selector: 'app-bases-page',
+  selector: 'crn-bases-page',
   imports: [
     MatButtonModule,
     MatChipsModule,

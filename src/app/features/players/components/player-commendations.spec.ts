@@ -22,7 +22,7 @@ describe('PlayerCommendations', () => {
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
     expect(medals).toHaveLength(28);
-    const champion = medals.find((m) => m.querySelector('app-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
+    const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
@@ -46,7 +46,7 @@ describe('PlayerCommendations', () => {
     expect(legendary).toHaveLength(1);
     const medals = legendary[0].querySelectorAll('li.medal');
     expect(medals).toHaveLength(1);
-    expect(medals[0].querySelector('app-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks-legendary.svg');
+    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks-legendary.svg');
     expect(medals[0].querySelector('.medal__name')!.textContent).toContain('Certezza di Lega');
     expect(medals[0].querySelector('.medal__count')!.textContent).toContain('2');
     expect(medals[0].querySelector('.medal__description')!.textContent).toContain('almeno 3 giornate');

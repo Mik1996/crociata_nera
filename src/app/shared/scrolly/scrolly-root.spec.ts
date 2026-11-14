@@ -8,16 +8,16 @@ import { ScrollyRoot } from './scrolly-root';
 @Component({
   imports: [ScrollyRoot, ScrollyAct, ScrollyCounter, ScrollyIndex],
   template: `
-    <div appScrollyRoot #root="scrollyRoot" id="port" style="overflow-y: auto">
-      <app-scrolly-index label="Acts" />
-      <section appScrollyAct actId="one" actLabel="One" [actLength]="3">
-        <span id="counter" [appScrollyCounter]="1000" [counterFrom]="0" [counterTo]="1"></span>
+    <div crnScrollyRoot #root="scrollyRoot" id="port" style="overflow-y: auto">
+      <crn-scrolly-index label="Acts" />
+      <section crnScrollyAct actId="one" actLabel="One" [actLength]="3">
+        <span id="counter" [crnScrollyCounter]="1000" [counterFrom]="0" [counterTo]="1"></span>
         @if (late()) {
-          <span id="late" [appScrollyCounter]="200" [counterFrom]="0" [counterTo]="0.5"></span>
+          <span id="late" [crnScrollyCounter]="200" [counterFrom]="0" [counterTo]="0.5"></span>
         }
       </section>
-      <section appScrollyAct actId="gap"></section>
-      <section appScrollyAct actId="two" actLabel="Two"></section>
+      <section crnScrollyAct actId="gap"></section>
+      <section crnScrollyAct actId="two" actLabel="Two"></section>
     </div>
   `,
 })

@@ -4,7 +4,7 @@ import { IconName } from '../icon/icon-names';
 
 /** Card showing a numeric indicator. */
 @Component({
-  selector: 'app-kpi-card',
+  selector: 'crn-kpi-card',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'cn-card kpi', role: 'group', '[attr.aria-label]': 'label()' },

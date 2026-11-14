@@ -17,7 +17,7 @@ import { openCommendationDialog } from './open-commendation-dialog';
  * medals never earned are shown in greyscale.
  */
 @Component({
-  selector: 'app-player-commendations',
+  selector: 'crn-player-commendations',
   imports: [TranslatePipe, LocalNumberPipe, MatTooltipModule, LoadState, Medal3dImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-commendations.html',

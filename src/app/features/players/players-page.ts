@@ -38,7 +38,7 @@ function leagueSortKey(m: PlayerStats): number {
 }
 
 @Component({
-  selector: 'app-players-page',
+  selector: 'crn-players-page',
   imports: [
     StarText,
     TABLE_WRAP,

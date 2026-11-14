@@ -81,7 +81,7 @@ export function layoutLinkValidator(
  * Prefilled when editing, where only the changed fields are sent. Closes with the saved base.
  */
 @Component({
-  selector: 'app-base-form-dialog',
+  selector: 'crn-base-form-dialog',
   imports: [
     ReactiveFormsModule,
     MatButtonModule,

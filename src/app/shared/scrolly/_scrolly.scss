@@ -34,7 +34,7 @@
   container: stage / size;
 }
 
-// Parallax layer (`appParallax`): `--depth` scrollports of travel over the act, centred.
+// Parallax layer (`crnParallax`): `--depth` scrollports of travel over the act, centred.
 .scrolly-layer {
   --layer-progress: var(--p);
   transform: translate3d(0, calc((var(--layer-progress) - 0.5) * var(--depth, 0) * var(--scrolly-vh)), 0);

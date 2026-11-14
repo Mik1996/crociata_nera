@@ -6,7 +6,7 @@ import { ScrollyRoot } from './scrolly-root';
  * the current one highlighted. Jumps to an act and moves the focus there.
  */
 @Component({
-  selector: 'app-scrolly-index',
+  selector: 'crn-scrolly-index',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scrolly-index.html',
   styleUrl: './scrolly-index.scss',

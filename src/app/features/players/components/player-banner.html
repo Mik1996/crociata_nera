@@ -10,7 +10,7 @@
   <!-- Name: its own container, so long names shrink before wrapping. -->
   <div class="banner__heading">
     <div class="banner__name-row">
-      <app-xp-badge [level]="p.expLevel" />
+      <crn-xp-badge [level]="p.expLevel" />
       <div class="banner__name-block">
         <h1 id="player-name" class="banner__name">{{ p.name }}</h1>
         <span class="banner__tag">{{ p.tag }}</span>
@@ -68,7 +68,7 @@
               [matTooltip]="name + ' — ' + description + ' (' + m.period + ')'"
               (click)="open3d(m)"
             >
-              <app-medal-3d-image
+              <crn-medal-3d-image
                 [svgUrl]="'commendations/' + m.emblem + '.svg'"
                 [finish]="m.tier"
                 [size]="medalSize"
@@ -88,7 +88,7 @@
       <span class="banner__league-name">{{ league.name }}</span>
     }
     <span class="banner__trophies">
-      <app-icon name="emoji_events" />
+      <crn-icon name="emoji_events" />
       <span class="cn-visually-hidden">{{ 'player.trophies' | translate }}:</span>
       {{ p.trophies | localNumber }}
     </span>

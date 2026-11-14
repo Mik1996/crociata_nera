@@ -11,7 +11,7 @@ const ICONS: Record<WarResult, string> = {
 
 /** Coloured badge with a war result (text + symbol, not colour alone). */
 @Component({
-  selector: 'app-result-badge',
+  selector: 'crn-result-badge',
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': '"badge badge--" + result()' },

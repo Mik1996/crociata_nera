@@ -28,7 +28,7 @@ export interface RecordTile {
  * while the tablets slide sideways, the one in the middle lit by the torches.
  */
 @Component({
-  selector: 'app-act-annals',
+  selector: 'crn-act-annals',
   imports: [Icon, TranslatePipe, LocalNumberPipe, LocalDatePipe, ActHeading, ScrollyTrack],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

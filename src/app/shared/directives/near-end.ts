@@ -19,10 +19,10 @@ import {
  * scroll, the page does), looked for again when the window is resized. Without
  * `IntersectionObserver` the marker always counts as near (every page is read).
  */
-@Directive({ selector: '[appNearEnd]' })
+@Directive({ selector: '[crnNearEnd]' })
 export class NearEnd {
   /** How far ahead of the visible part, as `IntersectionObserver.rootMargin` (one screen below). */
-  readonly margin = input('0% 0% 100% 0%', { alias: 'appNearEndMargin' });
+  readonly margin = input('0% 0% 100% 0%', { alias: 'crnNearEndMargin' });
 
   readonly visible = signal(false);
 

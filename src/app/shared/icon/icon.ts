@@ -14,10 +14,10 @@ export const ICONS_PATH = 'assets/icons/';
  * Carries the `mat-icon` class, so Material buttons, lists and form fields lay it out as their own.
  */
 @Component({
-  selector: 'app-icon',
+  selector: 'crn-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'app-icon mat-icon notranslate',
+    class: 'crn-icon mat-icon notranslate',
     '[attr.role]': "label() ? 'img' : null",
     '[attr.aria-label]': 'label() || null',
     '[attr.aria-hidden]': "label() ? null : 'true'",

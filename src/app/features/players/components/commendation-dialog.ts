@@ -30,7 +30,7 @@ const TIER_FINISHES: Readonly<Record<CommendationTier, MedalFinish>> = {
  * Imports Three.js: open it through a dynamic `import()` so it is loaded only when needed.
  */
 @Component({
-  selector: 'app-commendation-dialog',
+  selector: 'crn-commendation-dialog',
   imports: [MatDialogModule, MatButtonModule, TranslatePipe, LocalNumberPipe, Medal3dViewer],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './commendation-dialog.html',

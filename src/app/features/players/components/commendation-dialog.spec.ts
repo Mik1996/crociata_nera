@@ -23,7 +23,7 @@ describe('CommendationDialog', () => {
     expect(el.querySelector('.title__tier')!.textContent).toContain('Oro');
     expect(el.querySelector('.count')!.textContent).toContain('Conquistato 3 volte');
     expect(el.querySelector('.description')!.textContent).toContain('1° posto');
-    const fallback = el.querySelector<HTMLImageElement>('app-medal-3d-viewer img.fallback')!;
+    const fallback = el.querySelector<HTMLImageElement>('crn-medal-3d-viewer img.fallback')!;
     expect(fallback.getAttribute('src')).toBe('commendations/champion-gold.svg');
     expect(fallback.classList).not.toContain('fallback--locked');
   });
@@ -32,13 +32,13 @@ describe('CommendationDialog', () => {
     const el = await render({ type: 'wall', tier: 'bronze', count: 0 });
 
     expect(el.querySelector('.count')!.textContent).toContain('Non ancora conquistato');
-    expect(el.querySelector('app-medal-3d-viewer img.fallback')!.classList).toContain('fallback--locked');
+    expect(el.querySelector('crn-medal-3d-viewer img.fallback')!.classList).toContain('fallback--locked');
   });
 
   it('shows the period instead of a count when opened from one period', async () => {
     const el = await render({ type: 'wall', tier: 'silver', period: 'ottobre 2026' });
 
     expect(el.querySelector('.count')!.textContent).toContain('Periodo: ottobre 2026');
-    expect(el.querySelector('app-medal-3d-viewer img.fallback')!.classList).not.toContain('fallback--locked');
+    expect(el.querySelector('crn-medal-3d-viewer img.fallback')!.classList).not.toContain('fallback--locked');
   });
 });

@@ -105,13 +105,13 @@ describe('BasesPage', () => {
       expect(copy.href).toBe(base('a', 18).layoutUrl);
       expect(copy.textContent).toContain('Copia base');
       // Reinforcements: Golem 30 + 2 Witches 24 out of 55 (TH18).
-      const troops = cards[0].querySelector('app-clan-castle-troops')!;
+      const troops = cards[0].querySelector('crn-clan-castle-troops')!;
       expect(troops.textContent).toContain('54/55 spazi');
       expect([...troops.querySelectorAll('.count')].map((c) => c.textContent)).toEqual([
         '×1',
         '×2',
       ]);
-      expect(cards[1].querySelector('app-clan-castle-troops')).toBeNull();
+      expect(cards[1].querySelector('crn-clan-castle-troops')).toBeNull();
     });
 
     it('hides the editing buttons from members who are not administrators', async () => {

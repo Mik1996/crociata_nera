@@ -17,7 +17,7 @@ type FrameListener = (metrics: ActMetrics) => void;
  * the act's component, configured from the page template:
  *
  * ```html
- * <app-act-war actId="war" [actLabel]="'…' | translate" [actLength]="2.5" />
+ * <crn-act-war actId="war" [actLabel]="'…' | translate" [actLength]="2.5" />
  * ```
  *
  * `actLength` > 0 makes it a pinned act, as tall as that many scrollports: its `.scrolly-stage`
@@ -30,7 +30,7 @@ type FrameListener = (metrics: ActMetrics) => void;
  * Canvas and 3D effects subscribe with {@link onFrame}; templates read `state()`, `near()`, `seen()`.
  */
 @Directive({
-  selector: '[appScrollyAct]',
+  selector: '[crnScrollyAct]',
   exportAs: 'scrollyAct',
   host: {
     class: 'scrolly-act',

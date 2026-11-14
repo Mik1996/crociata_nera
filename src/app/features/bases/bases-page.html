@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="candle"
   [kicker]="'kicker.bases' | translate"
   [title]="'bases.title' | translate"
@@ -6,13 +6,13 @@
 >
   @if (canEdit()) {
     <button mat-flat-button type="button" class="add" (click)="openCreate()">
-      <app-icon matButtonIcon name="add" />
+      <crn-icon matButtonIcon name="add" />
       {{ 'bases.add' | translate }}
     </button>
   }
-</app-page-header>
+</crn-page-header>
 
-<div appScrollFade class="page__scroll">
+<div crnScrollFade class="page__scroll">
   @if (levels().length) {
     <mat-chip-listbox
       class="filter"
@@ -39,7 +39,7 @@
     {{ 'bases.found' | translate: { n: items().length } }}
   </p>
 
-  <app-load-state
+  <crn-load-state
     [loading]="!items().length && feed().error() === undefined && !feed().complete()"
     [error]="items().length ? undefined : feed().error()"
     [empty]="!items().length"
@@ -89,7 +89,7 @@
               }
 
               @if (base.clanCastleTroops.length) {
-                <app-clan-castle-troops
+                <crn-clan-castle-troops
                   class="base__troops"
                   [troops]="base.clanCastleTroops"
                   [townHallLevel]="base.townHallLevel"
@@ -105,7 +105,7 @@
                   rel="noopener noreferrer"
                   [attr.aria-label]="'bases.copyOf' | translate: { n: base.townHallLevel }"
                 >
-                  <app-icon matButtonIcon name="download" />
+                  <crn-icon matButtonIcon name="download" />
                   {{ 'bases.copy' | translate }}
                 </a>
                 @if (canEdit()) {
@@ -116,7 +116,7 @@
                     [matTooltip]="'bases.edit' | translate"
                     [attr.aria-label]="'bases.editOf' | translate: { n: base.townHallLevel }"
                   >
-                    <app-icon name="edit" />
+                    <crn-icon name="edit" />
                   </button>
                   <button
                     mat-icon-button
@@ -126,7 +126,7 @@
                     [matTooltip]="'bases.delete' | translate"
                     [attr.aria-label]="'bases.deleteOf' | translate: { n: base.townHallLevel }"
                   >
-                    <app-icon name="delete" />
+                    <crn-icon name="delete" />
                   </button>
                 }
               </div>
@@ -136,7 +136,7 @@
       </section>
     }
 
-    <div class="feed-end" appNearEnd>
+    <div class="feed-end" crnNearEnd>
       @if (feed().loading()) {
         <div role="status">
           <mat-spinner diameter="32" [attr.aria-label]="'bases.loadingMore' | translate" />
@@ -145,12 +145,12 @@
         <div role="alert" class="feed-end__error">
           <p>{{ 'bases.loadMoreError' | translate }}</p>
           <button mat-stroked-button type="button" (click)="feed().retry()">
-            <app-icon matButtonIcon name="refresh" /> {{ 'status.retry' | translate }}
+            <crn-icon matButtonIcon name="refresh" /> {{ 'status.retry' | translate }}
           </button>
         </div>
       } @else if (feed().complete()) {
         <p class="feed-end__done">{{ 'bases.allShown' | translate }}</p>
       }
     </div>
-  </app-load-state>
+  </crn-load-state>
 </div>

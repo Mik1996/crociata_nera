@@ -28,7 +28,7 @@ interface ArmySection {
 
 /** Player page in the style of the game profile: banner plus Profile, Army, Achievements, Wars and Commendations tabs. */
 @Component({
-  selector: 'app-player-detail-page',
+  selector: 'crn-player-detail-page',
   imports: [
     TranslatePipe,
     LocalNumberPipe,

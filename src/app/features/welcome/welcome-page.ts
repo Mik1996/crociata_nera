@@ -28,7 +28,7 @@ import { ActWar } from './acts/war/act-war';
  * loading or on error), the records from the backend.
  */
 @Component({
-  selector: 'app-welcome-page',
+  selector: 'crn-welcome-page',
   imports: [
     TranslatePipe,
     LoadState,

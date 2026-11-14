@@ -1,22 +1,22 @@
 <div class="code">
   <div class="code__glow" aria-hidden="true"></div>
   <div class="code__oath">
-    <app-crusader class="code__crusader" pose="oath" sizes="min(40vh, 60vw)" />
+    <crn-crusader class="code__crusader" pose="oath" sizes="min(40vh, 60vw)" />
   </div>
 
   <div class="code__main">
     <!-- The rules bring their own title -->
-    <app-act-heading
+    <crn-act-heading
       class="code__heading"
       [heading]="false"
       [title]="'welcome.acts.code.title' | translate"
       [tagline]="'welcome.acts.code.tagline' | translate"
     />
 
-    <div #scroll class="code__scroll" appScrollyAct actId="code-scroll">
+    <div #scroll class="code__scroll" crnScrollyAct actId="code-scroll">
       <div class="code__roller code__roller--top" aria-hidden="true"></div>
       <div class="code__sheet">
-        <app-clan-rules variant="scroll" />
+        <crn-clan-rules variant="scroll" />
       </div>
       <div class="code__roller code__roller--bottom" aria-hidden="true"></div>
     </div>

@@ -15,11 +15,11 @@ export type CounterMetric = 'progress' | 'enter';
  * final value next to it in a `.cn-visually-hidden` element.
  */
 @Directive({
-  selector: '[appScrollyCounter]',
+  selector: '[crnScrollyCounter]',
   host: { 'aria-hidden': 'true' },
 })
 export class ScrollyCounter {
-  readonly appScrollyCounter = input.required<number>();
+  readonly crnScrollyCounter = input.required<number>();
   readonly counterFrom = input(0);
   readonly counterTo = input(0.6);
   readonly counterMetric = input<CounterMetric>('progress');
@@ -41,14 +41,14 @@ export class ScrollyCounter {
     });
     // First value, new value or language: shown at once.
     effect(() => {
-      this.appScrollyCounter();
+      this.crnScrollyCounter();
       this.language.current();
       this.render(this.act?.current ?? null);
     });
   }
 
   private render(metrics: ActMetrics | null): void {
-    const target = this.appScrollyCounter();
+    const target = this.crnScrollyCounter();
     const t = metrics ? segment(metrics[this.counterMetric()], this.counterFrom(), this.counterTo()) : 1;
     const value = t >= 1 ? target : Math.round(target * easeOutCubic(t));
     const text = formatLocalNumber(value, this.language.current(), this.counterFormat());

@@ -1,10 +1,10 @@
 @let w = war();
 <div class="meta">
-  <app-result-badge [result]="result()" />
+  <crn-result-badge [result]="result()" />
   <span>{{ state() | translate }}</span>
   <span class="meta__muted">· {{ 'summary.versus' | translate: { n: w.teamSize } }}</span>
   @if (timeLeft(); as t) {
-    <span class="time-left"><app-icon name="schedule" />{{ t }}</span>
+    <span class="time-left"><crn-icon name="schedule" />{{ t }}</span>
   } @else {
     <span class="meta__muted"
       >· {{ 'summary.endedOn' | translate: { date: (w.endTime | localDate: 'dateTime') } }}</span
@@ -14,7 +14,7 @@
 
 <div class="scoreboard">
   @if (scenic()) {
-    <app-crusader class="figure crusader--soft" pose="fist" sizes="12rem" />
+    <crn-crusader class="figure crusader--soft" pose="fist" sizes="12rem" />
   }
   @for (side of [w.clan, w.opponent]; track side.tag; let isOpponent = $last) {
     <section

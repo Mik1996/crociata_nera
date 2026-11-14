@@ -16,7 +16,7 @@ export interface UnlinkPlayersDialogData extends AdminUserDialogData {
 
 /** Unlinks the Clash of Clans accounts of a user picked from a list. Closes with the updated user. */
 @Component({
-  selector: 'app-unlink-players-dialog',
+  selector: 'crn-unlink-players-dialog',
   imports: [MatButtonModule, MatCheckboxModule, MatDialogModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './unlink-players-dialog.html',

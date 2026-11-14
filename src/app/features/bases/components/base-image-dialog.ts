@@ -14,7 +14,7 @@ export interface BaseImageDialogData {
 
 /** Enlarged screenshot of a base, with its description and the "copy base" link. */
 @Component({
-  selector: 'app-base-image-dialog',
+  selector: 'crn-base-image-dialog',
   imports: [MatButtonModule, MatDialogModule, Icon, TranslatePipe, ClanCastleTroops],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-image-dialog.html',

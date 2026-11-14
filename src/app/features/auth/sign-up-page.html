@@ -1,11 +1,11 @@
-<app-auth-panel
+<crn-auth-panel
   [heading]="'auth.signUp.title' | translate"
   [subtitle]="'auth.signUp.subtitle' | translate"
 >
   <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     @if (generalErrors().length) {
       <div class="auth-form__alert" role="alert">
-        <app-icon name="error" />
+        <crn-icon name="error" />
         <div>
           @for (message of generalErrors(); track message.key) {
             <p>{{ message.key | translate: message.params }}</p>
@@ -16,7 +16,7 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.email' | translate }}</mat-label>
-      <app-icon matPrefix name="mail" />
+      <crn-icon matPrefix name="mail" />
       <input
         matInput
         type="email"
@@ -32,7 +32,7 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.username' | translate }}</mat-label>
-      <app-icon matPrefix name="person" />
+      <crn-icon matPrefix name="person" />
       <input
         matInput
         formControlName="username"
@@ -48,7 +48,7 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.password' | translate }}</mat-label>
-      <app-icon matPrefix name="lock" />
+      <crn-icon matPrefix name="lock" />
       <input
         matInput
         formControlName="password"
@@ -64,7 +64,7 @@
         [attr.aria-pressed]="showPassword()"
         (click)="showPassword.set(!showPassword())"
       >
-        <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
+        <crn-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
       </button>
       <mat-hint>{{ 'auth.hints.password' | translate }}</mat-hint>
       @if (errorKey(form.controls.password, errors.password); as key) {
@@ -74,7 +74,7 @@
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'auth.fields.repeatPassword' | translate }}</mat-label>
-      <app-icon matPrefix name="lock_reset" />
+      <crn-icon matPrefix name="lock_reset" />
       <input
         matInput
         formControlName="repeatPassword"
@@ -102,4 +102,4 @@
       'auth.signUp.toSignIn' | translate
     }}</a>
   </p>
-</app-auth-panel>
+</crn-auth-panel>

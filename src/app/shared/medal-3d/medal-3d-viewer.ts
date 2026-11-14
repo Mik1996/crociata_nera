@@ -29,7 +29,7 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
  * triggers change detection; inputs reach the scene through effects.
  */
 @Component({
-  selector: 'app-medal-3d-viewer',
+  selector: 'crn-medal-3d-viewer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './medal-3d-viewer.html',
   styleUrl: './medal-3d-viewer.scss',

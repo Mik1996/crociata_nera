@@ -1,6 +1,6 @@
 // Writes the Material icons used by the site (filled style, same look as the old Material Icons
 // font) as SVG files in public/assets/icons/, one per icon, painted with `currentColor` so the
-// stylesheets colour them through `color`. <app-icon> draws them with <use href="…#icon">.
+// stylesheets colour them through `color`. <crn-icon> draws them with <use href="…#icon">.
 // Also writes src/app/shared/icon/icon-names.ts, the typed list of names.
 //
 // To add an icon: append its name to NAMES (https://fonts.google.com/icons, "Material Icons"),

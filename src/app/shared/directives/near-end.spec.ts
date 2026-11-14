@@ -6,7 +6,7 @@ import { NearEnd } from './near-end';
   imports: [NearEnd],
   template: `<div class="scroller" style="overflow-y: auto">
     <ul></ul>
-    <div appNearEnd></div>
+    <div crnNearEnd></div>
   </div>`,
 })
 class Host {

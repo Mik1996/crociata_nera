@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="army"
   [kicker]="'kicker.dashboard' | translate"
   crusader="guard"
@@ -6,7 +6,7 @@
   [subtitle]="'dashboard.subtitle' | translate"
 />
 
-<div appScrollFade class="page__scroll">
+<div crnScrollFade class="page__scroll">
   <!-- Latest war and KPIs -->
   <section class="cn-card cn-section" aria-labelledby="latest-war-title">
     <div class="section-header">
@@ -18,11 +18,11 @@
       @if (war(); as w) {
         <a mat-button [routerLink]="w.state === 'ended' ? ['/wars', w.id] : ['/current-war']">
           {{ 'common.viewDetails' | translate }}
-          <app-icon matButtonIcon iconPositionEnd name="arrow_forward" />
+          <crn-icon matButtonIcon iconPositionEnd name="arrow_forward" />
         </a>
       }
     </div>
-    <app-load-state
+    <crn-load-state
       [loading]="latest.isLoading()"
       [error]="latest.error()"
       [empty]="!war()"
@@ -31,26 +31,26 @@
       (retry)="latest.reload()"
     >
       @if (war(); as w) {
-        <app-war-summary [war]="w" />
+        <crn-war-summary [war]="w" />
       }
-    </app-load-state>
+    </crn-load-state>
   </section>
 
   @if (kpi(); as k) {
     <div class="cn-grid-kpi">
-      <app-kpi-card
+      <crn-kpi-card
         [image]="GAME_ICONS.star"
         [label]="'common.averageStars' | translate"
         [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
         [hint]="'common.perAttack' | translate"
       />
-      <app-kpi-card
+      <crn-kpi-card
         [image]="GAME_ICONS.star"
         [imageTriangle]="true"
         [label]="'common.threeStarAttacks' | translate"
         [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
       />
-      <app-kpi-card
+      <crn-kpi-card
         icon="groups"
         [label]="'common.participation' | translate"
         [value]="(k.participation | localNumber: '1.0-0') + '%'"
@@ -65,11 +65,11 @@
       <h2 id="ranking-title">{{ 'dashboard.rankingTitle' | translate }}</h2>
       <a mat-button routerLink="/players">
         {{ 'dashboard.allPlayers' | translate }}
-        <app-icon matButtonIcon iconPositionEnd name="arrow_forward" />
+        <crn-icon matButtonIcon iconPositionEnd name="arrow_forward" />
       </a>
     </div>
     <p class="cn-muted note" [innerHTML]="'dashboard.rankingNote' | translate"></p>
-    <app-load-state
+    <crn-load-state
       [loading]="members.isLoading()"
       [error]="members.error()"
       [empty]="best().length === 0"
@@ -79,7 +79,7 @@
       <div class="rankings">
         @for (list of rankings(); track list.title) {
           <div class="ranking" [class]="'ranking--' + list.modifier">
-            <h3><app-icon [name]="list.icon" /> {{ list.title | translate }}</h3>
+            <h3><crn-icon [name]="list.icon" /> {{ list.title | translate }}</h3>
             <ol>
               @for (s of list.entries; track s.tag; let i = $index) {
                 <li>
@@ -105,7 +105,7 @@
           </div>
         }
       </div>
-    </app-load-state>
+    </crn-load-state>
   </section>
 
   <!-- Trend -->
@@ -113,7 +113,7 @@
     <h2 id="trend-title" class="trend-title">
       {{ 'dashboard.trend' | translate: { n: trend().length } }}
     </h2>
-    <app-load-state
+    <crn-load-state
       [loading]="history.isLoading()"
       [error]="history.error()"
       [empty]="trend().length === 0"
@@ -162,6 +162,6 @@
           </div>
         </section>
       </div>
-    </app-load-state>
+    </crn-load-state>
   </section>
 </div>

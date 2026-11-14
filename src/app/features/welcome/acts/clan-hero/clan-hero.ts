@@ -29,7 +29,7 @@ const FINALE_AT = 0.6;
  * Must be the only content of a {@link ScrollyAct} host: it renders the act's stage.
  */
 @Component({
-  selector: 'app-clan-hero',
+  selector: 'crn-clan-hero',
   imports: [NgTemplateOutlet, Icon, TranslatePipe, Crusader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './clan-hero.html',

@@ -6,7 +6,7 @@ import { afterNextRender, DestroyRef, Directive, ElementRef, inject } from '@ang
  * translate it by `calc(var(--p) * var(--track-shift) * -1)`. Measured against the parent.
  */
 @Directive({
-  selector: '[appScrollyTrack]',
+  selector: '[crnScrollyTrack]',
   host: { class: 'scrolly-track' },
 })
 export class ScrollyTrack {

@@ -24,7 +24,7 @@ export function crusaderImage(pose: CrusaderPose, width: (typeof WIDTHS)[number]
  * (0 hidden in the fog, 1 fully visible), usually from the act's progress. Decorative: no alt text.
  */
 @Component({
-  selector: 'app-crusader',
+  selector: 'crn-crusader',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './crusader.html',
   styleUrl: './crusader.scss',

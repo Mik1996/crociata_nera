@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="hall"
   [kicker]="'kicker.statistics' | translate"
   [title]="'nav.statistics' | translate"
@@ -7,7 +7,7 @@
   @if (monthList().length > 0) {
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-selector">
       <mat-label>{{ 'statistics.period' | translate }}</mat-label>
-      <app-icon matPrefix name="calendar_month" />
+      <crn-icon matPrefix name="calendar_month" />
       <mat-select [value]="period()" (valueChange)="changePeriod($event)">
         <mat-option [value]="allPeriods">{{ 'statistics.allMonths' | translate }}</mat-option>
         @for (m of monthList(); track m.month) {
@@ -22,10 +22,10 @@
       </mat-select>
     </mat-form-field>
   }
-</app-page-header>
+</crn-page-header>
 
-<div appScrollFade class="page__scroll">
-  <app-load-state
+<div crnScrollFade class="page__scroll">
+  <crn-load-state
     [loading]="months.isLoading() || data.isLoading()"
     [error]="months.error() ?? data.error()"
     [empty]="isHistoryEmpty() || !periodData()"
@@ -38,25 +38,25 @@
     @if (periodData(); as d) {
       @if (kpi(); as k) {
         <div class="cn-grid-kpi">
-          <app-kpi-card
+          <crn-kpi-card
             icon="flag"
             [label]="'common.wars' | translate"
             [value]="k.wars"
             [hint]="k.record"
           />
-          <app-kpi-card
+          <crn-kpi-card
             [image]="GAME_ICONS.star"
             [label]="'statistics.averagePerWar' | translate"
             [value]="(k.averageStarsPerWar | localNumber: '1.2-2') + ' / ' + maxStars"
             [hint]="'statistics.perPlayer' | translate"
           />
-          <app-kpi-card
+          <crn-kpi-card
             [image]="GAME_ICONS.star"
             [imageTriangle]="true"
             [label]="'common.threeStarAttacks' | translate"
             [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
           />
-          <app-kpi-card
+          <crn-kpi-card
             icon="bolt"
             [label]="'common.participation' | translate"
             [value]="(k.participation | localNumber: '1.0-1') + '%'"
@@ -80,7 +80,7 @@
         <div class="cn-filters" role="search" [attr.aria-label]="'statistics.filter' | translate">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'statistics.search' | translate }}</mat-label>
-            <app-icon matPrefix name="search" />
+            <crn-icon matPrefix name="search" />
             <input
               matInput
               [ngModel]="search()"
@@ -236,7 +236,7 @@
                 mat-sort-header
                 [sortActionDescription]="'sort.averageStarsPerWar' | translate"
               >
-                <app-star-text [text]="'statistics.averagePerWarShort' | translate" />
+                <crn-star-text [text]="'statistics.averagePerWarShort' | translate" />
               </th>
               <td mat-cell *matCellDef="let r">
                 <span class="average">
@@ -255,7 +255,7 @@
                 mat-sort-header
                 [sortActionDescription]="'sort.averageStarsPerAttack' | translate"
               >
-                <app-star-text [text]="'statistics.perAttackShort' | translate" />
+                <crn-star-text [text]="'statistics.perAttackShort' | translate" />
               </th>
               <td mat-cell *matCellDef="let r" class="cn-num">
                 {{ r.averageStarsPerAttack | localNumber: '1.2-2' }}
@@ -265,7 +265,7 @@
             <ng-container matColumnDef="distribution">
               <th mat-header-cell *matHeaderCellDef>
                 <span [matTooltip]="'statistics.distributionTooltip' | translate"
-                  ><app-star-text text="3★·2★·1★·0★"
+                  ><crn-star-text text="3★·2★·1★·0★"
                 /></span>
               </th>
               <td mat-cell *matCellDef="let r" class="cn-num distribution">
@@ -304,7 +304,7 @@
                 mat-sort-header
                 [sortActionDescription]="'sort.threeStarRate' | translate"
               >
-                <app-star-text [text]="'players.threeStarRate' | translate" />
+                <crn-star-text [text]="'players.threeStarRate' | translate" />
               </th>
               <td mat-cell *matCellDef="let r" class="cn-num">
                 {{ r.threeStarRate | localNumber: '1.0-1' }}%
@@ -333,7 +333,7 @@
                 [sortActionDescription]="'sort.starsConceded' | translate"
               >
                 <span [matTooltip]="'statistics.defenseTooltip' | translate"
-                  ><app-star-text [text]="'statistics.defense' | translate"
+                  ><crn-star-text [text]="'statistics.defense' | translate"
                 /></span>
               </th>
               <td mat-cell *matCellDef="let r" class="cn-num">
@@ -388,7 +388,7 @@
             </ng-container>
             <ng-container matColumnDef="result">
               <th mat-header-cell *matHeaderCellDef>{{ 'common.result' | translate }}</th>
-              <td mat-cell *matCellDef="let w"><app-result-badge [result]="w.result" /></td>
+              <td mat-cell *matCellDef="let w"><crn-result-badge [result]="w.result" /></td>
             </ng-container>
             <ng-container matColumnDef="stars">
               <th mat-header-cell *matHeaderCellDef>{{ 'common.stars' | translate }}</th>
@@ -412,5 +412,5 @@
         </div>
       </section>
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

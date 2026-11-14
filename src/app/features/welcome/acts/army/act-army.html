@@ -1,10 +1,10 @@
 @let c = clan();
 <section class="scrolly-stage army" aria-labelledby="army-title">
   <div class="army__backdrop" aria-hidden="true"></div>
-  <app-crusader class="army__crusader" pose="guard" />
+  <crn-crusader class="army__crusader" pose="guard" />
 
   <div class="army__content" data-scrolly-fit>
-    <app-act-heading
+    <crn-act-heading
       titleId="army-title"
       [title]="'welcome.acts.army.title' | translate"
       [tagline]="'welcome.acts.army.tagline' | translate"
@@ -19,7 +19,7 @@
             } @else {
               <span class="cn-visually-hidden">{{ stat.prefix }}{{ stat.value | localNumber }}{{ stat.suffix }}</span>
               <span aria-hidden="true"
-                >{{ stat.prefix }}<span [appScrollyCounter]="stat.value!" [counterFrom]="0.04 + i * 0.03" [counterTo]="0.55"></span>
+                >{{ stat.prefix }}<span [crnScrollyCounter]="stat.value!" [counterFrom]="0.04 + i * 0.03" [counterTo]="0.55"></span>
                 @if (stat.suffix) {
                   <small>{{ stat.suffix }}</small>
                 }

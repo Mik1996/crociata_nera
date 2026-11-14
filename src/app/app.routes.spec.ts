@@ -38,12 +38,12 @@ describe('app routes', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
     expect(TestBed.inject(Router).url).toBe('/');
-    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-welcome-page');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('crn-welcome-page');
   });
 
   it.each([
-    ['/join', 'app-join-page'],
-    ['/settings', 'app-settings-page'],
+    ['/join', 'crn-join-page'],
+    ['/settings', 'crn-settings-page'],
   ])('opens %s while signed out', async (url, tag) => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);
@@ -87,6 +87,6 @@ describe('app routes', () => {
   it('opens the profile to signed-in users outside the clans of the Crusade', async () => {
     const harness = await signedInAt('/profile', { clanAccess: false });
     expect(TestBed.inject(Router).url).toBe('/profile');
-    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-profile-page');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('crn-profile-page');
   });
 });

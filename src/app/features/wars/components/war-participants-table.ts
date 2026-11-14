@@ -20,7 +20,7 @@ import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
 
 /** War participants table with filters and sorting. */
 @Component({
-  selector: 'app-war-participants-table',
+  selector: 'crn-war-participants-table',
   imports: [
     TABLE_WRAP,
     LocalNumberPipe,

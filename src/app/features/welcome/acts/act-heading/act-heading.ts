@@ -7,7 +7,7 @@ import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
  * `heading` false renders the name as plain text, for acts whose content brings its own title.
  */
 @Component({
-  selector: 'app-act-heading',
+  selector: 'crn-act-heading',
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './act-heading.html',

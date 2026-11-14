@@ -1,4 +1,4 @@
-<app-page-header
+<crn-page-header
   scene="war"
   [kicker]="'kicker.war' | translate"
   [title]="
@@ -9,12 +9,12 @@
   [subtitle]="'warDetail.subtitle' | translate"
 >
   <a mat-stroked-button routerLink="/wars">
-    <app-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
+    <crn-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
   </a>
-</app-page-header>
+</crn-page-header>
 
-<div appScrollFade class="page__scroll">
-  <app-load-state
+<div crnScrollFade class="page__scroll">
+  <crn-load-state
     [loading]="resource.isLoading()"
     [error]="resource.error()"
     [empty]="!war()"
@@ -24,12 +24,12 @@
   >
     @if (war(); as w) {
       <section class="cn-card cn-section" [attr.aria-label]="'common.battleSummary' | translate">
-        <app-war-summary [war]="w" />
+        <crn-war-summary [war]="w" />
       </section>
 
       @if (!w.hasDetails) {
         <section class="cn-card cn-section notice" role="note">
-          <app-icon name="info" />
+          <crn-icon name="info" />
           <div>
             <h2>{{ 'warDetail.noticeTitle' | translate }}</h2>
             <p class="cn-muted">{{ 'warDetail.noticeText' | translate }}</p>
@@ -39,19 +39,19 @@
 
       @if (kpi(); as k) {
         <div class="cn-grid-kpi">
-          <app-kpi-card
+          <crn-kpi-card
             [image]="GAME_ICONS.star"
             [label]="'common.averageStars' | translate"
             [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
             [hint]="'common.perAttack' | translate"
           />
-          <app-kpi-card
+          <crn-kpi-card
             [image]="GAME_ICONS.star"
             [imageTriangle]="true"
             [label]="'common.threeStarAttacks' | translate"
             [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
           />
-          <app-kpi-card
+          <crn-kpi-card
             icon="groups"
             [label]="'common.participation' | translate"
             [value]="(k.participation | localNumber: '1.0-0') + '%'"
@@ -63,7 +63,7 @@
       @if (w.hasDetails) {
         <section class="cn-card cn-section" aria-labelledby="performance-title">
           <h2 id="performance-title">{{ 'warDetail.performance' | translate }}</h2>
-          <app-war-participants-table
+          <crn-war-participants-table
             [rows]="rows()"
             [attacksPerMember]="w.attacksPerMember"
             [inProgress]="w.state !== 'ended'"
@@ -72,5 +72,5 @@
         </section>
       }
     }
-  </app-load-state>
+  </crn-load-state>
 </div>

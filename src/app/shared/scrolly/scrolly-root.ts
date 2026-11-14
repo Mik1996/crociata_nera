@@ -30,7 +30,7 @@ const VIEWPORT_JITTER = 0.25;
  * gets its final state and the page is a plain column of sections.
  */
 @Directive({
-  selector: '[appScrollyRoot]',
+  selector: '[crnScrollyRoot]',
   exportAs: 'scrollyRoot',
   host: {
     class: 'scrolly',

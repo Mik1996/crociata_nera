@@ -9,7 +9,7 @@ import { afterNextRender, DestroyRef, Directive, ElementRef, inject, NgZone, sig
  * switches, window resize).
  */
 @Directive({
-  selector: '[appScrollFade]',
+  selector: '[crnScrollFade]',
   host: {
     class: 'cn-scroll-fade',
     '[class.cn-scroll-fade--top]': 'top()',
@@ -50,7 +50,7 @@ export class ScrollFade {
         observeChildren();
 
         // Content rendered later (data loaded, @if blocks) inside inline hosts such as
-        // <app-load-state> does not trigger the ResizeObserver: watch the whole subtree.
+        // <crn-load-state> does not trigger the ResizeObserver: watch the whole subtree.
         const mutations = new MutationObserver(() => {
           observeChildren();
           schedule();

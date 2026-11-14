@@ -26,7 +26,7 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
  * WebGL), told by `ready` whether the 3D scene is on screen.
  */
 @Component({
-  selector: 'app-altar-3d',
+  selector: 'crn-altar-3d',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './altar-3d.html',
   styleUrl: './altar-3d.scss',

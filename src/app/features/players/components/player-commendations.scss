@@ -71,12 +71,12 @@
   color: var(--cn-game-panel-text);
   cursor: pointer;
 
-  app-medal-3d-image {
+  crn-medal-3d-image {
     width: min(6.5rem, 100%);
     transition: transform 0.15s ease;
   }
 
-  &:hover app-medal-3d-image {
+  &:hover crn-medal-3d-image {
     transform: scale(1.06);
   }
 
@@ -86,7 +86,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    app-medal-3d-image {
+    crn-medal-3d-image {
       transition: none;
     }
   }

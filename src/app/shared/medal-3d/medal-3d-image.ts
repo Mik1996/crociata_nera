@@ -8,7 +8,7 @@ import { MedalSnapshots } from './medal-snapshots.service';
  * Decorative: the accessible name is given by the parent.
  */
 @Component({
-  selector: 'app-medal-3d-image',
+  selector: 'crn-medal-3d-image',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './medal-3d-image.html',
   styleUrl: './medal-3d-image.scss',

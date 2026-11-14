@@ -1,16 +1,16 @@
-<app-page-header
+<crn-page-header
   scene="candle"
   [kicker]="'kicker.admin' | translate"
   [title]="'admin.title' | translate"
   [subtitle]="'admin.subtitle' | translate: { n: total() }"
 />
 
-<div appScrollFade class="page__scroll">
+<div crnScrollFade class="page__scroll">
   <section class="cn-card cn-section">
     <form class="cn-filters search" (ngSubmit)="search()">
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>{{ 'admin.search' | translate }}</mat-label>
-        <app-icon matPrefix name="search" />
+        <crn-icon matPrefix name="search" />
         <input
           matInput
           name="search"
@@ -33,7 +33,7 @@
       </div>
     }
 
-    <app-load-state
+    <crn-load-state
       [loading]="users.isLoading() && !users.hasValue()"
       [error]="users.error()"
       [empty]="!rows().length"
@@ -61,14 +61,14 @@
                 <span class="tag-cell">
                   <span class="cn-num">{{ p.tag }}</span>
                   @if (p.verified) {
-                    <app-icon
+                    <crn-icon
                       class="ok"
                       [matTooltip]="'admin.tagVerified' | translate"
                       [label]="'admin.tagVerified' | translate"
                       name="verified"
                     />
                   } @else {
-                    <app-icon
+                    <crn-icon
                       class="unverified"
                       [matTooltip]="'admin.tagUnverified' | translate"
                       [label]="'admin.tagUnverified' | translate"
@@ -99,13 +99,13 @@
             <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.verified' | translate }}</th>
             <td mat-cell *matCellDef="let u">
               @if (u.emailVerified) {
-                <app-icon
+                <crn-icon
                   class="ok"
                   [label]="'profile.account.verified' | translate"
                   name="verified"
                 />
               } @else {
-                <app-icon
+                <crn-icon
                   class="cn-muted"
                   [label]="'profile.account.notVerified' | translate"
                   name="schedule"
@@ -132,7 +132,7 @@
                   [matTooltip]="'admin.actions.link' | translate"
                   [attr.aria-label]="'admin.actions.linkOf' | translate: { name: u.username }"
                 >
-                  <app-icon name="add_link" />
+                  <crn-icon name="add_link" />
                 </button>
                 <button
                   mat-icon-button
@@ -143,7 +143,7 @@
                   [matTooltip]="'admin.actions.unlink' | translate"
                   [attr.aria-label]="'admin.actions.unlinkOf' | translate: { name: u.username }"
                 >
-                  <app-icon name="link_off" />
+                  <crn-icon name="link_off" />
                 </button>
                 <span
                   [matTooltip]="
@@ -160,7 +160,7 @@
                     (click)="openDelete(u)"
                     [attr.aria-label]="'admin.actions.deleteOf' | translate: { name: u.username }"
                   >
-                    <app-icon name="delete" />
+                    <crn-icon name="delete" />
                   </button>
                 </span>
               </div>
@@ -171,6 +171,6 @@
           <tr mat-row *matRowDef="let u; columns: columns"></tr>
         </table>
       </div>
-    </app-load-state>
+    </crn-load-state>
   </section>
 </div>

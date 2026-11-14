@@ -25,7 +25,7 @@ describe('CurrentWarPage', () => {
   it('shows clan, opponent and participants of the current war', async () => {
     configure();
     const el = await render();
-    expect(el.querySelector('app-war-summary')?.textContent).toContain('Crociata Nera');
+    expect(el.querySelector('crn-war-summary')?.textContent).toContain('Crociata Nera');
     expect(el.querySelectorAll('tr.mat-mdc-row').length).toBeGreaterThan(0);
     expect(el.textContent).toContain('Non ha ancora attaccato');
   });
@@ -33,9 +33,9 @@ describe('CurrentWarPage', () => {
   it('puts the scoreboard in the scenic header, with bars of the stars earned out of the total', async () => {
     configure();
     const el = await render();
-    const summary = el.querySelector('app-page-header app-war-summary')!;
+    const summary = el.querySelector('crn-page-header crn-war-summary')!;
     expect(summary.classList.contains('summary--scenic')).toBe(true);
-    expect(el.querySelector('app-page-header')!.getAttribute('data-scene')).toBe('war');
+    expect(el.querySelector('crn-page-header')!.getAttribute('data-scene')).toBe('war');
 
     const war = (await new Promise<{ teamSize: number; clan: { stars: number }; opponent: { stars: number } } | null>((resolve) =>
       TestBed.inject(CocApiService).getCurrentWar().subscribe(resolve),
@@ -64,14 +64,14 @@ describe('CurrentWarPage', () => {
     );
     const el = await render();
     const badges = () =>
-      Array.from(el.querySelectorAll<HTMLImageElement>('app-war-summary .side__badge')).map((b) => b.src);
+      Array.from(el.querySelectorAll<HTMLImageElement>('crn-war-summary .side__badge')).map((b) => b.src);
     expect(badges()).toEqual(['https://example.test/ours.png', 'https://example.test/theirs.png']);
 
-    el.querySelector('app-war-summary .side--opponent .side__badge')!.dispatchEvent(new Event('error'));
+    el.querySelector('crn-war-summary .side--opponent .side__badge')!.dispatchEvent(new Event('error'));
     await TestBed.inject(ApplicationRef).whenStable();
     expect(badges()).toEqual(['https://example.test/ours.png']);
 
-    el.querySelector('app-war-summary .side__badge')!.dispatchEvent(new Event('error'));
+    el.querySelector('crn-war-summary .side__badge')!.dispatchEvent(new Event('error'));
     await TestBed.inject(ApplicationRef).whenStable();
     expect(badges()).toEqual([new URL(CLAN_CREST_URL, document.baseURI).href]);
   });

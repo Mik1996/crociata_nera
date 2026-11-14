@@ -20,7 +20,7 @@ const DEPTHS = [-1, 0.6, -0.75, 1, 0.8, -0.6, 0.95, -0.85];
  * points. The Crusader, hand on heart, swears loyalty to it.
  */
 @Component({
-  selector: 'app-act-capital',
+  selector: 'crn-act-capital',
   imports: [TranslatePipe, LocalNumberPipe, ActHeading, Crusader, ScrollyCounter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: ScrollyAct, inputs: ['actId', 'actLabel', 'actLength'] }],

@@ -4,7 +4,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 
 /** Displays the stars of an attack with the in-game pictures (gold, grey when missed) and an accessible label. */
 @Component({
-  selector: 'app-stars',
+  selector: 'crn-stars',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { role: 'img', '[attr.aria-label]': 'label()' },
   templateUrl: './stars.html',

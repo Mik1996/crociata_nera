@@ -29,7 +29,7 @@ const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
  * without a capacity (town hall still unknown) nothing can be picked.
  */
 @Component({
-  selector: 'app-clan-castle-picker',
+  selector: 'crn-clan-castle-picker',
   imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
