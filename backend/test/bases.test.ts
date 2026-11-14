@@ -366,7 +366,15 @@ describe('clan castle reinforcements', () => {
     expect((await create(admin, 10, { clanCastleTroops: troops([['Barbarian', 35]]) })).status).toBe(201);
     // Town halls without a clan castle take no troops.
     expect((await create(admin, 2, { clanCastleTroops: troops([['Barbarian', 1]]) }, 'TWOxxxxxx')).status).toBe(400);
-    expect(await BaseImageModel.countDocuments()).toBe(2);
+    // TH19: 60 spaces.
+    expect((await create(admin, 19, { clanCastleTroops: troops([['Barbarian', 60]]) }, 'NINETEENx')).status).toBe(201);
+    const overTh19 = await create(admin, 19, { clanCastleTroops: troops([['Barbarian', 59], ['Wall Breaker', 1]]) }, 'NINETEENy');
+    expect(overTh19.body.messages).toEqual([
+      { key: 'ERROR.CLAN_CASTLE_OVER_CAPACITY', params: { used: 61, max: 60 }, field: 'clanCastleTroops' },
+    ]);
+    // A town hall newer than the table gets the highest known castle.
+    expect((await create(admin, 20, { clanCastleTroops: troops([['Barbarian', 60]]) }, 'TWENTYxxx')).status).toBe(201);
+    expect(await BaseImageModel.countDocuments()).toBe(6);
   });
 
   it('refuses unknown troops and malformed lists', async () => {

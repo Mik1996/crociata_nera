@@ -4,14 +4,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DefenseBase, DefenseBaseChanges, DefenseBasePage } from '../backend/backend-api.types';
 import { DefenseBasesService } from '../backend/defense-bases.service';
 import { APP_CONFIG } from '../config/app-config';
-import { TOWN_HALL_IMAGES } from '../game/game-assets';
 import { ClanCastleTroop, clanCastleCapacity, housingSpaceUsed } from '../game/clan-castle';
 import { layoutLinkTownHall } from '../game/layout-link';
+import { townHallImage } from '../game/units';
 
 const layoutLink = (th: number, id: string) =>
   `https://link.clashofclans.com/en?action=OpenLayout&id=TH${th}%3AHV%3A${id}`;
 
 const SEED: [th: number, id: string, description: string, troops: ClanCastleTroop[]][] = [
+  [19, 'AAAAFgAAAAM3p9QxV2sLr8TnYb4Kc1We', 'Prima base da municipio 19.', []],
   [
     18,
     'AAAAFQAAAALRVVKKOsCkPrNIeGUyK9Qd',
@@ -72,7 +73,7 @@ export class MockDefenseBasesService extends DefenseBasesService {
       layoutUrl: layoutLink(th, id),
       description,
       clanCastleTroops,
-      image: { key: TOWN_HALL_IMAGES[th], width: 1, height: 1 },
+      image: { key: townHallImage(th)!, width: 1, height: 1 },
       createdAt: date,
       updatedAt: date,
     };

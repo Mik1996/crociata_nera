@@ -30,7 +30,7 @@ import {
 } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
-import { TOWN_HALL_IMAGES } from '../../../core/game/game-assets';
+import { townHallImage } from '../../../core/game/units';
 import {
   ClanCastleTroop,
   clanCastleCapacity,
@@ -138,7 +138,7 @@ export class BaseFormDialog {
   });
   protected readonly townHallImage = computed(() => {
     const level = this.townHall();
-    return level ? (TOWN_HALL_IMAGES[level] ?? null) : null;
+    return level ? (townHallImage(level) ?? null) : null;
   });
 
   /** New image, already shrunk; `null` while the current one (if editing) is kept. */

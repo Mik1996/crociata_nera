@@ -21,7 +21,7 @@ import { AuthService } from '../../core/backend/auth.service';
 import { DefenseBase } from '../../core/backend/backend-api.types';
 import { BaseImageVariant, DefenseBasesService } from '../../core/backend/defense-bases.service';
 import { APP_CONFIG } from '../../core/config/app-config';
-import { TOWN_HALL_IMAGES } from '../../core/game/game-assets';
+import { townHallImage } from '../../core/game/units';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
@@ -130,7 +130,7 @@ export class BasesPage {
   }
 
   protected townHallImage(level: number): string | null {
-    return TOWN_HALL_IMAGES[level] ?? null;
+    return townHallImage(level) ?? null;
   }
 
   protected imageUrl(base: DefenseBase, variant: BaseImageVariant): string {

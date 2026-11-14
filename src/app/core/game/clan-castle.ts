@@ -38,6 +38,7 @@ export const CLAN_CASTLE_CAPACITY: Readonly<Record<number, number>> = {
   16: 50,
   17: 55,
   18: 55,
+  19: 60,
 };
 
 const KNOWN_LEVELS = Object.keys(CLAN_CASTLE_CAPACITY).map(Number);

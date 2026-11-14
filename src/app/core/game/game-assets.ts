@@ -175,7 +175,9 @@ export const TOWN_HALL_IMAGES: Readonly<Record<number, string>> = {
   15: 'game/town-halls/th-15.webp',
   16: 'game/town-halls/th-16.webp',
   17: 'game/town-halls/th-17.webp',
-  18: 'game/town-halls/th-18.webp'
+  18: 'game/town-halls/th-18.webp',
+  // Placeholder: copy of th-18.webp until the TH19 picture is out.
+  19: 'game/town-halls/th-19.webp'
 };
 
 /** Miscellaneous game icons. */
