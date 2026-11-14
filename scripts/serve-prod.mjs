@@ -81,6 +81,11 @@ createServer((req, res) => {
 
   const file = join(DIST, normalize(path));
   if (file.startsWith(DIST) && isFile(file)) return serveFile(res, file);
+  // As in the Caddyfile: a missing ngsw.json is a 404 (the service worker then removes itself).
+  if (path === '/ngsw.json') {
+    res.writeHead(404, { 'Cache-Control': 'no-cache' });
+    return res.end();
+  }
   serveFile(res, join(DIST, 'index.html'));
 }).listen(PORT, () => {
   console.log(

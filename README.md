@@ -503,6 +503,7 @@ cartella `deploy/` contiene tutto quello che serve:
 | `web.Dockerfile`, `proxy.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
 | `deploy.sh` | aggiorna il codice, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
+| `service-worker.sh` | interruttore d'emergenza del service worker nei browser (`off`, `on`, `status`) |
 
 **Architettura:**
 - da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; proxy e backend restano sulla rete interna di
@@ -551,6 +552,29 @@ Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS, oppure "Run
 
 **Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e il proxy. Se
 qualcosa non risponde, GitHub manda un'email di "workflow fallito".
+
+**Service worker (cache offline) e interruttore d'emergenza:**
+il sito installa nei browser un service worker che conserva una copia del sito e degli ultimi dati, per l'uso offline.
+Chi ha già visitato il sito riceve una nuova versione solo dopo l'avviso "Aggiorna" o alla visita successiva. Se una
+versione pubblicata si rivela difettosa e quell'avviso non basta (per esempio, la pagina non si carica più), il service
+worker si spegne nei browser di tutti.
+
+1. **Subito**, sulla VPS:
+   ```bash
+   ~/crociata_nera/deploy/service-worker.sh off
+   ```
+   Al posto del service worker viene servito il "safety worker" di Angular, e `ngsw.json` risponde 404. Alla prossima
+   visita di ogni browser il service worker si disinstalla e cancella le sue cache, entro circa mezzo minuto; da lì il
+   sito arriva sempre dalla rete. Vale fino al prossimo deploy.
+2. **Per tenerlo spento anche dopo i deploy**, finché il problema non è risolto: `SW_DISABLED=1` in `deploy/.env`,
+   poi `./deploy.sh`. L'immagine viene costruita direttamente con il safety worker.
+3. **Per riaccenderlo:** togli `SW_DISABLED` da `deploy/.env` (o mettilo a `0`) e lancia `./deploy.sh`. Senza
+   `SW_DISABLED` basta `./service-worker.sh on`. I browser lo reinstallano alla visita successiva.
+
+`./service-worker.sh status` mostra cosa sta servendo il sito in quel momento.
+
+Per provare la build di produzione in locale: `npm run start:prod` (http://localhost:4400; serve
+`http://localhost:4400` in `FRONTEND_URL` di `backend/.env.local`).
 
 **Comandi utili:**
 - `docker compose logs -f backend` (oppure `web` o `proxy`): mostra i log;

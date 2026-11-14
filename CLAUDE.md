@@ -101,6 +101,8 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   with the cache as offline fallback. A new deploy reaches open tabs through the "Update" prompt
   (`core/pwa/app-updates.ts`). A new private `/api/v1` GET must not join a cached data group
   unless it is cleared at sign-out too.
+  Emergency switch in production: `deploy/service-worker.sh off` on the VPS (immediate, until the
+  next deploy) or `SW_DISABLED=1` in `deploy/.env` (kept across deploys); see README.
 - Check visual changes in a real browser before declaring them done (mock server
   `npm run start:mock` for public pages; pages needing a session cannot be seen in mock mode).
 

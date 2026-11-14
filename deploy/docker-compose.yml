@@ -14,6 +14,9 @@ services:
     build:
       context: ..
       dockerfile: deploy/web.Dockerfile
+      args:
+        # 1 = service worker switched off in the browsers (emergency, see README "Service worker").
+        SW_DISABLED: ${SW_DISABLED:-0}
     restart: unless-stopped
     ports:
       - '80:80'

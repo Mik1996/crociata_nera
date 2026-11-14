@@ -40,7 +40,14 @@ www.{$DOMAIN} {
 		@other not path_regexp -[0-9a-zA-Z_-]{8}\.(js|css)$
 		header @hashed Cache-Control "public, max-age=31536000, immutable"
 		header @other Cache-Control "no-cache"
-		try_files {path} /index.html
+		# Paths that are not files get index.html (deep links such as /players). Except ngsw.json:
+		# missing, it must be a 404, which tells the service worker to remove itself (emergency
+		# switch, deploy/service-worker.sh).
+		@app {
+			not file
+			not path /ngsw.json
+		}
+		rewrite @app /index.html
 		file_server
 	}
 }
