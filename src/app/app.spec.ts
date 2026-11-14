@@ -67,6 +67,7 @@ describe('App', () => {
       'Dashboard',
       'Guerra corrente',
       'Lega (CWL)',
+      'Selezioni CWL',
       'Raid Weekend',
       'Storico guerre',
       'Arsenale basi',
@@ -101,7 +102,7 @@ describe('App', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(items()).toEqual(['Welcome', 'Join us', 'Players', 'Statistics', 'Dashboard', 'Current war', 'League (CWL)', 'Raid Weekend', 'War history', 'Base arsenal']);
+    expect(items()).toEqual(['Welcome', 'Join us', 'Players', 'Statistics', 'Dashboard', 'Current war', 'League (CWL)', 'CWL line-up', 'Raid Weekend', 'War history', 'Base arsenal']);
     expect(el.querySelector('button.language img')?.getAttribute('src')).toBe('flags/us.svg');
     TestBed.inject(TranslateService).use('it-IT');
     localStorage.clear();

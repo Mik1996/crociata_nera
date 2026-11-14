@@ -1,0 +1,114 @@
+import { z } from 'zod';
+import { dateTime, model, month, nullableDateTime, tag } from './common';
+
+const points = (description: string) => z.number().describe(description);
+
+export const CwlExclusion = model(
+  'CwlExclusion',
+  'Exclusion of a player from the CWL line-up, decided by an administrator.',
+  z.strictObject({
+    reason: z.string().nullable().describe('Why the player is excluded; `null` when not given.'),
+    excludedBy: z.string().describe('Username of the administrator.'),
+    excludedAt: dateTime('When the player was excluded.'),
+  }),
+);
+
+export const CwlExclusionResult = model(
+  'CwlExclusionResult',
+  'A player just excluded from the CWL line-up.',
+  z.strictObject({
+    tag: tag('Player.'),
+    reason: z.string().nullable().describe('Why the player is excluded; `null` when not given.'),
+    excludedBy: z.string().describe('Username of the administrator.'),
+    excludedAt: dateTime('When the player was excluded.'),
+  }),
+);
+
+const SelectionPlayer = model(
+  'CwlSelectionPlayer',
+  'A current member of the clan in the ranking for the Clan War League line-up.',
+  z.strictObject({
+    rank: z.number().int().min(1).describe('Position in the ranking (1 = best).'),
+    tag: tag('Player.'),
+    name: z.string().describe('In-game name.'),
+    role: z.string().nullable().describe('Clan role: `member`, `admin` (elder), `coLeader` or `leader`; `null` when unknown.'),
+    townHallLevel: z.number().int().nullable().describe('Town hall level; `null` when unknown.'),
+    eligible: z.boolean().describe('Town hall at most one level below the highest of the clan, and not excluded.'),
+    status: z
+      .enum(['starter', 'reserve', 'bench', 'ineligible', 'excluded'])
+      .describe(
+        '`starter` (best 15 eligible), `reserve` (next 3), `bench` (other eligible), `ineligible` (town hall too low) or `excluded` (by an administrator; keeps its place in the ranking, takes no slot).',
+      ),
+    score: z.number().min(0).max(100).describe('Total score, 0–100: the parts of `breakdown` added up, never below 0.'),
+    breakdown: z
+      .strictObject({
+        cwlCommendations: points('CWL commendations of the last seasons, 0–30.'),
+        cwlPerformance: points('Stars per attack and destruction in the league wars of the last seasons, 0–20.'),
+        war: points('Regular wars of the window, 0–25.'),
+        heroes: points('Hero levels and equipped hero equipment, 0–15.'),
+        townHall: points('10 for the highest town hall of the clan, else 0.'),
+        missedAttacks: points('Penalty for the CWL attacks missed, -15–0.'),
+        activity: points('Penalty for a new arrival (-5) and no regular war attack in the last 30 days (-10).'),
+      })
+      .describe('Parts of the score.'),
+    war: z
+      .strictObject({
+        wars: z.number().int().describe('Regular wars played in the window.'),
+        attacksUsed: z.number().int().describe('Attacks done.'),
+        attacksAvailable: z.number().int().describe('Attacks available.'),
+        averageStarsPerAttack: z.number().describe('Average stars per attack done.'),
+        averageDestruction: z.number().describe('Average destruction per attack done (%).'),
+      })
+      .describe('Regular wars of the window.'),
+    cwl: z
+      .strictObject({
+        allAttacks: z.number().int().describe('Seasons with `cwlAllAttacks` (every attack done).'),
+        gold: z.number().int().describe('Seasons with `cwlStriker` gold.'),
+        silver: z.number().int().describe('Seasons with `cwlStriker` silver.'),
+        bronze: z.number().int().describe('Seasons with `cwlStriker` bronze.'),
+        wars: z.number().int().describe('League wars in the line-up.'),
+        attacks: z.number().int().describe('League attacks done.'),
+        missed: z.number().int().describe('League attacks missed.'),
+        averageStarsPerAttack: z.number().describe('Average stars per league attack.'),
+        averageDestruction: z.number().describe('Average destruction per league attack (%).'),
+      })
+      .describe('CWL commendations and league wars of the seasons considered.'),
+    heroes: z
+      .strictObject({
+        levels: z.number().describe('Hero levels against the highest of the game (%).'),
+        equipment: z.number().describe('Equipped hero equipment against its highest level (%).'),
+      })
+      .nullable()
+      .describe('Heroes; `null` while the player profile was never read.'),
+    activity: z
+      .strictObject({
+        joinedAt: nullableDateTime('When the player joined the clan; `null` when unknown.'),
+        newcomer: z.boolean().describe('In the clan for less than 14 days.'),
+        inactive: z.boolean().describe('No regular war attack in the last 30 days, while the clan fought at least 2 wars.'),
+        recentAttacks: z.number().int().describe('Regular war attacks in the last 30 days.'),
+      })
+      .describe('Activity.'),
+    exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator; `null` when not excluded.'),
+  }),
+);
+
+export const CwlSelection = model(
+  'CwlSelection',
+  'Ranking of the clan members for the Clan War League line-up, best first: players with an eligible town hall by score, then the others.',
+  z.strictObject({
+    generatedAt: dateTime('When the ranking was computed.'),
+    starters: z.number().int().describe('Players in the line-up (15).'),
+    reserves: z.number().int().describe('Reserves (3).'),
+    maxTownHall: z.number().int().nullable().describe('Highest town hall of the clan; `null` without members.'),
+    minEligibleTownHall: z.number().int().nullable().describe('Lowest eligible town hall; `null` without members.'),
+    seasons: z.array(month('Season, `YYYY-MM`.')).describe('Ended CWL seasons considered, most recent first.'),
+    warWindow: z
+      .strictObject({
+        from: dateTime('Start of the window.'),
+        days: z.number().int().describe('Length of the window in days.'),
+        wars: z.number().int().describe('Regular wars of the clan ended in the window.'),
+      })
+      .describe('Regular wars counted.'),
+    players: z.array(SelectionPlayer).describe('Current members, best first.'),
+  }),
+);

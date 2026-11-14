@@ -8,6 +8,8 @@ const clanRosterSchema = new Schema(
   {
     clanTag: { type: String, required: true, unique: true },
     memberTags: { type: [String], default: [] },
+    /** Members with the role `leader` or `coLeader` (subset of `memberTags`). */
+    leaderTags: { type: [String], default: [] },
     syncedAt: { type: Date, required: true },
   },
   { collection: 'ClanRosters', versionKey: false },

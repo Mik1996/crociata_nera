@@ -47,7 +47,8 @@
     "join": "The call",
     "profile": "Your oath",
     "settings": "Your armour",
-    "admin": "The war council"
+    "admin": "The war council",
+    "cwlSelection": "The call to arms"
   },
   "nav": {
     "group": {
@@ -58,6 +59,7 @@
     "dashboard": "Dashboard",
     "currentWar": "Current war",
     "cwl": "League (CWL)",
+    "cwlSelection": "CWL line-up",
     "raids": "Raid Weekend",
     "history": "War history",
     "warDetail": "War details",
@@ -479,12 +481,16 @@
     "USER_DELETED": "{{name}} deleted",
     "BASE_CREATED": "Base added to the arsenal",
     "BASE_UPDATED": "Base updated",
-    "BASE_DELETED": "Base deleted"
+    "BASE_DELETED": "Base deleted",
+    "PLAYER_EXCLUDED": "Player excluded from the CWL line-up.",
+    "PLAYER_READMITTED": "Player taken back into the CWL line-up."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
     "FORBIDDEN": "You don't have permission for this action.",
     "CLAN_ACCESS_REQUIRED": "This section is reserved to the members of Crociata Nera, Crociata Rossa and Crociata d'Oro: link one of your game accounts from your profile.",
+    "LEADER_ACCESS_REQUIRED": "This section is reserved to the administrators and to the leaders and co-leaders of the clans of the Crusade.",
+    "EXCLUSION_REASON_IS_TOO_LONG": "The reason can be at most 200 characters long.",
     "INVALID_TOKEN": "Invalid session: please sign in again.",
     "INVALID_CREDENTIALS": "Incorrect email, username or password.",
     "INVALID_REFRESH_TOKEN": "Session expired: please sign in again.",
@@ -982,5 +988,86 @@
   "table": {
     "resizeColumn": "Resize the {{name}} column",
     "resizeHint": "Drag to resize, double-click for automatic widths"
+  },
+  "cwlSelection": {
+    "subtitle": "Ranking of the players to pick the 15 to field in the League and the 3 reserves.",
+    "empty": "No clan player saved yet: the ranking will appear after the next synchronisation.",
+    "summary": "Summary",
+    "legend": {
+      "starter": "In the line-up: {{n}}/{{max}}",
+      "reserve": "Reserves: {{n}}/{{max}}",
+      "excluded": "Excluded: {{n}}"
+    },
+    "facts": {
+      "townHall": "Eligible town halls",
+      "townHallRange": "TH {{min}}–{{max}}",
+      "seasons": "CWL seasons considered",
+      "noSeasons": "No closed season",
+      "wars": "Wars considered",
+      "warsValue": "Last {{days}} days ({{n}} wars)"
+    },
+    "rules": {
+      "title": "How the ranking is computed",
+      "eligibility": "Eligible: the players with the highest town hall of the clan and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
+      "cwl": "League commendations (up to 30 points): Certezza di Lega is worth 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7, for each of the last 4 closed seasons; the latest season counts in full, the earlier ones at 75%, 50% and 25%.",
+      "war": "Regular wars of the last 90 days (up to 25 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
+      "order": "On equal scores the higher town hall goes first. The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
+      "cwlPerformance": "League performance (up to 20 points): stars per attack and destruction in the league wars of the same seasons, with the same weights; with fewer than 5 attacks the score is reduced in proportion.",
+      "heroes": "Heroes (up to 15 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
+      "townHall": "Town hall: 10 points to those with the highest town hall of the clan.",
+      "penalties": "Penalties: 3 points for each league attack missed (weighted by season, at most 15); 5 points for those in the clan for less than 14 days; 10 points for those who did not attack in war in the last 30 days while the clan fought at least 2.",
+      "exclusions": "Administrators can exclude a player (for example for an announced absence): the player keeps their place in the ranking, marked as excluded, and their slot goes to the next one."
+    },
+    "generatedAt": "Computed on {{date}}",
+    "ranking": "Ranking ({{n}})",
+    "table": "Ranking of the players for the CWL line-up",
+    "status": "League role",
+    "statuses": {
+      "starter": "In line-up",
+      "reserve": "Reserve",
+      "bench": "Out",
+      "ineligible": "Not eligible",
+      "excluded": "Excluded"
+    },
+    "score": "Score",
+    "cwl": "League",
+    "war": "War ★ average",
+    "attacks": "{{used}}/{{available}} attacks",
+    "noWars": "No wars",
+    "excludedBy": "Excluded by {{name}}",
+    "flags": {
+      "newcomer": "New",
+      "newcomerHint": "In the clan since {{date}}",
+      "inactive": "Inactive in war",
+      "inactiveHint": "No war attack in the last 30 days"
+    },
+    "parts": {
+      "cwlCommendations": "League commendations",
+      "cwlPerformance": "League performance",
+      "war": "Wars",
+      "heroes": "Heroes",
+      "townHall": "Town hall",
+      "missedAttacks": "League attacks missed",
+      "activity": "Activity"
+    },
+    "penalty": "Penalty {{n}}",
+    "cwlWars": "{{stars}} ★ · {{attacks}}/{{wars}} attacks",
+    "missed": "{{n}} missed",
+    "noCwl": "No League",
+    "heroes": "Heroes",
+    "heroLevelsHint": "Hero levels against the highest of the game",
+    "equipment": "Equip. {{n}}%",
+    "noHeroes": "Pending",
+    "noHeroesHint": "Profile not read yet: it happens within a few hours",
+    "actions": "Actions",
+    "excludeAction": "Exclude",
+    "readmit": "Take back",
+    "exclude": {
+      "title": "Exclude {{name}}",
+      "intro": "The player stays in the ranking, marked as excluded, and takes no slot among the line-up and the reserves.",
+      "reason": "Reason (optional)",
+      "reasonHint": "For example: away for the whole season",
+      "confirm": "Exclude"
+    }
   }
 }

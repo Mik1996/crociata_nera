@@ -31,6 +31,11 @@ const userShape = {
     .describe(
       'Full access to the site: administrator, or a verified account currently in a clan of the Crusade. Without it only the public pages are open.',
     ),
+  leaderAccess: z
+    .boolean()
+    .describe(
+      'Access to the leaders\' pages (CWL line-up): administrator, or a verified account that is leader or co-leader of a clan of the Crusade.',
+    ),
   createdAt: dateTime('Sign-up date.'),
 };
 

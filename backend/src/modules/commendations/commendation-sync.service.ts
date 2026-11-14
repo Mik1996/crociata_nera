@@ -162,6 +162,8 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
   if (!clanTag) throw new CocApiError(0, 'config.missingClanTag', 'CLAN_TAG is not set');
   const { memberList } = clanSchema.parse(await fetchClan(clanTag));
   const result: MembersSyncResult = { created: [], updated: 0, left: 0, nextCheckAt: null };
+  // Members not in the clan at the last read have just joined (or come back).
+  const known = new Set((await PlayerModel.find({ inClan: true }).select('tag').lean()).map((p) => p.tag));
   for (const m of memberList) {
     const write = await PlayerModel.updateOne(
       { tag: m.tag },
@@ -177,6 +179,7 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
             : null,
           inClan: true,
           lastSeenAt: now,
+          ...(known.has(m.tag) ? {} : { joinedAt: now }),
         },
       },
       { upsert: true },

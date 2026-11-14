@@ -61,10 +61,15 @@ export interface PublicUser {
    * Crusade (see `hasClanAccess`). Without it only the public pages are open.
    */
   clanAccess: boolean;
+  /**
+   * Access to the leaders' pages (CWL line-up): administrator, or a verified account that is leader
+   * or co-leader of a clan of the Crusade (see `hasLeaderAccess`).
+   */
+  leaderAccess: boolean;
   createdAt: string;
 }
 
-export function toPublicUser(user: UserDocument, clanAccess: boolean): PublicUser {
+export function toPublicUser(user: UserDocument, clanAccess: boolean, leaderAccess: boolean): PublicUser {
   return {
     id: user._id.toString(),
     email: user.email,
@@ -76,6 +81,7 @@ export function toPublicUser(user: UserDocument, clanAccess: boolean): PublicUse
     ],
     emailVerified: user.emailVerified,
     clanAccess,
+    leaderAccess,
     createdAt: user.createdAt.toISOString(),
   };
 }

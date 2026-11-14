@@ -87,6 +87,11 @@ export class AuthService {
    * verified linked account (worked out by the backend, which enforces it on every request).
    */
   readonly hasClanAccess = computed(() => this.isAdmin() || (this.user()?.clanAccess ?? false));
+  /**
+   * Access to the leaders' pages (CWL line-up): administrators, leaders and co-leaders of a clan
+   * of the Crusade (worked out and enforced by the backend).
+   */
+  readonly hasLeaderAccess = computed(() => this.isAdmin() || (this.user()?.leaderAccess ?? false));
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
     return this.post('sign-up', { ...request, language: this.language.current() });
@@ -321,12 +326,20 @@ export const OFFLINE_PROFILE_KEY = 'crociata-nera.offline-profile';
  */
 type OfflineProfile = Pick<
   BackendUser,
-  'id' | 'username' | 'roles' | 'players' | 'emailVerified' | 'clanAccess'
+  'id' | 'username' | 'roles' | 'players' | 'emailVerified' | 'clanAccess' | 'leaderAccess'
 >;
 
 function saveOfflineProfile(user: BackendUser): void {
-  const { id, username, roles, players, emailVerified, clanAccess } = user;
-  const profile: OfflineProfile = { id, username, roles, players, emailVerified, clanAccess };
+  const { id, username, roles, players, emailVerified, clanAccess, leaderAccess } = user;
+  const profile: OfflineProfile = {
+    id,
+    username,
+    roles,
+    players,
+    emailVerified,
+    clanAccess,
+    leaderAccess,
+  };
   try {
     localStorage.setItem(OFFLINE_PROFILE_KEY, JSON.stringify(profile));
   } catch {
@@ -347,6 +360,7 @@ function loadOfflineProfile(): BackendUser | null {
       players: Array.isArray(profile.players) ? profile.players : [],
       emailVerified: profile.emailVerified === true,
       clanAccess: profile.clanAccess === true,
+      leaderAccess: profile.leaderAccess === true,
       email: '',
       createdAt: '',
     };

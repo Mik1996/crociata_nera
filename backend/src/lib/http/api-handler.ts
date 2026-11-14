@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { userHasClanAccess } from '@/modules/access/clan-access.service';
+import { userHasClanAccess, userHasLeaderAccess } from '@/modules/access/clan-access.service';
 import { verifyAccessToken } from '../auth/tokens';
 import { UserRole } from '../auth/user-role';
 import { connectToDatabase } from '../db/mongoose';
@@ -46,6 +46,11 @@ export interface ApiHandlerOptions<A extends boolean> {
    */
   clanAccess?: boolean;
   /**
+   * Requires access to the leaders' pages (implies `auth`): administrators, and users with a
+   * verified account that is leader or co-leader of a clan of the Crusade.
+   */
+  leaderAccess?: boolean;
+  /**
    * Rejects requests whose `Origin` is not an allowed frontend. Use it on routes
    * authenticated by the refresh cookie, as a CSRF defence on top of `SameSite=Strict`.
    */
@@ -88,14 +93,20 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
         throwException(403, MessageKey.ORIGIN_NOT_ALLOWED);
       }
 
-      const user = await authenticate(request, !!options.auth || !!options.roles?.length || !!options.clanAccess);
+      const user = await authenticate(
+        request,
+        !!options.auth || !!options.roles?.length || !!options.clanAccess || !!options.leaderAccess,
+      );
       if (options.roles?.length && !options.roles.some((role) => user!.roles.includes(role))) {
         throwException(403, MessageKey.FORBIDDEN);
       }
 
-      if (options.database !== false || options.clanAccess) await connectToDatabase();
+      if (options.database !== false || options.clanAccess || options.leaderAccess) await connectToDatabase();
       if (options.clanAccess && !(await userHasClanAccess(user!.id))) {
         throwException(403, MessageKey.CLAN_ACCESS_REQUIRED);
+      }
+      if (options.leaderAccess && !(await userHasLeaderAccess(user!.id))) {
+        throwException(403, MessageKey.LEADER_ACCESS_REQUIRED);
       }
 
       const params = (await routeContext?.params) ?? ({} as P);

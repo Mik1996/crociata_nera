@@ -1,6 +1,7 @@
 import { env } from '../config/env';
 import { connectToDatabase } from '../db/mongoose';
 import { syncCommendations } from '@/modules/commendations/commendation-sync.service';
+import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncClanRecords } from '@/modules/records/clan-records.service';
@@ -69,8 +70,10 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     await runCwlSync();
     await runRaidSync();
     await runRecordSync();
-    // Last: commendations of the periods closed by the syncs above.
+    // Commendations of the periods closed by the syncs above.
     await runCommendationSync();
+    // Last: heroes of the members saved above (CWL line-up).
+    await runProfileSync();
     return report;
   } finally {
     state.running = false;
@@ -123,6 +126,16 @@ async function runCommendationSync(): Promise<void> {
     }
   } catch (error) {
     console.error('[commendations] run failed:', error);
+  }
+}
+
+/** Heroes and equipment of the members, a few profiles per run. */
+async function runProfileSync(): Promise<void> {
+  try {
+    const result = await syncPlayerProfiles();
+    if (result.failed) console.warn(`[profiles] ${result.failed} profiles not read`);
+  } catch (error) {
+    console.error('[profiles] run failed:', error);
   }
 }
 

@@ -26,7 +26,9 @@ export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (inject(APP_CONFIG).useMockApi) return true;
-  return auth.whenReady().pipe(map(() => (auth.isAuthenticated() ? true : guestRedirect(router, state.url))));
+  return auth
+    .whenReady()
+    .pipe(map(() => (auth.isAuthenticated() ? true : guestRedirect(router, state.url))));
 };
 
 /**
@@ -47,6 +49,22 @@ export const clanGuard: CanActivateFn = (_route, state) => {
   );
 };
 
+/**
+ * Leaders' pages (CWL line-up): administrators, leaders and co-leaders of a clan of the Crusade;
+ * the other signed-in users go back to the home page. With mock data the page stays open (demo).
+ */
+export const leaderGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (inject(APP_CONFIG).useMockApi) return true;
+  return auth.whenReady().pipe(
+    map(() => {
+      if (!auth.isAuthenticated()) return guestRedirect(router, state.url);
+      return auth.hasLeaderAccess() ? true : router.parseUrl('/');
+    }),
+  );
+};
+
 /** Administration pages: signed-in users without the ADMIN role go back to the home page. */
 export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -63,7 +81,9 @@ const NO_RETURN_PREFIXES = ['/sign-', '/forgot-password', '/reset-password', '/v
 
 /** Query params that carry a page to come back to (none for the home page and the auth pages). */
 export function returnUrlParams(returnUrl: string | null | undefined): { returnUrl?: string } {
-  return returnUrl && !HOME_URLS.has(returnUrl) && !NO_RETURN_PREFIXES.some((p) => returnUrl.startsWith(p))
+  return returnUrl &&
+    !HOME_URLS.has(returnUrl) &&
+    !NO_RETURN_PREFIXES.some((p) => returnUrl.startsWith(p))
     ? { returnUrl }
     : {};
 }
@@ -75,5 +95,7 @@ export function guestRedirect(router: Router, returnUrl: string) {
 
 /** Accepts only in-app paths as redirect targets (no `//evil.com` or absolute URLs). */
 export function safeReturnUrl(value: string | null | undefined): string {
-  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\') ? value : '/';
+  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\')
+    ? value
+    : '/';
 }

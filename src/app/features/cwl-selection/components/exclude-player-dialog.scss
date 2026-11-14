@@ -1,0 +1,15 @@
+@use 'variables' as *;
+
+.intro {
+  margin: 0 0 $space-m;
+}
+
+.field {
+  width: 100%;
+}
+
+.error {
+  margin: $space-xs 0 0;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+}

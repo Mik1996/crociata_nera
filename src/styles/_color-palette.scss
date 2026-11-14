@@ -349,6 +349,11 @@
   --cn-crest-field: #7a1414;
   --cn-crest-cross: #f0c96a;
 
+  // --- CWL line-up: the starters glow blue, the reserves green (same in every theme) ---
+  --cn-lineup-starter: #4fa8ff;
+  --cn-lineup-reserve: #4ed97a;
+  --cn-on-lineup: #06121f; // text on the two colours above
+
   // --- Medal metals (flat medals and the 3D medal dialog): light, base, dark ---
   --cn-medal-gold-light: #fff6c2;
   --cn-medal-gold: #f1bd2c;

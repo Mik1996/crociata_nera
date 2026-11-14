@@ -38,6 +38,8 @@ interface MenuItem {
   icon: IconName;
   /** Open to everyone (signed out, or signed in without access to the clans' pages). */
   public?: boolean;
+  /** Only for administrators, leaders and co-leaders (always shown with mock data). */
+  leader?: boolean;
 }
 
 /** Items of the navigation that belong together, under a heading (none for the first group). */
@@ -197,6 +199,7 @@ export class Shell {
         { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
         { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
         { path: '/cwl', label: 'nav.cwl', icon: 'emoji_events' },
+        { path: '/cwl-selection', label: 'nav.cwlSelection', icon: 'checklist', leader: true },
         { path: '/raids', label: 'nav.raids', icon: 'castle' },
         { path: '/wars', label: 'nav.history', icon: 'history_edu' },
       ],
@@ -210,8 +213,12 @@ export class Shell {
    */
   protected readonly menu = computed(() => {
     const open = this.clanAccess();
+    const leader = this.useMock || this.auth.hasLeaderAccess();
     return this.allMenu
-      .map((group) => ({ ...group, items: group.items.filter((i) => open || i.public) }))
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((i) => (open || i.public) && (leader || !i.leader)),
+      }))
       .filter((group) => group.items.length > 0);
   });
   protected readonly settingsItem: MenuItem = {

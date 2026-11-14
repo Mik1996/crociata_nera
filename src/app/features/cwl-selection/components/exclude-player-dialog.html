@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>{{ 'cwlSelection.exclude.title' | translate: { name: data.name } }}</h2>
+
+<mat-dialog-content>
+  <p class="intro">{{ 'cwlSelection.exclude.intro' | translate }}</p>
+
+  <mat-form-field appearance="outline" class="field" subscriptSizing="dynamic">
+    <mat-label>{{ 'cwlSelection.exclude.reason' | translate }}</mat-label>
+    <textarea
+      matInput
+      rows="3"
+      [attr.maxlength]="maxReason"
+      [disabled]="busy()"
+      [ngModel]="reason()"
+      (ngModelChange)="reason.set($event)"
+      [placeholder]="'cwlSelection.exclude.reasonHint' | translate"
+    ></textarea>
+    <mat-hint align="end" class="cn-num">{{ reason().length }}/{{ maxReason }}</mat-hint>
+  </mat-form-field>
+
+  @for (m of errors(); track $index) {
+    <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+  <button mat-flat-button type="button" class="submit" [disabled]="busy()" (click)="submit()">
+    {{ 'cwlSelection.exclude.confirm' | translate }}
+  </button>
+</mat-dialog-actions>

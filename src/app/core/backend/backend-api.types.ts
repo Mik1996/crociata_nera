@@ -36,6 +36,11 @@ export interface BackendUser {
    * Crociata Rossa or Crociata d'Oro. Without it only the public pages are open.
    */
   clanAccess: boolean;
+  /**
+   * Access to the leaders' pages (CWL line-up): administrator, or a verified account that is
+   * leader or co-leader of a clan of the Crusade.
+   */
+  leaderAccess: boolean;
   createdAt: string;
 }
 
@@ -146,4 +151,89 @@ export interface DefenseBaseChanges {
   /** `[]` removes the reinforcements. */
   clanCastleTroops?: ClanCastleTroop[];
   image?: Blob;
+}
+
+/** Place of a player in the ranking for the CWL line-up. */
+export type CwlSelectionStatus = 'starter' | 'reserve' | 'bench' | 'ineligible' | 'excluded';
+
+/** Exclusion of a player from the CWL line-up, decided by an administrator. */
+export interface CwlExclusion {
+  reason: string | null;
+  /** Username of the administrator. */
+  excludedBy: string;
+  excludedAt: string;
+}
+
+/** Parts of the score of a player for the CWL line-up (penalties are negative). */
+export interface CwlScoreBreakdown {
+  /** 0–30. */
+  cwlCommendations: number;
+  /** 0–20. */
+  cwlPerformance: number;
+  /** 0–25. */
+  war: number;
+  /** 0–15. */
+  heroes: number;
+  /** 10 for the highest town hall of the clan, else 0. */
+  townHall: number;
+  /** -15–0. */
+  missedAttacks: number;
+  /** -15–0. */
+  activity: number;
+}
+
+/** A current member of the clan in the ranking for the CWL line-up (`GET /cwl/selection`). */
+export interface CwlSelectionPlayer {
+  rank: number;
+  tag: string;
+  name: string;
+  role: string | null;
+  townHallLevel: number | null;
+  /** Town hall at most one level below the highest of the clan, and not excluded. */
+  eligible: boolean;
+  status: CwlSelectionStatus;
+  /** 0–100: the parts of `breakdown` added up, never below 0. */
+  score: number;
+  breakdown: CwlScoreBreakdown;
+  war: {
+    wars: number;
+    attacksUsed: number;
+    attacksAvailable: number;
+    averageStarsPerAttack: number;
+    averageDestruction: number;
+  };
+  /** CWL commendations and league wars of the seasons considered. */
+  cwl: {
+    allAttacks: number;
+    gold: number;
+    silver: number;
+    bronze: number;
+    wars: number;
+    attacks: number;
+    missed: number;
+    averageStarsPerAttack: number;
+    averageDestruction: number;
+  };
+  /** Percentages of the highest levels of the game; `null` while the profile was never read. */
+  heroes: { levels: number; equipment: number } | null;
+  activity: {
+    joinedAt: string | null;
+    newcomer: boolean;
+    inactive: boolean;
+    recentAttacks: number;
+  };
+  exclusion: CwlExclusion | null;
+}
+
+/** Ranking of the clan members for the CWL line-up, best first. */
+export interface CwlSelection {
+  generatedAt: string;
+  starters: number;
+  reserves: number;
+  maxTownHall: number | null;
+  minEligibleTownHall: number | null;
+  /** Ended CWL seasons considered (`YYYY-MM`), most recent first. */
+  seasons: string[];
+  warWindow: { from: string; days: number; wars: number };
+  players: CwlSelectionPlayer[];
 }

@@ -47,7 +47,8 @@
     "join": "La chiamata",
     "profile": "Il tuo giuramento",
     "settings": "La tua armatura",
-    "admin": "Il consiglio di guerra"
+    "admin": "Il consiglio di guerra",
+    "cwlSelection": "La chiamata alle armi"
   },
   "nav": {
     "group": {
@@ -58,6 +59,7 @@
     "dashboard": "Dashboard",
     "currentWar": "Guerra corrente",
     "cwl": "Lega (CWL)",
+    "cwlSelection": "Selezioni CWL",
     "raids": "Raid Weekend",
     "history": "Storico guerre",
     "warDetail": "Dettaglio guerra",
@@ -479,12 +481,16 @@
     "USER_DELETED": "{{name}} eliminato",
     "BASE_CREATED": "Base aggiunta all'arsenale",
     "BASE_UPDATED": "Base aggiornata",
-    "BASE_DELETED": "Base eliminata"
+    "BASE_DELETED": "Base eliminata",
+    "PLAYER_EXCLUDED": "Giocatore escluso dallo schieramento CWL.",
+    "PLAYER_READMITTED": "Giocatore riammesso nello schieramento CWL."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
     "FORBIDDEN": "Non hai i permessi per questa operazione.",
     "CLAN_ACCESS_REQUIRED": "Questa sezione è riservata ai membri di Crociata Nera, Crociata Rossa e Crociata d'Oro: collega un tuo account di gioco dal profilo.",
+    "LEADER_ACCESS_REQUIRED": "Questa sezione è riservata agli amministratori e ai capi e co-capi dei clan della Crociata.",
+    "EXCLUSION_REASON_IS_TOO_LONG": "Il motivo può essere lungo al massimo 200 caratteri.",
     "INVALID_TOKEN": "Sessione non valida: accedi di nuovo.",
     "INVALID_CREDENTIALS": "Email, username o password non corretti.",
     "INVALID_REFRESH_TOKEN": "Sessione scaduta: accedi di nuovo.",
@@ -982,5 +988,86 @@
   "table": {
     "resizeColumn": "Ridimensiona la colonna {{name}}",
     "resizeHint": "Trascina per ridimensionare, doppio clic per le larghezze automatiche"
+  },
+  "cwlSelection": {
+    "subtitle": "Classifica dei giocatori per scegliere i 15 da schierare in Lega e le 3 riserve.",
+    "empty": "Nessun giocatore del clan salvato: la classifica apparirà alla prossima sincronizzazione.",
+    "summary": "Riepilogo",
+    "legend": {
+      "starter": "Schierati: {{n}}/{{max}}",
+      "reserve": "Riserve: {{n}}/{{max}}",
+      "excluded": "Esclusi: {{n}}"
+    },
+    "facts": {
+      "townHall": "Municipi idonei",
+      "townHallRange": "TH {{min}}–{{max}}",
+      "seasons": "Stagioni CWL considerate",
+      "noSeasons": "Nessuna stagione chiusa",
+      "wars": "Guerre considerate",
+      "warsValue": "Ultimi {{days}} giorni ({{n}} guerre)"
+    },
+    "rules": {
+      "title": "Come si calcola la classifica",
+      "eligibility": "Idonei: i giocatori con il municipio più alto del clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
+      "cwl": "Encomi di Lega (fino a 30 punti): Certezza di Lega vale 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7, per ognuna delle ultime 4 stagioni chiuse; l'ultima stagione pesa per intero, le precedenti al 75%, 50% e 25%.",
+      "war": "Guerre normali degli ultimi 90 giorni (fino a 25 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
+      "order": "A parità di punteggio passa avanti il municipio più alto. I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
+      "cwlPerformance": "Rendimento in Lega (fino a 20 punti): stelle per attacco e distruzione nelle guerre di Lega delle stesse stagioni, con gli stessi pesi; con meno di 5 attacchi il punteggio si riduce in proporzione.",
+      "heroes": "Eroi (fino a 15 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
+      "townHall": "Municipio: 10 punti a chi ha il municipio più alto del clan.",
+      "penalties": "Penalità: 3 punti per ogni attacco di Lega saltato (pesati per stagione, al massimo 15); 5 punti a chi è nel clan da meno di 14 giorni; 10 punti a chi non ha attaccato in guerra negli ultimi 30 giorni mentre il clan ne ha giocate almeno 2.",
+      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo."
+    },
+    "generatedAt": "Calcolata il {{date}}",
+    "ranking": "Classifica ({{n}})",
+    "table": "Classifica dei giocatori per lo schieramento CWL",
+    "status": "Ruolo in Lega",
+    "statuses": {
+      "starter": "Schierato",
+      "reserve": "Riserva",
+      "bench": "Fuori",
+      "ineligible": "Non idoneo",
+      "excluded": "Escluso"
+    },
+    "score": "Punteggio",
+    "cwl": "Lega",
+    "war": "Media ★ guerre",
+    "attacks": "{{used}}/{{available}} attacchi",
+    "noWars": "Nessuna guerra",
+    "excludedBy": "Escluso da {{name}}",
+    "flags": {
+      "newcomer": "Nuovo",
+      "newcomerHint": "Nel clan dal {{date}}",
+      "inactive": "Inattivo in guerra",
+      "inactiveHint": "Nessun attacco in guerra negli ultimi 30 giorni"
+    },
+    "parts": {
+      "cwlCommendations": "Encomi di Lega",
+      "cwlPerformance": "Rendimento in Lega",
+      "war": "Guerre",
+      "heroes": "Eroi",
+      "townHall": "Municipio",
+      "missedAttacks": "Attacchi di Lega saltati",
+      "activity": "Attività"
+    },
+    "penalty": "Penalità {{n}}",
+    "cwlWars": "{{stars}} ★ · {{attacks}}/{{wars}} attacchi",
+    "missed": "{{n}} saltati",
+    "noCwl": "Nessuna Lega",
+    "heroes": "Eroi",
+    "heroLevelsHint": "Livelli degli eroi rispetto ai massimi del gioco",
+    "equipment": "Equip. {{n}}%",
+    "noHeroes": "In attesa",
+    "noHeroesHint": "Profilo non ancora letto: succede entro qualche ora",
+    "actions": "Azioni",
+    "excludeAction": "Escludi",
+    "readmit": "Riammetti",
+    "exclude": {
+      "title": "Escludi {{name}}",
+      "intro": "Il giocatore resta in classifica, segnato come escluso, e non occupa un posto tra gli schierati e le riserve.",
+      "reason": "Motivo (facoltativo)",
+      "reasonHint": "Ad esempio: assente per tutta la stagione",
+      "confirm": "Escludi"
+    }
   }
 }

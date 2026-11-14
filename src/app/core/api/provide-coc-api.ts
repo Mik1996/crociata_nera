@@ -1,6 +1,8 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { CwlSelectionService, HttpCwlSelectionService } from '../backend/cwl-selection.service';
 import { DefenseBasesService, HttpDefenseBasesService } from '../backend/defense-bases.service';
 import { APP_CONFIG, AppConfig } from '../config/app-config';
+import { MockCwlSelectionService } from '../mock/mock-cwl-selection.service';
 import { MockDefenseBasesService } from '../mock/mock-defense-bases.service';
 import { CocApiService } from './coc-api';
 import { HttpCocApiService } from './http-coc-api.service';
@@ -14,6 +16,10 @@ export function provideCocApi(config: AppConfig): EnvironmentProviders {
     {
       provide: DefenseBasesService,
       useClass: config.useMockApi ? MockDefenseBasesService : HttpDefenseBasesService,
+    },
+    {
+      provide: CwlSelectionService,
+      useClass: config.useMockApi ? MockCwlSelectionService : HttpCwlSelectionService,
     },
   ]);
 }

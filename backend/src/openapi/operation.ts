@@ -10,12 +10,13 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  * - `public`: anybody;
  * - `user`: a signed-in user (`auth: true`);
  * - `clan`: administrators and members of the clans of the Crusade (`clanAccess: true`);
+ * - `leader`: administrators, leaders and co-leaders of the clans of the Crusade (`leaderAccess: true`);
  * - `admin`: administrators (`roles: [ADMIN]`);
  * - `cron`: the external scheduler, with `CRON_SECRET` as Bearer token (checked by the route);
  * - `adminInProduction`: anybody in development; in production administrators, with an access token
  *   or the credentials of their account (HTTP Basic, the browser's login dialog). Checked by the route.
  */
-export type Access = 'public' | 'user' | 'clan' | 'admin' | 'cron' | 'adminInProduction';
+export type Access = 'public' | 'user' | 'clan' | 'leader' | 'admin' | 'cron' | 'adminInProduction';
 
 /** Tags group the operations in the documentation; their descriptions are in `document.ts`. */
 export type ApiTag =

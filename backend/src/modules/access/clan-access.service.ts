@@ -16,13 +16,22 @@ export const ROSTER_TTL_MS = 5 * 60_000;
 /** After a failed read, the next attempt waits at least this long (stale lists are used meanwhile). */
 const RETRY_AFTER_FAILURE_MS = 60_000;
 
-interface MemberCache {
+interface Members {
+  /** Every member of the clans of the Crusade (upper case). */
   tags: Set<string>;
+  /** Leaders and co-leaders of the clans of the Crusade (upper case). */
+  leaderTags: Set<string>;
+}
+
+interface MemberCache extends Members {
   expiresAt: number;
 }
 
+/** In-game roles that lead a clan: they reach the leaders' pages (CWL line-up). */
+export const LEADER_ROLES: readonly string[] = ['leader', 'coLeader'];
+
 let cache: MemberCache | null = null;
-let loading: Promise<Set<string>> | null = null;
+let loading: Promise<Members> | null = null;
 
 /** The clans of the Crusade, including the configured `CLAN_TAG`. */
 export function crusadeClanTags(): string[] {
@@ -35,9 +44,18 @@ export function crusadeClanTags(): string[] {
  * from the Clash of Clans API at most every {@link ROSTER_TTL_MS} and saved: when the API cannot be
  * reached, the last saved list is used, so members are not locked out by an outage.
  */
-export function crusadeMemberTags(): Promise<Set<string>> {
-  if (cache && Date.now() < cache.expiresAt) return Promise.resolve(cache.tags);
-  loading ??= loadMemberTags().finally(() => (loading = null));
+export async function crusadeMemberTags(): Promise<Set<string>> {
+  return (await crusadeMembers()).tags;
+}
+
+/** Tags (upper case) of the leaders and co-leaders of the clans of the Crusade; same cache as {@link crusadeMemberTags}. */
+export async function crusadeLeaderTags(): Promise<Set<string>> {
+  return (await crusadeMembers()).leaderTags;
+}
+
+function crusadeMembers(): Promise<Members> {
+  if (cache && Date.now() < cache.expiresAt) return Promise.resolve(cache);
+  loading ??= loadMembers().finally(() => (loading = null));
   return loading;
 }
 
@@ -49,16 +67,38 @@ export async function hasClanAccess(user: { roles: readonly string[]; playerTags
   return user.playerTags.some((tag) => members.has(tag.toUpperCase()));
 }
 
+/**
+ * Signed-in user who reaches the leaders' pages (CWL line-up): administrator, or owner of a verified
+ * account that is leader or co-leader of a clan of the Crusade.
+ */
+export async function hasLeaderAccess(user: { roles: readonly string[]; playerTags: readonly string[] }): Promise<boolean> {
+  if (user.roles.includes(UserRole.ADMIN)) return true;
+  if (!user.playerTags.length) return false;
+  const leaders = await crusadeLeaderTags();
+  return user.playerTags.some((tag) => leaders.has(tag.toUpperCase()));
+}
+
 /** {@link hasClanAccess} for a user id (from the access token); unknown users have no access. */
 export async function userHasClanAccess(userId: string): Promise<boolean> {
-  if (!Types.ObjectId.isValid(userId)) return false;
-  const user = await UserModel.findById(userId).select('roles playerTags').lean();
+  const user = await findAccessUser(userId);
   return !!user && hasClanAccess(user);
 }
 
-/** Public shape of a user, with {@link PublicUser.clanAccess} worked out. */
+/** {@link hasLeaderAccess} for a user id (from the access token); unknown users have no access. */
+export async function userHasLeaderAccess(userId: string): Promise<boolean> {
+  const user = await findAccessUser(userId);
+  return !!user && hasLeaderAccess(user);
+}
+
+async function findAccessUser(userId: string) {
+  if (!Types.ObjectId.isValid(userId)) return null;
+  return UserModel.findById(userId).select('roles playerTags').lean();
+}
+
+/** Public shape of a user, with {@link PublicUser.clanAccess} and {@link PublicUser.leaderAccess} worked out. */
 export async function publicUser(user: UserDocument): Promise<PublicUser> {
-  return toPublicUser(user, await hasClanAccess(user));
+  const [clanAccess, leaderAccess] = await Promise.all([hasClanAccess(user), hasLeaderAccess(user)]);
+  return toPublicUser(user, clanAccess, leaderAccess);
 }
 
 /** Forgets the member lists kept in memory (tests). */
@@ -67,7 +107,7 @@ export function resetClanAccessCache(): void {
   loading = null;
 }
 
-async function loadMemberTags(): Promise<Set<string>> {
+async function loadMembers(): Promise<Members> {
   const clanTags = crusadeClanTags();
   const saved = new Map(
     (await ClanRosterModel.find({ clanTag: { $in: clanTags } }).lean()).map((roster) => [roster.clanTag, roster]),
@@ -76,33 +116,42 @@ async function loadMemberTags(): Promise<Set<string>> {
   const lists = await Promise.all(
     clanTags.map(async (clanTag) => {
       const roster = saved.get(clanTag);
-      if (roster && Date.now() - roster.syncedAt.getTime() < ROSTER_TTL_MS) return roster.memberTags;
+      const savedLists = { memberTags: roster?.memberTags ?? [], leaderTags: roster?.leaderTags ?? [] };
+      if (roster && Date.now() - roster.syncedAt.getTime() < ROSTER_TTL_MS) return savedLists;
       try {
-        const memberTags = parseMemberTags(await fetchClan(clanTag));
+        const lists = parseMembers(await fetchClan(clanTag));
         await ClanRosterModel.updateOne(
           { clanTag },
-          { $set: { memberTags, syncedAt: new Date() } },
+          { $set: { ...lists, syncedAt: new Date() } },
           { upsert: true },
         );
-        return memberTags;
+        return lists;
       } catch (error) {
         failed = true;
         console.warn(`[access] member list of ${clanTag} not refreshed: ${(error as Error).message}`);
-        return roster?.memberTags ?? [];
+        return savedLists;
       }
     }),
   );
-  const tags = new Set(lists.flat().map((tag) => tag.toUpperCase()));
-  cache = { tags, expiresAt: Date.now() + (failed ? RETRY_AFTER_FAILURE_MS : ROSTER_TTL_MS) };
-  return tags;
+  const upper = (tags: string[]) => new Set(tags.map((tag) => tag.toUpperCase()));
+  const members: Members = {
+    tags: upper(lists.flatMap((l) => l.memberTags)),
+    leaderTags: upper(lists.flatMap((l) => l.leaderTags)),
+  };
+  cache = { ...members, expiresAt: Date.now() + (failed ? RETRY_AFTER_FAILURE_MS : ROSTER_TTL_MS) };
+  return members;
 }
 
-/** `memberList[].tag` of a `GET /clans/{tag}` response. */
-function parseMemberTags(clan: unknown): string[] {
+/** Tags of `memberList[]` of a `GET /clans/{tag}` response, and those of its leaders and co-leaders. */
+function parseMembers(clan: unknown): { memberTags: string[]; leaderTags: string[] } {
   const memberList = (clan as { memberList?: unknown } | null)?.memberList;
   if (!Array.isArray(memberList)) throw new Error('unexpected clan response: no memberList');
-  return memberList
-    .map((member) => (member as { tag?: unknown } | null)?.tag)
-    .filter((tag): tag is string => typeof tag === 'string')
-    .map((tag) => tag.toUpperCase());
+  const members = memberList
+    .map((member) => member as { tag?: unknown; role?: unknown } | null)
+    .filter((member): member is { tag: string; role?: unknown } => typeof member?.tag === 'string')
+    .map((member) => ({ tag: member.tag.toUpperCase(), role: member.role }));
+  return {
+    memberTags: members.map((m) => m.tag),
+    leaderTags: members.filter((m) => typeof m.role === 'string' && LEADER_ROLES.includes(m.role)).map((m) => m.tag),
+  };
 }

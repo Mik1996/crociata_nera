@@ -106,14 +106,21 @@ export function cocWar(overrides: Record<string, unknown> = {}) {
 
 /**
  * Saves the member lists of the clans of the Crusade as just read from the API, so that access
- * checks need no Clash of Clans call. `members` go in the first clan (Crociata Nera).
+ * checks need no Clash of Clans call. `members` go in the first clan (Crociata Nera), `leaders`
+ * (leaders and co-leaders, also members) too.
  */
-export async function seedCrusadeRosters(members: string[] = []): Promise<void> {
+export async function seedCrusadeRosters(members: string[] = [], leaders: string[] = []): Promise<void> {
   await Promise.all(
     crusadeClanTags().map((clanTag, index) =>
       ClanRosterModel.updateOne(
         { clanTag },
-        { $set: { memberTags: index === 0 ? members : [], syncedAt: new Date() } },
+        {
+          $set: {
+            memberTags: index === 0 ? [...new Set([...members, ...leaders])] : [],
+            leaderTags: index === 0 ? leaders : [],
+            syncedAt: new Date(),
+          },
+        },
         { upsert: true },
       ),
     ),
@@ -132,6 +139,6 @@ export async function memberToken(username = 'member', ip?: string): Promise<str
   const playerTag = `#M${username.toUpperCase().replace(/[^A-Z0-9]/g, '')}`;
   await UserModel.updateOne({ email: `${username}@x.io` }, { $set: { playerTags: [playerTag] } });
   const saved = await ClanRosterModel.findOne({ clanTag: crusadeClanTags()[0] }).lean();
-  await seedCrusadeRosters([...(saved?.memberTags ?? []), playerTag]);
+  await seedCrusadeRosters([...(saved?.memberTags ?? []), playerTag], saved?.leaderTags ?? []);
   return body.result.accessToken;
 }

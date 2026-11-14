@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, clanGuard, guestGuard } from './core/backend/auth.guards';
+import {
+  adminGuard,
+  authGuard,
+  clanGuard,
+  guestGuard,
+  leaderGuard,
+} from './core/backend/auth.guards';
 
 /**
  * Route `title`s are translation keys, resolved by `PageTitleStrategy`.
@@ -85,6 +91,14 @@ export const routes: Routes = [
             path: 'cwl',
             title: 'nav.cwl',
             loadComponent: () => import('./features/cwl/cwl-page').then((m) => m.CwlPage),
+          },
+          {
+            // Leaders only: administrators, leaders and co-leaders of the clans of the Crusade.
+            path: 'cwl-selection',
+            title: 'nav.cwlSelection',
+            canActivate: [leaderGuard],
+            loadComponent: () =>
+              import('./features/cwl-selection/cwl-selection-page').then((m) => m.CwlSelectionPage),
           },
           {
             path: 'raids',

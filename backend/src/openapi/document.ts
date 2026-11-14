@@ -30,6 +30,8 @@ const ACCESS: Record<Access, string> = {
   public: 'public.',
   user: 'signed-in users (`Authorization: Bearer <access token>`).',
   clan: 'administrators, and members of the clans of the Crusade with a verified linked account (`clanAccess` of the user).',
+  leader:
+    'administrators, and leaders and co-leaders of the clans of the Crusade with a verified linked account (`leaderAccess` of the user).',
   admin: 'administrators (role `ADMIN`).',
   cron: 'the external scheduler, with `Authorization: Bearer <CRON_SECRET>`.',
   adminInProduction:
@@ -150,15 +152,16 @@ export function operationErrors(op: ApiOperation): Map<number, MessageKey[]> {
   for (const [status, keys] of Object.entries(op.errors ?? {})) add(Number(status), ...(keys ?? []));
 
   if (op.rateLimit) add(429, MessageKey.TOO_MANY_REQUESTS);
-  if (op.access === 'user' || op.access === 'clan' || op.access === 'admin') {
+  if (op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'admin') {
     add(401, MessageKey.UNAUTHORIZED, MessageKey.INVALID_TOKEN);
   }
   if (op.access === 'admin') add(403, MessageKey.FORBIDDEN);
   if (op.access === 'clan') add(403, MessageKey.CLAN_ACCESS_REQUIRED);
+  if (op.access === 'leader') add(403, MessageKey.LEADER_ACCESS_REQUIRED);
   if (op.checkOrigin) add(403, MessageKey.ORIGIN_NOT_ALLOWED);
   if (op.query || op.body) add(400, MessageKey.INVALID_FIELD);
   if (op.body && op.body.contentType !== 'multipart/form-data') add(400, MessageKey.INVALID_JSON);
-  if (op.database !== false || op.access === 'clan') add(503, MessageKey.SERVICE_UNAVAILABLE);
+  if (op.database !== false || op.access === 'clan' || op.access === 'leader') add(503, MessageKey.SERVICE_UNAVAILABLE);
   add(500, MessageKey.UNHANDLED_ERROR);
 
   for (const status of Object.keys(op.responses)) errors.delete(Number(status));
@@ -222,7 +225,7 @@ function fullDescription(op: ApiOperation): string {
 }
 
 function security(op: ApiOperation): JsonSchema[] {
-  const bearer = op.access === 'user' || op.access === 'clan' || op.access === 'admin';
+  const bearer = op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'admin';
   if (op.access === 'cron') return [{ cronSecret: [] }];
   if (op.access === 'adminInProduction') return [{ adminLogin: [] }, { bearerAuth: [] }, {}];
   if (bearer && op.refreshCookie === 'optional') return [{ bearerAuth: [], refreshCookie: [] }, { bearerAuth: [] }];

@@ -47,7 +47,8 @@
     "join": "La llamada",
     "profile": "Tu juramento",
     "settings": "Tu armadura",
-    "admin": "El consejo de guerra"
+    "admin": "El consejo de guerra",
+    "cwlSelection": "La llamada a las armas"
   },
   "nav": {
     "group": {
@@ -58,6 +59,7 @@
     "dashboard": "Panel",
     "currentWar": "Guerra actual",
     "cwl": "Liga (CWL)",
+    "cwlSelection": "Alineación CWL",
     "raids": "Raid Weekend",
     "history": "Historial de guerras",
     "warDetail": "Detalle de la guerra",
@@ -479,12 +481,16 @@
     "USER_DELETED": "{{name}} eliminado",
     "BASE_CREATED": "Base añadida al arsenal",
     "BASE_UPDATED": "Base actualizada",
-    "BASE_DELETED": "Base eliminada"
+    "BASE_DELETED": "Base eliminada",
+    "PLAYER_EXCLUDED": "Jugador excluido de la alineación CWL.",
+    "PLAYER_READMITTED": "Jugador readmitido en la alineación CWL."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
     "FORBIDDEN": "No tienes permiso para esta operación.",
     "CLAN_ACCESS_REQUIRED": "Esta sección está reservada a los miembros de Crociata Nera, Crociata Rossa y Crociata d'Oro: vincula una de tus cuentas de juego desde tu perfil.",
+    "LEADER_ACCESS_REQUIRED": "Esta sección está reservada a los administradores y a los líderes y colíderes de los clanes de la Cruzada.",
+    "EXCLUSION_REASON_IS_TOO_LONG": "El motivo puede tener como máximo 200 caracteres.",
     "INVALID_TOKEN": "Sesión no válida: inicia sesión de nuevo.",
     "INVALID_CREDENTIALS": "Email, nombre de usuario o contraseña incorrectos.",
     "INVALID_REFRESH_TOKEN": "Sesión caducada: inicia sesión de nuevo.",
@@ -982,5 +988,86 @@
   "table": {
     "resizeColumn": "Cambiar el ancho de la columna {{name}}",
     "resizeHint": "Arrastra para cambiar el ancho, doble clic para anchos automáticos"
+  },
+  "cwlSelection": {
+    "subtitle": "Clasificación de los jugadores para elegir los 15 que alinear en la Liga y los 3 reservas.",
+    "empty": "Aún no hay jugadores del clan guardados: la clasificación aparecerá tras la próxima sincronización.",
+    "summary": "Resumen",
+    "legend": {
+      "starter": "Alineados: {{n}}/{{max}}",
+      "reserve": "Reservas: {{n}}/{{max}}",
+      "excluded": "Excluidos: {{n}}"
+    },
+    "facts": {
+      "townHall": "Ayuntamientos elegibles",
+      "townHallRange": "TH {{min}}–{{max}}",
+      "seasons": "Temporadas CWL consideradas",
+      "noSeasons": "Ninguna temporada cerrada",
+      "wars": "Guerras consideradas",
+      "warsValue": "Últimos {{days}} días ({{n}} guerras)"
+    },
+    "rules": {
+      "title": "Cómo se calcula la clasificación",
+      "eligibility": "Elegibles: los jugadores con el ayuntamiento más alto del clan y los de un nivel por debajo, no excluidos por un administrador. Los demás quedan al final de la clasificación.",
+      "cwl": "Encomios de Liga (hasta 30 puntos): Certezza di Lega vale 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7, en cada una de las últimas 4 temporadas cerradas; la última temporada cuenta entera, las anteriores al 75%, 50% y 25%.",
+      "war": "Guerras normales de los últimos 90 días (hasta 25 puntos): estrellas por ataque y destrucción (75%) y ataques usados (25%); con menos de 8 ataques la puntuación se reduce en proporción.",
+      "order": "A igual puntuación pasa delante el ayuntamiento más alto. Los primeros 15 elegibles están alineados (azul), los 3 siguientes son las reservas (verde).",
+      "cwlPerformance": "Rendimiento en Liga (hasta 20 puntos): estrellas por ataque y destrucción en las guerras de Liga de las mismas temporadas, con los mismos pesos; con menos de 5 ataques la puntuación se reduce en proporción.",
+      "heroes": "Héroes (hasta 15 puntos): niveles de los héroes (dos tercios) y del equipamiento que llevan (un tercio) respecto a los niveles máximos del juego; un héroe aún no desbloqueado cuenta cero. El perfil de cada jugador se vuelve a leer cada 6 horas aproximadamente.",
+      "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto del clan.",
+      "penalties": "Penalizaciones: 3 puntos por cada ataque de Liga perdido (ponderados por temporada, como máximo 15); 5 puntos a quien lleva menos de 14 días en el clan; 10 puntos a quien no ha atacado en guerra en los últimos 30 días mientras el clan jugó al menos 2.",
+      "exclusions": "Los administradores pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza pasa al siguiente."
+    },
+    "generatedAt": "Calculada el {{date}}",
+    "ranking": "Clasificación ({{n}})",
+    "table": "Clasificación de los jugadores para la alineación CWL",
+    "status": "Papel en Liga",
+    "statuses": {
+      "starter": "Alineado",
+      "reserve": "Reserva",
+      "bench": "Fuera",
+      "ineligible": "No elegible",
+      "excluded": "Excluido"
+    },
+    "score": "Puntuación",
+    "cwl": "Liga",
+    "war": "Media ★ guerras",
+    "attacks": "{{used}}/{{available}} ataques",
+    "noWars": "Sin guerras",
+    "excludedBy": "Excluido por {{name}}",
+    "flags": {
+      "newcomer": "Nuevo",
+      "newcomerHint": "En el clan desde el {{date}}",
+      "inactive": "Inactivo en guerra",
+      "inactiveHint": "Ningún ataque en guerra en los últimos 30 días"
+    },
+    "parts": {
+      "cwlCommendations": "Encomios de Liga",
+      "cwlPerformance": "Rendimiento en Liga",
+      "war": "Guerras",
+      "heroes": "Héroes",
+      "townHall": "Ayuntamiento",
+      "missedAttacks": "Ataques de Liga perdidos",
+      "activity": "Actividad"
+    },
+    "penalty": "Penalización {{n}}",
+    "cwlWars": "{{stars}} ★ · {{attacks}}/{{wars}} ataques",
+    "missed": "{{n}} perdidos",
+    "noCwl": "Sin Liga",
+    "heroes": "Héroes",
+    "heroLevelsHint": "Niveles de los héroes respecto a los máximos del juego",
+    "equipment": "Equip. {{n}}%",
+    "noHeroes": "Pendiente",
+    "noHeroesHint": "Perfil aún no leído: ocurre en pocas horas",
+    "actions": "Acciones",
+    "excludeAction": "Excluir",
+    "readmit": "Readmitir",
+    "exclude": {
+      "title": "Excluir a {{name}}",
+      "intro": "El jugador sigue en la clasificación, marcado como excluido, y no ocupa plaza entre los alineados y las reservas.",
+      "reason": "Motivo (opcional)",
+      "reasonHint": "Por ejemplo: ausente toda la temporada",
+      "confirm": "Excluir"
+    }
   }
 }

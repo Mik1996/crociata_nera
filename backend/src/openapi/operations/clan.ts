@@ -6,9 +6,55 @@ import { listDonationSeasonsQuerySchema } from '@/modules/donations/donations.sc
 import { listRaidSeasonsQuerySchema } from '@/modules/raids/raids.schemas';
 import { ClanRecords, PlayerRecord } from '../models/players';
 import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, RaidSeason } from '../models/seasons';
+import { excludePlayerSchema } from '@/modules/cwl/cwl-selection.schemas';
+import { CwlExclusionResult, CwlSelection } from '../models/selection';
 import { ApiOperation, requestPart } from '../operation';
 
+const exclusionPath = requestPart(z.object({ tag: z.string() }), {
+  tag: { description: 'Player tag without `#` (or with `#` encoded as `%23`).', example: 'ABC123' },
+});
+
 export const CLAN_OPERATIONS: ApiOperation[] = [
+  {
+    method: 'GET',
+    path: '/cwl/selection',
+    operationId: 'getCwlSelection',
+    tag: 'CWL',
+    summary: 'Rank the members for the Clan War League line-up',
+    description:
+      'Current members of the clan ranked to pick the Clan War League line-up: 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clan, not excluded by an administrator). Score out of 100: CWL commendations of the last 4 ended seasons (up to 30), stars and destruction in their league wars (up to 20), regular wars of the last 90 days (up to 25), hero levels and equipment (up to 15), highest town hall (10); penalties for CWL attacks missed (up to -15), new arrivals (-5) and no regular war attack in the last 30 days (-10). The latest season weighs most. Excluded players keep their place and take no slot.',
+    access: 'leader',
+    rateLimit: ApiName.WARS_READ,
+    responses: { 200: { description: 'The ranking.', result: CwlSelection } },
+  },
+  {
+    method: 'PUT',
+    path: '/cwl/selection/exclusions/{tag}',
+    operationId: 'excludeCwlPlayer',
+    tag: 'CWL',
+    summary: 'Exclude a player from the CWL line-up',
+    description:
+      'Excludes a current member of the clan from the Clan War League line-up, with an optional reason (excluding again replaces it). The player stays in the ranking, marked as excluded, and takes no slot.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    params: exclusionPath,
+    body: requestPart(excludePlayerSchema, { reason: { description: 'Why the player is excluded (at most 200 characters).', example: 'Away for the whole season' } }),
+    responses: { 200: { description: 'The exclusion.', result: CwlExclusionResult, messages: [K.PLAYER_EXCLUDED] } },
+    errors: { 400: [K.PLAYER_TAG_IS_NOT_VALID, K.EXCLUSION_REASON_IS_TOO_LONG], 404: [K.PLAYER_NOT_FOUND] },
+  },
+  {
+    method: 'DELETE',
+    path: '/cwl/selection/exclusions/{tag}',
+    operationId: 'readmitCwlPlayer',
+    tag: 'CWL',
+    summary: 'Take a player back into the CWL line-up',
+    description: 'Removes the exclusion of a player; nothing changes if the player was not excluded.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    params: exclusionPath,
+    responses: { 200: { description: 'The player is no longer excluded.', result: null, messages: [K.PLAYER_READMITTED] } },
+    errors: { 400: [K.PLAYER_TAG_IS_NOT_VALID] },
+  },
   {
     method: 'GET',
     path: '/cwl/seasons',

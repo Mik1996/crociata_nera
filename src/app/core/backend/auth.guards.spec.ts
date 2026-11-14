@@ -1,10 +1,23 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, provideRouter, RouterStateSnapshot, UrlTree } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  provideRouter,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
-import { adminGuard, authGuard, clanGuard, guestGuard, returnUrlParams, safeReturnUrl } from './auth.guards';
+import {
+  adminGuard,
+  authGuard,
+  clanGuard,
+  guestGuard,
+  leaderGuard,
+  returnUrlParams,
+  safeReturnUrl,
+} from './auth.guards';
 import { AuthService } from './auth.service';
 
 const signedIn = {
@@ -18,7 +31,12 @@ describe('auth guards', () => {
 
   function setup(useMockApi = false): void {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi })],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi }),
+      ],
     });
     httpMock = TestBed.inject(HttpTestingController);
   }
@@ -29,7 +47,9 @@ describe('auth guards', () => {
     const result = TestBed.runInInjectionContext(() =>
       guard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot),
     );
-    return isObservable(result) ? firstValueFrom(result as Observable<boolean | UrlTree>) : Promise.resolve(result as boolean | UrlTree);
+    return isObservable(result)
+      ? firstValueFrom(result as Observable<boolean | UrlTree>)
+      : Promise.resolve(result as boolean | UrlTree);
   }
 
   it('waits for the startup session restore', async () => {
@@ -50,7 +70,16 @@ describe('auth guards', () => {
   it('keeps return URLs only for real pages', () => {
     setup();
     expect(returnUrlParams('/wars/1')).toEqual({ returnUrl: '/wars/1' });
-    for (const none of ['/', '', '/sign-in', '/sign-up?x=1', '/?returnUrl=%2Fwars', '/reset-password?token=x', '/verify-email?token=y', null]) {
+    for (const none of [
+      '/',
+      '',
+      '/sign-in',
+      '/sign-up?x=1',
+      '/?returnUrl=%2Fwars',
+      '/reset-password?token=x',
+      '/verify-email?token=y',
+      null,
+    ]) {
       expect(returnUrlParams(none)).toEqual({});
     }
   });
@@ -86,7 +115,12 @@ describe('auth guards', () => {
 
     TestBed.inject(AuthService).restoreSession();
     const admin = run(adminGuard);
-    httpMock.expectOne('/api/v1/auth/refresh').flush({ ...signedIn, result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } } });
+    httpMock
+      .expectOne('/api/v1/auth/refresh')
+      .flush({
+        ...signedIn,
+        result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } },
+      });
     expect(await admin).toBe(true);
   });
 
@@ -98,10 +132,14 @@ describe('auth guards', () => {
     const as = async (user: object) => {
       auth.restoreSession();
       const pending = run(clanGuard, '/wars');
-      httpMock.expectOne('/api/v1/auth/refresh').flush({ ...signedIn, result: { ...signedIn.result, user } });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush({ ...signedIn, result: { ...signedIn.result, user } });
       return pending;
     };
-    expect(String(await as({ username: 'a', roles: ['USER'], clanAccess: false }))).toBe('/profile');
+    expect(String(await as({ username: 'a', roles: ['USER'], clanAccess: false }))).toBe(
+      '/profile',
+    );
     expect(await as({ username: 'a', roles: ['USER'], clanAccess: true })).toBe(true);
     expect(await as({ username: 'a', roles: ['USER', 'ADMIN'], clanAccess: false })).toBe(true);
   });
@@ -109,5 +147,32 @@ describe('auth guards', () => {
   it('keeps the clans pages open with mock data', async () => {
     setup(true);
     expect(await run(clanGuard, '/wars')).toBe(true);
+  });
+
+  it('opens the CWL line-up to admins, leaders and co-leaders only', async () => {
+    setup();
+    expect(String(await run(leaderGuard, '/cwl-selection'))).toBe('/?returnUrl=%2Fcwl-selection');
+
+    const auth = TestBed.inject(AuthService);
+    const as = async (user: object) => {
+      auth.restoreSession();
+      const pending = run(leaderGuard, '/cwl-selection');
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush({ ...signedIn, result: { ...signedIn.result, user } });
+      return pending;
+    };
+    expect(
+      String(await as({ username: 'a', roles: ['USER'], clanAccess: true, leaderAccess: false })),
+    ).toBe('/');
+    expect(await as({ username: 'a', roles: ['USER'], clanAccess: true, leaderAccess: true })).toBe(
+      true,
+    );
+    expect(await as({ username: 'a', roles: ['USER', 'ADMIN'], leaderAccess: false })).toBe(true);
+  });
+
+  it('keeps the CWL line-up open with mock data', async () => {
+    setup(true);
+    expect(await run(leaderGuard, '/cwl-selection')).toBe(true);
   });
 });

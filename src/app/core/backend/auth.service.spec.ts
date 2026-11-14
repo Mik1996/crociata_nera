@@ -17,7 +17,7 @@ const ok = <T>(result: T): BaseResult<T> => ({ result, messages: [], status: { c
 const session = (token: string): AuthResult => ({
   accessToken: token,
   accessTokenExpiresAt: '2026-11-06T12:00:00.000Z',
-  user: { id: '1', email: 'a@b.io', username: 'alice', roles: ['USER'], players: [], emailVerified: false, clanAccess: false, createdAt: '' },
+  user: { id: '1', email: 'a@b.io', username: 'alice', roles: ['USER'], players: [], emailVerified: false, clanAccess: false, leaderAccess: false, createdAt: '' },
 });
 
 describe('AuthService and authInterceptor', () => {
@@ -276,6 +276,7 @@ describe('AuthService and authInterceptor', () => {
         players: [{ tag: '#AAA', verified: true }],
         emailVerified: false,
         clanAccess: true,
+        leaderAccess: false,
       });
       expect(JSON.stringify(profile)).not.toContain('t1');
       expect(JSON.stringify(profile)).not.toContain('a@b.io');
