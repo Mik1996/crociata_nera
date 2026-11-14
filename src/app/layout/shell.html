@@ -19,29 +19,15 @@
     class="brand"
     [attr.aria-label]="'app.goToHome' | translate: { name: clanName }"
   >
-    @if (badgeUrl(); as url) {
-      @if (!badgeFailed()) {
-        <img
-          class="brand__badge"
-          [src]="url"
-          alt=""
-          width="44"
-          height="44"
-          (error)="badgeFailed.set(true)"
-        />
-      }
-    }
-    @if (!badgeUrl() || badgeFailed()) {
-      <svg class="brand__crest" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
-        <path
-          d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z"
-          class="brand__crest-shield"
-          stroke-width="3"
-        />
-        <path d="M32 10 52 17v17c0 13-8 22-20 27-12-5-20-14-20-27V17Z" class="brand__crest-field" />
-        <path d="M28 20h8v12h12v8H36v16h-8V40H16v-8h12Z" class="brand__crest-cross" />
-      </svg>
-    }
+    @let url = badgeUrl();
+    <img
+      class="brand__badge"
+      [src]="url && !badgeFailed() ? url : crestUrl"
+      alt=""
+      width="44"
+      height="44"
+      (error)="badgeFailed.set(true)"
+    />
     <span class="brand__text">
       <span class="brand__name">{{ clanName }}</span>
       <span class="brand__tag">{{ 'app.brandSubtitle' | translate: { tag: clanTag } }}</span>

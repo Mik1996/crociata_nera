@@ -20,6 +20,15 @@
         [attr.fetchpriority]="priority() ? 'high' : null"
         (error)="badgeFailed.set(true)"
       />
+    } @else if (!crestFailed()) {
+      <img
+        class="badge-stage__badge"
+        [src]="crestUrl()"
+        [alt]="'welcome.badgeAlt' | translate: { name: c.name }"
+        width="351"
+        height="512"
+        (error)="crestFailed.set(true)"
+      />
     } @else {
       <svg class="badge-stage__badge" viewBox="0 0 64 72" role="img" [attr.aria-label]="'welcome.badgeAlt' | translate: { name: c.name }">
         <path d="M32 2 60 12v22c0 18-12 30-28 36C16 64 4 52 4 34V12Z" class="crest__shield" stroke-width="3" />

@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { map, timer } from 'rxjs';
+import { CLAN_CREST_URL } from '../../../core/api/clan-badge';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { War } from '../../../core/models';
@@ -49,7 +50,10 @@ export class WarSummary {
     return this.war().teamSize * this.war().attacksPerMember;
   }
 
-  /** Badge URLs that failed to load: their image is left out. */
+  /** Our badge while the official one is missing or fails to load. */
+  protected readonly crestUrl = CLAN_CREST_URL;
+
+  /** Badge URLs that failed to load: our clan falls back to its logo, the opponent's is left out. */
   protected readonly failedBadges = signal<ReadonlySet<string>>(new Set());
 
   protected badgeFailed(url: string): void {

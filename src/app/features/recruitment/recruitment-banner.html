@@ -12,8 +12,9 @@
       @let c = e.clan;
       <aside class="enlist" [attr.data-order]="e.order" [attr.aria-labelledby]="titleId + '-clan-' + i">
         <h3 class="enlist__clan" [id]="titleId + '-clan-' + i">
-          @if (c.badgeUrl) {
-            <img class="enlist__clan-badge" [src]="c.badgeUrl" alt="" width="48" height="48" />
+          @let badge = c.badgeUrl && !failedBadges().has(c.badgeUrl) ? c.badgeUrl : crests[e.order];
+          @if (badge && !failedBadges().has(badge)) {
+            <img class="enlist__clan-badge" [src]="badge" alt="" width="48" height="48" (error)="badgeFailed(badge)" />
           }
           <span class="enlist__clan-name">{{ c.name }}</span>
         </h3>

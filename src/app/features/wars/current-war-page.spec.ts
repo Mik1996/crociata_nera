@@ -2,6 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { CLAN_CREST_URL } from '../../core/api/clan-badge';
 import { CocApiService } from '../../core/api/coc-api';
 import { War } from '../../core/models';
 import { provideCocApiTest } from '../../testing/fixtures';
@@ -69,6 +70,10 @@ describe('CurrentWarPage', () => {
     el.querySelector('app-war-summary .side--opponent .side__badge')!.dispatchEvent(new Event('error'));
     await TestBed.inject(ApplicationRef).whenStable();
     expect(badges()).toEqual(['https://example.test/ours.png']);
+
+    el.querySelector('app-war-summary .side__badge')!.dispatchEvent(new Event('error'));
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(badges()).toEqual([new URL(CLAN_CREST_URL, document.baseURI).href]);
   });
 
   it('shows a message when the clan is not at war', async () => {

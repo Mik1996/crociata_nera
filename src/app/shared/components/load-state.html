@@ -16,8 +16,16 @@
   </div>
 } @else if (empty()) {
   <div class="state state--empty" role="status">
-    @if (badgeUrl() && !badgeFailed()) {
-      <img class="badge" [src]="badgeUrl()" alt="" width="96" height="96" (error)="badgeFailed.set(true)" />
+    @let url = badgeUrl();
+    @if (!crestFailed()) {
+      <img
+        class="badge"
+        [src]="url && !badgeFailed() ? url : crestUrl"
+        alt=""
+        width="96"
+        height="96"
+        (error)="url && !badgeFailed() ? badgeFailed.set(true) : crestFailed.set(true)"
+      />
     } @else {
       <mat-icon aria-hidden="true">{{ emptyIcon() }}</mat-icon>
     }

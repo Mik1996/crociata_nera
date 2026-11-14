@@ -45,26 +45,6 @@
   min-width: 0;
 }
 
-.brand__crest {
-  width: 2.25rem;
-  height: 2.5rem;
-  flex: none;
-  filter: drop-shadow(0 0 0.375rem var(--cn-glow));
-}
-
-.brand__crest-shield {
-  fill: var(--cn-crest-shield);
-  stroke: var(--cn-crest-rim);
-}
-
-.brand__crest-field {
-  fill: var(--cn-crest-field);
-}
-
-.brand__crest-cross {
-  fill: var(--cn-crest-cross);
-}
-
 .brand__badge {
   width: 2.75rem;
   height: 2.75rem;

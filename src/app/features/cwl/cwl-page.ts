@@ -6,6 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { CLAN_CREST_URL } from '../../core/api/clan-badge';
 import { CocApiService } from '../../core/api/coc-api';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -52,6 +53,15 @@ export class CwlPage {
   private readonly language = inject(LanguageService);
   /** Tag of the signed-in user's player: their row is highlighted. */
   protected readonly isMine = inject(AuthService).isMyPlayer;
+  /** Our badge when the season record has none or it fails to load. */
+  protected readonly crestUrl = CLAN_CREST_URL;
+
+  /** Badge URLs that failed to load: our clan falls back to its logo, the others are left out. */
+  protected readonly failedBadges = signal<ReadonlySet<string>>(new Set());
+
+  protected badgeFailed(url: string): void {
+    this.failedBadges.update((failed) => new Set(failed).add(url));
+  }
 
   protected readonly seasons = rxResource({ stream: () => this.api.getCwlSeasons() });
   protected readonly seasonList = computed(() =>

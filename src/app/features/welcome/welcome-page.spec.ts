@@ -1,5 +1,7 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
+import { CLAN_CRESTS } from '../../core/api/clan-badge';
 import { CocApiService } from '../../core/api/coc-api';
 import { APP_CONFIG, AppConfig } from '../../core/config/app-config';
 import { Clan, ClanRanks, ClanRecords } from '../../core/models';
@@ -155,6 +157,30 @@ describe('WelcomePage', () => {
     );
     expect(el.querySelector('.war__ribbon')!.textContent).toContain('Master League I');
     expect(el.querySelector('.label-chip')!.textContent).toContain('Clan Wars');
+  });
+
+  it('falls back to the clan logos when the badges fail to load', async () => {
+    const el = await render(clan);
+    const heroBadges = () =>
+      ['#prologue', '#sister-red', '#sister-gold'].map((act) =>
+        el.querySelector<HTMLImageElement>(`${act} .badge-stage__badge`)!,
+      );
+    heroBadges().forEach((badge) => badge.dispatchEvent(new Event('error')));
+    const cards = () => Array.from(el.querySelectorAll('.enlist'));
+    cards().forEach((card) => card.querySelector('.enlist__clan-badge')!.dispatchEvent(new Event('error')));
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    // Each clan of the Crusade has its own crowned helmet.
+    expect(heroBadges().map((badge) => badge.getAttribute('src'))).toEqual([
+      CLAN_CRESTS.black,
+      CLAN_CRESTS.red,
+      CLAN_CRESTS.gold,
+    ]);
+    expect(cards().map((c) => c.querySelector('.enlist__clan-badge')?.getAttribute('src') ?? null)).toEqual([
+      CLAN_CRESTS.black,
+      CLAN_CRESTS.red,
+      CLAN_CRESTS.gold,
+    ]);
   });
 
   it('shows the districts of the capital around the Capital Hall, each with its name and level', async () => {

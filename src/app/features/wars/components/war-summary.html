@@ -22,15 +22,9 @@
           <h2 class="side__name">{{ side.name }}</h2>
           <span class="side__info">{{ side.tag }} · {{ 'summary.level' | translate: { n: side.level } }}</span>
         </div>
-        @if (side.badgeUrl && !failedBadges().has(side.badgeUrl)) {
-          <img
-            class="side__badge"
-            [src]="side.badgeUrl"
-            alt=""
-            width="64"
-            height="64"
-            (error)="badgeFailed(side.badgeUrl)"
-          />
+        @let badge = side.badgeUrl && !failedBadges().has(side.badgeUrl) ? side.badgeUrl : isOpponent ? null : crestUrl;
+        @if (badge && !failedBadges().has(badge)) {
+          <img class="side__badge" [src]="badge" alt="" width="64" height="64" (error)="badgeFailed(badge)" />
         }
       </div>
       <div class="side__stars">

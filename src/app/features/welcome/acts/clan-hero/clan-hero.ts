@@ -1,7 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
+import { CLAN_CRESTS } from '../../../../core/api/clan-badge';
 import { CrusadeOrder } from '../../../../core/config/sister-clans';
 import { Clan } from '../../../../core/models';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
@@ -50,6 +51,9 @@ export class ClanHero {
 
   /** Official badge failed to load: the heraldic placeholder is shown instead. */
   protected readonly badgeFailed = signal(false);
+  /** Logo of the clan, shown when its official badge is missing or fails to load. */
+  protected readonly crestUrl = computed(() => CLAN_CRESTS[this.order()]);
+  protected readonly crestFailed = signal(false);
 
   protected readonly embers = Array.from({ length: 14 }, (_, i) => i + 1);
 

@@ -43,8 +43,9 @@
                 <th mat-header-cell *matHeaderCellDef>{{ 'cwl.clan' | translate }}</th>
                 <td mat-cell *matCellDef="let c">
                   <span class="clan-cell">
-                    @if (c.badgeUrl) {
-                      <img [src]="c.badgeUrl" alt="" width="28" height="28" />
+                    @let badge = c.badgeUrl && !failedBadges().has(c.badgeUrl) ? c.badgeUrl : c.isOwn ? crestUrl : null;
+                    @if (badge && !failedBadges().has(badge)) {
+                      <img [src]="badge" alt="" width="28" height="28" (error)="badgeFailed(badge)" />
                     }
                     <span [class.own-clan]="c.isOwn">{{ c.name }}</span>
                   </span>

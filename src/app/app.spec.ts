@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, of } from 'rxjs';
 import { App } from './app';
+import { CLAN_CREST_URL } from './core/api/clan-badge';
 import { CocApiService } from './core/api/coc-api';
 import { AVAILABLE_THEMES, DEFAULT_THEME, ThemeName, THEMES } from './core/theme/themes';
 import { provideCocApiTest } from './testing/fixtures';
@@ -32,15 +33,25 @@ describe('App', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(url);
-    expect(el.querySelector('.brand__crest')).toBeNull();
   });
 
-  it('uses the fallback crest when the clan has no badge', async () => {
+  it('shows the clan logo when the clan has no badge', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.brand__badge')).toBeNull();
-    expect(el.querySelector('.brand__crest')).not.toBeNull();
+    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(CLAN_CREST_URL);
+  });
+
+  it('falls back to the clan logo when the badge fails to load', async () => {
+    const api = TestBed.inject(CocApiService);
+    const clan = await firstValueFrom(api.getClan());
+    vi.spyOn(api, 'getClan').mockReturnValue(of({ ...clan, badgeUrl: 'https://example.test/badge.png' }));
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector('.brand__badge')?.dispatchEvent(new Event('error'));
+    await fixture.whenStable();
+    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(CLAN_CREST_URL);
   });
 
   it('exposes the main navigation with all sections', async () => {

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
+import { CLAN_CRESTS } from '../../core/api/clan-badge';
 import { LoadedSisterClan } from '../../core/api/sister-clans';
 import { CrusadeOrder } from '../../core/config/sister-clans';
 import { clanProfileLink } from '../../core/game/clan-link';
@@ -41,6 +42,16 @@ export class RecruitmentBanner {
   readonly sisters = input<readonly LoadedSisterClan[]>([]);
 
   private readonly language = inject(LanguageService);
+
+  /** Logos of the clans, shown while their official badge is missing or fails to load. */
+  protected readonly crests = CLAN_CRESTS;
+
+  /** Badge URLs that failed to load: a clan falls back to its logo, left out if that fails too. */
+  protected readonly failedBadges = signal<ReadonlySet<string>>(new Set());
+
+  protected badgeFailed(url: string): void {
+    this.failedBadges.update((failed) => new Set(failed).add(url));
+  }
 
   /** Unique ids: the banner may appear more than once in the app. */
   protected readonly titleId = `recruit-title-${nextId++}`;

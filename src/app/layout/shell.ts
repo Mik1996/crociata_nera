@@ -20,7 +20,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, forkJoin, map, of } from 'rxjs';
-import { ClanBadge } from '../core/api/clan-badge';
+import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
@@ -79,9 +79,10 @@ export class Shell {
   protected readonly clanTag = this.config.clanTag;
   protected readonly useMock = this.config.useMockApi;
 
-  /** Official clan badge (badgeUrls.large); if missing or failing to load, the SVG crest is shown. */
+  /** Official clan badge (badgeUrls.large); if missing or failing to load, the clan logo is shown. */
   protected readonly badgeUrl = inject(ClanBadge).url;
   protected readonly badgeFailed = signal(false);
+  protected readonly crestUrl = CLAN_CREST_URL;
 
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
