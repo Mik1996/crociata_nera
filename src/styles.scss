@@ -825,6 +825,12 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+// A Clash of Clans picture that did not arrive (offline): hidden instead of the broken image icon,
+// keeping its space (core/pwa/missing-images.ts).
+img.cn-img-missing {
+  visibility: hidden;
+}
+
 // Icons inside the text of a menu item (not in Material's icon slot): sized by their font-size,
 // spaced by the gap of the text, without the margin Material gives to `.mat-icon`.
 .mat-mdc-menu-item .mat-mdc-menu-item-text > .app-icon {

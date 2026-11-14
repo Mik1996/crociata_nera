@@ -1,6 +1,8 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
 import {
   ApplicationConfig,
+  DestroyRef,
   inject,
   isDevMode,
   provideAppInitializer,
@@ -23,6 +25,7 @@ import { AuthService } from './core/backend/auth.service';
 import { provideI18n } from './core/i18n/provide-i18n';
 import { AppUpdates } from './core/pwa/app-updates';
 import { reloadOnChunkLoadError } from './core/pwa/chunk-load-error';
+import { hideMissingCocImages } from './core/pwa/missing-images';
 import { configureChartTheme } from './shared/charts/chart-theme';
 
 configureChartTheme();
@@ -49,6 +52,11 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAppInitializer(() => inject(AppUpdates).start()),
+    // Clash of Clans pictures that do not arrive (offline) are hidden, not shown broken.
+    provideAppInitializer(() => {
+      const destroy = hideMissingCocImages(inject(DOCUMENT));
+      inject(DestroyRef).onDestroy(destroy);
+    }),
     provideCharts(withDefaultRegisterables()),
     provideCocApi(environment),
     provideI18n(),
