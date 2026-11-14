@@ -51,7 +51,21 @@ describe('LoadState', () => {
     expect(f.componentInstance.retries).toBe(1);
   });
 
-  it('shows the empty message with the clan logo when the clan badge is not available', async () => {
+  it('loads again by itself when the network comes back, only in the error state', async () => {
+    const f = await create();
+    window.dispatchEvent(new Event('online'));
+    await f.whenStable();
+    expect(f.componentInstance.retries).toBe(0);
+
+    f.componentInstance.error.set(new Error('Offline'));
+    await f.whenStable();
+    window.dispatchEvent(new Event('offline'));
+    window.dispatchEvent(new Event('online'));
+    await f.whenStable();
+    expect(f.componentInstance.retries).toBe(1);
+  });
+
+    it('shows the empty message with the clan logo when the clan badge is not available', async () => {
     const f = await create();
     f.componentInstance.empty.set(true);
     await f.whenStable();

@@ -18,6 +18,7 @@ import {
 } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { LanguageService } from '../i18n/language.service';
+import { isOffline } from '../pwa/connectivity';
 import { clearPrivateOfflineData } from '../pwa/offline-data';
 import {
   AuthResult,
@@ -35,6 +36,10 @@ import {
  * - The access token lives in memory only (a signal), never in localStorage.
  * - The refresh token is an httpOnly cookie managed by the browser: JavaScript cannot read it.
  *   On startup {@link restoreSession} exchanges it for a new access token.
+ * - Offline (or with the backend unreachable) the session cannot be checked: the user of the last
+ *   session is then remembered from a minimal profile in localStorage ({@link OfflineProfile}: no
+ *   token, no email), so the pages cached by the service worker stay open. The session is checked
+ *   again as soon as the backend answers; a rejected session signs out and forgets the profile.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -43,6 +48,8 @@ export class AuthService {
   private readonly language = inject(LanguageService);
 
   private readonly session = signal<AuthResult | null>(null);
+  /** User of the last session, while the backend cannot confirm it (offline). */
+  private readonly rememberedUser = signal<BackendUser | null>(null);
   private refreshing$: Observable<string | null> | null = null;
   /** Startup session restore, shared with guards that must wait for it. */
   private restoring$: Observable<unknown> = of(null);
@@ -54,23 +61,32 @@ export class AuthService {
   private restoreTimer: ReturnType<typeof setTimeout> | null = null;
   private listening = false;
 
-  readonly user = computed<BackendUser | null>(() => this.session()?.user ?? null);
-  readonly isAuthenticated = computed(() => this.session() !== null);
+  readonly user = computed<BackendUser | null>(() => this.session()?.user ?? this.rememberedUser());
+  readonly isAuthenticated = computed(() => this.user() !== null);
+  /** Signed in from the remembered profile: the backend has not confirmed the session yet. */
+  readonly isUnconfirmed = computed(
+    () => this.session() === null && this.rememberedUser() !== null,
+  );
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   /** Clash of Clans accounts linked to the signed-in user, verified or not. */
-  readonly linkedPlayers = computed(() => this.session()?.user.players ?? []);
+  readonly linkedPlayers = computed(() => this.user()?.players ?? []);
   /** Tags of the signed-in user's accounts proven with the in-game API token. */
   readonly playerTags = computed(
-    () => new Set(this.linkedPlayers().filter((p) => p.verified).map((p) => p.tag.toUpperCase())),
+    () =>
+      new Set(
+        this.linkedPlayers()
+          .filter((p) => p.verified)
+          .map((p) => p.tag.toUpperCase()),
+      ),
   );
   /** `true` for one of the signed-in user's verified accounts: marks "your" rows in the tables. */
   readonly isMyPlayer = (tag: string): boolean => this.playerTags().has(tag.toUpperCase());
-  readonly isAdmin = computed(() => this.session()?.user.roles?.includes('ADMIN') ?? false);
+  readonly isAdmin = computed(() => this.user()?.roles?.includes('ADMIN') ?? false);
   /**
    * Full access to the clans' pages: administrators and members of a clan of the Crusade with a
    * verified linked account (worked out by the backend, which enforces it on every request).
    */
-  readonly hasClanAccess = computed(() => this.isAdmin() || (this.session()?.user.clanAccess ?? false));
+  readonly hasClanAccess = computed(() => this.isAdmin() || (this.user()?.clanAccess ?? false));
 
   signUp(request: SignUpRequest): Observable<BackendUser> {
     return this.post('sign-up', { ...request, language: this.language.current() });
@@ -81,10 +97,12 @@ export class AuthService {
    * in the game (Settings → More Settings).
    */
   linkPlayer(playerTag: string, token: string): Observable<BackendUser> {
-    return this.http.post<BaseResult<BackendUser>>(`${this.baseUrl}/me/player`, { playerTag, token }).pipe(
-      map((response) => response.result!),
-      tap((user) => this.patchUser(user)),
-    );
+    return this.http
+      .post<BaseResult<BackendUser>>(`${this.baseUrl}/me/player`, { playerTag, token })
+      .pipe(
+        map((response) => response.result!),
+        tap((user) => this.patchUser(user)),
+      );
   }
 
   /** Unlinks one Clash of Clans account of the signed-in user. */
@@ -106,12 +124,17 @@ export class AuthService {
   /** Emails a reset link (the backend answers the same way for unknown addresses). */
   forgotPassword(email: string): Observable<void> {
     return this.http
-      .post<BaseResult<null>>(`${this.baseUrl}/forgot-password`, { email, language: this.language.current() })
+      .post<BaseResult<null>>(`${this.baseUrl}/forgot-password`, {
+        email,
+        language: this.language.current(),
+      })
       .pipe(map(() => undefined));
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<void> {
-    return this.http.post<BaseResult<null>>(`${this.baseUrl}/reset-password`, request).pipe(map(() => undefined));
+    return this.http
+      .post<BaseResult<null>>(`${this.baseUrl}/reset-password`, request)
+      .pipe(map(() => undefined));
   }
 
   verifyEmail(token: string): Observable<BackendUser> {
@@ -125,7 +148,9 @@ export class AuthService {
 
   resendVerification(): Observable<void> {
     return this.http
-      .post<BaseResult<null>>(`${this.baseUrl}/verify-email/resend`, { language: this.language.current() })
+      .post<BaseResult<null>>(`${this.baseUrl}/verify-email/resend`, {
+        language: this.language.current(),
+      })
       .pipe(map(() => undefined));
   }
 
@@ -135,15 +160,13 @@ export class AuthService {
 
   /** Revokes the session on the backend; the local session is cleared in any case. */
   signOut(): Observable<void> {
-    return this.http.post<BaseResult<null>>(`${this.baseUrl}/sign-out`, {}, { withCredentials: true }).pipe(
-      map(() => undefined),
-      catchError(() => of(undefined)),
-      finalize(() => {
-        this.session.set(null);
-        this.stopRestoreRetries();
-        void clearPrivateOfflineData();
-      }),
-    );
+    return this.http
+      .post<BaseResult<null>>(`${this.baseUrl}/sign-out`, {}, { withCredentials: true })
+      .pipe(
+        map(() => undefined),
+        catchError(() => of(undefined)),
+        finalize(() => this.endSession()),
+      );
   }
 
   /**
@@ -161,33 +184,34 @@ export class AuthService {
   }
 
   private refreshWithRetries(retries: number): Observable<string | null> {
-    const request = this.http.post<BaseResult<AuthResult>>(`${this.baseUrl}/refresh`, {}, { withCredentials: true });
-    this.refreshing$ ??= underRefreshLock(request)
-      .pipe(
-        retry({
-          count: retries,
-          delay: (error: unknown, attempt) =>
-            isSessionRejected(error) ? throwError(() => error) : timer(attempt * REFRESH_RETRY_DELAY_MS),
-        }),
-        map((response) => response.result),
-        tap((result) => {
-          this.session.set(result);
-          this.stopRestoreRetries();
-        }),
-        map((result) => result?.accessToken ?? null),
-        catchError((error: unknown) => {
-          if (isSessionRejected(error)) {
-            this.session.set(null);
-            this.stopRestoreRetries();
-            void clearPrivateOfflineData();
-          } else if (!this.session()) {
-            this.scheduleRestoreRetry();
-          }
-          return of(null);
-        }),
-        finalize(() => (this.refreshing$ = null)),
-        shareReplay({ bufferSize: 1, refCount: false }),
-      );
+    const request = this.http.post<BaseResult<AuthResult>>(
+      `${this.baseUrl}/refresh`,
+      {},
+      { withCredentials: true },
+    );
+    this.refreshing$ ??= underRefreshLock(request).pipe(
+      retry({
+        count: retries,
+        delay: (error: unknown, attempt) =>
+          isSessionRejected(error)
+            ? throwError(() => error)
+            : timer(attempt * REFRESH_RETRY_DELAY_MS),
+      }),
+      map((response) => response.result),
+      tap((result) => (result ? this.startSession(result) : this.endSession())),
+      map((result) => result?.accessToken ?? null),
+      catchError((error: unknown) => {
+        if (isSessionRejected(error)) {
+          this.endSession();
+        } else if (!this.session()) {
+          this.rememberUser();
+          this.scheduleRestoreRetry();
+        }
+        return of(null);
+      }),
+      finalize(() => (this.refreshing$ = null)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
     return this.refreshing$;
   }
 
@@ -195,11 +219,12 @@ export class AuthService {
    * Called once at startup: silently restores the session if the refresh cookie is valid.
    * While the backend is unreachable (restarting during a deploy) it keeps trying for a while
    * ({@link STARTUP_REFRESH_RETRIES}): the guards wait, instead of treating the user as signed out.
-   * After that it tries again in the background.
+   * After that it tries again in the background, the user of the last session being remembered
+   * meanwhile. Offline nothing is worth waiting for: the remembered user is used at once.
    */
   restoreSession(): void {
     this.listenForRestoreChances();
-    this.restoring$ = this.refreshWithRetries(STARTUP_REFRESH_RETRIES).pipe(
+    this.restoring$ = this.refreshWithRetries(isOffline() ? 0 : STARTUP_REFRESH_RETRIES).pipe(
       shareReplay({ bufferSize: 1, refCount: false }),
     );
     this.restoring$.subscribe();
@@ -246,20 +271,95 @@ export class AuthService {
     });
   }
 
+  /** A session confirmed by the backend: it replaces the remembered user, whose profile is updated. */
+  private startSession(result: AuthResult): void {
+    this.session.set(result);
+    this.rememberedUser.set(null);
+    this.stopRestoreRetries();
+    saveOfflineProfile(result.user);
+  }
+
+  /** Signed out or session rejected: nothing of the user stays in the browser. */
+  private endSession(): void {
+    this.session.set(null);
+    this.rememberedUser.set(null);
+    this.stopRestoreRetries();
+    removeOfflineProfile();
+    void clearPrivateOfflineData();
+  }
+
+  /** The backend cannot be reached: the user of the last session, if any, stays signed in. */
+  private rememberUser(): void {
+    if (!this.rememberedUser()) this.rememberedUser.set(loadOfflineProfile());
+  }
+
   /** Replaces the user in the current session (after a profile change). */
   private patchUser(user: BackendUser): void {
     const session = this.session();
-    if (session) this.session.set({ ...session, user });
+    if (session) this.startSession({ ...session, user });
   }
 
-  private post(path: 'sign-up' | 'sign-in', body: SignUpRequest | SignInRequest): Observable<BackendUser> {
-    return this.http.post<BaseResult<AuthResult>>(`${this.baseUrl}/${path}`, body, { withCredentials: true }).pipe(
-      tap((response) => {
-        this.session.set(response.result);
-        this.stopRestoreRetries();
-      }),
-      map((response) => response.result!.user),
-    );
+  private post(
+    path: 'sign-up' | 'sign-in',
+    body: SignUpRequest | SignInRequest,
+  ): Observable<BackendUser> {
+    return this.http
+      .post<BaseResult<AuthResult>>(`${this.baseUrl}/${path}`, body, { withCredentials: true })
+      .pipe(
+        tap((response) => this.startSession(response.result!)),
+        map((response) => response.result!.user),
+      );
+  }
+}
+
+/** localStorage key of the {@link OfflineProfile} of the last session. */
+export const OFFLINE_PROFILE_KEY = 'crociata-nera.offline-profile';
+
+/**
+ * What is remembered of the signed-in user to open the clans' pages offline: what the pages and
+ * the guards need, never the token nor the email address.
+ */
+type OfflineProfile = Pick<
+  BackendUser,
+  'id' | 'username' | 'roles' | 'players' | 'emailVerified' | 'clanAccess'
+>;
+
+function saveOfflineProfile(user: BackendUser): void {
+  const { id, username, roles, players, emailVerified, clanAccess } = user;
+  const profile: OfflineProfile = { id, username, roles, players, emailVerified, clanAccess };
+  try {
+    localStorage.setItem(OFFLINE_PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Storage unavailable (private mode, blocked site data): offline the user is signed out.
+  }
+}
+
+function loadOfflineProfile(): BackendUser | null {
+  try {
+    const profile = JSON.parse(
+      localStorage.getItem(OFFLINE_PROFILE_KEY) ?? 'null',
+    ) as OfflineProfile | null;
+    if (!profile || typeof profile.id !== 'string' || typeof profile.username !== 'string')
+      return null;
+    return {
+      ...profile,
+      roles: Array.isArray(profile.roles) ? profile.roles : [],
+      players: Array.isArray(profile.players) ? profile.players : [],
+      emailVerified: profile.emailVerified === true,
+      clanAccess: profile.clanAccess === true,
+      email: '',
+      createdAt: '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function removeOfflineProfile(): void {
+  try {
+    localStorage.removeItem(OFFLINE_PROFILE_KEY);
+  } catch {
+    // Nothing was stored either.
   }
 }
 

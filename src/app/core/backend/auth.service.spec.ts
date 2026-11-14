@@ -4,7 +4,13 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { authInterceptor } from './auth.interceptor';
-import { AuthService, REFRESH_RETRY_DELAY_MS, RESTORE_RETRY_MS, STARTUP_REFRESH_RETRIES } from './auth.service';
+import {
+  AuthService,
+  OFFLINE_PROFILE_KEY,
+  REFRESH_RETRY_DELAY_MS,
+  RESTORE_RETRY_MS,
+  STARTUP_REFRESH_RETRIES,
+} from './auth.service';
 import { AuthResult, BaseResult } from './backend-api.types';
 
 const ok = <T>(result: T): BaseResult<T> => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
@@ -20,6 +26,7 @@ describe('AuthService and authInterceptor', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -32,7 +39,10 @@ describe('AuthService and authInterceptor', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.clear();
+  });
 
   it('signs in, keeps the access token in memory and sends cookies', async () => {
     const user = firstValueFrom(auth.signIn({ identifier: 'alice', password: 'secret123' }));
@@ -215,5 +225,132 @@ describe('AuthService and authInterceptor', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  describe('offline', () => {
+    const member = (token: string): AuthResult => {
+      const result = session(token);
+      return {
+        ...result,
+        user: { ...result.user, clanAccess: true, players: [{ tag: '#AAA', verified: true }] as never },
+      };
+    };
+    const storedProfile = () => JSON.parse(localStorage.getItem(OFFLINE_PROFILE_KEY) ?? 'null');
+
+    function goOffline(): void {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    /** A new visit of the site: same browser storage, new app instance. */
+    function reopenSite() {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(withInterceptors([authInterceptor])),
+          provideHttpClientTesting(),
+          provideCocApiTest({ useMockApi: true }),
+        ],
+      });
+      return {
+        fresh: TestBed.inject(AuthService),
+        mock: TestBed.inject(HttpTestingController),
+        client: TestBed.inject(HttpClient),
+      };
+    }
+
+    async function signInMember(): Promise<void> {
+      const user = firstValueFrom(auth.signIn({ identifier: 'alice', password: 'secret123' }));
+      httpMock.expectOne('/api/v1/auth/sign-in').flush(ok(member('t1')));
+      await user;
+    }
+
+    it('remembers a minimal profile of the signed-in user: no token, no email', async () => {
+      await signInMember();
+      const profile = storedProfile();
+      expect(profile).toEqual({
+        id: '1',
+        username: 'alice',
+        roles: ['USER'],
+        players: [{ tag: '#AAA', verified: true }],
+        emailVerified: false,
+        clanAccess: true,
+      });
+      expect(JSON.stringify(profile)).not.toContain('t1');
+      expect(JSON.stringify(profile)).not.toContain('a@b.io');
+    });
+
+    it('opens the clan pages offline with the remembered user, without waiting for retries', async () => {
+      await signInMember();
+      const { fresh, mock } = reopenSite();
+      goOffline();
+
+      let ready = false;
+      fresh.restoreSession();
+      fresh.whenReady().subscribe(() => (ready = true));
+      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+
+      expect(ready).toBe(true);
+      expect(fresh.isAuthenticated()).toBe(true);
+      expect(fresh.isUnconfirmed()).toBe(true);
+      expect(fresh.hasClanAccess()).toBe(true);
+      expect(fresh.isMyPlayer('#aaa')).toBe(true);
+      expect(fresh.accessToken()).toBeNull();
+      expect(fresh.user()?.email).toBe('');
+
+      // The network is back: the session is confirmed.
+      window.dispatchEvent(new Event('online'));
+      mock.expectOne('/api/v1/auth/refresh').flush(ok(member('t2')));
+      expect(fresh.isUnconfirmed()).toBe(false);
+      expect(fresh.accessToken()).toBe('t2');
+      mock.verify();
+    });
+
+    it('signs out and forgets the profile when the backend rejects the remembered session', async () => {
+      await signInMember();
+      const { fresh, mock, client } = reopenSite();
+      goOffline();
+      fresh.restoreSession();
+      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      expect(fresh.isUnconfirmed()).toBe(true);
+
+      // Back online, a page reads clan data without a token: 401, refresh, rejected.
+      const failed = firstValueFrom(client.get('/api/v1/wars')).catch((e: unknown) => e);
+      const read = mock.expectOne('/api/v1/wars');
+      expect(read.request.headers.has('Authorization')).toBe(false);
+      read.flush(null, { status: 401, statusText: 'Unauthorized' });
+      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+      await failed;
+
+      expect(fresh.isAuthenticated()).toBe(false);
+      expect(localStorage.getItem(OFFLINE_PROFILE_KEY)).toBeNull();
+      mock.verify();
+    });
+
+    it('retries with a fresh token a read made by the remembered user', async () => {
+      await signInMember();
+      const { fresh, mock, client } = reopenSite();
+      goOffline();
+      fresh.restoreSession();
+      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+
+      const body = firstValueFrom(client.get('/api/v1/wars'));
+      mock.expectOne('/api/v1/wars').flush(null, { status: 401, statusText: 'Unauthorized' });
+      mock.expectOne('/api/v1/auth/refresh').flush(ok(member('t3')));
+      const retry = mock.expectOne('/api/v1/wars');
+      expect(retry.request.headers.get('Authorization')).toBe('Bearer t3');
+      retry.flush({ wars: [] });
+      expect(await body).toEqual({ wars: [] });
+      mock.verify();
+    });
+
+    it('forgets the profile at sign-out', async () => {
+      await signInMember();
+      const done = firstValueFrom(auth.signOut());
+      httpMock.expectOne('/api/v1/auth/sign-out').flush(ok(null));
+      await done;
+      expect(localStorage.getItem(OFFLINE_PROFILE_KEY)).toBeNull();
+    });
   });
 });

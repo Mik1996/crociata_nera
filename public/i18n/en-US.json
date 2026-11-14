@@ -19,6 +19,10 @@
       "ready": "A new version of the site is available.",
       "broken": "The site has been updated: reload the page to continue.",
       "reload": "Update"
+    },
+    "offline": {
+      "banner": "You are offline: you are seeing the data saved at your last visit.",
+      "bannerSignedIn": "You are offline: you are seeing the data saved at your last visit. Your sign-in will be checked when the connection is back."
     }
   },
   "language": {
@@ -154,7 +158,8 @@
     "notFound": "Clan or resource not found.",
     "tooManyRequests": "Too many requests: please try again in a moment.",
     "maintenance": "Clash of Clans is under maintenance. Please try again later.",
-    "server": "Something went wrong ({{status}}). Please try again shortly."
+    "server": "Something went wrong ({{status}}). Please try again shortly.",
+    "offline": "You are offline. The data will show up as soon as the connection is back."
   },
   "result": {
     "victory": "Victory",
@@ -431,7 +436,8 @@
       "admin": "Administration"
     },
     "errors": {
-      "backendUnreachable": "Unable to reach the server. Please try again shortly."
+      "backendUnreachable": "Unable to reach the server. Please try again shortly.",
+      "offline": "You are offline: try again when the connection is back."
     },
     "backToSignIn": "Back to sign in",
     "forgot": {

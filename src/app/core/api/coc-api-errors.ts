@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { InterpolationParameters } from '@ngx-translate/core';
 import { Observable, throwError } from 'rxjs';
 import { TranslatableError } from '../i18n/translatable-error';
+import { isOffline } from '../pwa/connectivity';
 import { CocClientError } from './coc-api.types';
 
 /**
@@ -54,6 +55,10 @@ export function toApiError(err: HttpErrorResponse): Observable<never> {
   }
   if (reason === 'proxy.unreachable') {
     return fail('errors.apiUnreachable', 'The proxy cannot reach api.clashofclans.com.');
+  }
+  // No network: the request failed (0), or the service worker had no saved copy of it (504).
+  if ((err.status === 0 || err.status === 504) && isOffline()) {
+    return fail('errors.offline', 'No network connection.');
   }
   if (err.status === 0 || err.status === 502 || err.status === 504 || (err.status === 500 && !body)) {
     return fail('errors.proxyUnreachable', 'Proxy unreachable. Start the backend with “npm run server”.');

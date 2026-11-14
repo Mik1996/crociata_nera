@@ -19,6 +19,10 @@
       "ready": "Hay una nueva versión del sitio disponible.",
       "broken": "El sitio se ha actualizado: recarga la página para continuar.",
       "reload": "Actualizar"
+    },
+    "offline": {
+      "banner": "Estás sin conexión: ves los datos guardados en tu última visita.",
+      "bannerSignedIn": "Estás sin conexión: ves los datos guardados en tu última visita. Tu acceso se verificará cuando vuelva la conexión."
     }
   },
   "language": {
@@ -154,7 +158,8 @@
     "notFound": "Clan o recurso no encontrado.",
     "tooManyRequests": "Demasiadas solicitudes: inténtalo de nuevo en unos instantes.",
     "maintenance": "Clash of Clans está en mantenimiento. Inténtalo más tarde.",
-    "server": "Se ha producido un error ({{status}}). Inténtalo de nuevo en breve."
+    "server": "Se ha producido un error ({{status}}). Inténtalo de nuevo en breve.",
+    "offline": "Estás sin conexión. Los datos aparecerán en cuanto vuelva la conexión."
   },
   "result": {
     "victory": "Victoria",
@@ -431,7 +436,8 @@
       "admin": "Administración"
     },
     "errors": {
-      "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve."
+      "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve.",
+      "offline": "Estás sin conexión: inténtalo de nuevo cuando vuelva la conexión."
     },
     "backToSignIn": "Volver al inicio de sesión",
     "forgot": {

@@ -25,7 +25,25 @@ describe('Shell', () => {
     expect(el.querySelector('a.account')!.getAttribute('href')).toContain('/sign-in');
   });
 
-  it('closes the floating navigation on a page change, keeps the pinned one open', async () => {
+  it('tells when the browser is offline', () => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: false })],
+    });
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.offline-banner')).toBeNull();
+
+    window.dispatchEvent(new Event('offline'));
+    fixture.detectChanges();
+    expect(el.querySelector('.offline-banner')?.textContent).toContain('Sei offline');
+
+    window.dispatchEvent(new Event('online'));
+    fixture.detectChanges();
+    expect(el.querySelector('.offline-banner')).toBeNull();
+  });
+
+    it('closes the floating navigation on a page change, keeps the pinned one open', async () => {
     @Component({ template: '' })
     class Blank {}
     TestBed.configureTestingModule({

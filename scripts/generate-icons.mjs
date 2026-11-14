@@ -88,6 +88,7 @@ const NAMES = [
   'visibility_off',
   'volunteer_activism',
   'warning_amber',
+  'wifi_off',
   'workspace_premium',
 ];
 

@@ -89,6 +89,10 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Material tooltips set `touch-action: none`; a global rule in `styles.scss` restores scrolling.
 - Signed-in user: `AuthService` (`accessToken` in memory, refresh cookie httpOnly). "Your" rows in
   tables: `isMine = inject(AuthService).isMyPlayer` and `[class.cn-row-me]="isMine(row.tag)"`.
+  Offline (backend unreachable) the user of the last session is remembered from a minimal profile in
+  localStorage (no token, no email; `isUnconfirmed()`), confirmed or signed out when the backend
+  answers. Network state: `Connectivity` (`core/pwa/connectivity.ts`): offline banner in the shell,
+  "offline" error messages, `<app-load-state>` retries by itself when the connection comes back.
 - Icons: `<app-icon name="..." />` (`src/app/shared/icon/`), SVGs bundled with the app (no icon
   font). Names are typed: add a new one to `scripts/generate-icons.mjs` and run `npm run icons`.
   Inside Material buttons add `matButtonIcon`, inside menu items `matMenuItemIcon` (projection slots).

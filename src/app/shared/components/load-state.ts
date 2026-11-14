@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Icon } from '../icon/icon';
@@ -15,6 +17,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CREST_URL, ClanBadge } from '../../core/api/clan-badge';
 import { isTranslatableError } from '../../core/i18n/translatable-error';
 import { LanguageService } from '../../core/i18n/language.service';
+import { Connectivity } from '../../core/pwa/connectivity';
 
 /**
  * Extracts a readable message from an unknown error.
@@ -32,7 +35,8 @@ export function errorMessage(
 
 /**
  * Handles loading, error and empty states uniformly.
- * The projected content is shown only when data is available.
+ * The projected content is shown only when data is available. In the error state, `retry` is also
+ * emitted by itself when the network comes back.
  */
 @Component({
   selector: 'app-load-state',
@@ -59,6 +63,18 @@ export class LoadState {
   protected readonly badgeFailed = signal(false);
   protected readonly crestUrl = CLAN_CREST_URL;
   protected readonly crestFailed = signal(false);
+
+  constructor() {
+    const connectivity = inject(Connectivity);
+    let seen = connectivity.reconnections();
+    effect(() => {
+      const reconnections = connectivity.reconnections();
+      if (reconnections === seen) return;
+      seen = reconnections;
+      if (untracked(this.error)) this.retry.emit();
+    });
+  }
+
   protected readonly errorText = computed(() =>
     errorMessage(this.error(), (key, params) =>
       this.language.t(key, params as Record<string, unknown>),

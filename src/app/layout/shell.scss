@@ -225,6 +225,28 @@ mat-sidenav-content {
   outline: none;
 }
 
+// Offline: the pages show the data saved at the last visit.
+.offline-banner {
+  flex: none;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-s;
+  padding: $space-xs $space-m;
+  background: var(--cn-tint-gold);
+  border-bottom: 1px solid var(--cn-gold-dark);
+  color: var(--cn-gold-light);
+  font-size: var(--cn-fs-xs);
+  text-align: center;
+
+  app-icon {
+    font-size: 1.125rem;
+  }
+}
+
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */
 .footer {
   flex: none;

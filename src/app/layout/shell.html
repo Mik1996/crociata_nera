@@ -139,7 +139,7 @@
       >
         <div class="account-menu__header">
           <span class="account-menu__label">{{ 'auth.account.signedInAs' | translate }}</span>
-          <span class="account-menu__email">{{ user.email }}</span>
+          <span class="account-menu__email">{{ user.email || user.username }}</span>
         </div>
         @if (myAccounts().length) {
           <div class="account-menu__players">
@@ -242,6 +242,14 @@
   </ng-template>
 
   <mat-sidenav-content>
+    @if (!connectivity.online()) {
+      <div class="offline-banner" role="status">
+        <app-icon name="wifi_off" />
+        <span>{{
+          (auth.isUnconfirmed() ? 'app.offline.bannerSignedIn' : 'app.offline.banner') | translate
+        }}</span>
+      </div>
+    }
     <main id="content" #content tabindex="-1" class="content">
       <router-outlet />
     </main>

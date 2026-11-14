@@ -24,6 +24,7 @@ import { catchError, filter, forkJoin, map, of } from 'rxjs';
 import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
+import { Connectivity } from '../core/pwa/connectivity';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
@@ -88,6 +89,7 @@ export class Shell {
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
+  protected readonly connectivity = inject(Connectivity);
   private readonly api = inject(CocApiService);
 
   /**

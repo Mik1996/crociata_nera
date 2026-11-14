@@ -9,12 +9,15 @@ const SESSION_PATHS = ['/auth/sign-in', '/auth/sign-up', '/auth/refresh', '/auth
 
 /**
  * Adds `Authorization: Bearer <access token>` to requests for the application backend
- * (never to the Clash of Clans proxy). On a 401 it refreshes the token once and retries.
+ * (never to the Clash of Clans proxy). On a 401 it refreshes the token once and retries (also
+ * without a token, for the user remembered while offline: the network is back).
  * Session endpoints are left alone: retrying a failed refresh with a refresh would loop.
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const backendBaseUrl = inject(APP_CONFIG).backendBaseUrl;
-  const path = request.url.startsWith(`${backendBaseUrl}/`) ? request.url.slice(backendBaseUrl.length) : null;
+  const path = request.url.startsWith(`${backendBaseUrl}/`)
+    ? request.url.slice(backendBaseUrl.length)
+    : null;
   if (path === null || SESSION_PATHS.some((p) => path === p || path.startsWith(`${p}?`))) {
     return next(request);
   }
@@ -23,10 +26,16 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = auth.accessToken();
   return next(withToken(request, token)).pipe(
     catchError((error: unknown) => {
-      if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !token) return throwError(() => error);
-      return auth.refresh().pipe(
-        switchMap((fresh) => (fresh ? next(withToken(request, fresh)) : throwError(() => error))),
-      );
+      // Without a token, a 401 is worth a refresh only for a user remembered while offline.
+      const canRefresh = token !== null || auth.isAuthenticated();
+      if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !canRefresh) {
+        return throwError(() => error);
+      }
+      return auth
+        .refresh()
+        .pipe(
+          switchMap((fresh) => (fresh ? next(withToken(request, fresh)) : throwError(() => error))),
+        );
     }),
   );
 };
