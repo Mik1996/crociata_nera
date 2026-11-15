@@ -108,6 +108,20 @@ describe('war sync', () => {
     expect(await WarModel.findOne({ warKey: WAR_KEY })).toMatchObject({ state: 'warEnded', result: 'win', warLogMatched: false });
   });
 
+  it('matches the war log entry of a war that ended before its scheduled time', async () => {
+    mockCocApi({ '/currentwar': { body: cocWar() } });
+    await syncWars(BATTLE_DAY);
+    // Battle day 2026-11-05T10:00 → 2026-11-06T10:00, all attacks used three hours early.
+    const early = warLogEntry({ endTime: '20261106T070000.000Z' });
+    const otherOpponent = warLogEntry({ endTime: '20261106T070000.000Z', opponent: { tag: '#OTHER', stars: 0, destructionPercentage: 0 } });
+    mockCocApi({ '/currentwar': { body: { state: 'notInWar' } }, '/warlog': { body: { items: [otherOpponent, early] } } });
+
+    const report = await syncWars(AFTER_END);
+
+    expect(report.warLogMatched).toEqual([WAR_KEY]);
+    expect(await WarModel.findOne({ warKey: WAR_KEY })).toMatchObject({ warLogMatched: true, clan: { expEarned: 310 } });
+  });
+
   it('saves nothing when the clan is not at war', async () => {
     const fetchMock = mockCocApi({ '/currentwar': { body: { state: 'notInWar' } } });
     const report = await syncWars(BATTLE_DAY);

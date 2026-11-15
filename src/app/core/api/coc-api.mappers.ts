@@ -247,31 +247,40 @@ export function closeExpiredWars(wars: War[], now: Date): War[] {
 
 /**
  * Merges archived wars (with details) and war log wars (summary only).
- * The same war present in both is recognised by end time + opponent: the archived,
- * more complete version is kept. Result: only ended wars, most recent first.
+ * The same war present in both is recognised by opponent + end time: the war log end must fall
+ * within the archived war's battle day (the two end times can differ by a few seconds, and a war
+ * can end before its scheduled time). The archived, more complete version is kept.
+ * Result: only ended wars, most recent first.
  */
 export function mergeWarHistory(archived: War[], warLog: War[]): War[] {
-  const key = (w: War) => `${w.endTime}|${w.opponent.tag}`;
-  const byKey = new Map<string, War>();
-  for (const w of warLog) byKey.set(key(w), w);
-  for (const w of archived) {
-    const summary = byKey.get(key(w));
+  const summaries = [...warLog];
+  const merged = archived.map((w) => {
+    const index = summaries.findIndex((s) => isSameWar(w, s));
+    if (index < 0) return w;
+    const [summary] = summaries.splice(index, 1);
     // War log totals are final: they take precedence over a possibly stale snapshot.
-    byKey.set(
-      key(w),
-      summary
-        ? {
-            ...w,
-            state: 'ended',
-            clan: { ...w.clan, ...totals(summary.clan) },
-            opponent: { ...w.opponent, ...totals(summary.opponent) },
-          }
-        : w,
-    );
-  }
-  return [...byKey.values()]
+    return {
+      ...w,
+      state: 'ended' as const,
+      clan: { ...w.clan, ...totals(summary.clan) },
+      opponent: { ...w.opponent, ...totals(summary.opponent) },
+    };
+  });
+  return [...merged, ...summaries]
     .filter((w) => w.state === 'ended')
     .sort((a, b) => b.endTime.localeCompare(a.endTime));
+}
+
+/** Tolerance between the end time of a saved war and that of its war log entry. */
+const WAR_END_TOLERANCE_MS = 60_000;
+
+/** A war log entry (summary) describes the archived war: same opponent, end within its battle day. */
+function isSameWar(archived: War, summary: War): boolean {
+  if (!archived.opponent.tag || archived.opponent.tag !== summary.opponent.tag) return false;
+  const end = new Date(archived.endTime).getTime();
+  const start = archived.startTime ? new Date(archived.startTime).getTime() : end - 24 * HOUR_MS;
+  const summaryEnd = new Date(summary.endTime).getTime();
+  return summaryEnd >= start - WAR_END_TOLERANCE_MS && summaryEnd <= end + WAR_END_TOLERANCE_MS;
 }
 
 // --- Player profile ---------------------------------------------------------
