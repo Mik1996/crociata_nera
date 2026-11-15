@@ -20,9 +20,9 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     path: '/cwl/selection',
     operationId: 'getCwlSelection',
     tag: 'CWL',
-    summary: 'Rank the members for the Clan War League line-up',
+    summary: 'Rank the members of the Crusade for the Clan War League line-up',
     description:
-      'Current members of the main clan ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clan, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 25); highest town hall (10). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals (-5). Excluded players keep their place and take no slot.',
+      'Current members of every clan of the Crusade (Crociata Nera, Rossa and d\'Oro) ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher league, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clans, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 20); highest town hall (10); home village league (up to 5: Electro League 31 = 1 … Legend II and I = 5). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals (-5). Excluded players keep their place and take no slot.',
     access: 'leader',
     rateLimit: ApiName.WARS_READ,
     responses: { 200: { description: 'The ranking.', result: CwlSelection } },
@@ -34,7 +34,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Exclude a player from the CWL line-up',
     description:
-      'Excludes a current member of the clan from the Clan War League line-up, with an optional reason (excluding again replaces it). The player stays in the ranking, marked as excluded, and takes no slot.',
+      'Excludes a current member of a clan of the Crusade from the Clan War League line-up, with an optional reason (excluding again replaces it). The player stays in the ranking, marked as excluded, and takes no slot.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: exclusionPath,

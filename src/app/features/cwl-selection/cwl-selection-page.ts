@@ -39,20 +39,32 @@ const ROLES: Record<string, ClanRole> = {
   member: 'member',
 };
 
-/** Parts of the score, in the order of the explanation; the first five fill the score bar. */
+/** Parts of the score, in the order of the explanation; the first six fill the score bar. */
 const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
   'cwlCommendations',
   'cwlPerformance',
   'war',
   'heroes',
   'townHall',
+  'league',
   'missedAttacks',
   'activity',
 ];
-const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 5);
+const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 6);
+/** Parts that come from the last CWL, left out for who was not in its line-up. */
+const CWL_PARTS: readonly (keyof CwlScoreBreakdown)[] = ['cwlCommendations', 'cwlPerformance'];
+/** Highest points of each part of the bar (the wars depend on the player: `war.maxPoints`). */
+const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
+  cwlCommendations: 12,
+  cwlPerformance: 13,
+  heroes: 20,
+  townHall: 10,
+  league: 5,
+};
 
 /**
- * Ranking of the clan members for the CWL line-up (administrators, leaders and co-leaders): always
+ * Ranking of the members of the clans of the Crusade (Crociata Nera, Rossa and d'Oro) for the CWL
+ * line-up (administrators, leaders and co-leaders): always
  * sorted from the best, the 15 starters glow blue and the 3 reserves green. The backend computes
  * the scores; the page explains the rules. Administrators can exclude players, who stay in the
  * ranking marked as excluded.
@@ -138,7 +150,7 @@ export class CwlSelectionPage {
     }).format(new Date(`${season}-01`));
   });
 
-  /** Names of the clans of the Crusade, for the clan a player fought the last CWL with. */
+  /** Names of the clans of the Crusade: the clan of each player and of their last CWL. */
   private readonly clanNames = new Map<string, string>([
     [this.config.clanTag, this.config.clanName],
     ...SISTER_CLANS.map((c) => [c.tag, c.name] as [string, string]),
@@ -158,16 +170,25 @@ export class CwlSelectionPage {
     const number = new Intl.NumberFormat(this.language.current(), {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
-      signDisplay: 'exceptZero',
     });
-    return BREAKDOWN_PARTS.filter((part) => part !== 'missedAttacks' || row.breakdown[part] !== 0)
-      .filter((part) => part !== 'activity' || row.breakdown[part] !== 0)
-      .map((part) => {
-        const label = this.language.t(`cwlSelection.parts.${part}`);
-        const max = part === 'war' ? ` / ${row.war.maxPoints}` : '';
-        return `${label}: ${number.format(row.breakdown[part])}${max}`;
-      })
-      .join('\n');
+    const maxPoints: Partial<Record<keyof CwlScoreBreakdown, number>> = {
+      ...PART_MAX_POINTS,
+      war: row.war.maxPoints,
+    };
+    return (
+      BREAKDOWN_PARTS
+        // Not in the last CWL: its parts are 0 (and its points moved to the wars).
+        .filter((part) => row.cwl || !CWL_PARTS.includes(part))
+        // Penalties only when there are any.
+        .filter((part) => maxPoints[part] !== undefined || row.breakdown[part] !== 0)
+        .map((part) => {
+          const label = this.language.t(`cwlSelection.parts.${part}`);
+          const max = maxPoints[part];
+          const total = max === undefined ? '' : ` / ${max}`;
+          return `${label}: ${number.format(row.breakdown[part])}${total}`;
+        })
+        .join('\n')
+    );
   }
 
   /** Tooltip of the "excluded" label: reason, who and when. */

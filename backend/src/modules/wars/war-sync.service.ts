@@ -24,6 +24,8 @@ export interface WarSyncReport {
 const WAR_LOG_LOOKBACK_MS = 14 * 24 * 60 * 60 * 1000;
 /** Read again this long after a war's end time, when the API already shows `warEnded`. */
 const AFTER_END_DELAY_MS = 60 * 1000;
+/** Tolerance between the end time of a saved war and that of its war log entry. */
+const WAR_END_TOLERANCE_MS = 60 * 1000;
 
 /**
  * One run of the war sync:
@@ -120,8 +122,12 @@ async function matchWarLog(clanTag: string, now: Date): Promise<string[]> {
 
   const matched: string[] = [];
   for (const war of pending) {
+    // The log's end time can differ by a few seconds, or come earlier when the war ends early.
     const entry = entries.find(
-      (e) => e.opponent.tag === war.opponent.tag && Math.abs(e.endTime.getTime() - war.endTime.getTime()) < 60_000,
+      (e) =>
+        e.opponent.tag === war.opponent.tag &&
+        e.endTime.getTime() >= war.startTime.getTime() - WAR_END_TOLERANCE_MS &&
+        e.endTime.getTime() <= war.endTime.getTime() + WAR_END_TOLERANCE_MS,
     );
     if (!entry) continue;
 

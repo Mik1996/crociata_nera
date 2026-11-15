@@ -12,7 +12,13 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
     rank,
     tag: `#P${rank}`,
     name: `Player ${rank}`,
+    // '#TEST' is the main clan of the test configuration.
+    clanTag: rank === 6 ? '#2RRYUGQYJ' : '#TEST',
     role: rank === 1 ? 'coLeader' : 'member',
+    league:
+      rank === 7
+        ? null
+        : { id: 105000030 - rank, name: `League ${rank}`, iconUrl: `https://x.io/l${rank}.png` },
     townHallLevel: status === 'ineligible' ? 15 : 17,
     eligible: status !== 'ineligible' && status !== 'excluded',
     status,
@@ -23,6 +29,7 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
       war: 20,
       heroes: 12,
       townHall: 10,
+      league: 4,
       missedAttacks: rank === 2 ? -3 : 0,
       activity: rank === 5 ? -5 : 0,
     },
@@ -135,9 +142,22 @@ describe('CwlSelectionPage', () => {
     expect(rows[3].textContent).toContain('In attesa');
     expect(rows[0].textContent).toContain('92%');
     // The score explains its parts.
-    expect(rows[1].querySelector('.score')!.getAttribute('aria-label')).toContain(
-      'Attacchi saltati ultima CWL: -3,0',
-    );
+    const score = rows[1].querySelector('.score')!.getAttribute('aria-label');
+    expect(score).toContain('Attacchi saltati ultima CWL: -3,0');
+    expect(score).toContain('Lega: 4,0 / 5');
+    expect(score).toContain('Eroi: 12,0 / 20');
+    expect(rows[1].querySelector('.score__part--league')).not.toBeNull();
+  });
+
+  it('shows the clan of the Crusade and the league of each player', async () => {
+    const { el } = await render();
+    const rows = el.querySelectorAll('tr.mat-mdc-row');
+    expect(rows[0].querySelector('.meta')!.textContent).toContain('Crociata Nera');
+    expect(rows[5].querySelector('.meta')!.textContent).toContain("Crociata d'Oro");
+    const icon = rows[0].querySelector<HTMLImageElement>('.league-icon')!;
+    expect(icon.getAttribute('src')).toBe('https://x.io/l1.png');
+    expect(icon.alt).toBe('League 1');
+    expect(rows[6].querySelector('.league-icon')).toBeNull();
   });
 
   it('explains the eligible town halls and the data considered', async () => {

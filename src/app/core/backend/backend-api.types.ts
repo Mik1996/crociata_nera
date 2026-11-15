@@ -172,24 +172,33 @@ export interface CwlScoreBreakdown {
   cwlPerformance: number;
   /** 0–40, or 0–65 for who was not in the last CWL (`war.maxPoints`). */
   war: number;
-  /** 0–25. */
+  /** 0–20. */
   heroes: number;
-  /** 10 for the highest town hall of the clan, else 0. */
+  /** 10 for the highest town hall of the clans, else 0. */
   townHall: number;
+  /** Home village league: Electro League 31 = 1 … Legend II and I = 5. */
+  league: number;
   /** League attacks missed in the last CWL, -15–0. */
   missedAttacks: number;
   /** New arrival, -5 or 0. */
   activity: number;
 }
 
-/** A current member of the clan in the ranking for the CWL line-up (`GET /cwl/selection`). */
+/**
+ * A current member of a clan of the Crusade in the ranking for the CWL line-up
+ * (`GET /cwl/selection`).
+ */
 export interface CwlSelectionPlayer {
   rank: number;
   tag: string;
   name: string;
+  /** Clan of the Crusade the player is in. */
+  clanTag: string;
   role: string | null;
+  /** Home village league (`leagueTier`, higher id = higher league); `null` when unknown. */
+  league: { id: number; name: string; iconUrl: string | null } | null;
   townHallLevel: number | null;
-  /** Town hall at most one level below the highest of the clan, and not excluded. */
+  /** Town hall at most one level below the highest of the clans, and not excluded. */
   eligible: boolean;
   status: CwlSelectionStatus;
   /** 0–100: the parts of `breakdown` added up, never below 0. */
@@ -222,7 +231,7 @@ export interface CwlSelectionPlayer {
   exclusion: CwlExclusion | null;
 }
 
-/** Ranking of the clan members for the CWL line-up, best first. */
+/** Ranking of the members of the clans of the Crusade for the CWL line-up, best first. */
 export interface CwlSelection {
   generatedAt: string;
   starters: number;

@@ -3,6 +3,9 @@ import { afterNextRender, DestroyRef, Directive, ElementRef, inject, NgZone } fr
 /** Name of the scroll timeline set on the scrolling area of every table (see `styles.scss`). */
 const TIMELINE = '--cn-table-scroll';
 
+/** The stuck header sits this many pixels above the top of the area, so no row peeks above it. */
+const STUCK_OVERLAP = 1;
+
 /**
  * Sticky table header for every table wrapper (`.cn-table-wrap`): while the table scrolls, its
  * header row stays at the top of the scrolling area (page, tab or main content), so the columns
@@ -69,7 +72,7 @@ export class StickyTableHeader {
 
     const scroller = scrollingAncestor(this.element);
     const area = scroller ?? document.documentElement;
-    const top = scroller ? scroller.getBoundingClientRect().top : 0;
+    const top = (scroller ? scroller.getBoundingClientRect().top : 0) - STUCK_OVERLAP;
     const table = this.element.getBoundingClientRect();
     const header = headerRow.getBoundingClientRect().height;
     const lastRow =

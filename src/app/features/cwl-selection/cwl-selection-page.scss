@@ -196,6 +196,36 @@
   opacity: 0.55;
 }
 
+// Player cell: home village league (breaks the ties after the town hall) on the left of the name.
+.player {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+}
+
+.player__league {
+  flex: none;
+  width: 2rem;
+}
+
+.player__info {
+  min-width: 0;
+}
+
+.league-icon {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  border-radius: $radius-m;
+  filter: drop-shadow(0 2px 2px palette.alpha(var(--cn-shadow), 35%));
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold-light);
+    outline-offset: 2px;
+  }
+}
+
 // Score bar: one segment per part of the score (out of 100), penalties excluded.
 .score {
   display: flex;
@@ -232,6 +262,10 @@
 
   &--townHall {
     background: var(--cn-text-muted);
+  }
+
+  &--league {
+    background: var(--cn-score-league);
   }
 }
 

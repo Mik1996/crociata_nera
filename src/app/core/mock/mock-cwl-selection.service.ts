@@ -15,7 +15,7 @@ import { Random } from './random';
 const STARTERS = 15;
 const RESERVES = 3;
 const DAY = 86_400_000;
-/** Order of the roles on equal score and town hall (same as the backend). */
+/** Order of the roles on equal score, town hall and league (same as the backend). */
 const ROLE_ORDER: readonly ClanMember['role'][] = ['leader', 'coLeader', 'elder', 'member'];
 const API_ROLES: Record<ClanMember['role'], string> = {
   leader: 'leader',
@@ -25,8 +25,8 @@ const API_ROLES: Record<ClanMember['role'], string> = {
 };
 
 /**
- * Demo ranking for the CWL line-up, made up from the mock clan members (same ordering rules as the
- * backend, random results). Exclusions are kept in memory until the page is reloaded.
+ * Demo ranking for the CWL line-up, made up from the mock clan members, spread over the clans of
+ * the Crusade (same ordering rules as the backend, random results). Exclusions are kept in memory until the page is reloaded.
  */
 @Injectable()
 export class MockCwlSelectionService extends CwlSelectionService {
@@ -51,7 +51,7 @@ export class MockCwlSelectionService extends CwlSelectionService {
   }
 }
 
-/** Clans where the mock players fought the last CWL. */
+/** Clans of the Crusade: where the mock players are and fought the last CWL. */
 const CWL_CLANS = ['#2J8JVVCLC', '#2JU8RPR2G', '#2RRYUGQYJ'];
 
 export function mockSelection(
@@ -73,6 +73,8 @@ export function mockSelection(
     const heroes = random.chance(0.9)
       ? { levels: round(55 + strength * 45), equipment: round(40 + strength * 60) }
       : null;
+    // Mostly in Crociata Nera, some in Crociata Rossa and d'Oro.
+    const clanTag = random.chance(0.6) ? CWL_CLANS[0] : random.pick(CWL_CLANS.slice(1));
     const joinedAt = random.chance(0.1) ? new Date(now.getTime() - random.int(1, 13) * DAY) : null;
     const newcomer = joinedAt !== null;
 
@@ -117,15 +119,18 @@ export function mockSelection(
           )
         : 0,
       heroes: heroes
-        ? round(25 * ((2 / 3) * (heroes.levels / 100) + (1 / 3) * (heroes.equipment / 100)))
+        ? round(20 * ((2 / 3) * (heroes.levels / 100) + (1 / 3) * (heroes.equipment / 100)))
         : 0,
       townHall: m.townHall === maxTownHall ? 10 : 0,
+      // 1 point per league tier above Dragon League 30, at most 5 (same as the backend).
+      league: m.league ? Math.max(0, Math.min(5, m.league.id - 105_000_030)) : 0,
       missedAttacks: cwl ? -Math.min(15, cwl.missed * 3) : 0,
       activity: newcomer ? -5 : 0,
     };
     const total = Object.values(breakdown).reduce((sum, part) => sum + part, 0);
     return {
       member: m,
+      clanTag,
       townHallOk,
       score: Math.max(0, Math.min(100, total)),
       breakdown,
@@ -147,6 +152,7 @@ export function mockSelection(
       Number(b.townHallOk) - Number(a.townHallOk) ||
       b.score - a.score ||
       b.member.townHall - a.member.townHall ||
+      (b.member.league?.id ?? 0) - (a.member.league?.id ?? 0) ||
       ROLE_ORDER.indexOf(a.member.role) - ROLE_ORDER.indexOf(b.member.role) ||
       a.member.name.localeCompare(b.member.name),
   );
@@ -169,7 +175,15 @@ export function mockSelection(
       rank: index + 1,
       tag: s.member.tag,
       name: s.member.name,
+      clanTag: s.clanTag,
       role: API_ROLES[s.member.role],
+      league: s.member.league
+        ? {
+            id: s.member.league.id,
+            name: s.member.league.name,
+            iconUrl: s.member.league.iconUrl ?? null,
+          }
+        : null,
       townHallLevel: s.member.townHall,
       eligible: s.townHallOk && !exclusion,
       status,

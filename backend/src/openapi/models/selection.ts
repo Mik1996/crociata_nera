@@ -26,14 +26,23 @@ export const CwlExclusionResult = model(
 
 const SelectionPlayer = model(
   'CwlSelectionPlayer',
-  'A current member of the clan in the ranking for the Clan War League line-up.',
+  'A current member of a clan of the Crusade in the ranking for the Clan War League line-up.',
   z.strictObject({
     rank: z.number().int().min(1).describe('Position in the ranking (1 = best).'),
     tag: tag('Player.'),
     name: z.string().describe('In-game name.'),
+    clanTag: tag('Clan of the Crusade the player is in.'),
     role: z.string().nullable().describe('Clan role: `member`, `admin` (elder), `coLeader` or `leader`; `null` when unknown.'),
+    league: z
+      .strictObject({
+        id: z.number().int().describe('League id (`leagueTier`): higher ids are higher leagues.'),
+        name: z.string().describe('League name, in English.'),
+        iconUrl: z.string().nullable().describe('Official icon; `null` when not known.'),
+      })
+      .nullable()
+      .describe('Home village league; `null` when unknown or unranked.'),
     townHallLevel: z.number().int().nullable().describe('Town hall level; `null` when unknown.'),
-    eligible: z.boolean().describe('Town hall at most one level below the highest of the clan, and not excluded.'),
+    eligible: z.boolean().describe('Town hall at most one level below the highest of the clans, and not excluded.'),
     status: z
       .enum(['starter', 'reserve', 'bench', 'ineligible', 'excluded'])
       .describe(
@@ -45,8 +54,9 @@ const SelectionPlayer = model(
         cwlCommendations: points('Commendations of the last CWL (Certezza di Lega, Guerriero / Campione / Leggenda di Lega), 0–12.'),
         cwlPerformance: points('Stars per attack and destruction in the league wars of the last CWL, 0–13.'),
         war: points('Regular wars of the window, 0–40; 0–65 for who was not in the last CWL (see `war.maxPoints`).'),
-        heroes: points('Hero levels and equipped hero equipment, 0–25.'),
-        townHall: points('10 for the highest town hall of the clan, else 0.'),
+        heroes: points('Hero levels and equipped hero equipment, 0–20.'),
+        townHall: points('10 for the highest town hall of the clans, else 0.'),
+        league: points('Home village league, 0–5: Electro League 31 = 1, 32 = 2, 33 = 3, Legend III = 4, Legend II and I = 5, lower leagues 0.'),
         missedAttacks: points('Penalty for the league attacks missed in the last CWL, -15–0.'),
         activity: points('Penalty for a new arrival in the clans of the Crusade (-5), else 0.'),
       })
@@ -93,12 +103,12 @@ const SelectionPlayer = model(
 
 export const CwlSelection = model(
   'CwlSelection',
-  'Ranking of the clan members for the Clan War League line-up, best first: players with an eligible town hall by score, then the others.',
+  'Ranking of the members of the clans of the Crusade for the Clan War League line-up, best first: players with an eligible town hall by score (ties: town hall, league, role), then the others.',
   z.strictObject({
     generatedAt: dateTime('When the ranking was computed.'),
     starters: z.number().int().describe('Players in the line-up (15).'),
     reserves: z.number().int().describe('Reserves (3).'),
-    maxTownHall: z.number().int().nullable().describe('Highest town hall of the clan; `null` without members.'),
+    maxTownHall: z.number().int().nullable().describe('Highest town hall of the clans of the Crusade; `null` without members.'),
     minEligibleTownHall: z.number().int().nullable().describe('Lowest eligible town hall; `null` without members.'),
     cwlSeason: month('Season, `YYYY-MM`.').nullable().describe('Last ended CWL season of the clans of the Crusade; `null` if none was saved.'),
     warWindow: z

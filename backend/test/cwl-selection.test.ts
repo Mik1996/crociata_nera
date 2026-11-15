@@ -16,6 +16,7 @@ import {
   cwlPerformanceScore,
   heroRatios,
   heroScore,
+  leagueScore,
   LastCwl,
   missedAttacksPenalty,
   MISSED_ATTACKS_MAX_PENALTY,
@@ -52,7 +53,9 @@ function candidate(tag: string, townHallLevel: number | null, overrides: Partial
   return {
     tag,
     name: tag,
+    clanTag: NERA,
     role: 'member',
+    league: null,
     townHallLevel,
     war: NO_WAR,
     cwl: null,
@@ -84,7 +87,7 @@ const MAXED_HEROES = { heroes: [{ name: 'Barbarian King', level: 100, maxLevel: 
 describe('CWL line-up scores', () => {
   it('splits the 25 points of the last CWL between its commendations and its attacks', () => {
     expect(POINTS.cwlCommendations + POINTS.cwlPerformance).toBe(25);
-    expect(POINTS.cwlCommendations + POINTS.cwlPerformance + POINTS.war + POINTS.heroes + POINTS.townHall).toBe(100);
+    expect(POINTS.cwlCommendations + POINTS.cwlPerformance + POINTS.war + POINTS.heroes + POINTS.townHall + POINTS.league).toBe(100);
     expect(cwlCommendationScore(lastCwl())).toBeCloseTo(POINTS.cwlCommendations);
     expect(cwlCommendationScore(null)).toBe(0);
     const tier = (striker: LastCwl['striker']) => cwlCommendationScore(lastCwl({ allAttacks: false, striker }));
@@ -120,15 +123,29 @@ describe('CWL line-up scores', () => {
 
   it('lets a perfect player reach 100, with or without the last CWL', () => {
     const maxLevels = new Map([['Barbarian King', 100]]);
+    const league = { id: 105_000_036, name: 'Legend I', iconUrl: null };
     const { rows } = rankCandidates(
       [
-        candidate('#CWL', 17, { cwl: lastCwl(), war: FLAWLESS_WAR, ...MAXED_HEROES }),
-        candidate('#NOCWL', 17, { war: FLAWLESS_WAR, ...MAXED_HEROES }),
+        candidate('#CWL', 17, { cwl: lastCwl(), war: FLAWLESS_WAR, league, ...MAXED_HEROES }),
+        candidate('#NOCWL', 17, { war: FLAWLESS_WAR, league, ...MAXED_HEROES }),
       ],
       { ...CONTEXT, heroMaxLevels: maxLevels },
     );
     expect(rows.map((r) => r.score)).toEqual([100, 100]);
     expect(rows.find((r) => r.tag === '#NOCWL')).toMatchObject({ cwl: null, war: { maxPoints: 65 }, breakdown: { war: 65, cwlCommendations: 0 } });
+  });
+
+  it('gives 1 point per league tier from Electro League 31, up to 5 for Legend II and I', () => {
+    const league = (id: number) => leagueScore({ id, name: `${id}`, iconUrl: null });
+    expect(leagueScore(null)).toBe(0);
+    expect(league(105_000_000)).toBe(0); // Unranked
+    expect(league(105_000_030)).toBe(0); // Dragon League 30
+    expect(league(105_000_031)).toBe(1); // Electro League 31
+    expect(league(105_000_032)).toBe(2);
+    expect(league(105_000_033)).toBe(3);
+    expect(league(105_000_034)).toBe(4); // Legend III
+    expect(league(105_000_035)).toBe(POINTS.league); // Legend II
+    expect(league(105_000_036)).toBe(POINTS.league); // Legend I
   });
 
   it('compares heroes and equipment with the highest levels of the game', () => {
@@ -170,6 +187,24 @@ describe('CWL line-up scores', () => {
     expect(byTag.get('#NEW')!.activity).toMatchObject({ newcomer: true });
     expect(byTag.get('#NEW')!.breakdown.activity).toBe(-5);
     expect(byTag.get('#OLD')!.breakdown.activity).toBe(0);
+  });
+
+  it('breaks an exact tie with the league, then the role', () => {
+    const league = (id: number) => ({ id, name: `League ${id}`, iconUrl: null });
+    const { rows } = rankCandidates(
+      [
+        candidate('#AAA', 17, { name: 'Aaron', role: 'leader', league: league(105000010) }),
+        candidate('#BBB', 17, { name: 'Bea', role: 'member', league: league(105000020) }),
+        candidate('#CCC', 17, { name: 'Cleo', role: 'coLeader', league: null }),
+        candidate('#DDD', 17, { name: 'Dan', role: 'member', league: league(105000010) }),
+        // A higher score still comes first, whatever the league.
+        candidate('#FFF', 17, { name: 'Finn', role: 'member', league: null, war: FLAWLESS_WAR }),
+      ],
+      CONTEXT,
+    );
+    // Leagues first (higher id first, unknown last), then the role among equal leagues.
+    expect(rows.map((r) => r.tag)).toEqual(['#FFF', '#BBB', '#AAA', '#DDD', '#CCC']);
+    expect(rows[1]!.league).toEqual(league(105000020));
   });
 
   it('breaks an exact tie with the role: leader, co-leader, elder, member', () => {
@@ -254,7 +289,7 @@ describe('GET /cwl/selection', () => {
   });
 
 
-  it('ranks the members of the main clan on the last CWL of any clan, recent wars, heroes and town hall', async () => {
+  it('ranks the members of every clan of the Crusade on the last CWL of any clan, recent wars, heroes and town hall', async () => {
     await seedCrusadeRosters([], ['#LEADER']);
     const token = await register('leader', ['#LEADER']);
     const now = new Date();
@@ -280,7 +315,15 @@ describe('GET /cwl/selection', () => {
         heroes: [{ name: 'Barbarian King', level: 100, maxLevel: 100 }],
         equipment: [],
       },
-      { tag: '#RED444', name: 'Red', role: 'member', clanTag: ROSSA, townHallLevel: 17, inClan: true },
+      {
+        tag: '#RED444',
+        name: 'Red',
+        role: 'member',
+        clanTag: ROSSA,
+        townHallLevel: 17,
+        inClan: true,
+        league: { id: 105000034, name: 'Legend III', iconUrl: 'https://x.io/legend.png' },
+      },
       { tag: '#OLD555', name: 'Gone', role: 'member', clanTag: NERA, townHallLevel: 17, inClan: false },
     ]);
     const leagueWar = (clanTag: string, members: { tag: string; attacks?: { stars: number; destructionPercentage: number }[] }[]) => ({
@@ -353,9 +396,16 @@ describe('GET /cwl/selection', () => {
       cwlSeason: '2026-10',
       warWindow: { days: 90, wars: 1 },
     });
-    // Red is in Crociata Rossa: not a candidate for the line-up of Nera.
-    expect(result.players.map((p: { tag: string }) => p.tag)).toEqual(['#CCC333', '#AAA111', '#AAA222']);
-    const [carol, alice, bob] = result.players;
+    // Every clan of the Crusade: Red is in Crociata Rossa; Gone has left.
+    expect(result.players.map((p: { tag: string }) => p.tag)).toEqual(['#CCC333', '#AAA111', '#RED444', '#AAA222']);
+    const [carol, alice, red, bob] = result.players;
+    expect(red).toMatchObject({
+      clanTag: ROSSA,
+      status: 'starter',
+      league: { id: 105000034, name: 'Legend III', iconUrl: 'https://x.io/legend.png' },
+      breakdown: { townHall: 10, league: 4 },
+    });
+    expect(carol).toMatchObject({ clanTag: NERA, league: null });
     expect(carol).toMatchObject({
       rank: 1,
       status: 'starter',
@@ -421,8 +471,8 @@ describe('exclusions from the CWL line-up', () => {
     await PlayerModel.create({ tag: '#GONE11', name: 'Gone', townHallLevel: 17, inClan: false });
     await PlayerModel.create({ tag: '#RED111', name: 'Red', clanTag: ROSSA, townHallLevel: 17, inClan: true });
     expect((await call(exclude, { token, params: { tag: 'GONE11' }, body: {} })).status).toBe(404);
-    // Excluded from the line-up of Nera: only its members.
-    expect((await call(exclude, { token, params: { tag: 'RED111' }, body: {} })).status).toBe(404);
+    // Members of the other clans of the Crusade are candidates too.
+    expect((await call(exclude, { token, params: { tag: 'RED111' }, body: {} })).status).toBe(200);
     expect((await call(exclude, { token, params: { tag: 'NOPE11' }, body: {} })).status).toBe(404);
     const invalid = await call(exclude, { token, params: { tag: 'x' }, body: {} });
     expect(invalid.status).toBe(400);

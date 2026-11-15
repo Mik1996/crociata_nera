@@ -181,6 +181,26 @@ describe('coc-api mappers', () => {
       expect(result[1].hasDetails).toBe(false);
     });
 
+    it('mergeWarHistory keeps one row when the war log end time differs from the saved one', () => {
+      const archived = sampleWar({ endTime: '2026-10-03T09:00:00.000Z' });
+      archived.opponent.tag = '#OPP';
+      const seconds = mapWarLogEntry({ ...entry, endTime: '20261003T090026.000Z' })!;
+      expect(mergeWarHistory([archived], [seconds]).map((w) => w.hasDetails)).toEqual([true]);
+      // War ended before its scheduled time.
+      const early = mapWarLogEntry({ ...entry, endTime: '20261002T213000.000Z' })!;
+      expect(mergeWarHistory([archived], [early]).map((w) => w.hasDetails)).toEqual([true]);
+    });
+
+    it('mergeWarHistory does not merge wars against other clans or outside the battle day', () => {
+      const archived = sampleWar({ endTime: '2026-10-03T09:00:00.000Z' });
+      archived.opponent.tag = '#OPP';
+      const otherClan = mapWarLogEntry({ ...entry, opponent: { ...entry.opponent, tag: '#OTHER' } })!;
+      const rematch = mapWarLogEntry({ ...entry, endTime: '20261005T090000.000Z' })!;
+      const result = mergeWarHistory([archived], [otherClan, rematch]);
+      expect(result).toHaveLength(3);
+      expect(result.filter((w) => w.hasDetails)).toHaveLength(1);
+    });
+
     it('closeExpiredWars closes only wars whose end time has passed', () => {
       const now = new Date('2026-10-05T00:00:00.000Z');
       const expired = sampleWar({ state: 'battle', endTime: '2026-10-03T09:00:00.000Z' });
