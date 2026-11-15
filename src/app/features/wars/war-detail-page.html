@@ -1,76 +1,79 @@
-<crn-page-header
-  scene="war"
-  [kicker]="'kicker.war' | translate"
-  [title]="
-    war()
-      ? ('warDetail.versus' | translate: { name: war()!.opponent.name })
-      : ('nav.warDetail' | translate)
-  "
-  [subtitle]="'warDetail.subtitle' | translate"
->
-  <a mat-stroked-button routerLink="/wars">
-    <crn-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
-  </a>
-</crn-page-header>
-
-<div crnScrollFade class="page__scroll">
-  <crn-load-state
-    [loading]="resource.isLoading()"
-    [error]="resource.error()"
-    [empty]="!war()"
-    emptyIcon="search_off"
-    [emptyMessage]="'warDetail.notFound' | translate"
-    (retry)="resource.reload()"
+<div crnScrollFade class="page__scroll page__scroll--bleed">
+  <crn-page-header
+    flush
+    scene="war"
+    [kicker]="'kicker.war' | translate"
+    [title]="
+      war()
+        ? ('warDetail.versus' | translate: { name: war()!.opponent.name })
+        : ('nav.warDetail' | translate)
+    "
+    [subtitle]="'warDetail.subtitle' | translate"
   >
-    @if (war(); as w) {
-      <section class="cn-card cn-section" [attr.aria-label]="'common.battleSummary' | translate">
-        <crn-war-summary [war]="w" />
-      </section>
+    <a mat-stroked-button routerLink="/wars">
+      <crn-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
+    </a>
+  </crn-page-header>
 
-      @if (!w.hasDetails) {
-        <section class="cn-card cn-section notice" role="note">
-          <crn-icon name="info" />
-          <div>
-            <h2>{{ 'warDetail.noticeTitle' | translate }}</h2>
-            <p class="cn-muted">{{ 'warDetail.noticeText' | translate }}</p>
+  <div class="page__body">
+    <crn-load-state
+      [loading]="resource.isLoading()"
+      [error]="resource.error()"
+      [empty]="!war()"
+      emptyIcon="search_off"
+      [emptyMessage]="'warDetail.notFound' | translate"
+      (retry)="resource.reload()"
+    >
+      @if (war(); as w) {
+        <section class="cn-card cn-section" [attr.aria-label]="'common.battleSummary' | translate">
+          <crn-war-summary [war]="w" />
+        </section>
+
+        @if (!w.hasDetails) {
+          <section class="cn-card cn-section notice" role="note">
+            <crn-icon name="info" />
+            <div>
+              <h2>{{ 'warDetail.noticeTitle' | translate }}</h2>
+              <p class="cn-muted">{{ 'warDetail.noticeText' | translate }}</p>
+            </div>
+          </section>
+        }
+
+        @if (kpi(); as k) {
+          <div class="cn-grid-kpi">
+            <crn-kpi-card
+              [image]="GAME_ICONS.star"
+              [label]="'common.averageStars' | translate"
+              [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
+              [hint]="'common.perAttack' | translate"
+            />
+            <crn-kpi-card
+              [image]="GAME_ICONS.star"
+              [imageTriangle]="true"
+              [label]="'common.threeStarAttacks' | translate"
+              [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
+            />
+            <crn-kpi-card
+              icon="groups"
+              [label]="'common.participation' | translate"
+              [value]="(k.participation | localNumber: '1.0-0') + '%'"
+              [hint]="'warDetail.participationHint' | translate"
+            />
           </div>
-        </section>
-      }
+        }
 
-      @if (kpi(); as k) {
-        <div class="cn-grid-kpi">
-          <crn-kpi-card
-            [image]="GAME_ICONS.star"
-            [label]="'common.averageStars' | translate"
-            [value]="(k.averageStars | localNumber: '1.2-2') ?? '0'"
-            [hint]="'common.perAttack' | translate"
-          />
-          <crn-kpi-card
-            [image]="GAME_ICONS.star"
-            [imageTriangle]="true"
-            [label]="'common.threeStarAttacks' | translate"
-            [value]="(k.threeStarRate | localNumber: '1.0-1') + '%'"
-          />
-          <crn-kpi-card
-            icon="groups"
-            [label]="'common.participation' | translate"
-            [value]="(k.participation | localNumber: '1.0-0') + '%'"
-            [hint]="'warDetail.participationHint' | translate"
-          />
-        </div>
+        @if (w.hasDetails) {
+          <section class="cn-card cn-section" aria-labelledby="performance-title">
+            <h2 id="performance-title">{{ 'warDetail.performance' | translate }}</h2>
+            <crn-war-participants-table
+              [rows]="rows()"
+              [attacksPerMember]="w.attacksPerMember"
+              [inProgress]="w.state !== 'ended'"
+              [preparation]="w.state === 'preparation'"
+            />
+          </section>
+        }
       }
-
-      @if (w.hasDetails) {
-        <section class="cn-card cn-section" aria-labelledby="performance-title">
-          <h2 id="performance-title">{{ 'warDetail.performance' | translate }}</h2>
-          <crn-war-participants-table
-            [rows]="rows()"
-            [attacksPerMember]="w.attacksPerMember"
-            [inProgress]="w.state !== 'ended'"
-            [preparation]="w.state === 'preparation'"
-          />
-        </section>
-      }
-    }
-  </crn-load-state>
+    </crn-load-state>
+  </div>
 </div>

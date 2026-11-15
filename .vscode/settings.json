@@ -19,7 +19,8 @@
     "war",
     "icons",
     "table",
-    "cwl"
+    "cwl",
+    "UI"
   ],
   "i18n-ally.localesPaths": ["public/i18n"],
   "i18n-ally.enabledFrameworks": ["ngx-translate"],
