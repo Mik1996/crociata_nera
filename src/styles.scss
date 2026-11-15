@@ -517,8 +517,9 @@ mat-sidenav-content > .content:has(> .page--immersive) {
     backdrop-filter: blur(0.1875rem);
   }
 
+  // The bands stick a hairline past the edges, so no sliver of content shows beyond them.
   &::before {
-    top: 0;
+    top: -0.0625rem;
     // The band overlays the content, less `--cn-fade-gap` (room kept above the first element).
     margin-bottom: calc(var(--cn-fade-gap, 0rem) - var(--cn-fade-size));
     background: linear-gradient(
@@ -530,7 +531,7 @@ mat-sidenav-content > .content:has(> .page--immersive) {
   }
 
   &::after {
-    bottom: 0;
+    bottom: -0.0625rem;
     margin-top: calc(-1 * var(--cn-fade-size));
     background: linear-gradient(
       to top,
