@@ -651,7 +651,7 @@ table tr.cn-row-me.mat-mdc-row {
 /*
  * Score breakdown of the CWL selection (`cn-tooltip-lines cn-tooltip-score`): one line per part,
  * never wrapped, each starting with a dot in the colour of its segment of the score bar (same
- * order: CWL commendations, CWL performance, wars, heroes, town hall; the CWL lines are left out
+ * order: CWL commendations, CWL performance, wars, heroes, town hall, league; the CWL lines are left out
  * with `cn-tooltip-score--no-cwl`). Material tooltips take
  * plain text only, so the dots are drawn as backgrounds, one per line (line height fixed in em).
  */
@@ -689,6 +689,11 @@ table tr.cn-row-me.mat-mdc-row {
         circle,
         var(--cn-text-muted) var(--cn-tooltip-dot),
         transparent calc(var(--cn-tooltip-dot) + 0.05em)
+      ),
+      radial-gradient(
+        circle,
+        var(--cn-score-league) var(--cn-tooltip-dot),
+        transparent calc(var(--cn-tooltip-dot) + 0.05em)
       );
     background-repeat: no-repeat;
     background-size: var(--cn-tooltip-line) var(--cn-tooltip-line);
@@ -698,7 +703,8 @@ table tr.cn-row-me.mat-mdc-row {
       -1.5em calc(1 * var(--cn-tooltip-line)),
       -1.5em calc(2 * var(--cn-tooltip-line)),
       -1.5em calc(3 * var(--cn-tooltip-line)),
-      -1.5em calc(4 * var(--cn-tooltip-line));
+      -1.5em calc(4 * var(--cn-tooltip-line)),
+      -1.5em calc(5 * var(--cn-tooltip-line));
   }
 
   // Not in the last CWL: no CWL lines, so the first two dots go and the others move up.
@@ -708,13 +714,15 @@ table tr.cn-row-me.mat-mdc-row {
       0 0,
       var(--cn-tooltip-line) var(--cn-tooltip-line),
       var(--cn-tooltip-line) var(--cn-tooltip-line),
+      var(--cn-tooltip-line) var(--cn-tooltip-line),
       var(--cn-tooltip-line) var(--cn-tooltip-line);
     background-position:
       -1.5em 0,
       -1.5em 0,
       -1.5em 0,
       -1.5em calc(1 * var(--cn-tooltip-line)),
-      -1.5em calc(2 * var(--cn-tooltip-line));
+      -1.5em calc(2 * var(--cn-tooltip-line)),
+      -1.5em calc(3 * var(--cn-tooltip-line));
   }
 }
 

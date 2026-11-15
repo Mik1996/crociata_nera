@@ -1,5 +1,4 @@
 import { crusadeClanTags, periodSuffix } from '@/lib/coc/crusade-clans';
-import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { UserModel } from '@/modules/auth/user.model';
@@ -27,7 +26,7 @@ export interface CwlSelection {
   generatedAt: string;
   starters: number;
   reserves: number;
-  /** Highest town hall of the clan; `null` without members. */
+  /** Highest town hall of the clans of the Crusade; `null` without members. */
   maxTownHall: number | null;
   /** Lowest eligible town hall; `null` without members. */
   minEligibleTownHall: number | null;
@@ -41,14 +40,19 @@ export interface CwlSelection {
 const DAY_MS = 86_400_000;
 const NO_WAR: WarTotals = { wars: 0, attacksUsed: 0, attacksAvailable: 0, stars: 0, totalDestruction: 0 };
 
-/** Ranking of the current members of the main clan for the Clan War League line-up. */
+/** Current members of the clans of the Crusade; those saved before the clan was tracked (`clanTag: null`) are the main clan's. */
+function crusadeMemberFilter() {
+  return { inClan: true, clanTag: { $in: [...crusadeClanTags(), null] } };
+}
+
+/** Ranking of the current members of every clan of the Crusade for the Clan War League line-up. */
 export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
   const from = new Date(now.getTime() - WAR_WINDOW_DAYS * DAY_MS);
-  const primary = env().CLAN_TAG ?? null;
+  // The main clan comes first.
+  const primary = crusadeClanTags()[0]!;
   const [members, lastCwl, wars, exclusions] = await Promise.all([
-    // Players saved before the clan was tracked (`clanTag: null`) are the main clan's.
-    PlayerModel.find({ inClan: true, clanTag: { $in: [primary, null] } })
-      .select('tag name role townHallLevel joinedAt heroes equipment')
+    PlayerModel.find(crusadeMemberFilter())
+      .select('tag name clanTag role league townHallLevel joinedAt heroes equipment')
       .lean(),
     lastCwlSeason(),
     regularWarStats(from),
@@ -67,7 +71,9 @@ export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
     return {
       tag: m.tag,
       name: m.name,
+      clanTag: m.clanTag ?? primary,
       role: m.role ?? null,
+      league: m.league?.id && m.league.name ? { id: m.league.id, name: m.league.name, iconUrl: m.league.iconUrl ?? null } : null,
       townHallLevel: m.townHallLevel ?? null,
       war: wars.byTag.get(m.tag) ?? NO_WAR,
       cwl: lastCwl.players.get(m.tag) ?? null,
@@ -91,13 +97,12 @@ export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
 }
 
 /**
- * Excludes a current member from the CWL line-up (administrators). Excluding again updates the
- * reason. 404 for a player that is not in the clan.
+ * Excludes a current member of the clans of the Crusade from the CWL line-up (administrators).
+ * Excluding again updates the reason. 404 for a player that is not in any of them.
  */
 export async function excludePlayer(tag: string, reason: string | null, adminId: string): Promise<Exclusion & { tag: string }> {
   const playerTag = tag.toUpperCase();
-  const clan = { $in: [env().CLAN_TAG ?? null, null] };
-  if (!(await PlayerModel.exists({ tag: playerTag, inClan: true, clanTag: clan }))) throwException(404, MessageKey.PLAYER_NOT_FOUND);
+  if (!(await PlayerModel.exists({ tag: playerTag, ...crusadeMemberFilter() }))) throwException(404, MessageKey.PLAYER_NOT_FOUND);
   const admin = await UserModel.findById(adminId).select('username').lean();
   const saved = await CwlExclusionModel.findOneAndUpdate(
     { playerTag },

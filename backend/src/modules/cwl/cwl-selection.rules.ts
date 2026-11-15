@@ -12,12 +12,15 @@ import { CommendationTier } from '@/modules/commendations/commendation-rules';
  *   attack, destruction and attacks used. Who was not in the last CWL gets the CWL points here
  *   instead ({@link warPointsFor}), so can still reach 100;
  * - heroes: hero levels and equipped hero equipment against the highest levels of the game;
- * - town hall: a bonus for the highest town hall of the clan;
+ * - town hall: a bonus for the highest town hall of the clans;
+ * - league: the home village league, from Electro League 31 (1 point) to Legend II and I (5);
  * - penalties: league attacks missed in the last CWL, new arrivals.
  *
- * On equal score: higher town hall first, then the higher role (leader, co-leader, elder, member).
+ * On equal score: higher town hall first, then the higher league (`leagueTier`), then the higher role
+ * (leader, co-leader, elder, member).
  *
- * Eligible: town hall at most {@link TOWN_HALL_GAP} below the highest of the clan, and not
+ * Candidates: the current members of every clan of the Crusade (Crociata Nera, Rossa and d'Oro).
+ * Eligible: town hall at most {@link TOWN_HALL_GAP} below the highest of the clans, and not
  * excluded by an administrator. Excluded players keep their place in the ranking but take no slot.
  */
 
@@ -31,9 +34,13 @@ export const POINTS = {
   cwlCommendations: 12,
   cwlPerformance: 13,
   war: 40,
-  heroes: 25,
+  heroes: 20,
   townHall: 10,
+  league: 5,
 } as const;
+
+/** League tier worth 0 points (`Dragon League 30`): each tier above adds 1, up to {@link POINTS}.league. */
+const LEAGUE_ZERO_ID = 105_000_030;
 
 /** Points of each CWL commendation (they add up to {@link POINTS}.cwlCommendations at best). */
 export const COMMENDATION_POINTS = {
@@ -97,10 +104,21 @@ export interface Exclusion {
   excludedAt: string;
 }
 
+/** Home village league (`leagueTier`): the id orders the leagues from lowest to highest. */
+export interface League {
+  id: number;
+  name: string;
+  iconUrl: string | null;
+}
+
 export interface SelectionCandidate {
   tag: string;
   name: string;
+  /** Clan of the Crusade the player is in. */
+  clanTag: string;
   role: string | null;
+  /** `null` when unknown or unranked. */
+  league: League | null;
   townHallLevel: number | null;
   /** Regular wars of the window. */
   war: WarTotals;
@@ -128,6 +146,7 @@ export interface ScoreBreakdown {
   war: number;
   heroes: number;
   townHall: number;
+  league: number;
   /** Negative or 0. */
   missedAttacks: number;
   /** Negative or 0. */
@@ -138,7 +157,9 @@ export interface SelectionRow {
   rank: number;
   tag: string;
   name: string;
+  clanTag: string;
   role: string | null;
+  league: League | null;
   townHallLevel: number | null;
   eligible: boolean;
   status: SelectionStatus;
@@ -242,6 +263,15 @@ export function heroScore(ratios: { levels: number; equipment: number } | null):
   return POINTS.heroes * (HERO_LEVELS_SHARE * ratios.levels + (1 - HERO_LEVELS_SHARE) * ratios.equipment);
 }
 
+/**
+ * Home village league, 0–{@link POINTS}.league: 1 point per tier above Dragon League 30
+ * (Electro League 31 = 1, 32 = 2, 33 = 3, Legend III = 4, Legend II and I = 5).
+ */
+export function leagueScore(league: League | null): number {
+  if (!league) return 0;
+  return Math.max(0, Math.min(POINTS.league, league.id - LEAGUE_ZERO_ID));
+}
+
 /** In the clans of the Crusade for fewer than {@link NEWCOMER_DAYS} days. */
 export function isNewcomer(c: SelectionCandidate, now: Date): boolean {
   return !!c.joinedAt && now.getTime() - c.joinedAt.getTime() < NEWCOMER_DAYS * DAY_MS;
@@ -259,12 +289,13 @@ export function scoreBreakdown(
     war: warScore(c.war, warPointsFor(c.cwl)),
     heroes: heroScore(heroRatios(c.heroes, c.equipment, context.heroMaxLevels)),
     townHall: maxTownHall !== null && c.townHallLevel === maxTownHall ? POINTS.townHall : 0,
+    league: leagueScore(c.league),
     missedAttacks: missedAttacksPenalty(c.cwl),
     activity: isNewcomer(c, context.now) ? -NEWCOMER_PENALTY : 0,
   };
 }
 
-/** Order of the clan roles on equal score and town hall (`admin` is the elder); unknown last. */
+/** Order of the clan roles on equal score, town hall and league (`admin` is the elder); unknown last. */
 export const ROLE_ORDER: readonly string[] = ['leader', 'coLeader', 'admin', 'member'];
 
 function roleRank(role: string | null): number {
@@ -274,7 +305,8 @@ function roleRank(role: string | null): number {
 
 /**
  * Ranks the candidates: players with an eligible town hall first, by score, then town hall, then
- * role (leader, co-leader, elder, member), then name; the first {@link STARTERS} not excluded are starters, the next {@link RESERVES} reserves.
+ * league, then role (leader, co-leader, elder, member), then name; the first {@link STARTERS} not
+ * excluded are starters, the next {@link RESERVES} reserves.
  */
 export function rankCandidates(
   candidates: SelectionCandidate[],
@@ -297,6 +329,7 @@ export function rankCandidates(
       Number(b.townHallOk) - Number(a.townHallOk) ||
       b.score - a.score ||
       (b.candidate.townHallLevel ?? 0) - (a.candidate.townHallLevel ?? 0) ||
+      (b.candidate.league?.id ?? 0) - (a.candidate.league?.id ?? 0) ||
       roleRank(a.candidate.role) - roleRank(b.candidate.role) ||
       a.candidate.name.localeCompare(b.candidate.name),
   );
@@ -314,7 +347,9 @@ export function rankCandidates(
       rank: index + 1,
       tag: c.tag,
       name: c.name,
+      clanTag: c.clanTag,
       role: c.role,
+      league: c.league,
       townHallLevel: c.townHallLevel,
       eligible: townHallOk && !c.exclusion,
       status,
@@ -325,6 +360,7 @@ export function rankCandidates(
         war: round(breakdown.war),
         heroes: round(breakdown.heroes),
         townHall: round(breakdown.townHall),
+        league: round(breakdown.league),
         missedAttacks: round(breakdown.missedAttacks),
         activity: round(breakdown.activity),
       },

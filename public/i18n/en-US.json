@@ -59,7 +59,7 @@
     "dashboard": "Dashboard",
     "currentWar": "Current war",
     "cwl": "League (CWL)",
-    "cwlSelection": "CWL line-up",
+    "cwlSelection": "CWL selections",
     "raids": "Raid Weekend",
     "history": "War history",
     "warDetail": "War details",
@@ -990,7 +990,7 @@
     "resizeHint": "Drag to resize, double-click for automatic widths"
   },
   "cwlSelection": {
-    "subtitle": "Ranking of the players to pick the 15 to field in the League and the 3 reserves.",
+    "subtitle": "Ranking of the players of the three clans of the Crusade to pick the 15 to field in the League and the 3 reserves.",
     "empty": "No clan player saved yet: the ranking will appear after the next synchronisation.",
     "summary": "Summary",
     "legend": {
@@ -1008,12 +1008,13 @@
     },
     "rules": {
       "title": "How the ranking is computed",
-      "eligibility": "Eligible: the players of Crociata Nera with the highest town hall of the clan and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
+      "eligibility": "Eligible: the players of Crociata Nera, Crociata Rossa and Crociata d'Oro with the highest town hall of the three clans and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
       "cwl": "Last CWL, fought in Crociata Nera, Rossa or d'Oro (up to 25 points): commendations up to 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) and stars per attack and destruction up to 13; with fewer than 3 attacks the performance is reduced in proportion.",
       "war": "Regular wars of the last 90 days, in every clan of the Crusade (up to 40 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
-      "order": "On equal scores the higher town hall goes first, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
-      "heroes": "Heroes (up to 25 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
-      "townHall": "Town hall: 10 points to those with the highest town hall of the clan.",
+      "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
+      "heroes": "Heroes (up to 20 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
+      "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
+      "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
       "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for those who joined the clans of the Crusade less than 14 days ago.",
       "exclusions": "Administrators can exclude a player (for example for an announced absence): the player keeps their place in the ranking, marked as excluded, and their slot goes to the next one.",
       "noCwl": "Who was not in the line-up of the last CWL keeps its 25 points: they move to the regular wars, worth up to 65. So 100 can be reached without the CWL too."
@@ -1045,6 +1046,7 @@
       "war": "Wars",
       "heroes": "Heroes",
       "townHall": "Town hall",
+      "league": "League",
       "missedAttacks": "Last CWL attacks missed",
       "activity": "Activity"
     },

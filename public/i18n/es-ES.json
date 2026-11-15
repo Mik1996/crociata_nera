@@ -59,7 +59,7 @@
     "dashboard": "Panel",
     "currentWar": "Guerra actual",
     "cwl": "Liga (CWL)",
-    "cwlSelection": "Alineación CWL",
+    "cwlSelection": "Selecciones CWL",
     "raids": "Raid Weekend",
     "history": "Historial de guerras",
     "warDetail": "Detalle de la guerra",
@@ -990,7 +990,7 @@
     "resizeHint": "Arrastra para cambiar el ancho, doble clic para anchos automáticos"
   },
   "cwlSelection": {
-    "subtitle": "Clasificación de los jugadores para elegir los 15 que alinear en la Liga y los 3 reservas.",
+    "subtitle": "Clasificación de los jugadores de los tres clanes de la Cruzada para elegir los 15 que alinear en la Liga y los 3 reservas.",
     "empty": "Aún no hay jugadores del clan guardados: la clasificación aparecerá tras la próxima sincronización.",
     "summary": "Resumen",
     "legend": {
@@ -1008,12 +1008,13 @@
     },
     "rules": {
       "title": "Cómo se calcula la clasificación",
-      "eligibility": "Elegibles: los jugadores de Crociata Nera con el ayuntamiento más alto del clan y los de un nivel por debajo, no excluidos por un administrador. Los demás quedan al final de la clasificación.",
+      "eligibility": "Elegibles: los jugadores de Crociata Nera, Crociata Rossa y Crociata d'Oro con el ayuntamiento más alto de los tres clanes y los de un nivel por debajo, no excluidos por un administrador. Los demás quedan al final de la clasificación.",
       "cwl": "Última CWL, jugada en Crociata Nera, Rossa o d'Oro (hasta 25 puntos): encomios hasta 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) y estrellas por ataque y destrucción hasta 13; con menos de 3 ataques el rendimiento se reduce en proporción.",
       "war": "Guerras normales de los últimos 90 días, en todos los clanes de la Cruzada (hasta 40 puntos): estrellas por ataque y destrucción (75%) y ataques usados (25%); con menos de 8 ataques la puntuación se reduce en proporción.",
-      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles están alineados (azul), los 3 siguientes son las reservas (verde).",
-      "heroes": "Héroes (hasta 25 puntos): niveles de los héroes (dos tercios) y del equipamiento que llevan (un tercio) respecto a los niveles máximos del juego; un héroe aún no desbloqueado cuenta cero. El perfil de cada jugador se vuelve a leer cada 6 horas aproximadamente.",
-      "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto del clan.",
+      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles están alineados (azul), los 3 siguientes son las reservas (verde).",
+      "heroes": "Héroes (hasta 20 puntos): niveles de los héroes (dos tercios) y del equipamiento que llevan (un tercio) respecto a los niveles máximos del juego; un héroe aún no desbloqueado cuenta cero. El perfil de cada jugador se vuelve a leer cada 6 horas aproximadamente.",
+      "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto de los tres clanes.",
+      "league": "Liga (hasta 5 puntos): 1 punto en Liga Electro 31, 2 en Electro 32, 3 en Electro 33, 4 en Leyenda III, 5 en Leyenda II y I; ningún punto en las ligas más bajas.",
       "penalties": "Penalizaciones: 3 puntos por cada ataque perdido en la última CWL (como máximo 15); 5 puntos a quien entró en los clanes de la Cruzada hace menos de 14 días.",
       "exclusions": "Los administradores pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza pasa al siguiente.",
       "noCwl": "Quien no estaba en la alineación de la última CWL no pierde sus 25 puntos: pasan a las guerras normales, que valen hasta 65. Así también sin CWL se puede llegar a 100."
@@ -1045,6 +1046,7 @@
       "war": "Guerras",
       "heroes": "Héroes",
       "townHall": "Ayuntamiento",
+      "league": "Liga",
       "missedAttacks": "Ataques perdidos última CWL",
       "activity": "Actividad"
     },

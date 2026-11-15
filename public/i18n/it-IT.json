@@ -990,7 +990,7 @@
     "resizeHint": "Trascina per ridimensionare, doppio clic per le larghezze automatiche"
   },
   "cwlSelection": {
-    "subtitle": "Classifica dei giocatori per scegliere i 15 da schierare in Lega e le 3 riserve.",
+    "subtitle": "Classifica dei giocatori dei tre clan della Crociata per scegliere i 15 da schierare in Lega e le 3 riserve.",
     "empty": "Nessun giocatore del clan salvato: la classifica apparirà alla prossima sincronizzazione.",
     "summary": "Riepilogo",
     "legend": {
@@ -1008,12 +1008,13 @@
     },
     "rules": {
       "title": "Come si calcola la classifica",
-      "eligibility": "Idonei: i giocatori di Crociata Nera con il municipio più alto del clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
+      "eligibility": "Idonei: i giocatori di Crociata Nera, Crociata Rossa e Crociata d'Oro con il municipio più alto tra i tre clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
       "cwl": "Ultima CWL, giocata in Crociata Nera, Rossa o d'Oro (fino a 25 punti): encomi fino a 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) e stelle per attacco e distruzione fino a 13; con meno di 3 attacchi il rendimento si riduce in proporzione.",
       "war": "Guerre normali degli ultimi 90 giorni, in tutti i clan della Crociata (fino a 40 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
-      "order": "A parità di punteggio passa avanti il municipio più alto, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
-      "heroes": "Eroi (fino a 25 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
-      "townHall": "Municipio: 10 punti a chi ha il municipio più alto del clan.",
+      "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
+      "heroes": "Eroi (fino a 20 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
+      "townHall": "Municipio: 10 punti a chi ha il municipio più alto tra i tre clan.",
+      "league": "Lega (fino a 5 punti): 1 punto in Lega Electro 31, 2 in Electro 32, 3 in Electro 33, 4 in Leggenda III, 5 in Leggenda II e I; nessun punto nelle leghe più basse.",
       "penalties": "Penalità: 3 punti per ogni attacco saltato nell'ultima CWL (al massimo 15); 5 punti a chi è entrato nei clan della Crociata da meno di 14 giorni.",
       "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo.",
       "noCwl": "Chi non era nello schieramento dell'ultima CWL non perde i suoi 25 punti: passano alle guerre normali, che valgono fino a 65. Così anche senza CWL si può arrivare a 100."
@@ -1045,6 +1046,7 @@
       "war": "Guerre",
       "heroes": "Eroi",
       "townHall": "Municipio",
+      "league": "Lega",
       "missedAttacks": "Attacchi saltati ultima CWL",
       "activity": "Attività"
     },
