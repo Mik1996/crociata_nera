@@ -503,6 +503,13 @@ mat-sidenav-content > .content:has(> .page--immersive) {
 .cn-scroll-fade {
   --cn-fade-size: 1.875rem;
 
+  // Safari composites the blurred bands in a layer of their own, and clips that layer to the area
+  // rounded to whole device pixels differently from the content: when the area starts at a
+  // fractional position, one device pixel of sharp content shows above the top band. With the area
+  // in a layer of its own the clips match (`opacity`, unlike `transform`, keeps fixed descendants
+  // positioned against the viewport).
+  will-change: opacity;
+
   &::before,
   &::after {
     content: '';
@@ -812,6 +819,14 @@ table tr.cn-row-me.mat-mdc-row {
   animation-timeline: --cn-table-scroll;
   animation-range: var(--cn-sticky-start, 0)
     calc(var(--cn-sticky-start, 0) + var(--cn-sticky-distance, 0));
+}
+
+// Safari composites the animated header cells in a layer of their own, and clips that layer to the
+// scrolling area rounded to whole device pixels differently from the rows: when the area starts
+// at a fractional position, one device pixel of the rows shows above the stuck header. Rows in a
+// layer of their own get the same clip.
+.cn-table-wrap--scroll-driven tbody {
+  will-change: transform;
 }
 
 // Header stuck at the top of the scrolling area: a shadow separates it from the rows below.
