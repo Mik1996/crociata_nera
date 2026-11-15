@@ -48,8 +48,11 @@ export class StickyTableHeader {
         document.addEventListener('scroll', schedule, { capture: true, passive: true });
         window.addEventListener('resize', schedule, { passive: true });
         // Rows added or removed (data loaded, sorting, filters) change where the header must stop.
+        // Content above the table that grows or shrinks (a panel opened or closed) moves the table
+        // without resizing it or scrolling: observe what comes before it in the flow (the earlier
+        // siblings of the table and of each ancestor) and the ancestors themselves.
         const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
-        resize?.observe(this.element);
+        for (const node of layoutNeighbours(this.element)) resize?.observe(node);
 
         destroyRef.onDestroy(() => {
           document.removeEventListener('scroll', schedule, { capture: true });
@@ -104,6 +107,28 @@ export class StickyTableHeader {
         cell.style.transform = offset ? `translateY(${offset}px)` : '';
     this.element.classList.toggle('cn-table-wrap--stuck', offset > 0);
   }
+}
+
+/**
+ * The element, its ancestors and every element before them in the flow: when one of them changes
+ * size, the element moves inside its scrolling area.
+ */
+function layoutNeighbours(element: HTMLElement): Element[] {
+  const nodes: Element[] = [];
+  for (
+    let node: Element | null = element;
+    node && node !== document.body;
+    node = node.parentElement
+  ) {
+    nodes.push(node);
+    for (
+      let sibling = node.previousElementSibling;
+      sibling;
+      sibling = sibling.previousElementSibling
+    )
+      nodes.push(sibling);
+  }
+  return nodes;
 }
 
 /** Nearest ancestor that scrolls vertically; `null` means the page itself. */
