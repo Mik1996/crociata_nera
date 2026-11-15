@@ -47,6 +47,8 @@ export class StickyTableHeader {
         // Any scrolling area may move the table: listen to all of them (scroll does not bubble).
         document.addEventListener('scroll', schedule, { capture: true, passive: true });
         window.addEventListener('resize', schedule, { passive: true });
+        // A <details> panel opened or closed above the table (toggle does not bubble either).
+        document.addEventListener('toggle', schedule, { capture: true });
         // Rows added or removed (data loaded, sorting, filters) change where the header must stop.
         // Content above the table that grows or shrinks (a panel opened or closed) moves the table
         // without resizing it or scrolling: observe what comes before it in the flow (the earlier
@@ -57,6 +59,7 @@ export class StickyTableHeader {
         destroyRef.onDestroy(() => {
           document.removeEventListener('scroll', schedule, { capture: true });
           window.removeEventListener('resize', schedule);
+          document.removeEventListener('toggle', schedule, { capture: true });
           resize?.disconnect();
           cancelAnimationFrame(this.frame);
         });
@@ -93,6 +96,10 @@ export class StickyTableHeader {
         area.style.setProperty('scroll-timeline-name', TIMELINE);
       if (range !== this.range) {
         this.range = range;
+        // Safari keeps a running scroll-driven animation on its old range when the variables of
+        // `animation-range` change: drop the animation and start it again with the new range.
+        this.element.classList.remove('cn-table-wrap--scroll-driven');
+        void this.element.offsetWidth;
         this.element.style.setProperty('--cn-sticky-start', `${start}px`);
         this.element.style.setProperty('--cn-sticky-distance', `${distance}px`);
       }
