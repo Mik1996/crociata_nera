@@ -33,6 +33,19 @@ const clan: Clan = {
   members: [],
 };
 
+/** `count` members of a clan (only their number matters, except for the names on the banners). */
+const roster = (count: number): Clan['members'] =>
+  Array.from({ length: count }, (_, i) => ({
+    tag: `#P${i}`,
+    name: `Crusader ${i}`,
+    role: 'member' as const,
+    townHall: 17,
+    expLevel: 200,
+    trophies: 5000,
+    donations: 0,
+    donationsReceived: 0,
+  }));
+
 const records: ClanRecords = {
   perfectWars: { value: 137, achievedAt: null },
   warWinStreak: { value: 50, achievedAt: null },
@@ -79,7 +92,7 @@ describe('WelcomePage', () => {
     const el = await render(clan);
 
     const acts = Array.from(el.querySelectorAll('.scrolly-act[id]')).map((act) => act.id);
-    expect(acts).toEqual(['prologue', 'army', 'capital', 'war', 'annals', 'code', 'code-scroll', 'sister-red', 'sister-gold', 'call']);
+    expect(acts).toEqual(['prologue', 'army', 'capital', 'war', 'annals', 'code', 'code-scroll', 'sister-red', 'sister-gold', 'legion', 'call']);
     expect(Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim())).toEqual([
       'La Crociata',
       "L'Esercito",
@@ -89,10 +102,12 @@ describe('WelcomePage', () => {
       'Il Codice',
       'Crociata Rossa',
       "Crociata d'Oro",
+      'I Crociati',
       'La Chiamata',
     ]);
     expect(el.querySelector('#army .act-heading__kicker')!.textContent).toContain('Atto I');
-    expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto VIII');
+    expect(el.querySelector('#legion .act-heading__kicker')!.textContent).toContain('Atto VIII');
+    expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto IX');
     // The Black Crusader changes pose from act to act.
     const poses = Array.from(el.querySelectorAll('crn-crusader')).map((c) => c.getAttribute('data-pose'));
     expect(poses).toEqual(['stand', 'guard', 'heart', 'fist', 'oath', 'stand', 'stand']);
@@ -134,7 +149,7 @@ describe('WelcomePage', () => {
     );
     expect(el.querySelector('#sister-red')).toBeNull();
     expect(el.querySelector('#sister-gold .hero__kicker')!.textContent).toContain('Atto VI');
-    expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto VII');
+    expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto VIII');
   });
 
   it('shows the clan name, badge, capital and leagues', async () => {
@@ -301,7 +316,7 @@ describe('WelcomePage', () => {
   it('invites players to join, with the in-game link and the open spots', async () => {
     const el = await render({
       ...clan,
-      members: Array.from({ length: 47 }, () => clan.members[0]) as Clan['members'],
+      members: roster(47),
       requiredTownHall: 14,
       requiredLeague: { name: 'Master League I', iconUrl: 'https://api-assets.clashofclans.com/leaguetiers/326/x.png' },
     });
@@ -323,7 +338,7 @@ describe('WelcomePage', () => {
   });
 
   it('keeps recruitment open while at least one of the three clans has a free spot', async () => {
-    const full = Array.from({ length: 50 }, () => clan.members[0]) as Clan['members'];
+    const full = roster(50);
     const fullSister = (tag: string) => of({ ...clan, tag, name: tag, members: full });
 
     const open = await render({ ...clan, members: full });

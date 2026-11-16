@@ -54,7 +54,8 @@
     "group": {
       "battle": "Battaglia",
       "clan": "Il Clan",
-      "arsenal": "Arsenale"
+      "arsenal": "Arsenale",
+      "crusade": "La Crociata"
     },
     "dashboard": "Dashboard",
     "currentWar": "Guerra corrente",
@@ -678,9 +679,16 @@
         "kicker": "Clan gemello",
         "cta": "Apri il clan nel gioco"
       },
+      "legion": {
+        "title": "I Crociati",
+        "tagline": "Tre stendardi, un solo giuramento."
+      },
       "call": {
         "title": "La Chiamata"
       }
+    },
+    "legion": {
+      "unit": "crociati in marcia"
     }
   },
   "profile": {

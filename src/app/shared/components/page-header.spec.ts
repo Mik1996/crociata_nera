@@ -10,6 +10,7 @@ import { PageHeader } from './page-header';
       <p pageHero class="hero">24 – 30</p>
     </crn-page-header>
     <crn-page-header title="Giocatori" />
+    <crn-page-header title="Dashboard" subtitle="Panoramica" kicker="Il quartier generale" crusader="guard" compact />
   `,
 })
 class Host {}
@@ -48,5 +49,15 @@ describe('PageHeader', () => {
     expect(header.querySelector('.kicker')).toBeNull();
     expect(header.querySelector('.subtitle')).toBeNull();
     expect(header.querySelector('crn-crusader')).toBeNull();
+  });
+
+  it('compact: keeps kicker and title, drops tagline and Crusader', async () => {
+    const [full, , compact] = await render();
+    expect(full.classList.contains('page-header--compact')).toBe(false);
+    expect(compact.classList.contains('page-header--compact')).toBe(true);
+    expect(compact.querySelector('.kicker')!.textContent).toContain('Il quartier generale');
+    expect(compact.querySelector('h1')!.textContent).toBe('Dashboard');
+    expect(compact.querySelector('.subtitle')).toBeNull();
+    expect(compact.querySelector('crn-crusader')).toBeNull();
   });
 });

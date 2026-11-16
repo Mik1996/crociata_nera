@@ -54,7 +54,8 @@
     "group": {
       "battle": "Batalla",
       "clan": "El Clan",
-      "arsenal": "Arsenal"
+      "arsenal": "Arsenal",
+      "crusade": "La Cruzada"
     },
     "dashboard": "Panel",
     "currentWar": "Guerra actual",
@@ -678,9 +679,16 @@
         "kicker": "Clan hermano",
         "cta": "Abrir el clan en el juego"
       },
+      "legion": {
+        "title": "Los Cruzados",
+        "tagline": "Tres estandartes, un solo juramento."
+      },
       "call": {
         "title": "La Llamada"
       }
+    },
+    "legion": {
+      "unit": "cruzados en marcha"
     }
   },
   "profile": {

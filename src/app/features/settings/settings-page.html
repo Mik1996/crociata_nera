@@ -1,29 +1,56 @@
-<crn-page-header
-  scene="candle"
-  [kicker]="'kicker.settings' | translate"
-  crusader="oath"
-  [title]="'settings.title' | translate"
-  [subtitle]="'settings.subtitle' | translate"
-/>
+<div crnScrollFade class="page__scroll page__scroll--bleed">
+  <crn-page-header
+    flush
+    scene="candle"
+    [kicker]="'kicker.settings' | translate"
+    crusader="oath"
+    [title]="'settings.title' | translate"
+    [subtitle]="'settings.subtitle' | translate"
+  />
 
-<div crnScrollFade class="page__scroll">
-  <div class="settings">
-    @if (theme.selectable) {
-      <section class="cn-card cn-section" aria-labelledby="settings-theme">
-        <h2 id="settings-theme">{{ 'settings.theme' | translate }}</h2>
-        <div class="options" role="radiogroup" aria-labelledby="settings-theme">
-          @for (t of theme.themes; track t.name) {
-            @let selected = t.name === theme.current();
+  <div class="page__body">
+    <div class="settings">
+      @if (theme.selectable) {
+        <section class="cn-card cn-section" aria-labelledby="settings-theme">
+          <h2 id="settings-theme">{{ 'settings.theme' | translate }}</h2>
+          <div class="options" role="radiogroup" aria-labelledby="settings-theme">
+            @for (t of theme.themes; track t.name) {
+              @let selected = t.name === theme.current();
+              <button
+                type="button"
+                role="radio"
+                class="option option--theme"
+                [class.option--selected]="selected"
+                [attr.aria-checked]="selected"
+                (click)="theme.use(t.name)"
+              >
+                <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
+                <span class="option__label">{{ t.labelKey | translate }}</span>
+                @if (selected) {
+                  <crn-icon class="option__check" name="check_circle" />
+                }
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="cn-card cn-section" aria-labelledby="settings-language">
+        <h2 id="settings-language">{{ 'settings.language' | translate }}</h2>
+        <div class="options" role="radiogroup" aria-labelledby="settings-language">
+          @for (l of language.languages; track l.code) {
+            @let selected = l.code === language.current();
             <button
               type="button"
               role="radio"
-              class="option option--theme"
+              class="option option--language"
               [class.option--selected]="selected"
               [attr.aria-checked]="selected"
-              (click)="theme.use(t.name)"
+              [lang]="l.code"
+              (click)="changeLanguage(l.code)"
             >
-              <span class="swatch" [style.background]="t.swatch" aria-hidden="true"></span>
-              <span class="option__label">{{ t.labelKey | translate }}</span>
+              <img class="flag" [src]="l.flag" alt="" width="32" height="22" />
+              <span class="option__label">{{ l.name }}</span>
               @if (selected) {
                 <crn-icon class="option__check" name="check_circle" />
               }
@@ -31,30 +58,6 @@
           }
         </div>
       </section>
-    }
-
-    <section class="cn-card cn-section" aria-labelledby="settings-language">
-      <h2 id="settings-language">{{ 'settings.language' | translate }}</h2>
-      <div class="options" role="radiogroup" aria-labelledby="settings-language">
-        @for (l of language.languages; track l.code) {
-          @let selected = l.code === language.current();
-          <button
-            type="button"
-            role="radio"
-            class="option option--language"
-            [class.option--selected]="selected"
-            [attr.aria-checked]="selected"
-            [lang]="l.code"
-            (click)="changeLanguage(l.code)"
-          >
-            <img class="flag" [src]="l.flag" alt="" width="32" height="22" />
-            <span class="option__label">{{ l.name }}</span>
-            @if (selected) {
-              <crn-icon class="option__check" name="check_circle" />
-            }
-          </button>
-        }
-      </div>
-    </section>
+    </div>
   </div>
 </div>

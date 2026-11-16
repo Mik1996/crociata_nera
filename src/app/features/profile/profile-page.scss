@@ -4,9 +4,9 @@
  * Account and Password side by side (same height), the Clash of Clans accounts below at full
  * width; one column when the content area is narrow. Container queries: the layout follows the
  * real width of the page area (pinned sidebar or not), not the screen. The container is the
- * scrolling area around the grid: a container query never applies to the container itself.
+ * page body around the grid: a container query never applies to the container itself.
  */
-.page__scroll {
+.page__body {
   container-type: inline-size;
 }
 

@@ -369,9 +369,10 @@ h2 {
 
 /*
  * Pages that fill the viewport (class "page--fill" on the page host): the content area becomes a
- * column as tall as the space below the header, so the page itself does not scroll. The page header
- * stays visible and only the ".page__scroll" container (or, on the player page, the active tab)
- * scrolls. On very short screens normal page scrolling is kept.
+ * column as tall as the space below the header, so the page itself does not scroll: only the
+ * ".page__scroll" container does. The scenic page header sits inside it (`page__scroll--bleed`,
+ * header `flush`), so it scrolls away with the content and leaves the room to it on small screens.
+ * On very short screens normal page scrolling is kept.
  */
 @media (min-height: 35rem) {
   // Element in front: must beat the shell's own `.content` rule (`flex: 1 0 auto`).
@@ -390,10 +391,6 @@ h2 {
     flex-direction: column;
     flex: 1;
     min-height: 0;
-
-    > crn-page-header {
-      flex: none;
-    }
   }
 
   .page__scroll {
@@ -920,6 +917,11 @@ table tr.cn-row-me.mat-mdc-row {
       background: var(--cn-hover);
     }
   }
+}
+
+// More columns beyond the right edge: the edge fades (scrollbars are hidden site-wide).
+.cn-table-wrap--more-x {
+  mask-image: linear-gradient(to left, transparent, var(--cn-mask) 2.5rem);
 }
 
 .cn-th {

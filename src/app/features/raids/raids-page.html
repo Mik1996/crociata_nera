@@ -1,158 +1,175 @@
-<crn-page-header
-  scene="capital"
-  [kicker]="'kicker.raids' | translate"
-  [title]="'nav.raids' | translate"
-  [subtitle]="'raids.subtitle' | translate"
->
-  @if (weekends().length > 1) {
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="weekend-selector">
-      <mat-label>{{ 'raids.weekend' | translate }}</mat-label>
-      <crn-icon matPrefix name="calendar_month" />
-      <mat-select [value]="weekend()?.id" (valueChange)="changeWeekend($event)">
-        @for (w of weekends(); track w.id) {
-          <mat-option [value]="w.id"
-            >{{ label(w) }} · {{ 'raids.state.' + w.state | translate }}</mat-option
-          >
-        }
-      </mat-select>
-    </mat-form-field>
-  }
-</crn-page-header>
-
-<div crnScrollFade class="page__scroll">
-  <crn-load-state
-    [loading]="raids.isLoading()"
-    [error]="raids.error()"
-    [empty]="!weekend()"
-    emptyIcon="castle"
-    [emptyMessage]="'raids.empty' | translate"
-    (retry)="raids.reload()"
+<div crnScrollFade class="page__scroll page__scroll--bleed">
+  <crn-page-header
+    flush
+    scene="capital"
+    [kicker]="'kicker.raids' | translate"
+    [title]="'nav.raids' | translate"
+    [subtitle]="'raids.subtitle' | translate"
   >
-    @if (weekend(); as w) {
-      <p class="weekend-state">
-        <span class="state-chip" [class.state-chip--live]="w.state === 'ongoing'">{{
-          'raids.state.' + w.state | translate
-        }}</span>
-        {{ label(w) }}
-      </p>
+    @if (weekends().length > 1) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="weekend-selector">
+        <mat-label>{{ 'raids.weekend' | translate }}</mat-label>
+        <crn-icon matPrefix name="calendar_month" />
+        <mat-select [value]="weekend()?.id" (valueChange)="changeWeekend($event)">
+          @for (w of weekends(); track w.id) {
+            <mat-option [value]="w.id"
+              >{{ label(w) }} · {{ 'raids.state.' + w.state | translate }}</mat-option
+            >
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </crn-page-header>
 
-      <div class="cn-grid-kpi">
-        <crn-kpi-card
-          [image]="GAME_ICONS['capital-gold-2']"
-          [imageZoom]="2"
-          [label]="'raids.totalLoot' | translate"
-          [value]="(w.totalLoot | localNumber) ?? w.totalLoot"
-        />
-        <crn-kpi-card
-          [image]="GAME_ICONS.raid"
-          [imageZoom]="2.6"
-          [label]="'raids.attacks' | translate"
-          [value]="w.totalAttacks"
-          [hint]="'raids.participants' | translate: { n: w.members.length }"
-        />
-        <crn-kpi-card
-          icon="castle"
-          [image]="capitalPeakImage()"
-          [label]="'raids.raidsCompleted' | translate"
-          [value]="raidsCompleted()"
-          [hint]="'raids.districts' | translate: { n: w.districtsDestroyed }"
-        />
-        <crn-kpi-card
-          [image]="GAME_ICONS['raid-medal']"
-          [imageZoom]="1.6"
-          [label]="'raids.rewards' | translate"
-          [value]="
-            (MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0
-          "
-          [hint]="
-            'raids.rewardsHint'
-              | translate
-                : { offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward, defense: w.defensiveReward }
-          "
-        />
-      </div>
+  <div class="page__body">
+    <crn-load-state
+      [loading]="raids.isLoading()"
+      [error]="raids.error()"
+      [empty]="!weekend()"
+      emptyIcon="castle"
+      [emptyMessage]="'raids.empty' | translate"
+      (retry)="raids.reload()"
+    >
+      @if (weekend(); as w) {
+        <p class="weekend-state">
+          <span class="state-chip" [class.state-chip--live]="w.state === 'ongoing'">{{
+            'raids.state.' + w.state | translate
+          }}</span>
+          {{ label(w) }}
+        </p>
 
-      @if (w.hasMembers) {
-        <div class="raid-grid">
-          <section class="cn-card cn-section" aria-labelledby="raid-members-title">
-            <h2 id="raid-members-title">{{ 'raids.members' | translate }}</h2>
-            <div class="cn-table-wrap">
-              <table
-                mat-table
-                [dataSource]="w.members"
-                class="members"
-                [attr.aria-label]="'raids.members' | translate"
-              >
-                <ng-container matColumnDef="rank">
-                  <th mat-header-cell *matHeaderCellDef>{{ 'statistics.position' | translate }}</th>
-                  <td mat-cell *matCellDef="let m; let i = index" class="cn-num">{{ i + 1 }}</td>
-                </ng-container>
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
-                  <td mat-cell *matCellDef="let m">
-                    <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
-                    @if (isMine(m.tag)) {
-                      <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+        <div class="cn-grid-kpi">
+          <crn-kpi-card
+            [image]="GAME_ICONS['capital-gold-2']"
+            [imageZoom]="2"
+            [label]="'raids.totalLoot' | translate"
+            [value]="(w.totalLoot | localNumber) ?? w.totalLoot"
+          />
+          <crn-kpi-card
+            [image]="GAME_ICONS.raid"
+            [imageZoom]="2.6"
+            [label]="'raids.attacks' | translate"
+            [value]="w.totalAttacks"
+            [hint]="'raids.participants' | translate: { n: w.members.length }"
+          />
+          <crn-kpi-card
+            icon="castle"
+            [image]="capitalPeakImage()"
+            [label]="'raids.raidsCompleted' | translate"
+            [value]="raidsCompleted()"
+            [hint]="'raids.districts' | translate: { n: w.districtsDestroyed }"
+          />
+          <crn-kpi-card
+            [image]="GAME_ICONS['raid-medal']"
+            [imageZoom]="1.6"
+            [label]="'raids.rewards' | translate"
+            [value]="
+              (MAXIMUM_CAPITAL_RAIDS * w.offensiveReward + w.defensiveReward | localNumber) ?? 0
+            "
+            [hint]="
+              'raids.rewardsHint'
+                | translate
+                  : {
+                      offense: MAXIMUM_CAPITAL_RAIDS * w.offensiveReward,
+                      defense: w.defensiveReward,
                     }
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="attacks">
-                  <th mat-header-cell *matHeaderCellDef>{{ 'raids.attacksColumn' | translate }}</th>
-                  <td
-                    mat-cell
-                    *matCellDef="let m"
-                    class="cn-num"
-                    [class.missing]="w.state === 'ended' && m.attacks < m.attackLimit"
-                  >
-                    {{ m.attacks }}/{{ m.attackLimit }}
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="looted">
-                  <th mat-header-cell *matHeaderCellDef>{{ 'raids.looted' | translate }}</th>
-                  <td mat-cell *matCellDef="let m" class="cn-num">{{ m.looted | localNumber }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="columns"></tr>
-                <tr
-                  mat-row
-                  *matRowDef="let m; columns: columns"
-                  [class.cn-row-me]="isMine(m.tag)"
-                ></tr>
-              </table>
+            "
+          />
+        </div>
+
+        @if (w.hasMembers) {
+          <div class="raid-grid">
+            <section class="cn-card cn-section" aria-labelledby="raid-members-title">
+              <h2 id="raid-members-title">{{ 'raids.members' | translate }}</h2>
+              <div class="cn-table-wrap">
+                <table
+                  mat-table
+                  [dataSource]="w.members"
+                  class="members"
+                  [attr.aria-label]="'raids.members' | translate"
+                >
+                  <ng-container matColumnDef="rank">
+                    <th mat-header-cell *matHeaderCellDef>
+                      {{ 'statistics.position' | translate }}
+                    </th>
+                    <td mat-cell *matCellDef="let m; let i = index" class="cn-num">{{ i + 1 }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
+                    <td mat-cell *matCellDef="let m">
+                      <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
+                      @if (isMine(m.tag)) {
+                        <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+                      }
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="attacks">
+                    <th mat-header-cell *matHeaderCellDef>
+                      {{ 'raids.attacksColumn' | translate }}
+                    </th>
+                    <td
+                      mat-cell
+                      *matCellDef="let m"
+                      class="cn-num"
+                      [class.missing]="w.state === 'ended' && m.attacks < m.attackLimit"
+                    >
+                      {{ m.attacks }}/{{ m.attackLimit }}
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="looted">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'raids.looted' | translate }}</th>
+                    <td mat-cell *matCellDef="let m" class="cn-num">
+                      {{ m.looted | localNumber }}
+                    </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                  <tr
+                    mat-row
+                    *matRowDef="let m; columns: columns"
+                    [class.cn-row-me]="isMine(m.tag)"
+                  ></tr>
+                </table>
+              </div>
+            </section>
+
+            <section class="cn-card cn-section" aria-labelledby="raid-absent-title">
+              <h2 id="raid-absent-title">
+                {{ 'raids.absent' | translate: { n: absent().length } }}
+              </h2>
+              @if (absent().length) {
+                <p class="cn-muted">
+                  {{
+                    (w.state === 'ongoing' ? 'raids.absentOngoing' : 'raids.absentEnded')
+                      | translate
+                  }}
+                </p>
+                <ul class="absent">
+                  @for (m of absent(); track m.tag) {
+                    <li>
+                      <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
+                      <span class="cn-muted">{{
+                        'common.townHallN' | translate: { n: m.townHall }
+                      }}</span>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="all-in">
+                  <crn-icon name="check_circle" />{{ 'raids.allIn' | translate }}
+                </p>
+              }
+            </section>
+          </div>
+        } @else {
+          <section class="cn-card cn-section notice" role="note">
+            <crn-icon name="info" />
+            <div>
+              <strong>{{ 'raids.noMembersTitle' | translate }}</strong>
+              <p>{{ 'raids.noMembersText' | translate }}</p>
             </div>
           </section>
-
-          <section class="cn-card cn-section" aria-labelledby="raid-absent-title">
-            <h2 id="raid-absent-title">{{ 'raids.absent' | translate: { n: absent().length } }}</h2>
-            @if (absent().length) {
-              <p class="cn-muted">
-                {{
-                  (w.state === 'ongoing' ? 'raids.absentOngoing' : 'raids.absentEnded') | translate
-                }}
-              </p>
-              <ul class="absent">
-                @for (m of absent(); track m.tag) {
-                  <li>
-                    <a class="cn-link-cell" [routerLink]="['/players', m.tag]">{{ m.name }}</a>
-                    <span class="cn-muted">{{
-                      'common.townHallN' | translate: { n: m.townHall }
-                    }}</span>
-                  </li>
-                }
-              </ul>
-            } @else {
-              <p class="all-in"><crn-icon name="check_circle" />{{ 'raids.allIn' | translate }}</p>
-            }
-          </section>
-        </div>
-      } @else {
-        <section class="cn-card cn-section notice" role="note">
-          <crn-icon name="info" />
-          <div>
-            <strong>{{ 'raids.noMembersTitle' | translate }}</strong>
-            <p>{{ 'raids.noMembersText' | translate }}</p>
-          </div>
-        </section>
+        }
       }
-    }
-  </crn-load-state>
+    </crn-load-state>
+  </div>
 </div>
