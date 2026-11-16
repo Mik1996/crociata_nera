@@ -102,6 +102,7 @@ export class PlayerDetailPage {
     const sections: ArmySection[] = [
       { title: 'player.troops', units: p.troops },
       { title: 'player.superTroops', units: p.superTroops },
+      { title: 'player.squads', units: p.squads },
       { title: 'player.siegeMachines', units: p.siegeMachines },
       { title: 'player.pets', units: p.pets },
       { title: 'player.spells', units: p.spells },

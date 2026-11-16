@@ -1,5 +1,5 @@
 import { clanCastleCapacity } from './clan-castle';
-import { townHallImage } from './units';
+import { isSquad, townHallImage } from './units';
 
 describe('townHallImage', () => {
   it('returns the picture of each known level', () => {
@@ -28,5 +28,14 @@ describe('clanCastleCapacity', () => {
 
   it('uses the highest known capacity for town halls not in the table yet', () => {
     expect(clanCastleCapacity(20)).toBe(60);
+  });
+});
+
+describe('isSquad', () => {
+  it('recognises the known squads and future ones by the " Squad" suffix', () => {
+    expect(isSquad('Barch Squad')).toBe(true);
+    expect(isSquad('P.E.K.K.A Titan Squad')).toBe(true);
+    expect(isSquad('Some Future Squad')).toBe(true);
+    expect(isSquad('Barbarian')).toBe(false);
   });
 });

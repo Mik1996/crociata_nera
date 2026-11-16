@@ -62,6 +62,30 @@ export const PETS: ReadonlySet<string> = new Set([
   'Greedy Raven',
 ]);
 
+/**
+ * Squads (TH19 update) by the Town Hall that unlocks them. The API lists them among the troops;
+ * below TH19 they stay at level 1.
+ */
+export const SQUAD_TOWN_HALL: Readonly<Record<string, number>> = {
+  'Barch Squad': 8,
+  'Giant Wizard Squad': 9,
+  'Wall Breaker Squad': 10,
+  'Minion Squad': 11,
+  'Balloon Squad': 12,
+  'Golem Witch Squad': 13,
+  'Hog Rider Squad': 14,
+  'Miner Squad': 15,
+  'Healer Squad': 16,
+  'P.E.K.K.A Titan Squad': 17,
+  'Dragons Squad': 18,
+  'Baby Dragon Squad': 19,
+};
+
+/** Squads are recognised by name (future ones are caught by the " Squad" suffix). */
+export function isSquad(name: string): boolean {
+  return name in SQUAD_TOWN_HALL || name.endsWith(' Squad');
+}
+
 /** Icon of a unit, if the game assets include it. */
 export function unitIcon(village: Village, name: string): string | undefined {
   return UNIT_ICONS[`${village}|${name}`];

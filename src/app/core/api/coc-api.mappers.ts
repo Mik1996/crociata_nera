@@ -26,7 +26,15 @@ import {
   CocWarLogEntry,
   CocWarMember,
 } from './coc-api.types';
-import { isSuperTroop, PETS, SIEGE_MACHINES, SUPER_TROOP_BASE, townHallImage, unitIcon } from '../game/units';
+import {
+  isSquad,
+  isSuperTroop,
+  PETS,
+  SIEGE_MACHINES,
+  SUPER_TROOP_BASE,
+  townHallImage,
+  unitIcon,
+} from '../game/units';
 
 const ROLES: Record<CocClanMember['role'], ClanRole> = {
   leader: 'leader',
@@ -87,7 +95,10 @@ export function mapClan(raw: CocClan): Clan {
     warTies: raw.warTies ?? 0,
     warWinStreak: raw.warWinStreak ?? 0,
     isWarLogPublic: raw.isWarLogPublic ?? false,
-    warLeague: raw.warLeague && raw.warLeague.name !== 'Unranked' ? { id: raw.warLeague.id, name: raw.warLeague.name } : undefined,
+    warLeague:
+      raw.warLeague && raw.warLeague.name !== 'Unranked'
+        ? { id: raw.warLeague.id, name: raw.warLeague.name }
+        : undefined,
     capitalLeague: rankedLeague(raw.capitalLeague),
     capitalHallLevel: raw.clanCapital?.capitalHallLevel ?? 0,
     capitalDistricts: (raw.clanCapital?.districts ?? []).map((d) => ({
@@ -101,7 +112,10 @@ export function mapClan(raw: CocClan): Clan {
     locationId: raw.location?.id,
     countryCode: raw.location?.isCountry ? raw.location.countryCode : undefined,
     chatLanguage: raw.chatLanguage?.name,
-    labels: (raw.labels ?? []).map((l) => ({ name: l.name, iconUrl: l.iconUrls?.medium ?? l.iconUrls?.small })),
+    labels: (raw.labels ?? []).map((l) => ({
+      name: l.name,
+      iconUrl: l.iconUrls?.medium ?? l.iconUrls?.small,
+    })),
     type: raw.type,
     requiredTownHall: raw.requiredTownhallLevel,
     requiredTrophies: raw.requiredTrophies,
@@ -354,8 +368,13 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
     heroes: heroes
       .filter((h) => h.village === 'home')
       .map((h): PlayerHero => ({ ...mapUnit(h), equipment: (h.equipment ?? []).map(mapUnit) })),
-    troops: home.filter((t) => !isSuper(t) && !SIEGE_MACHINES.has(t.name) && !PETS.has(t.name)).map(mapUnit),
+    troops: home
+      .filter(
+        (t) => !isSuper(t) && !isSquad(t.name) && !SIEGE_MACHINES.has(t.name) && !PETS.has(t.name),
+      )
+      .map(mapUnit),
     superTroops: home.filter(isSuper).map(superTroop),
+    squads: home.filter((t) => isSquad(t.name)).map(mapUnit),
     siegeMachines: home.filter((t) => SIEGE_MACHINES.has(t.name)).map(mapUnit),
     pets: home.filter((t) => PETS.has(t.name)).map(mapUnit),
     spells: (raw.spells ?? []).filter((s) => s.village === 'home').map(mapUnit),
@@ -379,5 +398,9 @@ export function mapPlayerProfile(raw: CocPlayer): PlayerProfile {
  * `Completed!`: some achievements (e.g. one-off or capped ones) never report 3 stars.
  */
 function isAchievementCompleted(a: CocPlayerAchievement): boolean {
-  return a.stars >= 3 || (a.target > 0 && a.value >= a.target) || a.completionInfo?.trim() === 'Completed!';
+  return (
+    a.stars >= 3 ||
+    (a.target > 0 && a.value >= a.target) ||
+    a.completionInfo?.trim() === 'Completed!'
+  );
 }

@@ -63,9 +63,10 @@ export interface PlayerProfile {
   clan?: { tag: string; name: string; level: number; badgeUrl?: string };
   labels: IconItem[];
   heroes: PlayerHero[];
-  /** Home village troops (no super troops, siege machines or pets). */
+  /** Home village troops (no super troops, squads, siege machines or pets). */
   troops: PlayerUnit[];
   superTroops: (PlayerUnit & { active: boolean })[];
+  squads: PlayerUnit[];
   siegeMachines: PlayerUnit[];
   pets: PlayerUnit[];
   spells: PlayerUnit[];
