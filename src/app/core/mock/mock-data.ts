@@ -93,11 +93,12 @@ const PERSONAS: Record<string, Partial<PlayerTimeline>> = {
   // The leader is a legend: earns every commendation, gold tier, each month.
   'Templare Nero': { townHall: [15, 15], skill: [1.6, 1.6], reliability: [1, 1], attendance: [1, 1], legend: true },
   // Always there; in the last months every attack is a 3-star ("Perfect" commendation).
-  Excalibur: { townHall: [17, 17], skill: [1.2, 1.6], reliability: [0.99, 1], attendance: [0.97, 0.8] },
+  // Among the first to reach TH19.
+  Excalibur: { townHall: [18, 19], skill: [1.2, 1.6], reliability: [0.99, 1], attendance: [0.97, 0.8] },
   // Lower Town Hall but great skill: 3 stars against stronger bases ("Giant Hunter", silver).
   Ragnar: { townHall: [13, 13], skill: [1.3, 1.6], reliability: [1, 1], attendance: [1, 1] },
   // Strong but often forgets the second attack.
-  'Barbaro Pigro': { townHall: [16, 17], skill: [0.7, 0.75], reliability: [0.5, 0.45], attendance: [0.8, 0.8] },
+  'Barbaro Pigro': { townHall: [17, 18], skill: [0.7, 0.75], reliability: [0.5, 0.45], attendance: [0.8, 0.8] },
   // Veteran slowly losing interest.
   'Il Conte': { townHall: [16, 16], skill: [0.85, 0.55], reliability: [0.98, 0.65], attendance: [0.95, 0.35] },
   // Newcomer who grows fast: Town Hall and skill climb month after month.
@@ -306,7 +307,7 @@ function buildTimelines(rnd: Random): PlayerTimeline[] {
         attendance: [rnd.range(0.8, 1), rnd.range(0.75, 1)],
       };
     }
-    const finalTh = clamp(17 - Math.floor(i / 6) + rnd.int(-1, 1), 12, 17);
+    const finalTh = clamp(19 - Math.floor(i / 6) + rnd.int(-1, 1), 12, 19);
     const skill = rnd.range(0.35, 0.95);
     const reliability = rnd.chance(0.15) ? rnd.range(0.5, 0.7) : rnd.range(0.85, 1);
     const attendance = rnd.chance(0.2) ? rnd.range(0.4, 0.6) : rnd.range(0.75, 1);
@@ -324,7 +325,7 @@ function buildTimelines(rnd: Random): PlayerTimeline[] {
 
   const former = FORMER_NAMES.map((name): PlayerTimeline => {
     const joinsAt = rnd.chance(0.75) ? 0 : rnd.range(0.05, 0.3);
-    const finalTh = rnd.int(13, 17);
+    const finalTh = rnd.int(13, 18);
     const skill = rnd.range(0.3, 0.9);
     return {
       tag: generateTag(rnd),
@@ -439,7 +440,7 @@ export function generateMockData(options: MockOptions): MockDataset {
       .map((p) => ({
         tag: generateTag(rnd),
         name: `${rnd.pick(PREFIXES)}${rnd.pick(SUFFIXES)}${rnd.chance(0.4) ? rnd.int(1, 99) : ''}`,
-        townHall: clamp(p.townHall + offset + rnd.int(-1, 1), 9, 17),
+        townHall: clamp(p.townHall + offset + rnd.int(-1, 1), 9, 19),
         skill: rnd.range(0.3, 0.9),
         reliability: rnd.range(0.75, 1),
         attendance: 1,

@@ -154,7 +154,7 @@ export function generateMockCwlSeasons(
       tag: tag(rnd),
       name,
       level: rnd.int(12, 22),
-      roster: Array.from({ length: TEAM_SIZE }, (_, i) => ({ tag: tag(rnd), name: `${name.split(' ')[0]} ${i + 1}`, townHall: rnd.int(14, 17) })),
+      roster: Array.from({ length: TEAM_SIZE }, (_, i) => ({ tag: tag(rnd), name: `${name.split(' ')[0]} ${i + 1}`, townHall: rnd.int(14, 19) })),
     }));
     const clans = [own, ...others];
 

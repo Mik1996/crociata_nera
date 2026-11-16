@@ -1,18 +1,31 @@
 import { CocPlayer, CocPlayerItem } from '../api/coc-api.types';
 import { UNIT_ICONS } from '../game/game-assets';
-import { isSuperTroop, PETS, SIEGE_MACHINES } from '../game/units';
+import { isSquad, isSuperTroop, PETS, SIEGE_MACHINES, SQUAD_TOWN_HALL } from '../game/units';
 import { ClanMember } from '../models';
 import { Random } from './random';
 
-const HOME_HEROES = ['Barbarian King', 'Archer Queen', 'Minion Prince', 'Grand Warden', 'Royal Champion', 'Dragon Duke'];
+const HOME_HEROES = [
+  'Barbarian King',
+  'Archer Queen',
+  'Minion Prince',
+  'Grand Warden',
+  'Royal Champion',
+  'Dragon Duke',
+];
+/** Highest level in the game: the API reports it as `maxLevel` whatever the Town Hall. */
 const HERO_MAX: Record<string, number> = {
-  'Barbarian King': 105,
-  'Archer Queen': 105,
-  'Minion Prince': 95,
-  'Grand Warden': 80,
-  'Royal Champion': 55,
-  'Dragon Duke': 25,
+  'Barbarian King': 115,
+  'Archer Queen': 115,
+  'Minion Prince': 100,
+  'Grand Warden': 90,
+  'Royal Champion': 60,
+  'Dragon Duke': 30,
 };
+/** Spell of the TH19 update, unlocked at TH17. */
+const HEROIC_SPELL = 'Heroic Spell';
+const HEROIC_SPELL_MAX = 4;
+/** Squads are upgraded only at TH19, from level 1 up to this level. */
+const SQUAD_MAX = 3;
 /** Town Hall that unlocks each hero. */
 const HERO_TH: Record<string, number> = {
   'Barbarian King': 7,
@@ -51,25 +64,71 @@ function homeNames(filter: (name: string) => boolean): string[] {
  * Deterministic mock of `GET /players/{tag}` for a clan member: levels scale with the Town Hall
  * and with a per-player "progress" factor, so every member gets a plausible, stable profile.
  */
-export function mockPlayer(member: ClanMember, clan: { tag: string; name: string; badgeUrl?: string }): CocPlayer {
+export function mockPlayer(
+  member: ClanMember,
+  clan: { tag: string; name: string; badgeUrl?: string },
+): CocPlayer {
   const rnd = new Random(seedOf(member.tag));
   const th = Math.max(member.townHall, 7);
-  const progress = Math.min(1, (th - 6) / 12) * rnd.range(0.75, 1);
-  const level = (max: number) => Math.max(1, Math.min(max, Math.round(max * progress * rnd.range(0.85, 1.05))));
-  const item = (name: string, maxLevel: number, village: CocPlayerItem['village'] = 'home'): CocPlayerItem => ({
+  const progress = Math.min(1, (th - 6) / 13) * rnd.range(0.75, 1);
+  const level = (max: number) =>
+    Math.max(1, Math.min(max, Math.round(max * progress * rnd.range(0.85, 1.05))));
+  const item = (
+    name: string,
+    maxLevel: number,
+    village: CocPlayerItem['village'] = 'home',
+  ): CocPlayerItem => ({
     name,
     level: level(maxLevel),
     maxLevel,
     village,
   });
-  const spells = homeNames((n) => n.endsWith(' Spell'));
-  const equipment = homeNames((n) => !n.endsWith(' Spell') && /Puppet|Gem|Vial|Tome|Arrow|Boots|Ball|Bracelet|Mirror|Shield|Gauntlet|Fireball|Fangs|Orb|Pendant/.test(n));
-  const troops = homeNames(
-    (n) => !n.endsWith(' Spell') && !HOME_HEROES.includes(n) && !equipment.includes(n) && !isSuperTroop(n),
+  const spells = homeNames((n) => n.endsWith(' Spell') && n !== HEROIC_SPELL);
+  const equipment = homeNames(
+    (n) =>
+      !n.endsWith(' Spell') &&
+      /Puppet|Gem|Vial|Tome|Arrow|Boots|Ball|Bracelet|Mirror|Shield|Gauntlet|Fireball|Fangs|Orb|Pendant/.test(
+        n,
+      ),
   );
+  const troops = homeNames(
+    (n) =>
+      !n.endsWith(' Spell') &&
+      !HOME_HEROES.includes(n) &&
+      !equipment.includes(n) &&
+      !isSuperTroop(n) &&
+      !isSquad(n),
+  );
+  // Squads appear once the Squad Barracks is built (TH8+): many players have not built it yet.
+  const squads =
+    th >= 8 && rnd.chance(th >= 19 ? 0.8 : 0.5)
+      ? Object.entries(SQUAD_TOWN_HALL)
+          .filter(([, unlockedAt]) => th >= unlockedAt)
+          .map(([name]) => ({
+            name,
+            level: th >= 19 ? rnd.int(1, SQUAD_MAX) : 1,
+            maxLevel: SQUAD_MAX,
+            village: 'home' as const,
+          }))
+      : [];
+  // Two levels at TH17, one more at TH18 and TH19; not every player has researched it yet.
+  const heroicSpell =
+    th >= 17 && rnd.chance(0.7)
+      ? [
+          {
+            name: HEROIC_SPELL,
+            level: rnd.int(1, th - 15),
+            maxLevel: HEROIC_SPELL_MAX,
+            village: 'home' as const,
+          },
+        ]
+      : [];
   const heroes = HOME_HEROES.filter((h) => th >= HERO_TH[h]).map((h) => ({
     ...item(h, HERO_MAX[h]),
-    equipment: rnd.shuffle(equipment).slice(0, 2).map((e) => item(e, 27)),
+    equipment: rnd
+      .shuffle(equipment)
+      .slice(0, 2)
+      .map((e) => item(e, 27)),
   }));
 
   return {
@@ -86,25 +145,47 @@ export function mockPlayer(member: ClanMember, clan: { tag: string; name: string
     builderHallLevel: Math.min(10, Math.max(3, th - 6)),
     builderBaseTrophies: rnd.int(2000, 5200),
     bestBuilderBaseTrophies: rnd.int(5200, 5800),
-    role: ({ leader: 'leader', coLeader: 'coLeader', elder: 'admin', member: 'member' } as const)[member.role],
+    role: ({ leader: 'leader', coLeader: 'coLeader', elder: 'admin', member: 'member' } as const)[
+      member.role
+    ],
     warPreference: rnd.chance(0.8) ? 'in' : 'out',
     donations: member.donations,
     donationsReceived: member.donationsReceived,
     clanCapitalContributions: rnd.int(50_000, 4_000_000),
-    clan: { tag: clan.tag, name: clan.name, clanLevel: 18, badgeUrls: clan.badgeUrl ? { medium: clan.badgeUrl } : undefined },
+    clan: {
+      tag: clan.tag,
+      name: clan.name,
+      clanLevel: 18,
+      badgeUrls: clan.badgeUrl ? { medium: clan.badgeUrl } : undefined,
+    },
     labels: [],
-    heroes: [...heroes, item('Battle Machine', 35, 'builderBase'), item('Battle Copter', 35, 'builderBase')],
+    heroes: [
+      ...heroes,
+      item('Battle Machine', 35, 'builderBase'),
+      item('Battle Copter', 35, 'builderBase'),
+    ],
     troops: [
       ...troops.filter((t) => !SIEGE_MACHINES.has(t) && !PETS.has(t)).map((t) => item(t, 12)),
       ...troops.filter((t) => SIEGE_MACHINES.has(t)).map((t) => item(t, 5)),
       ...troops.filter((t) => PETS.has(t)).map((t) => item(t, 10)),
-      ...['Super Barbarian', 'Super Archer', 'Super Wizard'].map((t, i) => ({ ...item(t, 12), superTroopIsActive: i === 0 })),
+      ...squads,
+      ...['Super Barbarian', 'Super Archer', 'Super Wizard'].map((t, i) => ({
+        ...item(t, 12),
+        superTroopIsActive: i === 0,
+      })),
     ],
-    spells: spells.map((s) => item(s, 11)),
+    spells: [...spells.map((s) => item(s, 11)), ...heroicSpell],
     heroEquipment: equipment.map((e) => item(e, 27)),
     achievements: ACHIEVEMENTS.map(([name, target, info]) => {
       const value = Math.round(target * progress * rnd.range(0.4, 1.6));
-      return { name, stars: value >= target ? 3 : value >= target / 2 ? 2 : value >= target / 5 ? 1 : 0, value, target, info, village: 'home' as const };
+      return {
+        name,
+        stars: value >= target ? 3 : value >= target / 2 ? 2 : value >= target / 5 ? 1 : 0,
+        value,
+        target,
+        info,
+        village: 'home' as const,
+      };
     }),
   };
 }
