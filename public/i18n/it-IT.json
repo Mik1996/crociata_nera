@@ -679,9 +679,16 @@
         "kicker": "Clan gemello",
         "cta": "Apri il clan nel gioco"
       },
+      "legion": {
+        "title": "I Crociati",
+        "tagline": "Tre stendardi, un solo giuramento."
+      },
       "call": {
         "title": "La Chiamata"
       }
+    },
+    "legion": {
+      "unit": "crociati in marcia"
     }
   },
   "profile": {

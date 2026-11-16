@@ -13,6 +13,7 @@ import { ActArmy } from './acts/army/act-army';
 import { ActCall } from './acts/call/act-call';
 import { ActCapital } from './acts/capital/act-capital';
 import { ActCode } from './acts/code/act-code';
+import { ActLegion, LegionClan } from './acts/legion/act-legion';
 import { ActPrologue } from './acts/prologue/act-prologue';
 import { ActSister } from './acts/sister/act-sister';
 import { ActWar } from './acts/war/act-war';
@@ -20,8 +21,8 @@ import { ActWar } from './acts/war/act-war';
 /**
  * Home page and recruiting page, told as a scrollytelling story in acts (engine:
  * `shared/scrolly/`): prologue with the clan name and badge, the army in numbers, the Clan
- * Capital, war and the Clan War League, the all-time records, the clan rules, the sister clans and
- * the call to join.
+ * Capital, war and the Clan War League, the all-time records, the clan rules, the sister clans, the
+ * names of every Crusader of the three clans and the call to join.
  * The Black Crusader, the clan's mascot, changes pose from act to act.
  *
  * Data comes from `GET /clans/{tag}` (proxy); rankings and records are a bonus (hidden while
@@ -41,6 +42,7 @@ import { ActWar } from './acts/war/act-war';
     ActAnnals,
     ActCode,
     ActSister,
+    ActLegion,
     ActCall,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -113,6 +115,15 @@ export class WelcomePage {
 
   /** Sister clans read from the Clash of Clans API: one that cannot be read leaves its act out. */
   protected readonly sisters = injectSisterClans();
+
+  /** Members of the three clans, marching on banners before the call. */
+  protected readonly legion = computed<LegionClan[]>(() => {
+    const c = this.data();
+    return [
+      ...(c ? [{ order: 'black' as const, name: c.name, members: c.members }] : []),
+      ...this.sisters().map((s) => ({ order: s.sister.order, name: s.clan.name, members: s.clan.members })),
+    ];
+  });
 
   /** Scrollports of pinned scrolling for the records: half a scrollport per tablet. */
   protected readonly annalsLength = computed(() => 1.2 + (this.records()?.length ?? 0) * 0.4);

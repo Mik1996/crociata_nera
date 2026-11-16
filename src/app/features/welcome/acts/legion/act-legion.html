@@ -1,0 +1,69 @@
+<section class="scrolly-stage legion" aria-labelledby="legion-title" [class.legion--live]="act.near()">
+  <div class="legion__glow" aria-hidden="true"></div>
+
+  <div class="legion__content" data-scrolly-fit>
+    <crn-act-heading
+      titleId="legion-title"
+      [title]="'welcome.acts.legion.title' | translate"
+      [tagline]="'welcome.acts.legion.tagline' | translate"
+    />
+
+    <div class="legion__field">
+      <!-- The banners: every name of the three clans, marching. Decoration: the roll is below. -->
+      <div class="legion__banners" aria-hidden="true">
+        @for (banner of banners(); track $index) {
+          <div
+            class="banner"
+            [class.banner--left]="banner.dir < 0"
+            [attr.data-order]="banner.order"
+            [style.--i]="$index"
+            [style.--dir]="banner.dir"
+            [style.--depth]="banner.depth"
+            [style.--count]="banner.names.length"
+          >
+            <div class="banner__track">
+              @for (copy of [0, 1]; track copy) {
+                <ul class="banner__names" [class.banner__names--copy]="copy">
+                  @for (n of banner.names; track $index) {
+                    <li class="banner__name" [class.banner__name--chief]="n.chief" [class.banner__name--extra]="n.extra">
+                      {{ n.name }}
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- The count of the Crusaders, rising while the banners fall back -->
+      <div class="legion__total">
+        <p class="legion__number cn-num">
+          <span class="cn-visually-hidden">{{ total() | localNumber }}</span>
+          <span [crnScrollyCounter]="total()" [counterFrom]="0.55" [counterTo]="0.82"></span>
+        </p>
+        <p class="legion__unit">{{ 'welcome.legion.unit' | translate }}</p>
+        <ul class="legion__clans" role="list">
+          @for (clan of clans(); track clan.order) {
+            <li class="legion__clan" [attr.data-order]="clan.order">
+              <span class="legion__clan-name">{{ clan.name }}</span>
+              <span class="legion__clan-count cn-num">{{ clan.members.length | localNumber }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- The roll, clan by clan, for assistive technologies -->
+  <div class="cn-visually-hidden">
+    @for (roll of rolls(); track roll.order) {
+      <h3>{{ roll.name }}</h3>
+      <ul>
+        @for (name of roll.names; track $index) {
+          <li>{{ name }}</li>
+        }
+      </ul>
+    }
+  </div>
+</section>

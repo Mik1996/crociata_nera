@@ -1,0 +1,304 @@
+// The Crusaders: banners of names marching across a night field, one tone per clan. Each banner
+// marches on its own (CSS animation, while the act is near) and the scroll pushes it further, the
+// nearer banners more; then the banners fall back and the count of the Crusaders rises.
+
+@use 'color-palette' as palette;
+@use 'variables' as *;
+
+:host {
+  isolation: isolate;
+  background: radial-gradient(
+    ellipse 120% 80% at 50% 55%,
+    var(--cn-call-dusk) 0%,
+    var(--cn-night-dark) 70%
+  );
+  color: var(--cn-welcome-text);
+}
+
+.legion {
+  // Banners in while the act comes up; back while the count rises.
+  --recede: clamp(0, (var(--p) - 0.48) / 0.17, 1);
+  --total-in: clamp(0, (var(--p) - 0.55) / 0.15, 1);
+  display: flex;
+}
+
+// Three soft lights, one per clan, drifting with the scroll.
+.legion__glow {
+  position: absolute;
+  inset: -10%;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at calc(20% + var(--p) * 10%) 30%,
+      palette.alpha(var(--cn-clan-black-ember), 16%),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at calc(80% - var(--p) * 10%) 50%,
+      palette.alpha(var(--cn-clan-red-glow), 14%),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 50% calc(85% - var(--p) * 10%),
+      palette.alpha(var(--cn-clan-gold-glow), 12%),
+      transparent 42%
+    );
+}
+
+.legion__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: min($space-l, 2.5cqh);
+  box-sizing: border-box;
+  width: 100%;
+  padding: min($space-xxl, 5cqh) 0 min($space-xl, 3cqh);
+}
+
+.legion__field {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+// --- The banners -----------------------------------------------------------------------------
+
+.legion__banners {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: min($space-s, 1cqh);
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+  // The banners fade at the sides of the stage.
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--cn-mask) 12%,
+    var(--cn-mask) 88%,
+    transparent
+  );
+  opacity: calc(1 - var(--recede) * 0.8);
+  filter: blur(calc(var(--recede) * 0.12rem));
+  transform: scale(calc(1 - var(--recede) * 0.05));
+}
+
+.banner {
+  // In one after the other while the act comes up, from the side the banner marches from.
+  --in: clamp(0, (var(--enter) - 0.35 - var(--i) * 0.06) / 0.35, 1);
+  // Wider than the stage on both sides: the scroll push never shows an end of the track.
+  margin-inline: -40cqw;
+  font-size: calc(min(1.45rem, 3.6cqh, 4.8cqw) * (0.62 + var(--depth) * 0.45));
+  opacity: calc(var(--in) * (0.4 + var(--depth) * 0.6));
+  transform: translate3d(
+    calc(
+      var(--dir) * ((var(--p) - 0.5) * var(--depth) * 36cqw - (1 - var(--in)) * 30cqw)
+    ),
+    0,
+    0
+  );
+}
+
+// Two copies of the names in a row: marching by one copy loops without a seam.
+.banner__track {
+  display: flex;
+  width: max-content;
+  animation: banner-march calc(var(--count) * 2.4s / (0.5 + var(--depth))) linear infinite;
+  animation-play-state: paused;
+}
+
+.banner--left .banner__track {
+  animation-direction: reverse;
+}
+
+.legion--live .banner__track {
+  animation-play-state: running;
+}
+
+.banner__names {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.banner__name {
+  font-family: var(--cn-font-display);
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--name);
+  text-shadow: 0 0.125rem 0 palette.alpha(var(--cn-shadow), 70%);
+
+  // A cross of the Crusade between the names.
+  &::after {
+    content: '✠';
+    display: inline-block;
+    margin-inline: 0.7em;
+    font-size: 0.6em;
+    vertical-align: 0.2em;
+    color: palette.alpha(var(--cn-gold), 45%);
+  }
+}
+
+.banner__name--chief {
+  font-size: 1.3em;
+  color: var(--chief);
+  text-shadow:
+    0 0.125rem 0 palette.alpha(var(--cn-shadow), 70%),
+    0 0 0.6em var(--chief-glow);
+}
+
+// One tone per clan.
+[data-order='black'] {
+  --name: var(--cn-welcome-text-muted);
+  // White in the fire: gold is the tone of Crociata d'Oro.
+  --chief: var(--cn-welcome-text);
+  --chief-glow: #{palette.alpha(var(--cn-clan-black-ember), 80%)};
+}
+
+[data-order='red'] {
+  --name: var(--cn-clan-red-flame-1);
+  --chief: var(--cn-clan-red-ember-core);
+  --chief-glow: #{palette.alpha(var(--cn-clan-red-glow), 60%)};
+}
+
+[data-order='gold'] {
+  --name: var(--cn-clan-gold-leaf);
+  --chief: var(--cn-clan-gold-flame-1);
+  --chief-glow: #{palette.alpha(var(--cn-clan-gold-glow), 60%)};
+}
+
+@keyframes banner-march {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+// --- The count -------------------------------------------------------------------------------
+
+.legion__total {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-xs;
+  width: min(100% - 2 * $space-l, 36rem);
+  text-align: center;
+  opacity: var(--total-in);
+  transform: translate3d(-50%, calc(-50% + (1 - var(--total-in)) * 3cqh), 0)
+    scale(calc(0.9 + var(--total-in) * 0.1));
+  pointer-events: none;
+}
+
+.legion__number {
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-size: min(6rem, 22cqw, 16cqh);
+  line-height: 1;
+  color: var(--cn-gold-light);
+  text-shadow:
+    0 0.25rem 0 var(--cn-shadow),
+    0 0 1.5rem palette.alpha(var(--cn-crusader-glow), 55%);
+}
+
+.legion__unit {
+  margin: 0;
+  font-family: var(--cn-font-display);
+  font-size: min(var(--cn-fs-xl), 6cqw, 4cqh);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0.125rem 0 var(--cn-shadow);
+}
+
+.legion__clans {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $space-xs $space-s;
+  margin: $space-s 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legion__clan {
+  display: inline-flex;
+  align-items: baseline;
+  gap: $space-xs;
+  padding: $space-xs $space-m;
+  border: 1px solid palette.alpha(var(--name), 45%);
+  border-radius: $radius-pill;
+  background: palette.alpha(var(--cn-night-dark), 80%);
+  font-size: var(--cn-fs-sm);
+  white-space: nowrap;
+  color: var(--name);
+}
+
+.legion__clan-count {
+  font-family: var(--cn-font-display);
+  color: var(--chief);
+}
+
+// --- Static page (reduced motion) or act too tall to stay pinned: the roll at rest ----------------
+
+:host(.scrolly-act--static),
+:host(.scrolly-act--unpinned) {
+  .legion__field {
+    flex-direction: column;
+    gap: $space-xl;
+  }
+
+  .legion__banners {
+    gap: $space-m;
+    padding-inline: $space-l;
+    box-sizing: border-box;
+    mask-image: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .banner {
+    margin-inline: 0;
+    opacity: 1;
+    transform: none;
+  }
+
+  .banner__track {
+    width: auto;
+    animation: none;
+  }
+
+  .banner__names {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: $space-xs;
+  }
+
+  .banner__names--copy,
+  .banner__name--extra {
+    display: none;
+  }
+
+  .legion__total {
+    position: static;
+    width: auto;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner__track {
+    animation: none;
+  }
+}

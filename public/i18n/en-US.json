@@ -679,9 +679,16 @@
         "kicker": "Sister clan",
         "cta": "Open the clan in the game"
       },
+      "legion": {
+        "title": "The Crusaders",
+        "tagline": "Three banners, one oath."
+      },
       "call": {
         "title": "The Call"
       }
+    },
+    "legion": {
+      "unit": "crusaders on the march"
     }
   },
   "profile": {
