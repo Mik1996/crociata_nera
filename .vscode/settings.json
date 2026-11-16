@@ -21,7 +21,8 @@
     "table",
     "th19",
     "cwl",
-    "UI"
+    "UI",
+    "player"
   ],
   "i18n-ally.localesPaths": ["public/i18n"],
   "i18n-ally.enabledFrameworks": ["ngx-translate"],

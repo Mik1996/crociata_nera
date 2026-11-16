@@ -153,7 +153,19 @@ export const UNIT_ICONS: Readonly<Record<string, string>> = {
   'home|Fire Heart': 'game/units/fire-heart.webp',
   'home|Stun Blaster': 'game/units/stun-blaster.webp',
   'home|Flame Blower': 'game/units/flame-blower.webp',
-  'home|Heroic Torch': 'game/units/heroic-torch.webp'
+  'home|Heroic Torch': 'game/units/heroic-torch.webp',
+  'home|Barch Squad': 'game/units/barch-squad.webp',
+  'home|Giant Wizard Squad': 'game/units/giant-wizard-squad.webp',
+  'home|Wall Breaker Squad': 'game/units/wall-breaker-squad.webp',
+  'home|Minion Squad': 'game/units/minion-squad.webp',
+  'home|Balloon Squad': 'game/units/balloon-squad.webp',
+  'home|Golem Witch Squad': 'game/units/golem-witch-squad.webp',
+  'home|Hog Rider Squad': 'game/units/hog-rider-squad.webp',
+  'home|Miner Squad': 'game/units/miner-squad.webp',
+  'home|Healer Squad': 'game/units/healer-squad.webp',
+  'home|P.E.K.K.A Titan Squad': 'game/units/p-e-k-k-a-titan-squad.webp',
+  'home|Dragons Squad': 'game/units/dragons-squad.webp',
+  'home|Baby Dragon Squad': 'game/units/baby-dragon-squad.webp'
 };
 
 /** Town Hall image by level. */
