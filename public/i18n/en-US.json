@@ -54,7 +54,8 @@
     "group": {
       "battle": "Battle",
       "clan": "The Clan",
-      "arsenal": "Arsenal"
+      "arsenal": "Arsenal",
+      "crusade": "The Crusade"
     },
     "dashboard": "Dashboard",
     "currentWar": "Current war",

@@ -54,7 +54,8 @@
     "group": {
       "battle": "Batalla",
       "clan": "El Clan",
-      "arsenal": "Arsenal"
+      "arsenal": "Arsenal",
+      "crusade": "La Cruzada"
     },
     "dashboard": "Panel",
     "currentWar": "Guerra actual",

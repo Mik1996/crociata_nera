@@ -25,6 +25,22 @@ describe('Shell', () => {
     expect(el.querySelector('a.account')!.getAttribute('href')).toContain('/sign-in');
   });
 
+  it('with access to the clans, puts battle first and the public pages at the bottom', () => {
+    TestBed.configureTestingModule({
+      // Mock data: every page is open (demo without backend).
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: true })],
+    });
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const groups = Array.from(el.querySelectorAll('nav .nav-group')).map((h) => h.textContent?.trim());
+    expect(groups).toEqual(['Battaglia', 'Il Clan', 'Arsenale', 'La Crociata']);
+    const items = Array.from(el.querySelectorAll('nav a [matListItemTitle]')).map((s) => s.textContent?.trim());
+    expect(items[0]).toBe('Dashboard');
+    expect(items.slice(-2)).toEqual(['Benvenuto', 'Unisciti a noi']);
+  });
+
   it('tells when the browser is offline', () => {
     TestBed.configureTestingModule({
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: false })],

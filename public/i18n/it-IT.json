@@ -54,7 +54,8 @@
     "group": {
       "battle": "Battaglia",
       "clan": "Il Clan",
-      "arsenal": "Arsenale"
+      "arsenal": "Arsenale",
+      "crusade": "La Crociata"
     },
     "dashboard": "Dashboard",
     "currentWar": "Guerra corrente",

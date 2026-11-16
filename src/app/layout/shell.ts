@@ -179,20 +179,14 @@ export class Shell {
     if (code !== this.language.current()) this.language.use(code).subscribe();
   }
 
-  private readonly allMenu: MenuGroup[] = [
-    {
-      items: [
-        { path: '/', label: 'nav.welcome', icon: 'fort', public: true },
-        { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
-      ],
-    },
-    {
-      label: 'nav.group.clan',
-      items: [
-        { path: '/players', label: 'nav.players', icon: 'groups' },
-        { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
-      ],
-    },
+  /** Public pages: on top for visitors, at the bottom (under a label) for the clans' members. */
+  private readonly publicItems: MenuItem[] = [
+    { path: '/', label: 'nav.welcome', icon: 'fort', public: true },
+    { path: '/join', label: 'nav.join', icon: 'person_add', public: true },
+  ];
+
+  /** Pages of the clans, ordered by use: battle first. */
+  private readonly clanMenu: MenuGroup[] = [
     {
       label: 'nav.group.battle',
       items: [
@@ -204,22 +198,30 @@ export class Shell {
         { path: '/wars', label: 'nav.history', icon: 'history_edu' },
       ],
     },
+    {
+      label: 'nav.group.clan',
+      items: [
+        { path: '/players', label: 'nav.players', icon: 'groups' },
+        { path: '/statistics', label: 'nav.statistics', icon: 'leaderboard' },
+      ],
+    },
     { label: 'nav.group.arsenal', items: [{ path: '/bases', label: 'nav.bases', icon: 'shield' }] },
   ];
 
   /**
-   * Without access to the clans' pages (signed out, or not in a clan of the Crusade): only the
-   * public pages (welcome, join us). Settings are always at the bottom.
+   * With access to the clans' pages: the clans' groups (battle first), then the public pages
+   * (welcome, join us) under their own label. Without it (signed out, or not in a clan of the
+   * Crusade): only the public pages. Settings are always at the bottom.
    */
-  protected readonly menu = computed(() => {
-    const open = this.clanAccess();
+  protected readonly menu = computed((): MenuGroup[] => {
+    if (!this.clanAccess()) return [{ items: this.publicItems }];
     const leader = this.useMock || this.auth.hasLeaderAccess();
-    return this.allMenu
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((i) => (open || i.public) && (leader || !i.leader)),
-      }))
-      .filter((group) => group.items.length > 0);
+    return [
+      ...this.clanMenu
+        .map((group) => ({ ...group, items: group.items.filter((i) => leader || !i.leader) }))
+        .filter((group) => group.items.length > 0),
+      { label: 'nav.group.crusade', items: this.publicItems },
+    ];
   });
   protected readonly settingsItem: MenuItem = {
     path: '/settings',

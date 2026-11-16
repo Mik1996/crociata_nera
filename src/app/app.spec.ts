@@ -60,23 +60,25 @@ describe('App', () => {
     const nav = (fixture.nativeElement as HTMLElement).querySelector('nav[aria-label="Navigazione principale"]');
     const items = Array.from(nav?.querySelectorAll('a [matListItemTitle]') ?? []).map((s) => s.textContent?.trim());
     expect(items).toEqual([
-      'Benvenuto',
-      'Unisciti a noi',
-      'Giocatori',
-      'Statistiche',
       'Dashboard',
       'Guerra corrente',
       'Lega (CWL)',
       'Selezioni CWL',
       'Raid Weekend',
       'Storico guerre',
+      'Giocatori',
+      'Statistiche',
       'Arsenale basi',
+      'Benvenuto',
+      'Unisciti a noi',
     ]);
-    // The pages are grouped under headings: the clan first, then the battles and the arsenal.
+    // The pages are grouped under headings: the battles first, then the clan, the arsenal and the
+    // public pages of the Crusade.
     expect(Array.from(nav!.querySelectorAll('.nav-group')).map((h) => h.textContent?.trim())).toEqual([
-      'Il Clan',
       'Battaglia',
+      'Il Clan',
       'Arsenale',
+      'La Crociata',
     ]);
   });
 
@@ -102,7 +104,7 @@ describe('App', () => {
 
     options[1].click();
     await fixture.whenStable();
-    expect(items()).toEqual(['Welcome', 'Join us', 'Players', 'Statistics', 'Dashboard', 'Current war', 'League (CWL)', 'CWL selections', 'Raid Weekend', 'War history', 'Base arsenal']);
+    expect(items()).toEqual(['Dashboard', 'Current war', 'League (CWL)', 'CWL selections', 'Raid Weekend', 'War history', 'Players', 'Statistics', 'Base arsenal', 'Welcome', 'Join us']);
     expect(el.querySelector('button.language img')?.getAttribute('src')).toBe('flags/us.svg');
     TestBed.inject(TranslateService).use('it-IT');
     localStorage.clear();

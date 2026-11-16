@@ -22,7 +22,11 @@ export type PageScene = 'dusk' | 'war' | 'army' | 'capital' | 'hall' | 'candle';
   selector: 'crn-page-header',
   imports: [Crusader],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[attr.data-scene]': 'scene()', '[class.page-header--flush]': 'flush()' },
+  host: {
+    '[attr.data-scene]': 'scene()',
+    '[class.page-header--flush]': 'flush()',
+    '[class.page-header--compact]': 'compact()',
+  },
   templateUrl: './page-header.html',
   styleUrl: './page-header.scss',
 })
@@ -39,4 +43,9 @@ export class PageHeader {
    * area), so it does not undo the paddings of the content area.
    */
   readonly flush = input(false, { transform: booleanAttribute });
+  /**
+   * Slim header for the pages people open to check something (dashboard, current war, CWL): smaller
+   * title, no tagline and no Crusader, so the data starts higher. The scene stays.
+   */
+  readonly compact = input(false, { transform: booleanAttribute });
 }

@@ -919,6 +919,11 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+// More columns beyond the right edge: the edge fades (scrollbars are hidden site-wide).
+.cn-table-wrap--more-x {
+  mask-image: linear-gradient(to left, transparent, var(--cn-mask) 2.5rem);
+}
+
 .cn-th {
   display: inline-flex;
   align-items: center;
