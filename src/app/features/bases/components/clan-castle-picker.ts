@@ -19,6 +19,8 @@ import {
   TroopGroup,
   TroopInfo,
 } from '../../../core/game/clan-castle';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
+import { FormErrors } from '../../../shared/components/form-errors';
 
 const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
 
@@ -30,7 +32,7 @@ const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
  */
 @Component({
   selector: 'crn-clan-castle-picker',
-  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe],
+  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe, FormErrors],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ClanCastlePicker), multi: true },
@@ -45,6 +47,12 @@ export class ClanCastlePicker implements ControlValueAccessor {
   protected readonly troops = signal<ClanCastleTroop[]>([]);
   protected readonly disabled = signal(false);
   protected readonly used = computed(() => housingSpaceUsed(this.troops()));
+  protected readonly overMessages = computed<BackendMessage[]>(() => [
+    {
+      key: 'ERROR.CLAN_CASTLE_OVER_CAPACITY',
+      params: { used: this.used(), max: this.capacity() ?? 0 },
+    },
+  ]);
   protected readonly free = computed(() => Math.max(0, (this.capacity() ?? 0) - this.used()));
   /** The town hall changed to one with a smaller castle: some troops must go. */
   protected readonly over = computed(() => {

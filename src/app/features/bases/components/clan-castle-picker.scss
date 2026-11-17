@@ -225,8 +225,6 @@
   }
 }
 
-.error {
-  margin: 0 0 $space-s;
-  color: var(--cn-red-text);
-  font-size: var(--cn-fs-sm);
+.over {
+  margin-bottom: $space-s;
 }

@@ -56,9 +56,7 @@
   </div>
 
   @if (over()) {
-    <p class="error" role="alert">
-      {{ 'ERROR.CLAN_CASTLE_OVER_CAPACITY' | translate: { used: used(), max: capacity() } }}
-    </p>
+    <crn-form-errors class="over" [messages]="overMessages()" />
   }
 
   <div class="catalogue">
