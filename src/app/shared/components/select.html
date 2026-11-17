@@ -1,0 +1,11 @@
+<mat-form-field appearance="outline" subscriptSizing="dynamic">
+  <mat-label>{{ label() }}</mat-label>
+  @if (icon(); as name) {
+    <crn-icon matPrefix [name]="name" />
+  }
+  <mat-select [value]="value()" (valueChange)="value.set($event)">
+    @for (option of options(); track $index) {
+      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
