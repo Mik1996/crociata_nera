@@ -233,15 +233,14 @@
 <!-- Shown while there is more than one page of the smallest size, so the size can be changed back. -->
 @if (pageSize(); as size) {
   @if (matching() > size) {
-    <mat-paginator
+    <crn-paginator
       class="crn-table__paginator"
       [length]="matching()"
       [pageIndex]="pageIndex()"
-      [pageSize]="chosenPageSize()"
+      [pageSize]="chosenPageSize() ?? size"
       [pageSizeOptions]="pageSizeOptions()"
+      [label]="'table.paginator' | translate: { name: caption() }"
       (page)="changePage($event)"
-      showFirstLastButtons
-      [attr.aria-label]="'table.paginator' | translate: { name: caption() }"
     />
   }
 }
