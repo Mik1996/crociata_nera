@@ -318,6 +318,16 @@ h2 {
   }
 }
 
+// Destructive game buttons (`crnButton="danger"`, `shared/directives/button.ts`): red instead of
+// the theme's colours.
+.cn-button--danger {
+  --cn-button-bg: var(--cn-button-danger-bg);
+  --cn-button-border: var(--cn-button-danger-border);
+  --cn-button-ink: var(--cn-button-danger-ink);
+  --cn-button-ink-shadow: var(--cn-button-danger-depth);
+  --cn-button-depth: var(--cn-button-danger-depth);
+}
+
 // Text buttons (links like "View details"): gold, display font.
 .mat-mdc-button.mat-mdc-button-base:not(.picker) {
   --mat-button-text-label-text-color: var(--cn-gold-light);
