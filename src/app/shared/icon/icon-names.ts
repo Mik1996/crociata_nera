@@ -28,6 +28,8 @@ export const ICON_NAMES = [
   'error_outline',
   'event_available',
   'expand_more',
+  'filter_list',
+  'filter_list_off',
   'flag',
   'fort',
   'gpp_maybe',
