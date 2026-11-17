@@ -130,8 +130,10 @@ describe('GET /wars/history', () => {
               clan: { tag: NERA, stars: 2, destructionPercentage: 50 },
               opponent: { tag: '#SEP333', name: 'Old', stars: 2, destructionPercentage: 50 },
             },
-            // A CWL war: skipped.
-            { result: null, endTime: '20261010T100000.000Z', teamSize: 15, clan: { stars: 30, destructionPercentage: 90 }, opponent: { stars: 20, destructionPercentage: 70 } },
+            // A CWL season (stars and destruction of all its wars added up): skipped.
+            { result: null, endTime: '20261010T100000.000Z', teamSize: 15, clan: { tag: NERA, stars: 210, destructionPercentage: 612.4 }, opponent: { stars: 0, destructionPercentage: 0 } },
+            // An entry that cannot be read: left out, the rest of the log is kept.
+            { result: 'win', endTime: 'yesterday', teamSize: 5, clan: { stars: 1 }, opponent: {} },
           ],
         },
       },

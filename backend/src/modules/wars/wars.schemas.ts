@@ -67,31 +67,42 @@ export const cocWarSchema = z.object({
 
 export type CocWar = z.output<typeof cocWarSchema>;
 
-/** Entry of `GET /clans/{tag}/warlog` (Clan War League entries have no opponent tag: skipped). */
+/**
+ * Side of an entry of `GET /clans/{tag}/warlog`. Clan War League entries have no opponent tag
+ * (skipped by the readers) and add up the stars and destruction of the whole season: their
+ * `destructionPercentage` goes past 100.
+ */
 const warLogSideSchema = z.object({
   tag: tag.optional(),
   name: z.string().optional(),
   attacks: count.optional(),
   stars: count,
-  destructionPercentage: percentage,
+  destructionPercentage: z.number().min(0),
   expEarned: count.optional(),
 });
 
-export const cocWarLogSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        result: z.enum(['win', 'lose', 'tie']).nullable().optional(),
-        endTime: cocDate,
-        teamSize: count,
-        clan: warLogSideSchema,
-        opponent: warLogSideSchema,
-      }),
-    )
-    .catch([]),
+const warLogEntrySchema = z.object({
+  result: z.enum(['win', 'lose', 'tie']).nullable().optional(),
+  endTime: cocDate,
+  teamSize: count,
+  clan: warLogSideSchema,
+  opponent: warLogSideSchema,
 });
 
-export type CocWarLogEntry = z.output<typeof cocWarLogSchema>['items'][number];
+export type CocWarLogEntry = z.output<typeof warLogEntrySchema>;
+
+/** `GET /clans/{tag}/warlog`: an entry that cannot be read is left out, never the whole log. */
+export const cocWarLogSchema = z.object({
+  items: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items.flatMap((item): CocWarLogEntry[] => {
+        const entry = warLogEntrySchema.safeParse(item);
+        return entry.success ? [entry.data] : [];
+      }),
+    ),
+});
 
 export const listWarsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
