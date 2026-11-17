@@ -1,0 +1,39 @@
+@use 'variables' as *;
+
+:host {
+  display: flex;
+  min-width: 3rem;
+  height: var(--crn-meter-height, 0.375rem);
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: var(--crn-meter-track, var(--cn-surface-3));
+}
+
+:host(.meter--reverse) {
+  justify-content: flex-end;
+}
+
+.meter__fill {
+  flex: none;
+  height: 100%;
+  background: var(--crn-meter-fill);
+  box-shadow: var(--crn-meter-glow, none);
+  transition: width 0.15s ease;
+}
+
+// A single fill keeps rounded ends; segments meet edge to edge.
+.meter__fill:only-child {
+  border-radius: inherit;
+}
+
+:host(.meter--fire) {
+  --crn-meter-fill: linear-gradient(90deg, var(--cn-red-mid), var(--cn-gold));
+}
+
+:host(.meter--gold) {
+  --crn-meter-fill: var(--cn-gold);
+}
+
+:host(.meter--danger) {
+  --crn-meter-fill: var(--cn-red-mid);
+}
