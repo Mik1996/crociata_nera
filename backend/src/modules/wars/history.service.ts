@@ -5,7 +5,7 @@ import { WarDocument, WarModel } from './war.model';
 
 /**
  * Monthly war history and player rankings computed from the wars saved in MongoDB.
- * Same JSON format and rules as the proxy (`server/history.mjs`) and the frontend
+ * Same JSON format and rules as the frontend
  * (`src/app/core/utils/monthly-history.ts`), so the Statistics page works unchanged:
  * months in the Europe/Rome time zone, ranking by average stars per war.
  */

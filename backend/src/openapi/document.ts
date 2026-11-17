@@ -54,8 +54,8 @@ const STATUS_TEXT: Record<number, string> = {
 const DESCRIPTION = `
 Application backend of [Crociata Nera](https://crociatanera.it): accounts, wars, Clan War League,
 Raid Weekends, players, commendations and the base arsenal. Data of the clan is read from the
-official Clash of Clans API by a scheduled synchronisation and saved in MongoDB. (The site also
-calls the official API directly through a separate proxy, \`/api/coc/*\`, not described here.)
+official Clash of Clans API by a scheduled synchronisation and saved in MongoDB, or read live (and
+kept in memory for a while) when a page asks for it: the site never calls the official API itself.
 
 ## Responses
 
