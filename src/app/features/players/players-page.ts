@@ -96,8 +96,6 @@ export class PlayersPage {
     memberStatsFilters(this.members.summary()?.leagues ?? []),
   );
 
-  /** Averages over the matching members (every page), for the footer. */
-  protected readonly averages = computed(() => this.members.summary()?.averages ?? null);
 
   protected open(m: MemberStatsRow): void {
     void this.router.navigate(['/players', m.tag]);

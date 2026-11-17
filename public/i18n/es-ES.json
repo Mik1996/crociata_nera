@@ -271,8 +271,7 @@
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Destr. %",
-    "league": "Liga",
-    "average": "Media"
+    "league": "Liga"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Ayuntamiento {{th}}",

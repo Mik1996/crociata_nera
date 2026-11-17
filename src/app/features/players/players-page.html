@@ -32,7 +32,6 @@
           [columns]="columns"
           [caption]="'players.members' | translate: { n: members.summary()?.members ?? 0 }"
           [filters]="filters()"
-          [footer]="true"
           matSort
           matSortActive="league"
           matSortDirection="desc"
@@ -78,7 +77,6 @@
             >
               {{ 'common.player' | translate }}
             </th>
-            <td mat-footer-cell *matFooterCellDef>{{ 'players.average' | translate }}</td>
             <td mat-cell *matCellDef="let m">
               <crn-player-cell [tag]="m.tag" [name]="m.name" stopPropagation>
                 <div class="name-meta">
@@ -127,9 +125,6 @@
             <td mat-cell *matCellDef="let m" class="cn-icon-cell">
               <crn-town-hall-icon [level]="m.townHall" />
             </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.townHall | localNumber: '1.1-1' }}
-            </td>
           </ng-container>
 
           <ng-container matColumnDef="warsPlayed">
@@ -142,9 +137,6 @@
               {{ 'common.wars' | translate }}
             </th>
             <td mat-cell *matCellDef="let m" class="cn-num">{{ m.warsPlayed }}</td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.warsPlayed | localNumber: '1.1-1' }}
-            </td>
           </ng-container>
 
           <ng-container matColumnDef="attendance">
@@ -161,9 +153,6 @@
                 <crn-meter class="attendance__bar" [value]="m.attendance" />
                 <span class="attendance__value">{{ m.attendance | localNumber: '1.0-0' }}%</span>
               </span>
-            </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.attendance | localNumber: '1.0-0' }}%
             </td>
           </ng-container>
 
@@ -184,11 +173,6 @@
             >
               {{ m.attacksUsed }}/{{ m.attacksAvailable }}
             </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.attacksUsed | localNumber: '1.1-1' }}/{{
-                averages()?.attacksAvailable | localNumber: '1.1-1'
-              }}
-            </td>
           </ng-container>
 
           <ng-container matColumnDef="totalStars">
@@ -201,9 +185,6 @@
               {{ 'common.stars' | translate }}
             </th>
             <td mat-cell *matCellDef="let m" class="cn-num">{{ m.totalStars }}</td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.totalStars | localNumber: '1.1-1' }}
-            </td>
           </ng-container>
 
           <ng-container matColumnDef="averageStars">
@@ -217,9 +198,6 @@
             </th>
             <td mat-cell *matCellDef="let m" class="cn-num">
               <strong>{{ m.averageStars | localNumber: '1.2-2' }}</strong>
-            </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              <strong>{{ averages()?.averageStars | localNumber: '1.2-2' }}</strong>
             </td>
           </ng-container>
 
@@ -235,9 +213,6 @@
             <td mat-cell *matCellDef="let m" class="cn-num">
               {{ m.threeStarRate | localNumber: '1.0-1' }}%
             </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.threeStarRate | localNumber: '1.0-1' }}%
-            </td>
           </ng-container>
 
           <ng-container matColumnDef="averageDestruction">
@@ -251,9 +226,6 @@
             </th>
             <td mat-cell *matCellDef="let m" class="cn-num">
               {{ m.averageDestruction | localNumber: '1.0-1' }}%
-            </td>
-            <td mat-footer-cell *matFooterCellDef class="cn-num">
-              {{ averages()?.averageDestruction | localNumber: '1.0-1' }}%
             </td>
           </ng-container>
 
