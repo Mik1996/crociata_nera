@@ -1,0 +1,5 @@
+// Title, content and actions lay out as direct children of the dialog surface.
+:host,
+form {
+  display: contents;
+}
