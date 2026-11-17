@@ -1,0 +1,11 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+}
+
+.form-errors__item {
+  margin: $space-xs 0 0;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+}
