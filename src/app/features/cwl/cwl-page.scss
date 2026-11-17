@@ -40,7 +40,7 @@
 }
 
 .standings {
-  min-width: 26.25rem;
+  --crn-table-min-width: 26.25rem;
 
   td.cn-num {
     white-space: nowrap;
@@ -48,7 +48,7 @@
 }
 
 .players {
-  min-width: 45rem;
+  --crn-table-min-width: 45rem;
 }
 
 .index-cell {

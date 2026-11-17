@@ -6,3 +6,6 @@ export const warStateKey = (s: WarState) => `warState.${s}`;
 export const roleKey = (r: ClanRole) => `role.${r}`;
 
 export const CLAN_ROLES: readonly ClanRole[] = ['leader', 'coLeader', 'elder', 'member'];
+
+/** Results of an ended war, in the order of the result filters. */
+export const WAR_RESULTS: readonly WarResult[] = ['victory', 'defeat', 'draw'];

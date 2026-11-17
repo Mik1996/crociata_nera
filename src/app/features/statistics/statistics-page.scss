@@ -4,20 +4,8 @@
   min-width: 16.25rem;
 }
 
-.section-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: $space-xs $space-l;
-  margin-bottom: $space-m;
-
-  h2 {
-    margin: 0;
-  }
-}
-
 .updated {
+  margin: $space-s 0 0;
   font-size: var(--cn-fs-sm);
 }
 
@@ -27,7 +15,7 @@
 }
 
 .ranking {
-  min-width: 56.25rem;
+  --crn-table-min-width: 56.25rem;
 
   th.mat-mdc-header-cell,
   td.mat-mdc-cell {

@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 const KEY_STEP = 16;
 
 /**
- * Resizable columns for every table wrapper (`.cn-table-wrap`): each header cell gets a handle on
+ * Resizable columns of every table (`<crn-table>`, on its scrolling area `.crn-table__scroll`): each header cell gets a handle on
  * its right edge. Drag it (mouse, pen or touch) or focus it and use the arrow keys to change the
  * column width; double-click it to give every column its automatic width back.
  *
@@ -14,7 +14,7 @@ const KEY_STEP = 16;
  * wrapper. A column can grow but never get narrower than its automatic width.
  */
 @Directive({
-  selector: '.cn-table-wrap',
+  selector: '.crn-table__scroll',
 })
 export class ResizableColumns {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -57,7 +57,7 @@ export class ResizableColumns {
   private addHandles(): void {
     const cells = this.headerCells();
     // Columns added or removed: frozen widths no longer match, back to automatic widths.
-    if (this.element.classList.contains('cn-table-wrap--resized') && cells.some((c) => !c.style.width)) this.reset();
+    if (this.element.classList.contains('crn-table__scroll--resized') && cells.some((c) => !c.style.width)) this.reset();
 
     for (const cell of cells) {
       if (cell.querySelector(':scope > .cn-col-resizer')) continue;
@@ -97,14 +97,14 @@ export class ResizableColumns {
     const startX = event.clientX;
     const startWidth = cell.getBoundingClientRect().width;
     handle.setPointerCapture(event.pointerId);
-    this.element.classList.add('cn-table-wrap--resizing');
+    this.element.classList.add('crn-table__scroll--resizing');
 
     const move = (e: PointerEvent) => this.resize(cell, startWidth + e.clientX - startX);
     const end = () => {
       handle.removeEventListener('pointermove', move);
       handle.removeEventListener('pointerup', end);
       handle.removeEventListener('pointercancel', end);
-      this.element.classList.remove('cn-table-wrap--resizing');
+      this.element.classList.remove('crn-table__scroll--resizing');
     };
     handle.addEventListener('pointermove', move);
     handle.addEventListener('pointerup', end);
@@ -114,7 +114,7 @@ export class ResizableColumns {
   /** Fixes every column to its current width (once), so resizing one does not move the others. */
   private freeze(): void {
     const table = this.table();
-    if (!table || this.element.classList.contains('cn-table-wrap--resized')) return;
+    if (!table || this.element.classList.contains('crn-table__scroll--resized')) return;
     const cells = this.headerCells();
     const widths = cells.map((c) => c.getBoundingClientRect().width);
     this.autoWidths = widths;
@@ -122,7 +122,7 @@ export class ResizableColumns {
     table.style.minWidth = '0';
     table.style.width = `${widths.reduce((sum, w) => sum + w, 0)}px`;
     table.style.tableLayout = 'fixed';
-    this.element.classList.add('cn-table-wrap--resized');
+    this.element.classList.add('crn-table__scroll--resized');
   }
 
   private resize(cell: HTMLTableCellElement, width: number): void {
@@ -143,7 +143,7 @@ export class ResizableColumns {
       table.style.minWidth = '';
       table.style.tableLayout = '';
     }
-    this.element.classList.remove('cn-table-wrap--resized');
+    this.element.classList.remove('crn-table__scroll--resized');
     this.autoWidths = [];
   }
 }

@@ -4,11 +4,6 @@
   display: block;
 }
 
-.cn-filters {
-  margin-bottom: $space-m;
-  gap: $space-m $space-l;
-}
-
 .attack-status {
   display: flex;
   align-items: center;
@@ -61,11 +56,5 @@ tr.row-partial-attacks {
 
 .target__pos {
   font-weight: 600;
-  color: var(--cn-text-muted);
-}
-
-.no-results {
-  padding: $space-xxl $space-l;
-  text-align: center;
   color: var(--cn-text-muted);
 }

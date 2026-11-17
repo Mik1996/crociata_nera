@@ -1,0 +1,306 @@
+@use 'color-palette' as palette;
+@use 'variables' as *;
+
+/*
+ * Data table (`<crn-table>`). Not encapsulated (the cells come from the page's templates): every
+ * rule is scoped under `.crn-table`.
+ *
+ * The table scrolls inside `.crn-table__scroll`, never taller than its scrolling area (measured by
+ * the component: `--crn-table-area`) minus `--crn-table-gap` (room for the card around it). Inside
+ * it, plain `position: sticky` keeps in place, from the top: the caption, the header row (below
+ * the caption: `--crn-table-caption-h`) and the filter row (below both: `--crn-table-head-h`); the
+ * footer row sticks to the bottom. The area is as tall as 10 rows (`visibleRows`): fewer rows leave
+ * empty room above the footer.
+ *
+ * Custom properties a page can set on the element: `--crn-table-min-width` (below it the table
+ * scrolls sideways, 40rem by default) and `--crn-table-gap`.
+ */
+.crn-table {
+  display: block;
+  min-width: 0;
+}
+
+.crn-table__scroll {
+  position: relative;
+  // The caption bar is as wide as this area (`100cqi`), not as wide as the table.
+  container-type: inline-size;
+  // As tall as `--crn-table-visible-rows` rows plus caption, header, filters and footer (measured
+  // by the component), never taller than the visible area.
+  height: calc(
+    var(--crn-table-caption-h, 0rem) + var(--crn-table-head-h, 0rem) +
+      var(--crn-table-filter-h, 0rem) + var(--crn-table-foot-h, 0rem) +
+      var(--crn-table-visible-rows, 10) * var(--crn-table-row-h, 3.25rem)
+  );
+  // The paginator (if any) sits below: it is left room too.
+  max-height: calc(
+    var(--crn-table-area, 100dvh) - var(--crn-table-gap, #{$space-xxxl}) - var(
+        --crn-table-pager-h,
+        0rem
+      )
+  );
+  overflow: auto;
+  // No `overscroll-behavior: contain`: at its top and bottom the table hands the scroll to the page
+  // (touch; the wheel is routed by the component).
+  -webkit-overflow-scrolling: touch;
+  border-radius: $radius-m;
+
+  > table {
+    width: 100%;
+    min-width: var(--crn-table-min-width, 40rem);
+    // Separate borders: with collapsed borders, sticky cells lose their bottom border.
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  // More columns beyond the right edge (directive `TableHorizontalScroll`): the edge fades, but not
+  // the caption, whose buttons sit on the right.
+  &.crn-table__scroll--more-x {
+    mask-image:
+      linear-gradient(var(--cn-mask), var(--cn-mask)),
+      linear-gradient(to left, transparent, var(--cn-mask) 2.5rem);
+    mask-size:
+      100% var(--crn-table-caption-h, 0),
+      100% 100%;
+    mask-repeat: no-repeat;
+  }
+}
+
+// --- Caption: name of the table on the left, filter buttons on the right ---------------------------
+
+.crn-table__caption {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 0;
+  background: var(--cn-table-head);
+  border-bottom: 1px solid var(--cn-border);
+  caption-side: top;
+  text-align: start;
+}
+
+// Stays in view when the table scrolls sideways: as wide as the scrolling area.
+.crn-table__caption-bar {
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+  width: 100cqi;
+  min-height: 3rem;
+  padding: $space-xs $space-xs $space-xs $space-l;
+}
+
+.crn-table__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
+  font-size: var(--cn-fs-lg);
+  color: var(--cn-heading);
+  text-shadow: var(--cn-heading-shadow);
+}
+
+.crn-table__count {
+  margin-inline-start: $space-s;
+  font-family: var(--cn-font-body, inherit);
+  font-size: var(--cn-fs-sm);
+  font-weight: 400;
+  letter-spacing: normal;
+  color: var(--cn-text-muted);
+  text-shadow: none;
+}
+
+.crn-table__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.crn-table__toggle {
+  position: relative;
+
+  &[aria-expanded='true'],
+  &.crn-table__toggle--active {
+    color: var(--cn-gold-light);
+  }
+}
+
+// Number of active filters, on the corner of the toggle.
+.crn-table__badge {
+  position: absolute;
+  top: $space-xs;
+  right: $space-xs;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 $space-xs;
+  box-sizing: border-box;
+  border-radius: $radius-pill;
+  background: var(--cn-gold);
+  color: var(--cn-on-gold);
+  font-size: var(--cn-fs-2xs);
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+}
+
+// --- Header, filter and footer rows -----------------------------------------------------------------
+
+.crn-table th.mat-mdc-header-cell {
+  position: sticky;
+  top: var(--crn-table-caption-h, 0);
+  z-index: 3;
+  background: var(--cn-table-head);
+  // Header labels on one line, never cut: they set the automatic width of the column.
+  white-space: nowrap;
+  font-family: var(--cn-font-heading);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--cn-fs-xs);
+  letter-spacing: 0.08em;
+  border-bottom-color: var(--cn-header-border);
+}
+
+.crn-table .crn-table__filter-row {
+  height: auto;
+
+  > th.mat-mdc-header-cell {
+    top: calc(var(--crn-table-caption-h, 0) + var(--crn-table-head-h, 0));
+    padding-block: $space-xs;
+    vertical-align: top;
+    text-transform: none;
+    letter-spacing: normal;
+    font-family: inherit;
+    font-weight: 400;
+    border-bottom-color: var(--cn-border);
+  }
+}
+
+.crn-table .crn-table__filter-row--hidden,
+.crn-table .crn-table__footer-row--hidden {
+  display: none;
+}
+
+// Header stuck: a shadow under the last sticky row separates it from the rows below.
+.crn-table--filters-open .crn-table__filter-row > th,
+.crn-table:not(.crn-table--filters-open) .crn-table__head-row > th {
+  box-shadow: 0 0.375rem 0.5rem -0.25rem palette.alpha(var(--cn-shadow), 45%);
+}
+
+.crn-table td.mat-mdc-footer-cell {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  background: var(--cn-table-head);
+  border-top: 1px solid var(--cn-header-border);
+  border-bottom: none;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 -0.375rem 0.5rem -0.25rem palette.alpha(var(--cn-shadow), 45%);
+}
+
+// --- Filter fields: compact outline fields ----------------------------------------------------------
+
+.crn-table__filter-cell {
+  --mat-form-field-container-height: 2.25rem;
+  --mat-form-field-container-vertical-padding: 0.375rem;
+  --mat-form-field-container-text-size: var(--cn-fs-sm);
+  --mat-select-trigger-text-size: var(--cn-fs-sm);
+
+  mat-form-field {
+    width: 100%;
+    min-width: 6rem;
+  }
+
+  // Material gives the field a fixed width: here it follows the column instead.
+  .mat-mdc-form-field-infix {
+    width: auto;
+    min-width: 0;
+  }
+
+  // Narrower side paddings: short fields (number bounds) keep their placeholder whole.
+  .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+    padding-inline: $space-s;
+  }
+
+  // The search icon of text filters: smaller, close to the text.
+  .mat-mdc-form-field-icon-prefix {
+    padding: 0 0 0 $space-s;
+
+    crn-icon {
+      font-size: 1.125rem;
+      padding: 0;
+    }
+  }
+}
+
+.crn-table__range {
+  display: flex;
+  gap: $space-xs;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 3.5rem;
+  }
+}
+
+// Text: room for its placeholder ("Name or tag").
+.crn-table__filter-cell mat-form-field.crn-table__text {
+  min-width: 10rem;
+}
+
+// Date range: one field ("from – to") with a calendar button.
+.crn-table__filter-cell mat-form-field.crn-table__dates {
+  min-width: 13rem;
+
+  .mat-datepicker-toggle .mat-mdc-icon-button {
+    --mat-icon-button-state-layer-size: 2rem;
+    padding: $space-xs;
+
+    crn-icon {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+// --- Rows ------------------------------------------------------------------------------------------
+
+.crn-table tr.cn-row-link {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--cn-hover);
+  }
+}
+
+// No rows: the message fills the body (height set by the component), centred both ways.
+.crn-table .crn-table__empty {
+  padding: $space-xxl 0;
+  vertical-align: middle;
+  border-bottom: none;
+  color: var(--cn-text-muted);
+}
+
+.crn-table__empty-text {
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+  width: 100cqi;
+  padding: 0 $space-l;
+  text-align: center;
+}
+
+// Room left below the rows (height set by the component): the footer stays at the bottom.
+.crn-table .crn-table__filler > td {
+  padding: 0;
+  border: none;
+}
+
+// --- Pages (`pageSize`) ------------------------------------------------------------------------------
+
+.crn-table__paginator {
+  border-top: 1px solid var(--cn-border);
+  background: transparent;
+}

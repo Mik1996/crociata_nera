@@ -103,301 +103,296 @@
           </p>
         </section>
 
-        <section class="cn-card cn-section" aria-labelledby="ranking-title">
-          <h2 id="ranking-title">{{ 'cwlSelection.ranking' | translate: { n: rows().length } }}</h2>
+        <section class="cn-card cn-section">
+          <crn-table
+            [data]="rows()"
+            [columns]="columns()"
+            [caption]="'cwlSelection.ranking' | translate: { n: rows().length }"
+            [filters]="filters()"
+          >
+            <ng-container matColumnDef="rank">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let p" class="cn-num rank">{{ p.rank }}</td>
+            </ng-container>
 
-          <div class="cn-table-wrap">
-            <table
-              mat-table
-              [dataSource]="rows()"
-              [attr.aria-label]="'cwlSelection.table' | translate"
-            >
-              <ng-container matColumnDef="rank">
-                <th mat-header-cell *matHeaderCellDef>#</th>
-                <td mat-cell *matCellDef="let p" class="cn-num rank">{{ p.rank }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
-                <td mat-cell *matCellDef="let p">
-                  <div class="player">
-                    <span class="player__league">
-                      @if (p.league?.iconUrl) {
-                        <img
-                          class="league-icon"
-                          [src]="p.league.iconUrl"
-                          [alt]="p.league.name"
-                          [matTooltip]="p.league.name"
-                          width="32"
-                          height="32"
-                          tabindex="0"
-                          (click)="$event.stopPropagation()"
-                        />
-                      }
-                    </span>
-                    <div class="player__info">
-                      <a
-                        class="cn-link-cell"
-                        [routerLink]="['/players', p.tag]"
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>{{ 'common.player' | translate }}</th>
+              <td mat-cell *matCellDef="let p">
+                <div class="player">
+                  <span class="player__league">
+                    @if (p.league?.iconUrl) {
+                      <img
+                        class="league-icon"
+                        [src]="p.league.iconUrl"
+                        [alt]="p.league.name"
+                        [matTooltip]="p.league.name"
+                        width="32"
+                        height="32"
+                        tabindex="0"
                         (click)="$event.stopPropagation()"
-                        >{{ p.name }}</a
-                      >
-                      @if (isMine(p.tag)) {
-                        <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
-                      }
-                      <div class="cn-muted meta">
-                        <span>{{ clanName(p.clanTag) }}</span>
-                        @if (roleLabel(p.role); as role) {
-                          <span> - {{ role | translate }}</span>
-                        }
-                      </div>
-                      @if (p.activity.newcomer) {
-                        <div class="flags">
-                          <span
-                            class="flag"
-                            [matTooltip]="
-                              'cwlSelection.flags.newcomerHint'
-                                | translate: { date: (p.activity.joinedAt | localDate) }
-                            "
-                            tabindex="0"
-                            >{{ 'cwlSelection.flags.newcomer' | translate }}</span
-                          >
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.status' | translate }}</th>
-                <td mat-cell *matCellDef="let p">
-                  @if (p.exclusion; as exclusion) {
-                    <span
-                      class="status status--excluded"
-                      [matTooltip]="exclusionText(exclusion)"
-                      matTooltipClass="cn-tooltip-lines"
-                      tabindex="0"
-                      >{{ 'cwlSelection.statuses.excluded' | translate }}</span
-                    >
-                    @if (exclusion.reason) {
-                      <div class="cn-muted meta reason">{{ exclusion.reason }}</div>
+                      />
                     }
-                  } @else {
-                    <span class="status" [class]="'status--' + p.status">{{
-                      'cwlSelection.statuses.' + p.status | translate
-                    }}</span>
-                  }
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="townHall">
-                <th mat-header-cell class="cn-icon-cell" *matHeaderCellDef>
-                  {{ 'common.th' | translate }}
-                </th>
-                <td mat-cell *matCellDef="let p" class="cn-icon-cell">
-                  @if (p.townHallLevel !== null) {
-                    <crn-town-hall-icon
-                      [class.th--low]="p.status === 'ineligible'"
-                      [level]="p.townHallLevel"
-                    />
-                  } @else {
-                    <span class="cn-muted" aria-hidden="true">—</span>
-                  }
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="score">
-                <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.score' | translate }}</th>
-                <td mat-cell *matCellDef="let p" class="cn-num">
-                  <span
-                    class="score"
-                    [matTooltip]="breakdownText(p)"
-                    [matTooltipClass]="
-                      p.cwl
-                        ? 'cn-tooltip-lines cn-tooltip-score'
-                        : 'cn-tooltip-lines cn-tooltip-score cn-tooltip-score--no-cwl'
-                    "
-                    [attr.aria-label]="breakdownText(p)"
-                    tabindex="0"
-                  >
-                    <span class="score__bar" aria-hidden="true">
-                      @for (part of barParts; track part) {
-                        <span
-                          class="score__part"
-                          [class]="'score__part--' + part"
-                          [style.width.%]="p.breakdown[part]"
-                        ></span>
-                      }
-                    </span>
-                    <strong>{{ p.score | localNumber: '1.1-1' }}</strong>
                   </span>
-                  @if (p.breakdown.missedAttacks + p.breakdown.activity < 0) {
-                    <div class="meta penalty">
-                      {{
-                        'cwlSelection.penalty'
-                          | translate
-                            : {
-                                n:
-                                  (p.breakdown.missedAttacks + p.breakdown.activity
-                                  | localNumber: '1.0-1'),
-                              }
-                      }}
-                    </div>
-                  }
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="cwl">
-                <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.cwl' | translate }}</th>
-                <td mat-cell *matCellDef="let p">
-                  @if (p.cwl; as cwl) {
-                    <div class="cwl-clan">{{ clanName(cwl.clanTag) }}</div>
-                    @if (cwl.allAttacks || cwl.striker) {
-                      <ul
-                        class="medals"
-                        [attr.aria-label]="'cwlSelection.cwlCommendations' | translate"
-                      >
-                        @if (cwl.allAttacks) {
-                          @let allName = 'commendations.cwlAllAttacks.legendary' | translate;
-                          <li [matTooltip]="allName" [attr.aria-label]="allName">
-                            <crn-commendation-medal emblem="cwlAllAttacks-legendary" />
-                          </li>
-                        }
-                        @if (cwl.striker === 'gold') {
-                          @let goldName = 'commendations.cwlStriker.gold' | translate;
-                          <li [matTooltip]="goldName" [attr.aria-label]="goldName">
-                            <crn-commendation-medal emblem="cwlStriker-gold" />
-                          </li>
-                        } @else if (cwl.striker === 'silver') {
-                          @let silverName = 'commendations.cwlStriker.silver' | translate;
-                          <li [matTooltip]="silverName" [attr.aria-label]="silverName">
-                            <crn-commendation-medal emblem="cwlStriker-silver" />
-                          </li>
-                        } @else if (cwl.striker === 'bronze') {
-                          @let bronzeName = 'commendations.cwlStriker.bronze' | translate;
-                          <li [matTooltip]="bronzeName" [attr.aria-label]="bronzeName">
-                            <crn-commendation-medal emblem="cwlStriker-bronze" />
-                          </li>
-                        }
-                      </ul>
+                  <div class="player__info">
+                    <a
+                      class="cn-link-cell"
+                      [routerLink]="['/players', p.tag]"
+                      (click)="$event.stopPropagation()"
+                      >{{ p.name }}</a
+                    >
+                    @if (isMine(p.tag)) {
+                      <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
                     }
                     <div class="cn-muted meta">
-                      {{
-                        'cwlSelection.cwlWars'
-                          | translate
-                            : {
-                                stars: (cwl.averageStarsPerAttack | localNumber: '1.2-2'),
-                                attacks: cwl.attacks,
-                                wars: cwl.wars,
-                              }
-                      }}
+                      <span>{{ clanName(p.clanTag) }}</span>
+                      @if (roleLabel(p.role); as role) {
+                        <span> - {{ role | translate }}</span>
+                      }
                     </div>
-                    @if (cwl.missed) {
-                      <div class="meta missing">
-                        {{ 'cwlSelection.missed' | translate: { n: cwl.missed } }}
+                    @if (p.activity.newcomer) {
+                      <div class="flags">
+                        <span
+                          class="flag"
+                          [matTooltip]="
+                            'cwlSelection.flags.newcomerHint'
+                              | translate: { date: (p.activity.joinedAt | localDate) }
+                          "
+                          tabindex="0"
+                          >{{ 'cwlSelection.flags.newcomer' | translate }}</span
+                        >
                       </div>
                     }
-                  } @else {
-                    <span
-                      class="cn-muted"
-                      [matTooltip]="'cwlSelection.noCwlHint' | translate"
-                      tabindex="0"
-                      >{{ 'cwlSelection.noCwl' | translate }}</span
-                    >
-                  }
-                </td>
-              </ng-container>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
 
-              <ng-container matColumnDef="war">
-                <th mat-header-cell *matHeaderCellDef>
-                  <crn-star-text [text]="'cwlSelection.war' | translate" />
-                </th>
-                <td mat-cell *matCellDef="let p" class="cn-num">
-                  @if (p.war.wars) {
-                    <strong>{{ p.war.averageStarsPerAttack | localNumber: '1.2-2' }}</strong>
-                    <div
-                      class="cn-muted meta"
-                      [class.missing]="p.war.attacksUsed < p.war.attacksAvailable"
-                    >
-                      {{
-                        'cwlSelection.attacks'
-                          | translate
-                            : { used: p.war.attacksUsed, available: p.war.attacksAvailable }
-                      }}
-                    </div>
-                    @if (p.war.maxPoints > 40) {
-                      <div class="meta war-bonus">
-                        {{ 'cwlSelection.warMax' | translate: { n: p.war.maxPoints } }}
-                      </div>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.status' | translate }}</th>
+              <td mat-cell *matCellDef="let p">
+                @if (p.exclusion; as exclusion) {
+                  <span
+                    class="status status--excluded"
+                    [matTooltip]="exclusionText(exclusion)"
+                    matTooltipClass="cn-tooltip-lines"
+                    tabindex="0"
+                    >{{ 'cwlSelection.statuses.excluded' | translate }}</span
+                  >
+                  @if (exclusion.reason) {
+                    <div class="cn-muted meta reason">{{ exclusion.reason }}</div>
+                  }
+                } @else {
+                  <span class="status" [class]="'status--' + p.status">{{
+                    'cwlSelection.statuses.' + p.status | translate
+                  }}</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="townHall">
+              <th mat-header-cell class="cn-icon-cell" *matHeaderCellDef>
+                {{ 'common.th' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let p" class="cn-icon-cell">
+                @if (p.townHallLevel !== null) {
+                  <crn-town-hall-icon
+                    [class.th--low]="p.status === 'ineligible'"
+                    [level]="p.townHallLevel"
+                  />
+                } @else {
+                  <span class="cn-muted" aria-hidden="true">—</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="score">
+              <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.score' | translate }}</th>
+              <td mat-cell *matCellDef="let p" class="cn-num">
+                <span
+                  class="score"
+                  [matTooltip]="breakdownText(p)"
+                  [matTooltipClass]="
+                    p.cwl
+                      ? 'cn-tooltip-lines cn-tooltip-score'
+                      : 'cn-tooltip-lines cn-tooltip-score cn-tooltip-score--no-cwl'
+                  "
+                  [attr.aria-label]="breakdownText(p)"
+                  tabindex="0"
+                >
+                  <span class="score__bar" aria-hidden="true">
+                    @for (part of barParts; track part) {
+                      <span
+                        class="score__part"
+                        [class]="'score__part--' + part"
+                        [style.width.%]="p.breakdown[part]"
+                      ></span>
                     }
-                  } @else {
-                    <span class="cn-muted">{{ 'cwlSelection.noWars' | translate }}</span>
-                  }
-                </td>
-              </ng-container>
+                  </span>
+                  <strong>{{ p.score | localNumber: '1.1-1' }}</strong>
+                </span>
+                @if (p.breakdown.missedAttacks + p.breakdown.activity < 0) {
+                  <div class="meta penalty">
+                    {{
+                      'cwlSelection.penalty'
+                        | translate
+                          : {
+                              n:
+                                (p.breakdown.missedAttacks + p.breakdown.activity
+                                | localNumber: '1.0-1'),
+                            }
+                    }}
+                  </div>
+                }
+              </td>
+            </ng-container>
 
-              <ng-container matColumnDef="heroes">
-                <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.heroes' | translate }}</th>
-                <td mat-cell *matCellDef="let p" class="cn-num">
-                  @if (p.heroes; as heroes) {
-                    <strong [matTooltip]="'cwlSelection.heroLevelsHint' | translate" tabindex="0"
-                      >{{ heroes.levels | localNumber: '1.0-0' }}%</strong
+            <ng-container matColumnDef="cwl">
+              <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.cwl' | translate }}</th>
+              <td mat-cell *matCellDef="let p">
+                @if (p.cwl; as cwl) {
+                  <div class="cwl-clan">{{ clanName(cwl.clanTag) }}</div>
+                  @if (cwl.allAttacks || cwl.striker) {
+                    <ul
+                      class="medals"
+                      [attr.aria-label]="'cwlSelection.cwlCommendations' | translate"
                     >
-                    <div class="cn-muted meta">
-                      {{
-                        'cwlSelection.equipment'
-                          | translate: { n: (heroes.equipment | localNumber: '1.0-0') }
-                      }}
+                      @if (cwl.allAttacks) {
+                        @let allName = 'commendations.cwlAllAttacks.legendary' | translate;
+                        <li [matTooltip]="allName" [attr.aria-label]="allName">
+                          <crn-commendation-medal emblem="cwlAllAttacks-legendary" />
+                        </li>
+                      }
+                      @if (cwl.striker === 'gold') {
+                        @let goldName = 'commendations.cwlStriker.gold' | translate;
+                        <li [matTooltip]="goldName" [attr.aria-label]="goldName">
+                          <crn-commendation-medal emblem="cwlStriker-gold" />
+                        </li>
+                      } @else if (cwl.striker === 'silver') {
+                        @let silverName = 'commendations.cwlStriker.silver' | translate;
+                        <li [matTooltip]="silverName" [attr.aria-label]="silverName">
+                          <crn-commendation-medal emblem="cwlStriker-silver" />
+                        </li>
+                      } @else if (cwl.striker === 'bronze') {
+                        @let bronzeName = 'commendations.cwlStriker.bronze' | translate;
+                        <li [matTooltip]="bronzeName" [attr.aria-label]="bronzeName">
+                          <crn-commendation-medal emblem="cwlStriker-bronze" />
+                        </li>
+                      }
+                    </ul>
+                  }
+                  <div class="cn-muted meta">
+                    {{
+                      'cwlSelection.cwlWars'
+                        | translate
+                          : {
+                              stars: (cwl.averageStarsPerAttack | localNumber: '1.2-2'),
+                              attacks: cwl.attacks,
+                              wars: cwl.wars,
+                            }
+                    }}
+                  </div>
+                  @if (cwl.missed) {
+                    <div class="meta missing">
+                      {{ 'cwlSelection.missed' | translate: { n: cwl.missed } }}
                     </div>
-                  } @else {
-                    <span class="cn-muted" [matTooltip]="'cwlSelection.noHeroesHint' | translate">{{
-                      'cwlSelection.noHeroes' | translate
-                    }}</span>
                   }
-                </td>
-              </ng-container>
+                } @else {
+                  <span
+                    class="cn-muted"
+                    [matTooltip]="'cwlSelection.noCwlHint' | translate"
+                    tabindex="0"
+                    >{{ 'cwlSelection.noCwl' | translate }}</span
+                  >
+                }
+              </td>
+            </ng-container>
 
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>
-                  <span class="cn-visually-hidden">{{ 'cwlSelection.actions' | translate }}</span>
-                </th>
-                <td mat-cell *matCellDef="let p" class="actions">
-                  @if (p.exclusion) {
-                    <button
-                      mat-button
-                      type="button"
-                      [disabled]="readmitting() === p.tag"
-                      (click)="$event.stopPropagation(); readmit(p)"
-                    >
-                      {{ 'cwlSelection.readmit' | translate }}
-                    </button>
-                  } @else {
-                    <button
-                      mat-button
-                      type="button"
-                      class="exclude"
-                      (click)="$event.stopPropagation(); exclude(p)"
-                    >
-                      {{ 'cwlSelection.excludeAction' | translate }}
-                    </button>
+            <ng-container matColumnDef="war">
+              <th mat-header-cell *matHeaderCellDef>
+                <crn-star-text [text]="'cwlSelection.war' | translate" />
+              </th>
+              <td mat-cell *matCellDef="let p" class="cn-num">
+                @if (p.war.wars) {
+                  <strong>{{ p.war.averageStarsPerAttack | localNumber: '1.2-2' }}</strong>
+                  <div
+                    class="cn-muted meta"
+                    [class.missing]="p.war.attacksUsed < p.war.attacksAvailable"
+                  >
+                    {{
+                      'cwlSelection.attacks'
+                        | translate: { used: p.war.attacksUsed, available: p.war.attacksAvailable }
+                    }}
+                  </div>
+                  @if (p.war.maxPoints > 40) {
+                    <div class="meta war-bonus">
+                      {{ 'cwlSelection.warMax' | translate: { n: p.war.maxPoints } }}
+                    </div>
                   }
-                </td>
-              </ng-container>
+                } @else {
+                  <span class="cn-muted">{{ 'cwlSelection.noWars' | translate }}</span>
+                }
+              </td>
+            </ng-container>
 
-              <tr mat-header-row *matHeaderRowDef="columns()"></tr>
-              <tr
-                mat-row
-                *matRowDef="let p; columns: columns()"
-                class="cn-row-link"
-                [class.row--starter]="p.status === 'starter'"
-                [class.row--reserve]="p.status === 'reserve'"
-                [class.row--ineligible]="p.status === 'ineligible'"
-                [class.row--excluded]="p.status === 'excluded'"
-                (click)="open(p)"
-              ></tr>
-            </table>
-          </div>
+            <ng-container matColumnDef="heroes">
+              <th mat-header-cell *matHeaderCellDef>{{ 'cwlSelection.heroes' | translate }}</th>
+              <td mat-cell *matCellDef="let p" class="cn-num">
+                @if (p.heroes; as heroes) {
+                  <strong [matTooltip]="'cwlSelection.heroLevelsHint' | translate" tabindex="0"
+                    >{{ heroes.levels | localNumber: '1.0-0' }}%</strong
+                  >
+                  <div class="cn-muted meta">
+                    {{
+                      'cwlSelection.equipment'
+                        | translate: { n: (heroes.equipment | localNumber: '1.0-0') }
+                    }}
+                  </div>
+                } @else {
+                  <span class="cn-muted" [matTooltip]="'cwlSelection.noHeroesHint' | translate">{{
+                    'cwlSelection.noHeroes' | translate
+                  }}</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>
+                <span class="cn-visually-hidden">{{ 'cwlSelection.actions' | translate }}</span>
+              </th>
+              <td mat-cell *matCellDef="let p" class="actions">
+                @if (p.exclusion) {
+                  <button
+                    mat-button
+                    type="button"
+                    [disabled]="readmitting() === p.tag"
+                    (click)="$event.stopPropagation(); readmit(p)"
+                  >
+                    {{ 'cwlSelection.readmit' | translate }}
+                  </button>
+                } @else {
+                  <button
+                    mat-button
+                    type="button"
+                    class="exclude"
+                    (click)="$event.stopPropagation(); exclude(p)"
+                  >
+                    {{ 'cwlSelection.excludeAction' | translate }}
+                  </button>
+                }
+              </td>
+            </ng-container>
+
+            <tr
+              mat-row
+              *matRowDef="let p; columns: columns()"
+              class="cn-row-link"
+              [class.row--starter]="p.status === 'starter'"
+              [class.row--reserve]="p.status === 'reserve'"
+              [class.row--ineligible]="p.status === 'ineligible'"
+              [class.row--excluded]="p.status === 'excluded'"
+              (click)="open(p)"
+            ></tr>
+          </crn-table>
         </section>
       }
     </crn-load-state>

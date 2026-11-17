@@ -25,7 +25,8 @@ import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { StarText } from '../../shared/components/star-text';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { Table } from '../../shared/table/table';
+import { TableFilters } from '../../shared/table/table-filters';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { Icon } from '../../shared/icon/icon';
 import { roleKey } from '../../shared/labels';
@@ -52,6 +53,14 @@ const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
   'activity',
 ];
 const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 6);
+/** Roles in the line-up, in the order of the status filter. */
+const STATUSES: readonly CwlSelectionStatus[] = [
+  'starter',
+  'reserve',
+  'bench',
+  'ineligible',
+  'excluded',
+];
 /** Parts that come from the last CWL, left out for who was not in its line-up. */
 const CWL_PARTS: readonly (keyof CwlScoreBreakdown)[] = ['cwlCommendations', 'cwlPerformance'];
 /** Highest points of each part of the bar (the wars depend on the player: `war.maxPoints`). */
@@ -73,7 +82,7 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
 @Component({
   selector: 'crn-cwl-selection-page',
   imports: [
-    TABLE_WRAP,
+    Table,
     TranslatePipe,
     RouterLink,
     MatButtonModule,
@@ -140,6 +149,24 @@ export class CwlSelectionPage {
   protected readonly columns = computed(() =>
     this.canExclude() ? [...this.baseColumns, 'actions'] : this.baseColumns,
   );
+
+  /** Filters of the ranking; the clans offered are the ones of the Crusade. */
+  protected readonly filters = computed<TableFilters<CwlSelectionPlayer>>(() => ({
+    townHall: { type: 'number', value: (p) => p.townHallLevel },
+    name: {
+      type: 'text',
+      value: (p) => [p.name, p.tag, this.clanName(p.clanTag)],
+      placeholder: 'cwlSelection.searchPlaceholder',
+    },
+    status: {
+      type: 'select',
+      options: STATUSES.map((s) => ({ value: s, label: `cwlSelection.statuses.${s}` })),
+    },
+    score: { type: 'number' },
+    cwl: { type: 'boolean', value: (p) => p.cwl !== null },
+    war: { type: 'number', value: (p) => (p.war.wars ? p.war.averageStarsPerAttack : null) },
+    heroes: { type: 'number', value: (p) => p.heroes?.levels },
+  }));
 
   /** The last CWL season, as month name (`ott 2026`); `null` if none. */
   protected readonly cwlSeasonLabel = computed(() => {

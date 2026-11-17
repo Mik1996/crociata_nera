@@ -63,9 +63,9 @@
         }
 
         @if (w.hasDetails) {
-          <section class="cn-card cn-section" aria-labelledby="performance-title">
-            <h2 id="performance-title">{{ 'warDetail.performance' | translate }}</h2>
+          <section class="cn-card cn-section">
             <crn-war-participants-table
+              [caption]="'warDetail.performance' | translate"
               [rows]="rows()"
               [attacksPerMember]="w.attacksPerMember"
               [inProgress]="w.state !== 'ended'"

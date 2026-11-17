@@ -4,16 +4,16 @@ import { afterNextRender, DestroyRef, Directive, ElementRef, inject, NgZone, sig
 const THRESHOLD = 4;
 
 /**
- * Horizontal scroll hint of every table wrapper (`.cn-table-wrap`), which scrolls sideways on
- * narrow screens: `cn-table-wrap--more-x` while there are columns beyond the right edge, which
- * then fades (scrollbars are hidden site-wide). Styles in `styles.scss`.
+ * Horizontal scroll hint of every table (`<crn-table>`, on its scrolling area
+ * `.crn-table__scroll`), which scrolls sideways on narrow screens: `crn-table__scroll--more-x`
+ * while there are columns beyond the right edge, which then fades (scrollbars are hidden site-wide). Styles in `shared/table/table.scss`.
  *
  * Tracks scrolling and size changes of the wrapper and of the table (data loaded, columns
  * resized, window resized).
  */
 @Directive({
-  selector: '.cn-table-wrap',
-  host: { '[class.cn-table-wrap--more-x]': 'more()' },
+  selector: '.crn-table__scroll',
+  host: { '[class.crn-table__scroll--more-x]': 'more()' },
 })
 export class TableHorizontalScroll {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

@@ -1,17 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { Icon } from '../../shared/icon/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
-import { AdminService } from '../../core/backend/admin.service';
+import { AdminService, AdminUserQuery } from '../../core/backend/admin.service';
 import { AuthService } from '../../core/backend/auth.service';
 import { AdminUser, BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
@@ -19,10 +24,51 @@ import { LocalDatePipe } from '../../core/i18n/locale-pipes';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { Table } from '../../shared/table/table';
+import {
+  DayRange,
+  dayRangeInstants,
+  TableFilters,
+  TableQuery,
+} from '../../shared/table/table-filters';
 import { DeleteUserDialog } from './components/delete-user-dialog';
 import { AdminUserDialogData, LinkPlayersDialog } from './components/link-players-dialog';
 import { UnlinkPlayersDialog, UnlinkPlayersDialogData } from './components/unlink-players-dialog';
+
+/** Users per page. */
+const PAGE_SIZE = 25;
+
+/** Backend field of each sortable column. */
+const SORT_FIELDS: Record<string, AdminUserQuery['sort']> = {
+  user: 'username',
+  verified: 'verified',
+  createdAt: 'createdAt',
+};
+
+/** The backend query of what the table asks for (filters by column, page and sort). */
+export function userQuery(query: TableQuery): AdminUserQuery {
+  const { filters, sort } = query;
+  const text = (column: string) => (filters[column] as string | undefined)?.trim() || undefined;
+  const flag = (column: string) => filters[column] as boolean | undefined;
+  const created = dayRangeInstants(filters['createdAt'] as DayRange | undefined);
+  const params: AdminUserQuery = {
+    page: query.pageIndex + 1,
+    limit: query.pageSize || PAGE_SIZE,
+    user: text('user'),
+    playerTag: text('playerTag'),
+    admin: flag('admin'),
+    verified: flag('verified'),
+    createdFrom: created.from,
+    createdBefore: created.before,
+    ...(sort.direction && SORT_FIELDS[sort.active]
+      ? { sort: SORT_FIELDS[sort.active], order: sort.direction }
+      : {}),
+  };
+  // Only the parameters with a value go in the URL.
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined),
+  ) as AdminUserQuery;
+}
 
 const DIALOG_CONFIG = {
   width: '28rem',
@@ -34,13 +80,11 @@ const DIALOG_CONFIG = {
 @Component({
   selector: 'crn-admin-page',
   imports: [
-    TABLE_WRAP,
-    FormsModule,
+    Table,
     MatButtonModule,
-    MatFormFieldModule,
     Icon,
-    MatInputModule,
     MatSlideToggleModule,
+    MatSortModule,
     MatTableModule,
     MatTooltipModule,
     TranslatePipe,
@@ -62,24 +106,60 @@ export class AdminPage {
 
   protected readonly columns = ['user', 'playerTag', 'admin', 'verified', 'createdAt', 'actions'];
 
-  protected readonly searchText = signal('');
-  private readonly query = signal('');
+  /** Filters by column: the backend applies them (as the sort and the pages). */
+  protected readonly filters: TableFilters<AdminUser> = {
+    user: { type: 'text', placeholder: 'admin.userPlaceholder' },
+    playerTag: { type: 'text' },
+    admin: { type: 'boolean' },
+    verified: { type: 'boolean' },
+    createdAt: { type: 'date' },
+  };
+  protected readonly pageSize = PAGE_SIZE;
+
+  /** What the table asks for; the first page, most recent sign-ups first, until it asks. */
+  private readonly query = signal<TableQuery>(
+    {
+      filters: {},
+      pageIndex: 0,
+      pageSize: PAGE_SIZE,
+      sort: { active: 'createdAt', direction: 'desc' },
+    },
+    { equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
+  );
   protected readonly users = rxResource({
-    params: () => this.query(),
+    params: () => userQuery(this.query()),
     stream: ({ params }) => this.admin.listUsers(params),
   });
-  protected readonly rows = computed(() => (this.users.hasValue() ? this.users.value().items : []));
-  protected readonly total = computed(() => (this.users.hasValue() ? this.users.value().total : 0));
+  /** The last page received: it stays in the table while the next one loads. */
+  private readonly page = linkedSignal<
+    { value: AdminUser[]; total: number } | undefined,
+    { value: AdminUser[]; total: number } | undefined
+  >({
+    source: () =>
+      this.users.hasValue()
+        ? { value: this.users.value().items, total: this.users.value().total }
+        : undefined,
+    computation: (page, previous) => page ?? previous?.value,
+  });
+  protected readonly rows = computed(() => this.page()?.value ?? []);
+  /** Users matching the filters. */
+  protected readonly matching = computed(() => this.page()?.total ?? 0);
+  /** Registered users: the total of the last page asked without filters. */
+  protected readonly total = linkedSignal<number, number>({
+    source: () => (Object.keys(this.query().filters).length || !this.page() ? -1 : this.matching()),
+    computation: (total, previous) => (total >= 0 ? total : (previous?.value ?? 0)),
+  });
+  protected readonly loaded = computed(() => this.page() !== undefined);
+
+  protected changeQuery(query: TableQuery): void {
+    this.query.set(query);
+  }
 
   protected readonly busy = signal<string | null>(null);
   protected readonly feedback = signal<{
     kind: 'success' | 'error';
     messages: BackendMessage[];
   } | null>(null);
-
-  protected search(): void {
-    this.query.set(this.searchText());
-  }
 
   /** "Link": Clash of Clans accounts linked by hand, without the in-game token. */
   protected openLink(user: AdminUser): void {

@@ -48,10 +48,9 @@
           </div>
         }
 
-        <section class="cn-card cn-section" aria-labelledby="participants-title">
-          <p class="cn-kicker">{{ 'currentWar.participantsKicker' | translate }}</p>
-          <h2 id="participants-title">{{ 'currentWar.participants' | translate }}</h2>
+        <section class="cn-card cn-section">
           <crn-war-participants-table
+            [caption]="'currentWar.participants' | translate"
             [rows]="rows()"
             [attacksPerMember]="w.attacksPerMember"
             [inProgress]="w.state !== 'ended'"

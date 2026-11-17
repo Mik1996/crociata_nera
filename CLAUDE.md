@@ -77,8 +77,15 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 
 ## Frontend notes
 
-- Tables: wrap them in `<div class="cn-table-wrap">` and import `TABLE_WRAP`
-  (`src/app/shared/directives/table-wrap.ts`): sticky header + resizable columns. Header labels never wrap.
+- Tables: `<crn-table>` (`src/app/shared/table/`), a wrapper of `mat-table`: the page declares
+  `matColumnDef`s (and optionally `matRowDef`, `*matFooterCellDef`, `matSort` on the element) and
+  keeps sorting its data; the component never grows past the visible area (rows scroll inside),
+  keeps caption, header, filter row and footer in place, is as tall as `visibleRows` rows (10 by
+  default; fewer rows leave empty room above the footer), pages rows with `pageSize` (for tables
+  that keep growing: war history, wars of a period), or leaves filters, sort and pages to the
+  backend with `serverSide` + `total` + `(queryChange)` (admin users), filters by column (`TableFilters`: text,
+  number range, date range, yes/no, options) and makes columns resizable. Header labels never wrap.
+  A page's styles cannot reach `<table>` itself (it is in the component): style rows and cells.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).

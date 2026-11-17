@@ -37,11 +37,11 @@ describe('StatisticsPage', () => {
     configure();
     const fixture = await render();
     const el = fixture.nativeElement as HTMLElement;
-    const all = el.querySelectorAll('table.ranking tr.mat-mdc-row').length;
+    const all = el.querySelectorAll('crn-table.ranking tr.mat-mdc-row').length;
 
     (fixture.componentInstance as unknown as { minWars: { set(v: number): void } }).minWars.set(10);
     await fixture.whenStable();
-    const filtered = el.querySelectorAll('table.ranking tr.mat-mdc-row').length;
+    const filtered = el.querySelectorAll('crn-table.ranking tr.mat-mdc-row').length;
     expect(filtered).toBeLessThan(all);
   });
 
@@ -56,7 +56,9 @@ describe('StatisticsPage', () => {
     configure();
     const api = TestBed.inject(CocApiService);
     vi.spyOn(api, 'getHistoryMonths').mockReturnValue(of([]));
-    vi.spyOn(api, 'getHistoryPeriod').mockReturnValue(of({ period: 'all', updatedAt: null, wars: [], players: [] }));
+    vi.spyOn(api, 'getHistoryPeriod').mockReturnValue(
+      of({ period: 'all', updatedAt: null, wars: [], players: [] }),
+    );
     const el = (await render()).nativeElement as HTMLElement;
     expect(el.textContent).toContain('Lo storico è ancora vuoto');
   });

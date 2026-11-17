@@ -83,12 +83,9 @@
   "common": {
     "nameOrTag": "Nome o tag",
     "allMasculine": "Tutti",
-    "allFeminine": "Tutte",
-    "clearFilters": "Azzera filtri",
     "refresh": "Aggiorna",
     "viewDetails": "Vedi dettaglio",
     "sizeVs": "{{n}} vs {{n}}",
-    "townHall": "Municipio",
     "townHallN": "Municipio {{n}}",
     "th": "TH",
     "player": "Giocatore",
@@ -100,7 +97,6 @@
     "destruction": "Distruzione",
     "averageDestructionShort": "Distr. media",
     "wars": "Guerre",
-    "position": "Posizione",
     "size": "Formato",
     "attacksUsed": "Attacchi usati",
     "averageStars": "Media stelle",
@@ -136,7 +132,8 @@
     "averageStarsPerWar": "Ordina per media stelle per guerra",
     "averageStarsPerAttack": "Ordina per media stelle per attacco",
     "starsConceded": "Ordina per stelle concesse in difesa",
-    "league": "Ordina per lega"
+    "league": "Ordina per lega",
+    "verified": "Ordina per email verificata"
   },
   "paginator": {
     "itemsPerPage": "Righe per pagina:",
@@ -182,9 +179,7 @@
     "member": "Membro"
   },
   "stars": {
-    "label": "{{value}} stelle su {{max}}",
-    "one": "{{n}} stella",
-    "other": "{{n}} stelle"
+    "label": "{{value}} stelle su {{max}}"
   },
   "notFound": {
     "title": "Pagina non trovata",
@@ -223,8 +218,7 @@
     "empty": "Il clan non è attualmente in guerra (oppure il registro guerre del clan è privato). Torna a controllare quando inizierà la prossima!",
     "withoutAttacks": "Senza attacchi",
     "outOfParticipants": "su {{n}} partecipanti",
-    "participants": "Partecipanti",
-    "participantsKicker": "L'esercito schierato"
+    "participants": "Esercito schierato"
   },
   "summary": {
     "starsOutOf": "{{stars}} stelle su {{total}}",
@@ -241,12 +235,6 @@
     "starsConceded": "Stelle subite:"
   },
   "participants": {
-    "filter": "Filtra partecipanti",
-    "search": "Cerca partecipante",
-    "totalStars": "Stelle totali",
-    "onlyWithoutAttacks": "Solo senza attacchi ({{n}})",
-    "shown": "{{n}} partecipanti visualizzati",
-    "table": "Partecipanti alla guerra",
     "notAttackedYet": "Non ha ancora attaccato",
     "youNotAttackedYet": "Non hai ancora attaccato",
     "noAttacksUsed": "Nessun attacco usato",
@@ -254,8 +242,7 @@
     "attackUnused": "Attacco non usato",
     "targets": "Bersagli",
     "target": "{{name}} · Municipio {{th}}",
-    "targetScreenReader": "{{name}}, municipio {{th}}:",
-    "noResults": "Nessun partecipante corrisponde ai filtri selezionati."
+    "targetScreenReader": "{{name}}, municipio {{th}}:"
   },
   "warDetail": {
     "versus": "Contro {{name}}",
@@ -276,16 +263,9 @@
     "draws": "Pareggi",
     "ofTotal": "{{percent}}% del totale",
     "finishedWars": "Guerre concluse",
-    "filter": "Filtra guerre",
-    "search": "Cerca avversario",
     "searchPlaceholder": "Nome o tag del clan",
-    "filterByResult": "Filtra per risultato",
-    "found": "{{n}} guerre trovate",
-    "table": "Storico delle guerre",
     "summaryOnly": "· solo riepilogo",
-    "summaryOnlyTitle": "Dettaglio dei partecipanti non disponibile",
-    "noResults": "Nessuna guerra corrisponde ai filtri.",
-    "paginator": "Seleziona la pagina dello storico"
+    "summaryOnlyTitle": "Dettaglio dei partecipanti non disponibile"
   },
   "players": {
     "subtitle": "Membri del clan e statistiche sulle ultime {{n}} guerre concluse",
@@ -293,16 +273,13 @@
     "noticeTitle": "Statistiche individuali non ancora disponibili.",
     "noticeText": "Le statistiche dei singoli giocatori si accumulano guerra dopo guerra: saranno disponibili al termine della prossima guerra.",
     "members": "Membri ({{n}})",
-    "filter": "Filtra membri",
-    "search": "Cerca membro",
     "role": "Ruolo",
-    "table": "Membri del clan e statistiche di guerra",
     "attendance": "Presenza",
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Distr. %",
-    "noResults": "Nessun membro corrisponde ai filtri.",
-    "league": "Lega"
+    "league": "Lega",
+    "average": "Media"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Municipio {{th}}",
@@ -321,7 +298,6 @@
     "starsChartLabel": "Grafico a barre delle stelle ottenute in ogni guerra. I valori sono riportati nella tabella sottostante.",
     "destructionChart": "Distruzione media per guerra",
     "destructionChartLabel": "Grafico a linee della distruzione media per guerra. I valori sono riportati nella tabella sottostante.",
-    "table": "Performance del giocatore guerra per guerra",
     "noWars": "Questo giocatore non ha partecipato a nessuna delle guerre analizzate.",
     "seriesStars": "Stelle",
     "seriesDestruction": "Distruzione media",
@@ -374,14 +350,9 @@
     "unusedAttacks": "{{n}} attacchi non usati",
     "ranking": "Classifica · {{period}}",
     "updated": "Aggiornato il {{date}}",
-    "filter": "Filtra classifica",
-    "search": "Cerca giocatore",
     "minimumWars": "Minimo guerre disputate",
     "atLeast": "Almeno {{n}}",
     "currentMembersOnly": "Solo membri attuali",
-    "inRanking": "{{n}} giocatori in classifica",
-    "table": "Classifica dei giocatori per media di stelle per guerra",
-    "position": "Pos.",
     "formerMember": "ex membro",
     "unusedOne": "{{n}} non usato",
     "unusedOther": "{{n}} non usati",
@@ -392,10 +363,8 @@
     "distributionLabel": "{{three}} attacchi da 3 stelle, {{two}} da 2, {{one}} da 1, {{zero}} da 0",
     "defense": "Difesa ★",
     "defenseTooltip": "Media delle stelle concesse all'avversario in difesa, per guerra (più basso è meglio)",
-    "noResults": "Nessun giocatore corrisponde ai filtri.",
     "legend": "<strong>Media ★ / guerra</strong> = stelle totali ÷ guerre disputate: gli attacchi non usati valgono 0. A parità decidono distruzione media, partecipazione e numero di guerre. <strong>Difesa ★</strong> = stelle concesse in media all'avversario (più basso è meglio).",
-    "periodWars": "Guerre del periodo ({{n}})",
-    "periodWarsTable": "Guerre registrate nel periodo"
+    "periodWars": "Guerre del periodo ({{n}})"
   },
   "auth": {
     "fields": {
@@ -745,9 +714,6 @@
   "admin": {
     "title": "Amministrazione",
     "subtitle": "Utenti registrati: {{n}}",
-    "search": "Cerca per nome, email o tag",
-    "searchButton": "Cerca",
-    "empty": "Nessun utente trovato",
     "adminToggle": "Amministratore: {{name}}",
     "columns": {
       "user": "Utente",
@@ -783,7 +749,9 @@
       "title": "Elimina utente",
       "intro": "L'utente {{name}} verrà eliminato definitivamente e disconnesso da tutti i dispositivi. L'operazione non si può annullare.",
       "label": "Per confermare scrivi {{name}}"
-    }
+    },
+    "users": "Utenti registrati",
+    "userPlaceholder": "Nome o email"
   },
   "bases": {
     "title": "Arsenale basi",
@@ -992,11 +960,33 @@
     "absentEnded": "Membri attuali senza attacchi in questo weekend: gli assalti alla capitale sono obbligatori.",
     "allIn": "Tutti i membri hanno partecipato.",
     "noMembersTitle": "Dettaglio dei membri non disponibile",
-    "noMembersText": "Clash of Clans mostra chi ha attaccato solo mentre il weekend è in corso: il sito lo salva da quando è attivo, quindi per questo weekend sono disponibili solo i totali."
+    "noMembersText": "Clash of Clans mostra chi ha attaccato solo mentre il weekend è in corso: il sito lo salva da quando è attivo, quindi per questo weekend sono disponibili solo i totali.",
+    "total": "Totale"
   },
   "table": {
     "resizeColumn": "Ridimensiona la colonna {{name}}",
-    "resizeHint": "Trascina per ridimensionare, doppio clic per le larghezze automatiche"
+    "resizeHint": "Trascina per ridimensionare, doppio clic per le larghezze automatiche",
+    "shown": "{{shown}} di {{total}}",
+    "showFilters": "Mostra i filtri",
+    "hideFilters": "Nascondi i filtri",
+    "clearFilters": "Azzera i filtri",
+    "filterText": "Cerca…",
+    "filterBy": "Filtra per {{name}}",
+    "min": "Min",
+    "max": "Max",
+    "minOf": "{{name}}: valore minimo",
+    "maxOf": "{{name}}: valore massimo",
+    "fromOf": "{{name}}: dal giorno",
+    "toOf": "{{name}}: al giorno",
+    "any": "Tutti",
+    "yes": "Sì",
+    "no": "No",
+    "noResults": "Nessun risultato per i filtri impostati.",
+    "empty": "Nessun dato da mostrare.",
+    "from": "Dal",
+    "to": "Al",
+    "paginator": "Pagine della tabella {{name}}",
+    "found": "{{n}} risultati"
   },
   "cwlSelection": {
     "subtitle": "Classifica dei giocatori dei tre clan della Crociata per scegliere i 15 da schierare in Lega e le 3 riserve.",
@@ -1030,7 +1020,6 @@
     },
     "generatedAt": "Calcolata il {{date}}",
     "ranking": "Classifica ({{n}})",
-    "table": "Classifica dei giocatori per lo schieramento CWL",
     "status": "Ruolo in Lega",
     "statuses": {
       "starter": "Schierato",
@@ -1080,6 +1069,7 @@
     },
     "cwlCommendations": "Encomi dell'ultima CWL",
     "noCwlHint": "Non era nello schieramento dell'ultima CWL: i 25 punti della CWL passano alle guerre normali",
-    "warMax": "Fino a {{n}} punti"
+    "warMax": "Fino a {{n}} punti",
+    "searchPlaceholder": "Nome, tag o clan"
   }
 }

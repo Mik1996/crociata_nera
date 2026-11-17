@@ -1,0 +1,223 @@
+<div class="crn-table__scroll">
+  <table mat-table [dataSource]="pageRows()">
+    <caption class="crn-table__caption">
+      <div class="crn-table__caption-bar">
+        <span class="crn-table__title">
+          {{ caption() }}
+          <!-- Always present, so screen readers announce the count when the filters change. -->
+          <span class="crn-table__count" aria-live="polite">
+            @if (activeFilters()) {
+              @if (serverSide()) {
+                {{ 'table.found' | translate: { n: matching() } }}
+              } @else {
+                {{ 'table.shown' | translate: { shown: rows().length, total: data().length } }}
+              }
+            }
+          </span>
+        </span>
+
+        @if (hasFilters()) {
+          <span class="crn-table__actions">
+            @if (activeFilters()) {
+              <button
+                mat-icon-button
+                type="button"
+                class="crn-table__clear"
+                [matTooltip]="'table.clearFilters' | translate"
+                [attr.aria-label]="'table.clearFilters' | translate"
+                (click)="clearFilters()"
+              >
+                <crn-icon name="clear" />
+              </button>
+            }
+            <button
+              mat-icon-button
+              type="button"
+              class="crn-table__toggle"
+              [class.crn-table__toggle--active]="activeFilters() > 0"
+              [attr.aria-expanded]="filtersOpen()"
+              [attr.aria-controls]="filterRowId"
+              [matTooltip]="(filtersOpen() ? 'table.hideFilters' : 'table.showFilters') | translate"
+              [attr.aria-label]="
+                (filtersOpen() ? 'table.hideFilters' : 'table.showFilters') | translate
+              "
+              (click)="toggleFilters()"
+            >
+              <crn-icon [name]="filtersOpen() ? 'filter_list_off' : 'filter_list'" />
+              @if (activeFilters(); as count) {
+                <span class="crn-table__badge" aria-hidden="true">{{ count }}</span>
+              }
+            </button>
+          </span>
+        }
+      </div>
+    </caption>
+
+    <!-- Filter row: one column per column of the table, with the field of its filter. -->
+    @for (column of columns(); track column) {
+      <ng-container [matColumnDef]="'crn-filter:' + column">
+        <th mat-header-cell *matHeaderCellDef class="crn-table__filter-cell">
+          @if (filterOf(column); as filter) {
+            @let name = labels()[column] ?? column;
+            @switch (filter.type) {
+              @case ('text') {
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="crn-table__text"
+                >
+                  <crn-icon matPrefix name="search" />
+                  <input
+                    matInput
+                    type="search"
+                    [value]="valueOf(column, 'text')"
+                    (input)="setValue(column, $any($event.target).value)"
+                    [placeholder]="filter.placeholder ?? 'table.filterText' | translate"
+                    [attr.aria-label]="'table.filterBy' | translate: { name }"
+                  />
+                </mat-form-field>
+              }
+              @case ('number') {
+                <div class="crn-table__range">
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                      matInput
+                      inputmode="decimal"
+                      autocomplete="off"
+                      [value]="boundText(column, 'min')"
+                      (input)="setBound(column, 'min', $any($event.target).value)"
+                      [placeholder]="'table.min' | translate"
+                      [attr.aria-label]="'table.minOf' | translate: { name }"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                      matInput
+                      inputmode="decimal"
+                      autocomplete="off"
+                      [value]="boundText(column, 'max')"
+                      (input)="setBound(column, 'max', $any($event.target).value)"
+                      [placeholder]="'table.max' | translate"
+                      [attr.aria-label]="'table.maxOf' | translate: { name }"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+              @case ('date') {
+                @let range = valueOf(column, 'date');
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="crn-table__dates"
+                >
+                  <mat-date-range-input [rangePicker]="picker">
+                    <input
+                      matStartDate
+                      [value]="toDate(range.from)"
+                      (dateChange)="setDay(column, 'from', $event.value)"
+                      [placeholder]="'table.from' | translate"
+                      [attr.aria-label]="'table.fromOf' | translate: { name }"
+                    />
+                    <input
+                      matEndDate
+                      [value]="toDate(range.to)"
+                      (dateChange)="setDay(column, 'to', $event.value)"
+                      [placeholder]="'table.to' | translate"
+                      [attr.aria-label]="'table.toOf' | translate: { name }"
+                    />
+                  </mat-date-range-input>
+                  <mat-datepicker-toggle matIconSuffix [for]="picker">
+                    <crn-icon matDatepickerToggleIcon name="calendar_month" />
+                  </mat-datepicker-toggle>
+                  <mat-date-range-picker #picker />
+                </mat-form-field>
+              }
+              @case ('boolean') {
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-select
+                    [value]="booleanKey(valueOf(column, 'boolean'))"
+                    (valueChange)="setValue(column, parseBoolean($event))"
+                    [attr.aria-label]="'table.filterBy' | translate: { name }"
+                    panelWidth=""
+                  >
+                    <mat-option value="any">{{ 'table.any' | translate }}</mat-option>
+                    <mat-option value="yes">{{ 'table.yes' | translate }}</mat-option>
+                    <mat-option value="no">{{ 'table.no' | translate }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              }
+              @case ('select') {
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-select
+                    multiple
+                    [value]="valueOf(column, 'select')"
+                    (valueChange)="setValue(column, $event)"
+                    [placeholder]="'table.any' | translate"
+                    [attr.aria-label]="'table.filterBy' | translate: { name }"
+                    panelWidth=""
+                  >
+                    @for (option of filter.options; track option.value) {
+                      <mat-option [value]="option.value">{{
+                        option.label | translate: option.params
+                      }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+            }
+          }
+        </th>
+      </ng-container>
+    }
+
+    <!-- Footer cell of the columns that have none (the footer row lists every column). -->
+    <ng-template matFooterCellDef>
+      <td class="mat-mdc-footer-cell mdc-data-table__cell"></td>
+    </ng-template>
+
+    <tr mat-header-row *matHeaderRowDef="columns()" class="crn-table__head-row"></tr>
+    <tr
+      mat-header-row
+      *matHeaderRowDef="filterColumns()"
+      class="crn-table__filter-row"
+      [class.crn-table__filter-row--hidden]="!hasFilters() || !filtersOpen()"
+      [attr.id]="filterRowId"
+    ></tr>
+
+    @if (!rowDefs().length) {
+      <tr mat-row *matRowDef="let row; columns: columns()"></tr>
+    }
+
+    <tr
+      mat-footer-row
+      *matFooterRowDef="columns()"
+      class="crn-table__footer-row"
+      [class.crn-table__footer-row--hidden]="!footer() || !rows().length"
+    ></tr>
+
+    <tr class="mat-mdc-row crn-table__no-data" *matNoDataRow>
+      <td class="mat-mdc-cell crn-table__empty" [attr.colspan]="columns().length">
+        <!-- As wide as the visible area, so the message stays centred when the table is wider. -->
+        <div class="crn-table__empty-text">
+          {{ (activeFilters() ? 'table.noResults' : 'table.empty') | translate }}
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- Shown while there is more than one page of the smallest size, so the size can be changed back. -->
+@if (pageSize(); as size) {
+  @if (matching() > size) {
+    <mat-paginator
+      class="crn-table__paginator"
+      [length]="matching()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="chosenPageSize()"
+      [pageSizeOptions]="pageSizeOptions()"
+      (page)="changePage($event)"
+      showFirstLastButtons
+      [attr.aria-label]="'table.paginator' | translate: { name: caption() }"
+    />
+  }
+}

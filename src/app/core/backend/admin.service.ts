@@ -5,18 +5,34 @@ import { APP_CONFIG } from '../config/app-config';
 import { noCache } from '../http/http-cache';
 import { AdminUser, BaseResult, Page } from './backend-api.types';
 
+/** Query of `GET /admin/users`: page (from 1), size, filters by column and sort. */
+export interface AdminUserQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  user?: string;
+  playerTag?: string;
+  admin?: boolean;
+  verified?: boolean;
+  createdFrom?: string;
+  createdBefore?: string;
+  sort?: 'username' | 'email' | 'verified' | 'createdAt';
+  order?: 'asc' | 'desc';
+}
+
 /** Administration API (ADMIN role): registered users, roles, linked player tags and deletion. */
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
   private readonly url = `${inject(APP_CONFIG).backendBaseUrl}/admin/users`;
 
-  /** Always fresh: the list changes as members sign up. */
-  listUsers(search = '', page = 1, limit = 50): Observable<Page<AdminUser>> {
-    const params: Record<string, string | number> = { page, limit };
-    if (search.trim()) params['search'] = search.trim();
+  /**
+   * A page of users, filtered and sorted by the backend (`page` from 1). Always fresh: the list
+   * changes as members sign up.
+   */
+  listUsers(params: AdminUserQuery = {}): Observable<Page<AdminUser>> {
     return this.http
-      .get<BaseResult<Page<AdminUser>>>(this.url, { params, context: noCache() })
+      .get<BaseResult<Page<AdminUser>>>(this.url, { params: { ...params }, context: noCache() })
       .pipe(map((response) => response.result!));
   }
 

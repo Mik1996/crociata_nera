@@ -1,32 +1,39 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { AuthService } from '../../../core/backend/auth.service';
 import { participantRows } from '../../../core/utils/war-stats';
 import { provideCocApiTest, sampleWar } from '../../../testing/fixtures';
+import { Table } from '../../../shared/table/table';
+import { TableFilterValues } from '../../../shared/table/table-filters';
 import { WarParticipantsTable } from './war-participants-table';
 
 describe('WarParticipantsTable', () => {
   let fixture: ComponentFixture<WarParticipantsTable>;
 
-  // Access to the protected filter signals.
-  const table = () =>
-    fixture.componentInstance as unknown as {
-      search: { set(v: string): void };
-      townHall: { set(v: number | null): void };
-      stars: { set(v: number | null): void };
-      onlyWithoutAttacks: { set(v: boolean): void };
-    };
+  /** Sets the values of the filters of the table, as typed in its filter row. */
+  const filter = async (values: TableFilterValues) => {
+    const table = fixture.debugElement.query(By.directive(Table))
+      .componentInstance as Table<unknown>;
+    table.filterValues.set(values as Record<string, never>);
+    await fixture.whenStable();
+  };
 
   const visibleNames = () =>
-    Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row .cn-link-cell')).map(
-      (a) => a.textContent?.trim(),
-    );
+    Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row .cn-link-cell'),
+    ).map((a) => a.textContent?.trim());
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), provideCocApiTest({ useMockApi: true })],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi: true }),
+      ],
     });
     fixture = TestBed.createComponent(WarParticipantsTable);
     fixture.componentRef.setInput('rows', participantRows(sampleWar()));
@@ -45,31 +52,32 @@ describe('WarParticipantsTable', () => {
   });
 
   it('filters by name', async () => {
-    table().search.set('#b');
-    await fixture.whenStable();
+    await filter({ name: '#b' });
     expect(visibleNames()).toEqual(['Player #B']);
   });
 
   it('filters by town hall and by stars', async () => {
-    table().townHall.set(16);
-    await fixture.whenStable();
+    await filter({ townHall: [16] });
     expect(visibleNames()).toEqual(['Player #A']);
 
-    table().townHall.set(null);
-    table().stars.set(1);
-    await fixture.whenStable();
+    await filter({ stars: { min: 1, max: 1 } });
     expect(visibleNames()).toEqual(['Player #B']);
   });
 
+  it('offers the town halls of the war in the filter', () => {
+    const table = fixture.debugElement.query(By.directive(Table)).componentInstance as unknown as {
+      filters(): { townHall: { options: { params: { n: number } }[] } };
+    };
+    expect(table.filters().townHall.options.map((o) => o.params.n)).toEqual([16, 15, 14]);
+  });
+
   it('filters only players without attacks and shows a message when nothing matches', async () => {
-    table().onlyWithoutAttacks.set(true);
-    await fixture.whenStable();
+    await filter({ attacks: false });
     expect(visibleNames()).toEqual(['Player #C']);
 
-    table().search.set('nobody');
-    await fixture.whenStable();
+    await filter({ attacks: false, name: 'nobody' });
     expect(visibleNames()).toEqual([]);
-    expect(fixture.nativeElement.textContent).toContain('Nessun partecipante corrisponde');
+    expect(fixture.nativeElement.textContent).toContain('Nessun risultato per i filtri impostati');
   });
 
   const signIn = async (players: { tag: string; verified: boolean }[]) => {
@@ -95,7 +103,9 @@ describe('WarParticipantsTable', () => {
     ]);
 
     const el = fixture.nativeElement as HTMLElement;
-    const badged = [...el.querySelectorAll('tr.mat-mdc-row')].filter((r) => r.querySelector('.cn-me-badge'));
+    const badged = [...el.querySelectorAll('tr.mat-mdc-row')].filter((r) =>
+      r.querySelector('.cn-me-badge'),
+    );
     expect(badged.map(nameOf)).toEqual(['Player #B', 'Player #C']);
     expect(badged[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
     expect(el.querySelector('tr.cn-row-me')).toBeNull();

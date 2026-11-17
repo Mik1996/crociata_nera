@@ -6,7 +6,10 @@ import { provideRouter } from '@angular/router';
 import { authInterceptor } from '../../core/backend/auth.interceptor';
 import { AuthService } from '../../core/backend/auth.service';
 import { provideCocApiTest } from '../../testing/fixtures';
-import { AdminPage } from './admin-page';
+import { AdminPage, userQuery } from './admin-page';
+
+/** First page: 25 users, most recent sign-ups first. */
+const USERS_URL = '/api/v1/admin/users?page=1&limit=25&sort=createdAt&order=desc';
 
 const me = {
   id: 'me',
@@ -55,9 +58,7 @@ describe('AdminPage', () => {
       .flush(ok({ accessToken: 'tok', accessTokenExpiresAt: '', user: me }));
     const fixture = TestBed.createComponent(AdminPage);
     fixture.detectChanges();
-    httpMock
-      .expectOne('/api/v1/admin/users?page=1&limit=50')
-      .flush(ok({ items: [me, member], total: 2, page: 1, limit: 50 }));
+    httpMock.expectOne(USERS_URL).flush(ok({ items: [me, member], total: 2, page: 1, limit: 25 }));
     await fixture.whenStable();
     return { fixture, el: fixture.nativeElement as HTMLElement };
   }
@@ -83,6 +84,85 @@ describe('AdminPage', () => {
     // Nothing to unlink yet.
     expect(rows[1].querySelector('.action-unlink')!.hasAttribute('disabled')).toBe(true);
     expect(el.querySelector('th.mat-column-actions')!.textContent).toContain('Azioni');
+  });
+
+  it('asks the backend for the users matching the filters, sorted and a page at a time', async () => {
+    const { fixture, el } = await render();
+    // A request in flight keeps `whenStable` waiting: a short pause lets the page send it.
+    const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const users = (matches: (params: URLSearchParams) => boolean) =>
+      httpMock.expectOne(
+        (req) =>
+          req.url === '/api/v1/admin/users' &&
+          matches(new URL(req.urlWithParams, 'http://x').searchParams),
+      );
+
+    // Text filters wait for a pause in typing, then start again from the first page.
+    el.querySelector<HTMLButtonElement>('.crn-table__toggle')!.click();
+    await fixture.whenStable();
+    type(el.querySelector<HTMLInputElement>('.crn-table__filter-row input[type="search"]')!, 'mem');
+    await pause(100);
+    httpMock.expectNone((req) => req.urlWithParams.includes('user=mem'));
+    await pause(300);
+    users((p) => p.get('user') === 'mem' && p.get('page') === '1').flush(
+      ok({ items: [member], total: 30, page: 1, limit: 25 }),
+    );
+    await fixture.whenStable();
+    expect(el.querySelectorAll('tr.mat-mdc-row')).toHaveLength(1);
+    expect(el.querySelector('.crn-table__count')!.textContent).toContain('30 risultati');
+
+    // More than one page: the next one, with the same filters.
+    el.querySelector<HTMLButtonElement>('.mat-mdc-paginator-navigation-next')!.click();
+    await pause(50);
+    users((p) => p.get('page') === '2' && p.get('user') === 'mem').flush(
+      ok({ items: [member], total: 30, page: 2, limit: 25 }),
+    );
+    await fixture.whenStable();
+
+    // Sorting by user: ascending usernames, from the first page again.
+    el.querySelector<HTMLElement>('th.mat-column-user .mat-sort-header-container')!.click();
+    await pause(50);
+    users(
+      (p) =>
+        p.get('sort') === 'username' &&
+        p.get('order') === 'asc' &&
+        p.get('user') === 'mem' &&
+        p.get('page') === '1',
+    ).flush(ok({ items: [member], total: 30, page: 1, limit: 25 }));
+    await fixture.whenStable();
+  });
+
+  it('turns the query of the table into the parameters of the backend', () => {
+    expect(
+      userQuery({
+        filters: {
+          user: ' anna ',
+          admin: false,
+          createdAt: { from: '2026-11-01', to: '2026-11-30' },
+        },
+        pageIndex: 2,
+        pageSize: 50,
+        sort: { active: 'verified', direction: 'asc' },
+      }),
+    ).toEqual({
+      page: 3,
+      limit: 50,
+      user: 'anna',
+      admin: false,
+      createdFrom: new Date(2026, 10, 1).toISOString(),
+      createdBefore: new Date(2026, 11, 1).toISOString(),
+      sort: 'verified',
+      order: 'asc',
+    });
+    // No sort direction: the backend's own order.
+    expect(
+      userQuery({
+        filters: {},
+        pageIndex: 0,
+        pageSize: 25,
+        sort: { active: 'user', direction: '' },
+      }),
+    ).toEqual({ page: 1, limit: 25 });
   });
 
   it('promotes a user to admin', async () => {
@@ -148,22 +228,20 @@ describe('AdminPage', () => {
     type(dialog()!.querySelector<HTMLInputElement>('.tag-input')!, '#TAKEN1');
     await fixture.whenStable();
     dialogButton('.submit').click();
-    httpMock
-      .expectOne('/api/v1/admin/users/m1/players')
-      .flush(
-        {
-          result: null,
-          messages: [
-            {
-              key: 'ERROR.PLAYER_TAG_LINKED_TO_OTHER_USER',
-              params: { tag: '#TAKEN1' },
-              field: 'playerTags',
-            },
-          ],
-          status: { code: 409, name: 'CONFLICT' },
-        },
-        { status: 409, statusText: 'Conflict' },
-      );
+    httpMock.expectOne('/api/v1/admin/users/m1/players').flush(
+      {
+        result: null,
+        messages: [
+          {
+            key: 'ERROR.PLAYER_TAG_LINKED_TO_OTHER_USER',
+            params: { tag: '#TAKEN1' },
+            field: 'playerTags',
+          },
+        ],
+        status: { code: 409, name: 'CONFLICT' },
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
     await fixture.whenStable();
     expect(dialog()!.textContent).toContain('#TAKEN1 è già collegato a un altro utente.');
   });

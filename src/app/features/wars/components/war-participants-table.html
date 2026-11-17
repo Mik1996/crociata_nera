@@ -1,212 +1,151 @@
-<div class="cn-filters" role="search" [attr.aria-label]="'participants.filter' | translate">
-  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-    <mat-label>{{ 'participants.search' | translate }}</mat-label>
-    <crn-icon matPrefix name="search" />
-    <input
-      matInput
-      [ngModel]="search()"
-      (ngModelChange)="search.set($event)"
-      [placeholder]="'common.nameOrTag' | translate"
-    />
-  </mat-form-field>
+<crn-table
+  [data]="sortedRows()"
+  [columns]="columns"
+  [caption]="caption()"
+  [filters]="filters()"
+  matSort
+  matSortActive="mapPosition"
+  matSortDirection="asc"
+  (matSortChange)="updateSort($event)"
+>
+  <ng-container matColumnDef="mapPosition">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.position' | translate"
+    >
+      #
+    </th>
+    <td mat-cell *matCellDef="let r" class="cn-num">{{ r.mapPosition }}</td>
+  </ng-container>
 
-  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-    <mat-label>{{ 'common.townHall' | translate }}</mat-label>
-    <mat-select [value]="townHall()" (valueChange)="townHall.set($event)">
-      <mat-option [value]="null">{{ 'common.allMasculine' | translate }}</mat-option>
-      @for (th of townHalls(); track th) {
-        <mat-option [value]="th">{{ 'common.townHallN' | translate: { n: th } }}</mat-option>
+  <ng-container matColumnDef="name">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.name' | translate"
+    >
+      {{ 'common.player' | translate }}
+    </th>
+    <td mat-cell *matCellDef="let r">
+      <a class="cn-link-cell" [routerLink]="['/players', r.tag]">{{ r.name }}</a>
+      @if (isMine(r.tag)) {
+        <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
       }
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-    <mat-label>{{ 'participants.totalStars' | translate }}</mat-label>
-    <mat-select [value]="stars()" (valueChange)="stars.set($event)">
-      <mat-option [value]="null">{{ 'common.allFeminine' | translate }}</mat-option>
-      @for (n of starOptions(); track n) {
-        <mat-option [value]="n">{{
-          (n === 1 ? 'stars.one' : 'stars.other') | translate: { n: n }
-        }}</mat-option>
+      @if (preparation()) {
+        <!-- Preparation day: nobody can attack yet. -->
+      } @else if (!r.hasAttacked) {
+        <span class="attack-status attack-status--none">
+          <crn-icon [name]="inProgress() ? 'hourglass_empty' : 'block'" />
+          {{
+            (inProgress()
+              ? isMine(r.tag)
+                ? 'participants.youNotAttackedYet'
+                : 'participants.notAttackedYet'
+              : 'participants.noAttacksUsed'
+            ) | translate
+          }}
+        </span>
+      } @else if (r.attacksUsed < r.attacksAvailable) {
+        <span class="attack-status attack-status--partial">
+          <crn-icon [name]="inProgress() ? 'pending' : 'warning_amber'" />
+          {{
+            (inProgress() ? 'participants.attackAvailable' : 'participants.attackUnused')
+              | translate
+          }}
+        </span>
       }
-    </mat-select>
-  </mat-form-field>
+    </td>
+  </ng-container>
 
-  <mat-slide-toggle
-    [checked]="onlyWithoutAttacks()"
-    (change)="onlyWithoutAttacks.set($event.checked)"
-  >
-    {{ 'participants.onlyWithoutAttacks' | translate: { n: withoutAttacks() } }}
-  </mat-slide-toggle>
+  <ng-container matColumnDef="townHall">
+    <th
+      mat-header-cell
+      class="cn-icon-cell"
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.townHall' | translate"
+    >
+      {{ 'common.th' | translate }}
+    </th>
+    <td mat-cell *matCellDef="let r" class="cn-icon-cell">
+      <crn-town-hall-icon [level]="r.townHall" />
+    </td>
+  </ng-container>
 
-  @if (filtersActive()) {
-    <button mat-button type="button" (click)="clearFilters()">
-      <crn-icon matButtonIcon name="clear" /> {{ 'common.clearFilters' | translate }}
-    </button>
-  }
-</div>
+  <ng-container matColumnDef="attacks">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.attacks' | translate"
+    >
+      {{ 'common.attacks' | translate }}
+    </th>
+    <td mat-cell *matCellDef="let r" class="cn-num">
+      {{ r.attacksUsed }}/{{ r.attacksAvailable }}
+    </td>
+  </ng-container>
 
-<p class="cn-visually-hidden" aria-live="polite">
-  {{ 'participants.shown' | translate: { n: filteredRows().length } }}
-</p>
+  <ng-container matColumnDef="stars">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.stars' | translate"
+    >
+      {{ 'common.stars' | translate }}
+    </th>
+    <td mat-cell *matCellDef="let r" class="cn-num">
+      <strong>{{ r.stars }}</strong>
+    </td>
+  </ng-container>
 
-<div class="cn-table-wrap">
-  <table
-    mat-table
-    [dataSource]="filteredRows()"
-    matSort
-    matSortActive="mapPosition"
-    matSortDirection="asc"
-    (matSortChange)="updateSort($event)"
-    [attr.aria-label]="'participants.table' | translate"
-  >
-    <ng-container matColumnDef="mapPosition">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.position' | translate"
-      >
-        #
-      </th>
-      <td mat-cell *matCellDef="let r" class="cn-num">{{ r.mapPosition }}</td>
-    </ng-container>
+  <ng-container matColumnDef="averageDestruction">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      [sortActionDescription]="'sort.averageDestruction' | translate"
+    >
+      {{ 'common.averageDestructionShort' | translate }}
+    </th>
+    <td mat-cell *matCellDef="let r" class="cn-num">
+      {{ r.hasAttacked ? (r.averageDestruction | localNumber: '1.0-1') + '%' : '—' }}
+    </td>
+  </ng-container>
 
-    <ng-container matColumnDef="name">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.name' | translate"
-      >
-        {{ 'common.player' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let r">
-        <a class="cn-link-cell" [routerLink]="['/players', r.tag]">{{ r.name }}</a>
-        @if (isMine(r.tag)) {
-          <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
-        }
-        @if (preparation()) {
-          <!-- Preparation day: nobody can attack yet. -->
-        } @else if (!r.hasAttacked) {
-          <span class="attack-status attack-status--none">
-            <crn-icon [name]="inProgress() ? 'hourglass_empty' : 'block'" />
-            {{
-              (inProgress()
-                ? isMine(r.tag)
-                  ? 'participants.youNotAttackedYet'
-                  : 'participants.notAttackedYet'
-                : 'participants.noAttacksUsed'
-              ) | translate
-            }}
-          </span>
-        } @else if (r.attacksUsed < r.attacksAvailable) {
-          <span class="attack-status attack-status--partial">
-            <crn-icon [name]="inProgress() ? 'pending' : 'warning_amber'" />
-            {{
-              (inProgress() ? 'participants.attackAvailable' : 'participants.attackUnused')
-                | translate
-            }}
-          </span>
-        }
-      </td>
-    </ng-container>
+  <ng-container matColumnDef="targets">
+    <th mat-header-cell *matHeaderCellDef>{{ 'participants.targets' | translate }}</th>
+    <td mat-cell *matCellDef="let r">
+      @if (r.targets.length) {
+        <ul class="targets">
+          @for (t of r.targets; track $index) {
+            <li [matTooltip]="'participants.target' | translate: { name: t.name, th: t.townHall }">
+              <span class="target__pos">#{{ t.mapPosition }}</span>
+              <span class="cn-visually-hidden">{{
+                'participants.targetScreenReader' | translate: { name: t.name, th: t.townHall }
+              }}</span>
+              <crn-stars [value]="t.stars" />
+              <span class="cn-num cn-muted">{{ t.destruction }}%</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <span class="cn-muted">—</span>
+      }
+    </td>
+  </ng-container>
 
-    <ng-container matColumnDef="townHall">
-      <th
-        mat-header-cell
-        class="cn-icon-cell"
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.townHall' | translate"
-      >
-        {{ 'common.th' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let r" class="cn-icon-cell">
-        <crn-town-hall-icon [level]="r.townHall" />
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="attacks">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.attacks' | translate"
-      >
-        {{ 'common.attacks' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let r" class="cn-num">
-        {{ r.attacksUsed }}/{{ r.attacksAvailable }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="stars">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.stars' | translate"
-      >
-        {{ 'common.stars' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let r" class="cn-num">
-        <strong>{{ r.stars }}</strong>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="averageDestruction">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [sortActionDescription]="'sort.averageDestruction' | translate"
-      >
-        {{ 'common.averageDestructionShort' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let r" class="cn-num">
-        {{ r.hasAttacked ? (r.averageDestruction | localNumber: '1.0-1') + '%' : '—' }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="targets">
-      <th mat-header-cell *matHeaderCellDef>{{ 'participants.targets' | translate }}</th>
-      <td mat-cell *matCellDef="let r">
-        @if (r.targets.length) {
-          <ul class="targets">
-            @for (t of r.targets; track $index) {
-              <li
-                [matTooltip]="'participants.target' | translate: { name: t.name, th: t.townHall }"
-              >
-                <span class="target__pos">#{{ t.mapPosition }}</span>
-                <span class="cn-visually-hidden">{{
-                  'participants.targetScreenReader' | translate: { name: t.name, th: t.townHall }
-                }}</span>
-                <crn-stars [value]="t.stars" />
-                <span class="cn-num cn-muted">{{ t.destruction }}%</span>
-              </li>
-            }
-          </ul>
-        } @else {
-          <span class="cn-muted">—</span>
-        }
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr
-      mat-row
-      *matRowDef="let r; columns: columns"
-      [class.row-without-attacks]="!preparation() && !r.hasAttacked"
-      [class.row-partial-attacks]="
-        !preparation() && r.hasAttacked && r.attacksUsed < r.attacksAvailable
-      "
-      [class.cn-row-me]="!inProgress() && isMine(r.tag)"
-    ></tr>
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell no-results" [attr.colspan]="columns.length">
-        {{ 'participants.noResults' | translate }}
-      </td>
-    </tr>
-  </table>
-</div>
+  <tr
+    mat-row
+    *matRowDef="let r; columns: columns"
+    [class.row-without-attacks]="!preparation() && !r.hasAttacked"
+    [class.row-partial-attacks]="
+      !preparation() && r.hasAttacked && r.attacksUsed < r.attacksAvailable
+    "
+    [class.cn-row-me]="!inProgress() && isMine(r.tag)"
+  ></tr>
+</crn-table>

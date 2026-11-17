@@ -12,12 +12,13 @@ import { GAME_ICONS } from '../../core/game/game-assets';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
-import { RaidSeason } from '../../core/models';
+import { RaidMember, RaidSeason } from '../../core/models';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { Table } from '../../shared/table/table';
+import { TableFilters } from '../../shared/table/table-filters';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -27,7 +28,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
 @Component({
   selector: 'crn-raids-page',
   imports: [
-    TABLE_WRAP,
+    Table,
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
@@ -86,6 +87,16 @@ export class RaidsPage {
   protected readonly GAME_ICONS = GAME_ICONS;
 
   protected readonly columns = ['rank', 'name', 'attacks', 'looted'];
+  protected readonly filters: TableFilters<RaidMember> = {
+    name: { type: 'text', value: (m) => [m.name, m.tag], placeholder: 'common.nameOrTag' },
+    attacks: { type: 'number' },
+    looted: { type: 'number' },
+  };
+
+  /** Total of a field over the rows shown (footer). */
+  protected sum(rows: readonly RaidMember[], field: 'attacks' | 'attackLimit' | 'looted'): number {
+    return rows.reduce((total, m) => total + m[field], 0);
+  }
 
   protected readonly MAXIMUM_CAPITAL_RAIDS = MAXIMUM_CAPITAL_RAIDS;
 

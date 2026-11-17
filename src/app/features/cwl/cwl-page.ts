@@ -11,14 +11,15 @@ import { CocApiService } from '../../core/api/coc-api';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
-import { CwlRound } from '../../core/models';
+import { CwlPlayerStats, CwlRound } from '../../core/models';
 import { periodLabel } from '../../core/utils/monthly-history';
 import { warResult } from '../../core/utils/war-stats';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { Table } from '../../shared/table/table';
+import { TableFilters } from '../../shared/table/table-filters';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 
@@ -31,7 +32,7 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
   selector: 'crn-cwl-page',
   imports: [
     StarText,
-    TABLE_WRAP,
+    Table,
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
@@ -91,6 +92,16 @@ export class CwlPage {
     'threeStars',
     'destruction',
   ];
+
+  protected readonly playerFilters: TableFilters<CwlPlayerStats> = {
+    townHall: { type: 'number' },
+    name: { type: 'text', value: (p) => [p.name, p.tag], placeholder: 'common.nameOrTag' },
+    attacks: { type: 'number' },
+    stars: { type: 'number' },
+    averageStars: { type: 'number' },
+    threeStars: { type: 'number' },
+    destruction: { type: 'number', value: (p) => p.averageDestruction },
+  };
 
   protected readonly periodLabel = (season: string) => periodLabel(season, this.language.current());
   protected readonly result = (round: CwlRound) => (round.war ? warResult(round.war) : 'ongoing');

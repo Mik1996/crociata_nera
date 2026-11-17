@@ -1,9 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../shared/icon/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule, Sort } from '@angular/material/sort';
@@ -14,18 +11,20 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
-import { HistoryPlayerStats } from '../../core/models';
+import { HistoryPlayerStats, HistoryWar } from '../../core/models';
 import { ALL_PERIODS, HistoryService } from '../../core/services/history.service';
 import { PlayerService } from '../../core/services/player.service';
 import { compareForRanking, periodLabel } from '../../core/utils/monthly-history';
-import { matchesText, sortRows, SortState } from '../../core/utils/sort';
+import { sortRows, SortState } from '../../core/utils/sort';
 import { percentage } from '../../core/utils/war-stats';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { TABLE_WRAP } from '../../shared/directives/table-wrap';
+import { resultKey, WAR_RESULTS } from '../../shared/labels';
+import { Table } from '../../shared/table/table';
+import { TableFilters } from '../../shared/table/table-filters';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
@@ -43,19 +42,16 @@ const MAX_STARS_PER_WAR = 6;
   selector: 'crn-statistics-page',
   imports: [
     StarText,
-    TABLE_WRAP,
+    Table,
     LocalDatePipe,
     LocalNumberPipe,
     TranslatePipe,
-    FormsModule,
     RouterLink,
     MatTableModule,
     MatSortModule,
     MatFormFieldModule,
-    MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    Icon,
     MatTooltipModule,
     PageHeader,
     LoadState,
@@ -106,7 +102,6 @@ export class StatisticsPage {
   );
 
   // --- Filters --------------------------------------------------------------
-  protected readonly search = signal('');
   protected readonly minWars = signal(1);
   protected readonly currentMembersOnly = signal(false);
   protected readonly minWarsOptions = [1, 2, 3, 5, 10];
@@ -131,7 +126,7 @@ export class StatisticsPage {
   ];
   protected readonly warColumns = ['date', 'opponent', 'size', 'result', 'stars', 'destruction'];
 
-  /** Full ranking with rank, computed before the search filter and sorting. */
+  /** Full ranking with rank, computed before the table filters and sorting. */
   private readonly ranking = computed<RankingRow[]>(() => {
     const members = this.members.hasValue() ? this.members.value() : null;
     const minimum = this.minWars();
@@ -142,13 +137,42 @@ export class StatisticsPage {
       .map((p, i) => ({ ...p, rank: i + 1, isCurrentMember: members ? members.has(p.tag) : true }));
   });
 
+  protected readonly rankingFilters: TableFilters<RankingRow> = {
+    townHall: { type: 'number' },
+    name: { type: 'text', value: (r) => [r.name, r.tag], placeholder: 'common.nameOrTag' },
+    wars: { type: 'number' },
+    attacksUsed: { type: 'number' },
+    stars: { type: 'number' },
+    averageStarsPerWar: { type: 'number' },
+    averageStarsPerAttack: { type: 'number' },
+    threeStarRate: { type: 'number' },
+    averageDestruction: {
+      type: 'number',
+      value: (r) => (r.attacksUsed ? r.averageDestruction : null),
+    },
+    averageStarsConceded: { type: 'number' },
+  };
+
+  protected readonly warFilters: TableFilters<HistoryWar> = {
+    date: { type: 'date', value: (w) => w.endTime },
+    opponent: {
+      type: 'text',
+      value: (w) => [w.opponent, w.opponentTag],
+      placeholder: 'history.searchPlaceholder',
+    },
+    size: { type: 'number', value: (w) => w.teamSize },
+    result: {
+      type: 'select',
+      options: WAR_RESULTS.map((r) => ({ value: r, label: resultKey(r) })),
+    },
+    stars: { type: 'number' },
+    destruction: { type: 'number' },
+  };
+
+  /** Ranking sorted; the table filters it (the positions stay those of the whole ranking). */
   protected readonly rows = computed(() => {
-    const search = this.search();
-    const filtered = this.ranking().filter(
-      (r) => !search || matchesText(r.name, search) || matchesText(r.tag, search),
-    );
     return sortRows(
-      filtered,
+      this.ranking(),
       this.sortState(),
       (r, field) => r[field as keyof RankingRow] as number | string,
     );

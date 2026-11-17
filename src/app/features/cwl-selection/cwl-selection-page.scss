@@ -296,9 +296,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-// --- Line-up rows: the starters glow blue, the reserves green (solid tint: a gradient on a row
+// --- Line-up rows (no `table` in the selectors: the table is in <crn-table>, outside this
+//     style scope): the starters glow blue, the reserves green (solid tint: a gradient on a row
 //     is painted again in every cell) ---
-table tr.mat-mdc-row {
+tr.mat-mdc-row {
   &.row--starter {
     --lineup: var(--cn-lineup-starter);
   }
@@ -345,8 +346,8 @@ table tr.mat-mdc-row {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  table tr.mat-mdc-row.row--starter,
-  table tr.mat-mdc-row.row--reserve {
+  tr.mat-mdc-row.row--starter,
+  tr.mat-mdc-row.row--reserve {
     animation: none;
   }
 }

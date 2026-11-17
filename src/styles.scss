@@ -354,19 +354,6 @@ h2 {
   box-shadow: 0 2px 0 var(--cn-panel-border);
 }
 
-// Table headers on a darker band, like the game's lists.
-.cn-table-wrap th.mat-mdc-header-cell {
-  background: var(--cn-table-head);
-}
-
-.cn-table-wrap tr.mat-mdc-header-row th:first-child {
-  border-top-left-radius: $radius-m;
-}
-
-.cn-table-wrap tr.mat-mdc-header-row th:last-child {
-  border-top-right-radius: $radius-m;
-}
-
 /*
  * Pages that fill the viewport (class "page--fill" on the page host): the content area becomes a
  * column as tall as the space below the header, so the page itself does not scroll: only the
@@ -748,6 +735,31 @@ table tr.cn-row-me.mat-mdc-row {
   margin-bottom: $space-l;
 }
 
+/*
+ * Section holding a table (`<crn-table>`, also inside a wrapper such as <crn-load-state>): the
+ * table reaches the edges of the panel, with its corners; the rest of the section (notes, legend)
+ * keeps the padding of the section. Controls of the table go in the filter row or above the panel,
+ * never above the table inside it (they would stick out above the table while it scrolls).
+ */
+.cn-section:has(crn-table) {
+  padding: 0;
+
+  > :not(crn-table, :has(crn-table)) {
+    margin: 0;
+    padding: $space-m $space-l;
+  }
+
+  .crn-table__scroll {
+    border-radius: max(0rem, calc(var(--cn-card-radius) - var(--cn-card-border-width)));
+  }
+
+  // The studs of the panel stay in front of the table (its caption and header are positioned).
+  &::before,
+  &::after {
+    z-index: 5;
+  }
+}
+
 // Row of stat tiles: they share the row, up to a maximum width each, centred.
 .cn-grid-kpi {
   display: flex;
@@ -797,41 +809,6 @@ table tr.cn-row-me.mat-mdc-row {
 }
 
 /*
- * Sticky header driven by the scroll (directive `StickyTableHeader`, which sets the timeline name
- * on the scrolling area and measures the range): the browser moves the header cells in the same
- * frame as the scroll, so they never shake.
- */
-@keyframes cn-sticky-table-header {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(var(--cn-sticky-distance, 0));
-  }
-}
-
-.cn-table-wrap--scroll-driven :is(thead th, tr.mat-mdc-header-row > th) {
-  animation: cn-sticky-table-header linear both;
-  animation-timeline: --cn-table-scroll;
-  animation-range: var(--cn-sticky-start, 0)
-    calc(var(--cn-sticky-start, 0) + var(--cn-sticky-distance, 0));
-}
-
-// Safari composites the animated header cells in a layer of their own, and clips that layer to the
-// scrolling area rounded to whole device pixels differently from the rows: when the area starts
-// at a fractional position, one device pixel of the rows shows above the stuck header. Rows in a
-// layer of their own get the same clip.
-.cn-table-wrap--scroll-driven tbody {
-  will-change: transform;
-}
-
-// Header stuck at the top of the scrolling area: a shadow separates it from the rows below.
-.cn-table-wrap--stuck th.mat-mdc-header-cell {
-  box-shadow: 0 0.375rem 0.5rem -0.25rem palette.alpha(var(--cn-shadow), 45%);
-}
-
-/*
  * Column resize handle (directive `ResizableColumns`) on the right edge of every header cell:
  * a thin line, gold while hovered, focused or dragged.
  */
@@ -868,60 +845,18 @@ table tr.cn-row-me.mat-mdc-row {
 }
 
 // No handle after the last column: nothing to its right.
-.cn-table-wrap th:last-child > .cn-col-resizer::after {
+.crn-table__scroll th:last-child > .cn-col-resizer::after {
   display: none;
 }
 
 // While dragging: no text selection, resize cursor everywhere.
-.cn-table-wrap--resizing {
+.crn-table__scroll--resizing {
   cursor: col-resize;
   user-select: none;
 
   .cn-col-resizer::after {
     background: var(--cn-gold);
   }
-}
-
-// Responsive tables: horizontal scrolling on narrow screens.
-.cn-table-wrap {
-  // Positioned: absolutely positioned descendants (e.g. `.cn-visually-hidden` texts in the cells)
-  // stay inside it and scroll with the table, instead of widening the page around it.
-  position: relative;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-
-  table {
-    width: 100%;
-    min-width: 40rem;
-  }
-
-  // Header cells follow the scroll (directive `StickyTableHeader`): above the rows they cover.
-  th.mat-mdc-header-cell {
-    position: relative;
-    z-index: 2;
-    // Header labels on one line, never cut: they set the automatic width of the column.
-    white-space: nowrap;
-    font-family: var(--cn-font-heading);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: var(--cn-fs-xs);
-    letter-spacing: 0.08em;
-    border-bottom-color: var(--cn-header-border);
-  }
-
-  tr.cn-row-link {
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      background: var(--cn-hover);
-    }
-  }
-}
-
-// More columns beyond the right edge: the edge fades (scrollbars are hidden site-wide).
-.cn-table-wrap--more-x {
-  mask-image: linear-gradient(to left, transparent, var(--cn-mask) 2.5rem);
 }
 
 // Column holding only an icon (league, town hall): as narrow as its content, icon centred.

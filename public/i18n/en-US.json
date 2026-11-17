@@ -83,12 +83,9 @@
   "common": {
     "nameOrTag": "Name or tag",
     "allMasculine": "All",
-    "allFeminine": "All",
-    "clearFilters": "Clear filters",
     "refresh": "Refresh",
     "viewDetails": "View details",
     "sizeVs": "{{n}} vs {{n}}",
-    "townHall": "Town Hall",
     "townHallN": "Town Hall {{n}}",
     "th": "TH",
     "player": "Player",
@@ -100,7 +97,6 @@
     "destruction": "Destruction",
     "averageDestructionShort": "Avg. destr.",
     "wars": "Wars",
-    "position": "Position",
     "size": "Format",
     "attacksUsed": "Attacks used",
     "averageStars": "Average stars",
@@ -136,7 +132,8 @@
     "averageStarsPerWar": "Sort by average stars per war",
     "averageStarsPerAttack": "Sort by average stars per attack",
     "starsConceded": "Sort by stars conceded on defense",
-    "league": "Sort by league"
+    "league": "Sort by league",
+    "verified": "Sort by verified email"
   },
   "paginator": {
     "itemsPerPage": "Rows per page:",
@@ -182,9 +179,7 @@
     "member": "Member"
   },
   "stars": {
-    "label": "{{value}} stars out of {{max}}",
-    "one": "{{n}} star",
-    "other": "{{n}} stars"
+    "label": "{{value}} stars out of {{max}}"
   },
   "notFound": {
     "title": "Page not found",
@@ -223,8 +218,7 @@
     "empty": "The clan is not currently at war (or its war log is private). Check back when the next one starts!",
     "withoutAttacks": "Without attacks",
     "outOfParticipants": "out of {{n}} participants",
-    "participants": "Participants",
-    "participantsKicker": "The army in the field"
+    "participants": "Army in the field"
   },
   "summary": {
     "starsOutOf": "{{stars}} stars out of {{total}}",
@@ -241,12 +235,6 @@
     "starsConceded": "Stars conceded:"
   },
   "participants": {
-    "filter": "Filter participants",
-    "search": "Search participant",
-    "totalStars": "Total stars",
-    "onlyWithoutAttacks": "Only without attacks ({{n}})",
-    "shown": "{{n}} participants shown",
-    "table": "War participants",
     "notAttackedYet": "Has not attacked yet",
     "youNotAttackedYet": "You have not attacked yet",
     "noAttacksUsed": "No attacks used",
@@ -254,8 +242,7 @@
     "attackUnused": "Attack not used",
     "targets": "Targets",
     "target": "{{name}} · Town Hall {{th}}",
-    "targetScreenReader": "{{name}}, Town Hall {{th}}:",
-    "noResults": "No participant matches the selected filters."
+    "targetScreenReader": "{{name}}, Town Hall {{th}}:"
   },
   "warDetail": {
     "versus": "Against {{name}}",
@@ -276,16 +263,9 @@
     "draws": "Draws",
     "ofTotal": "{{percent}}% of total",
     "finishedWars": "Finished wars",
-    "filter": "Filter wars",
-    "search": "Search opponent",
     "searchPlaceholder": "Clan name or tag",
-    "filterByResult": "Filter by result",
-    "found": "{{n}} wars found",
-    "table": "War history",
     "summaryOnly": "· summary only",
-    "summaryOnlyTitle": "Participant details not available",
-    "noResults": "No war matches the filters.",
-    "paginator": "Select the history page"
+    "summaryOnlyTitle": "Participant details not available"
   },
   "players": {
     "subtitle": "Clan members and statistics over the last {{n}} finished wars",
@@ -293,16 +273,13 @@
     "noticeTitle": "Individual statistics not available yet.",
     "noticeText": "Individual player statistics build up war after war: they will be available when the next war ends.",
     "members": "Members ({{n}})",
-    "filter": "Filter members",
-    "search": "Search member",
     "role": "Role",
-    "table": "Clan members and war statistics",
     "attendance": "Attendance",
     "averageStars": "Avg. ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Destr. %",
-    "noResults": "No member matches the filters.",
-    "league": "League"
+    "league": "League",
+    "average": "Average"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Town Hall {{th}}",
@@ -321,7 +298,6 @@
     "starsChartLabel": "Bar chart of stars earned in each war. The values are listed in the table below.",
     "destructionChart": "Average destruction per war",
     "destructionChartLabel": "Line chart of average destruction per war. The values are listed in the table below.",
-    "table": "Player performance war by war",
     "noWars": "This player did not take part in any of the analyzed wars.",
     "seriesStars": "Stars",
     "seriesDestruction": "Average destruction",
@@ -374,14 +350,9 @@
     "unusedAttacks": "{{n}} unused attacks",
     "ranking": "Ranking · {{period}}",
     "updated": "Updated on {{date}}",
-    "filter": "Filter ranking",
-    "search": "Search player",
     "minimumWars": "Minimum wars played",
     "atLeast": "At least {{n}}",
     "currentMembersOnly": "Current members only",
-    "inRanking": "{{n}} players in the ranking",
-    "table": "Player ranking by average stars per war",
-    "position": "Pos.",
     "formerMember": "former member",
     "unusedOne": "{{n}} unused",
     "unusedOther": "{{n}} unused",
@@ -392,10 +363,8 @@
     "distributionLabel": "{{three}} 3-star attacks, {{two}} with 2, {{one}} with 1, {{zero}} with 0",
     "defense": "Defense ★",
     "defenseTooltip": "Average stars conceded to the opponent on defense, per war (lower is better)",
-    "noResults": "No player matches the filters.",
     "legend": "<strong>Avg. ★ / war</strong> = total stars ÷ wars played: unused attacks count as 0. Ties are broken by average destruction, participation and number of wars. <strong>Defense ★</strong> = average stars conceded to the opponent (lower is better).",
-    "periodWars": "Wars in the period ({{n}})",
-    "periodWarsTable": "Wars recorded in the period"
+    "periodWars": "Wars in the period ({{n}})"
   },
   "auth": {
     "fields": {
@@ -745,9 +714,6 @@
   "admin": {
     "title": "Administration",
     "subtitle": "Registered users: {{n}}",
-    "search": "Search by name, email or tag",
-    "searchButton": "Search",
-    "empty": "No users found",
     "adminToggle": "Administrator: {{name}}",
     "columns": {
       "user": "User",
@@ -783,7 +749,9 @@
       "title": "Delete user",
       "intro": "The user {{name}} will be deleted permanently and signed out of every device. This cannot be undone.",
       "label": "To confirm, type {{name}}"
-    }
+    },
+    "users": "Registered users",
+    "userPlaceholder": "Name or email"
   },
   "bases": {
     "title": "Base arsenal",
@@ -992,11 +960,33 @@
     "absentEnded": "Current members with no attacks this weekend: capital raids are mandatory.",
     "allIn": "Every member took part.",
     "noMembersTitle": "Member detail not available",
-    "noMembersText": "Clash of Clans shows who attacked only while the weekend is in progress: the site saves it since it went live, so only the totals are available for this weekend."
+    "noMembersText": "Clash of Clans shows who attacked only while the weekend is in progress: the site saves it since it went live, so only the totals are available for this weekend.",
+    "total": "Total"
   },
   "table": {
     "resizeColumn": "Resize the {{name}} column",
-    "resizeHint": "Drag to resize, double-click for automatic widths"
+    "resizeHint": "Drag to resize, double-click for automatic widths",
+    "shown": "{{shown}} of {{total}}",
+    "showFilters": "Show filters",
+    "hideFilters": "Hide filters",
+    "clearFilters": "Clear filters",
+    "filterText": "Search…",
+    "filterBy": "Filter by {{name}}",
+    "min": "Min",
+    "max": "Max",
+    "minOf": "{{name}}: minimum",
+    "maxOf": "{{name}}: maximum",
+    "fromOf": "{{name}}: from",
+    "toOf": "{{name}}: to",
+    "any": "Any",
+    "yes": "Yes",
+    "no": "No",
+    "noResults": "No results for the filters set.",
+    "empty": "Nothing to show.",
+    "from": "From",
+    "to": "To",
+    "paginator": "Pages of the table {{name}}",
+    "found": "{{n}} results"
   },
   "cwlSelection": {
     "subtitle": "Ranking of the players of the three clans of the Crusade to pick the 15 to field in the League and the 3 reserves.",
@@ -1030,7 +1020,6 @@
     },
     "generatedAt": "Computed on {{date}}",
     "ranking": "Ranking ({{n}})",
-    "table": "Ranking of the players for the CWL line-up",
     "status": "League role",
     "statuses": {
       "starter": "In line-up",
@@ -1080,6 +1069,7 @@
     },
     "cwlCommendations": "Commendations of the last CWL",
     "noCwlHint": "Not in the line-up of the last CWL: the 25 CWL points move to the regular wars",
-    "warMax": "Up to {{n}} points"
+    "warMax": "Up to {{n}} points",
+    "searchPlaceholder": "Name, tag or clan"
   }
 }
