@@ -55,6 +55,13 @@
   flex: 1 0 3rem;
 }
 
+// Room for "100%" in every row: the bars all get the same length, the numbers line up on the right.
+.attendance__value {
+  flex: none;
+  min-width: 3.5rem;
+  text-align: end;
+}
+
 .missing-attacks {
   color: var(--cn-red-text);
 }
