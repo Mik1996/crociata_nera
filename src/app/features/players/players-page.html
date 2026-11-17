@@ -165,9 +165,7 @@
             </th>
             <td mat-cell *matCellDef="let m" class="cn-num">
               <span class="attendance">
-                <span class="attendance__bar" aria-hidden="true"
-                  ><span [style.width.%]="m.attendance"></span
-                ></span>
+                <crn-meter class="attendance__bar" [value]="m.attendance" />
                 {{ m.attendance | localNumber: '1.0-0' }}%
               </span>
             </td>

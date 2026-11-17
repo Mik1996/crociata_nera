@@ -188,38 +188,7 @@
 }
 
 .score__bar {
-  display: flex;
   flex: 1 0 4rem;
-  height: 0.375rem;
-  border-radius: $radius-s;
-  background: var(--cn-surface-3);
-  overflow: hidden;
-}
-
-.score__part {
-  &--cwlCommendations {
-    background: var(--cn-gold);
-  }
-
-  &--cwlPerformance {
-    background: var(--cn-gold-dark);
-  }
-
-  &--war {
-    background: var(--cn-red-mid);
-  }
-
-  &--heroes {
-    background: var(--cn-chart-series-2);
-  }
-
-  &--townHall {
-    background: var(--cn-text-muted);
-  }
-
-  &--league {
-    background: var(--cn-score-league);
-  }
 }
 
 .medals {

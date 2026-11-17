@@ -10,17 +10,14 @@
 @if (capacity() === null) {
   <p class="hint cn-muted">{{ 'bases.castle.needLink' | translate }}</p>
 } @else {
-  <div
+  <crn-meter
     class="bar"
-    role="meter"
     aria-labelledby="castle-label"
-    [attr.aria-valuenow]="used()"
-    aria-valuemin="0"
-    [attr.aria-valuemax]="capacity()"
-    [attr.aria-valuetext]="'bases.castle.space' | translate: { used: used(), max: capacity() }"
-  >
-    <span class="bar__fill" [class.bar__fill--over]="over()" [style.width.%]="fill()"></span>
-  </div>
+    [tone]="over() ? 'danger' : 'gold'"
+    [value]="used()"
+    [max]="capacity()!"
+    [label]="'bases.castle.space' | translate: { used: used(), max: capacity() }"
+  />
 
   <div class="chosen">
     @for (troop of chosen(); track troop.name) {

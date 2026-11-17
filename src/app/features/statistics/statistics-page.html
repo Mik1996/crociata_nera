@@ -201,9 +201,7 @@
               <td mat-cell *matCellDef="let r">
                 <span class="average">
                   <strong class="cn-num">{{ r.averageStarsPerWar | localNumber: '1.2-2' }}</strong>
-                  <span class="average__bar" aria-hidden="true">
-                    <span [style.width.%]="(r.averageStarsPerWar / maxStars) * 100"></span>
-                  </span>
+                  <crn-meter class="average__bar" [value]="r.averageStarsPerWar" [max]="maxStars" />
                 </span>
               </td>
             </ng-container>

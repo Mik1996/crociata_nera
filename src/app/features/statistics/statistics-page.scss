@@ -91,20 +91,8 @@ tr.former-row {
 }
 
 .average__bar {
-  display: inline-block;
   // 64px at the automatic width, then grows with the column.
   flex: 1 0 4rem;
-  height: 0.375rem;
-  border-radius: $radius-s;
-  background: var(--cn-surface-3);
-  overflow: hidden;
-
-  span {
-    display: block;
-    height: 100%;
-    border-radius: $radius-s;
-    background: linear-gradient(90deg, var(--cn-red-mid), var(--cn-gold));
-  }
 }
 
 .distribution {

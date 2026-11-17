@@ -221,15 +221,7 @@
                   [attr.aria-label]="breakdownText(p)"
                   tabindex="0"
                 >
-                  <span class="score__bar" aria-hidden="true">
-                    @for (part of barParts; track part) {
-                      <span
-                        class="score__part"
-                        [class]="'score__part--' + part"
-                        [style.width.%]="p.breakdown[part]"
-                      ></span>
-                    }
-                  </span>
+                  <crn-meter class="score__bar" [segments]="scoreSegments(p)" />
                   <strong>{{ p.score | localNumber: '1.1-1' }}</strong>
                 </span>
                 @if (p.breakdown.missedAttacks + p.breakdown.activity < 0) {

@@ -23,6 +23,7 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Table } from '../../shared/table/table';
 import { memberStatsFilters } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
+import { Meter } from '../../shared/components/meter';
 
 @Component({
   selector: 'crn-players-page',
@@ -41,6 +42,7 @@ import { serverTable } from '../../shared/table/server-table';
     ScrollFade,
     CommendationMedal,
     TownHallIcon,
+    Meter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

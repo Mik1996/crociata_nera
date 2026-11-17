@@ -33,6 +33,7 @@ import { roleKey } from '../../shared/labels';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag, TagTone } from '../../shared/components/tag';
+import { Meter, MeterSegment } from '../../shared/components/meter';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -54,6 +55,15 @@ const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
   'activity',
 ];
 const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 6);
+/** Colour of each part in the score bar (the tooltip uses the same ones). */
+const BAR_COLORS: Partial<Record<keyof CwlScoreBreakdown, string>> = {
+  cwlCommendations: 'var(--cn-gold)',
+  cwlPerformance: 'var(--cn-gold-dark)',
+  war: 'var(--cn-red-mid)',
+  heroes: 'var(--cn-chart-series-2)',
+  townHall: 'var(--cn-text-muted)',
+  league: 'var(--cn-score-league)',
+};
 /** Parts that come from the last CWL, left out for who was not in its line-up. */
 const CWL_PARTS: readonly (keyof CwlScoreBreakdown)[] = ['cwlCommendations', 'cwlPerformance'];
 /** Highest points of each part of the bar (the wars depend on the player: `war.maxPoints`). */
@@ -100,6 +110,7 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
     Icon,
     TownHallIcon,
     Tag,
+    Meter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -138,7 +149,6 @@ export class CwlSelectionPage {
   /** Tag of the player whose exclusion is being removed. */
   protected readonly readmitting = signal<string | null>(null);
 
-  protected readonly barParts = BAR_PARTS;
   private readonly baseColumns = [
     'rank',
     'townHall',
@@ -274,5 +284,10 @@ export class CwlSelectionPage {
   /** Colour of a line-up status tag. */
   protected statusTone(status: CwlSelectionStatus): TagTone {
     return STATUS_TONES[status];
+  }
+
+  /** Parts of the score bar, out of 100 (penalties excluded). */
+  protected scoreSegments(row: CwlSelectionPlayer): MeterSegment[] {
+    return BAR_PARTS.map((part) => ({ value: row.breakdown[part], color: BAR_COLORS[part]! }));
   }
 }

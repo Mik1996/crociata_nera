@@ -22,6 +22,7 @@ import {
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { FormErrors } from '../../../shared/components/form-errors';
 import { initials } from '../../../core/utils/initials';
+import { Meter } from '../../../shared/components/meter';
 
 const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
 
@@ -33,7 +34,7 @@ const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
  */
 @Component({
   selector: 'crn-clan-castle-picker',
-  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe, FormErrors],
+  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe, FormErrors, Meter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ClanCastlePicker), multi: true },
@@ -59,10 +60,6 @@ export class ClanCastlePicker implements ControlValueAccessor {
   protected readonly over = computed(() => {
     const capacity = this.capacity();
     return capacity !== null && this.used() > capacity;
-  });
-  protected readonly fill = computed(() => {
-    const capacity = this.capacity();
-    return capacity ? Math.min(100, (this.used() / capacity) * 100) : 0;
   });
   protected readonly chosen = computed(() =>
     this.troops().map((troop) => ({ ...troop, info: troopInfo(troop.name) })),

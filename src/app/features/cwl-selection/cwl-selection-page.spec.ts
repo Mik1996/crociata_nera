@@ -155,7 +155,8 @@ describe('CwlSelectionPage', () => {
     expect(score).toContain('Attacchi saltati ultima CWL: -3,0');
     expect(score).toContain('Lega: 4,0 / 5');
     expect(score).toContain('Eroi: 12,0 / 20');
-    expect(rows[1].querySelector('.score__part--league')).not.toBeNull();
+    const segments = rows[1].querySelectorAll<HTMLElement>('.score__bar .meter__fill');
+    expect([...segments].map((s) => s.style.background)).toContain('var(--cn-score-league)');
   });
 
   it('shows the clan of the Crusade and the league of each player', async () => {
