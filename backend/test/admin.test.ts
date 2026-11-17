@@ -32,6 +32,44 @@ async function registerAdmin() {
 }
 
 describe('administration', () => {
+  it('lists users a page at a time, filtered and sorted by column', async () => {
+    const boss = await registerAdmin();
+    const anna = await register('Anna', '10.0.1.1');
+    await register('carlo', '10.0.1.2');
+    await register('bruno', '10.0.1.3');
+    await UserModel.updateOne({ _id: anna.user.id }, { $set: { emailVerified: true, playerTags: ['#ANNA1'] } });
+    // `createdAt` is immutable for Mongoose: set it on the collection.
+    await UserModel.collection.updateOne({ username: 'carlo' }, { $set: { createdAt: new Date('2026-01-15T10:00:00Z') } });
+    const list = (query: string) => call(listUsers, { token: boss.token, path: `/api/v1/admin/users?${query}` });
+    const names = (res: Awaited<ReturnType<typeof list>>) =>
+      (res.body.result.items as { username: string }[]).map((u) => u.username);
+
+    // Usernames sort case-insensitively; pages follow the sort.
+    const first = await list('sort=username&order=asc&limit=2&page=1');
+    expect(names(first)).toEqual(['Anna', 'boss']);
+    expect(first.body.result.total).toBe(4);
+    expect(names(await list('sort=username&order=asc&limit=2&page=2'))).toEqual(['bruno', 'carlo']);
+
+    expect(names(await list('admin=true'))).toEqual(['boss']);
+    expect(names(await list('admin=false&sort=username&order=desc'))).toEqual(['carlo', 'bruno', 'Anna']);
+    expect(names(await list('verified=true'))).toEqual(['Anna']);
+    expect(names(await list('playerTag=anna'))).toEqual(['Anna']);
+    expect(names(await list('user=crociata.it&verified=false&sort=username&order=asc'))).toEqual([
+      'boss',
+      'bruno',
+      'carlo',
+    ]);
+    expect(
+      names(await list(`createdFrom=${encodeURIComponent('2026-01-15T00:00:00+01:00')}&createdBefore=2026-01-16T00:00:00Z`)),
+    ).toEqual(['carlo']);
+    // Empty text filters filter nothing.
+    expect((await list('user=&playerTag=')).body.result.total).toBe(4);
+
+    const invalid = await list('sort=password');
+    expect(invalid.status).toBe(400);
+    expect(invalid.body.messages).toEqual([{ key: 'ERROR.INVALID_FIELD', field: 'sort' }]);
+  });
+
   it('is reserved to administrators', async () => {
     const { token } = await register('plain', '10.0.0.1');
     const res = await call(listUsers, { token });

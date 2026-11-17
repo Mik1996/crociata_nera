@@ -65,7 +65,7 @@ export const AdminUser = model(
 
 export const UserPage = model(
   'UserPage',
-  'A page of registered users, most recent sign-ups first.',
+  'A page of registered users, filtered and sorted as asked.',
   z.strictObject(page(AdminUser, 'Users of the page.')),
 );
 

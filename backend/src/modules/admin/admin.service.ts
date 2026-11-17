@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { QueryFilter, Types } from 'mongoose';
 import { UserRole } from '@/lib/auth/user-role';
 import { CocApiError, fetchPlayer } from '@/lib/coc/coc-client';
 import { throwException } from '@/lib/http/api-error';
@@ -6,7 +6,7 @@ import { MessageKey } from '@/lib/http/message-key';
 import { SessionModel } from '@/modules/auth/session.model';
 import { publicUser } from '@/modules/access/clan-access.service';
 import { MAX_LINKED_PLAYERS, PublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
-import { DeleteUserInput, LinkUserPlayersInput, ListUsersQuery, UpdateUserInput } from './admin.schemas';
+import { DeleteUserInput, LinkUserPlayersInput, ListUsersQuery, UpdateUserInput, UserSortField } from './admin.schemas';
 
 export interface AdminUser extends PublicUser {
   updatedAt: string;
@@ -21,17 +21,47 @@ export interface UserPage {
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/** Field of the user document each sortable column is sorted by. */
+const SORT_KEYS: Record<UserSortField, string> = {
+  username: 'usernameKey',
+  email: 'email',
+  verified: 'emailVerified',
+  createdAt: 'createdAt',
+};
+
+/** Case-insensitive "contains" on any of the fields. */
+function containsAny(fields: string[], text: string): QueryFilter<UserDocument> {
+  return { $or: fields.map((field) => ({ [field]: { $regex: escapeRegex(text), $options: 'i' } })) };
+}
+
+/** MongoDB filter of the list: the search and every column filter, all together. */
+export function usersFilter(query: ListUsersQuery): QueryFilter<UserDocument> {
+  const conditions: QueryFilter<UserDocument>[] = [];
+  if (query.search) conditions.push(containsAny(['email', 'username', 'playerTags', 'pendingPlayerTag'], query.search));
+  if (query.user) conditions.push(containsAny(['email', 'username'], query.user));
+  if (query.playerTag) conditions.push(containsAny(['playerTags', 'pendingPlayerTag'], query.playerTag));
+  if (query.admin !== undefined) {
+    conditions.push({ roles: query.admin ? UserRole.ADMIN : { $ne: UserRole.ADMIN } });
+  }
+  if (query.verified !== undefined) conditions.push({ emailVerified: query.verified });
+  if (query.createdFrom || query.createdBefore) {
+    conditions.push({
+      createdAt: {
+        ...(query.createdFrom ? { $gte: new Date(query.createdFrom) } : {}),
+        ...(query.createdBefore ? { $lt: new Date(query.createdBefore) } : {}),
+      },
+    });
+  }
+  return conditions.length ? { $and: conditions } : {};
+}
+
 export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
-  const filter = query.search
-    ? {
-        $or: ['email', 'username', 'playerTags', 'pendingPlayerTag'].map((field) => ({
-          [field]: { $regex: escapeRegex(query.search!), $options: 'i' },
-        })),
-      }
-    : {};
+  const filter = usersFilter(query);
+  const direction = query.order === 'asc' ? 1 : -1;
   const [users, total] = await Promise.all([
     UserModel.find(filter)
-      .sort({ createdAt: -1 })
+      // The id breaks ties, so pages never repeat or skip a user.
+      .sort({ [SORT_KEYS[query.sort]]: direction, _id: direction })
       .skip((query.page - 1) * query.limit)
       .limit(query.limit),
     UserModel.countDocuments(filter),
