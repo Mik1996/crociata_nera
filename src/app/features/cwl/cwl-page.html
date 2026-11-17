@@ -8,17 +8,14 @@
     [subtitle]="'cwl.subtitle' | translate"
   >
     @if (seasonList().length > 1) {
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="season-selector">
-        <mat-label>{{ 'cwl.season' | translate }}</mat-label>
-        <crn-icon matPrefix name="calendar_month" />
-        <mat-select [value]="selected()" (valueChange)="changeSeason($event)">
-          @for (s of seasonList(); track s.season) {
-            <mat-option [value]="s.season"
-              >{{ periodLabel(s.season) }} · {{ 'cwl.state.' + s.state | translate }}</mat-option
-            >
-          }
-        </mat-select>
-      </mat-form-field>
+      <crn-select
+        class="season-selector"
+        icon="calendar_month"
+        [label]="'cwl.season' | translate"
+        [options]="seasonOptions()"
+        [value]="selected()"
+        (valueChange)="changeSeason($event!)"
+      />
     }
   </crn-page-header>
 

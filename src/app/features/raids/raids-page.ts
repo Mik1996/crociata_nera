@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { Icon } from '../../shared/icon/icon';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -21,6 +19,7 @@ import { Table } from '../../shared/table/table';
 import { RAID_MEMBER_FILTERS } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
 import { Tag } from '../../shared/components/tag';
+import { Select, SelectOption } from '../../shared/components/select';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -34,8 +33,6 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
-    MatFormFieldModule,
-    MatSelectModule,
     Icon,
     MatTableModule,
     PageHeader,
@@ -43,6 +40,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     KpiCard,
     ScrollFade,
     Tag,
+    Select,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -58,6 +56,12 @@ export class RaidsPage {
   private readonly clan = rxResource({ stream: () => this.api.getClan() });
 
   protected readonly weekends = computed(() => (this.raids.hasValue() ? this.raids.value() : []));
+  protected readonly weekendOptions = computed<SelectOption<string>[]>(() =>
+    this.weekends().map((w) => ({
+      value: w.id,
+      label: `${this.label(w)} · ${this.language.t('raids.state.' + w.state)}`,
+    })),
+  );
   /** Weekend chosen in the selector; the most recent one until the user picks another. */
   private readonly chosen = signal<string | null>(null);
   protected readonly weekend = computed<RaidSeason | null>(

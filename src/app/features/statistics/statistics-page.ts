@@ -7,8 +7,6 @@ import {
   signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
@@ -34,6 +32,10 @@ import { GAME_ICONS } from '../../core/game/game-assets';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag } from '../../shared/components/tag';
+import { Select, SelectOption } from '../../shared/components/select';
+
+/** Choices of the minimum number of wars to be ranked. */
+const MIN_WARS_CHOICES = [1, 2, 3, 5, 10];
 
 /** Maximum stars per war (two 3-star attacks). */
 const MAX_STARS_PER_WAR = 6;
@@ -49,8 +51,6 @@ const MAX_STARS_PER_WAR = 6;
     RouterLink,
     MatTableModule,
     MatSortModule,
-    MatFormFieldModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTooltipModule,
     PageHeader,
@@ -60,6 +60,7 @@ const MAX_STARS_PER_WAR = 6;
     ScrollFade,
     TownHallIcon,
     Tag,
+    Select,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -74,7 +75,6 @@ export class StatisticsPage {
   /** Tag of the signed-in user's player: their row is highlighted. */
   protected readonly isMine = inject(AuthService).isMyPlayer;
 
-  protected readonly allPeriods = ALL_PERIODS;
   protected readonly maxStars = MAX_STARS_PER_WAR;
   /** Period label in the current language (updates when the language changes). */
   protected readonly periodLabel = (period: string) =>
@@ -90,6 +90,17 @@ export class StatisticsPage {
   protected readonly monthList = computed(() =>
     this.months.hasValue() ? this.months.value() : [],
   );
+  /** Choices of the period selector: every month, then each month with its wars. */
+  protected readonly periodOptions = computed<SelectOption<string>[]>(() => [
+    { value: ALL_PERIODS, label: this.language.t('statistics.allMonths') },
+    ...this.monthList().map((m) => ({
+      value: m.month,
+      label: `${this.periodLabel(m.month)} · ${this.language.t(
+        m.wars === 1 ? 'statistics.warsOne' : 'statistics.warsOther',
+        { n: m.wars },
+      )}`,
+    })),
+  ]);
   /** The period's data (for the KPIs); the last one stays while the next period loads. */
   protected readonly periodData = linkedSignal<
     HistoryPeriod | null | undefined,
@@ -105,7 +116,12 @@ export class StatisticsPage {
   // --- Filters --------------------------------------------------------------
   protected readonly minWars = signal(1);
   protected readonly currentMembersOnly = signal(false);
-  protected readonly minWarsOptions = [1, 2, 3, 5, 10];
+  protected readonly minWarsOptions = computed<SelectOption<number>[]>(() =>
+    MIN_WARS_CHOICES.map((n) => ({
+      value: n,
+      label: this.language.t(n === 1 ? 'common.allMasculine' : 'statistics.atLeast', { n }),
+    })),
+  );
 
   protected readonly columns = [
     'rank',

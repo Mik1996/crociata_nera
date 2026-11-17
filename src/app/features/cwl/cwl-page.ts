@@ -1,8 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../shared/icon/icon';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -24,6 +21,7 @@ import { serverTable } from '../../shared/table/server-table';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag } from '../../shared/components/tag';
+import { Select, SelectOption } from '../../shared/components/select';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
@@ -38,9 +36,6 @@ import { Tag } from '../../shared/components/tag';
     TranslatePipe,
     LocalNumberPipe,
     RouterLink,
-    MatFormFieldModule,
-    MatSelectModule,
-    Icon,
     MatTableModule,
     PageHeader,
     LoadState,
@@ -48,6 +43,7 @@ import { Tag } from '../../shared/components/tag';
     ScrollFade,
     TownHallIcon,
     Tag,
+    Select,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -72,6 +68,12 @@ export class CwlPage {
   protected readonly seasons = rxResource({ stream: () => this.api.getCwlSeasons() });
   protected readonly seasonList = computed(() =>
     this.seasons.hasValue() ? this.seasons.value() : [],
+  );
+  protected readonly seasonOptions = computed<SelectOption<string>[]>(() =>
+    this.seasonList().map((s) => ({
+      value: s.season,
+      label: `${this.periodLabel(s.season)} · ${this.language.t('cwl.state.' + s.state)}`,
+    })),
   );
 
   /** Season chosen in the selector; the most recent one until the user picks another. */

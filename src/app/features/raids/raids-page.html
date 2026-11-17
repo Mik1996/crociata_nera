@@ -7,17 +7,14 @@
     [subtitle]="'raids.subtitle' | translate"
   >
     @if (weekends().length > 1) {
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="weekend-selector">
-        <mat-label>{{ 'raids.weekend' | translate }}</mat-label>
-        <crn-icon matPrefix name="calendar_month" />
-        <mat-select [value]="weekend()?.id" (valueChange)="changeWeekend($event)">
-          @for (w of weekends(); track w.id) {
-            <mat-option [value]="w.id"
-              >{{ label(w) }} · {{ 'raids.state.' + w.state | translate }}</mat-option
-            >
-          }
-        </mat-select>
-      </mat-form-field>
+      <crn-select
+        class="weekend-selector"
+        icon="calendar_month"
+        [label]="'raids.weekend' | translate"
+        [options]="weekendOptions()"
+        [value]="weekend()?.id"
+        (valueChange)="changeWeekend($event!)"
+      />
     }
   </crn-page-header>
 

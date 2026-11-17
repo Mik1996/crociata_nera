@@ -7,22 +7,14 @@
     [subtitle]="'statistics.subtitle' | translate"
   >
     @if (monthList().length > 0) {
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-selector">
-        <mat-label>{{ 'statistics.period' | translate }}</mat-label>
-        <crn-icon matPrefix name="calendar_month" />
-        <mat-select [value]="period()" (valueChange)="changePeriod($event)">
-          <mat-option [value]="allPeriods">{{ 'statistics.allMonths' | translate }}</mat-option>
-          @for (m of monthList(); track m.month) {
-            <mat-option [value]="m.month">
-              {{ periodLabel(m.month) }} ·
-              {{
-                (m.wars === 1 ? 'statistics.warsOne' : 'statistics.warsOther')
-                  | translate: { n: m.wars }
-              }}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <crn-select
+        class="period-selector"
+        icon="calendar_month"
+        [label]="'statistics.period' | translate"
+        [options]="periodOptions()"
+        [value]="period()"
+        (valueChange)="changePeriod($event!)"
+      />
     }
   </crn-page-header>
 
@@ -68,16 +60,11 @@
 
         <!-- Ranking settings: they change who is ranked, so the positions too. -->
         <div class="cn-filters">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>{{ 'statistics.minimumWars' | translate }}</mat-label>
-            <mat-select [value]="minWars()" (valueChange)="minWars.set($event)">
-              @for (n of minWarsOptions; track n) {
-                <mat-option [value]="n">{{
-                  (n === 1 ? 'common.allMasculine' : 'statistics.atLeast') | translate: { n: n }
-                }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          <crn-select
+            [label]="'statistics.minimumWars' | translate"
+            [options]="minWarsOptions()"
+            [(value)]="minWars"
+          />
           <mat-slide-toggle
             [checked]="currentMembersOnly()"
             (change)="currentMembersOnly.set($event.checked)"
