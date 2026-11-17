@@ -856,6 +856,23 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
+// Position column (#): narrow and the same width in every table, number centred.
+.mat-mdc-table {
+  .mat-mdc-header-cell.cn-rank-cell,
+  .mat-mdc-cell.cn-rank-cell,
+  .mat-mdc-footer-cell.cn-rank-cell {
+    width: 3.25rem;
+    min-width: 3.25rem;
+    max-width: 3.25rem;
+    padding: 0 $space-xs;
+    text-align: center;
+
+    .mat-sort-header-container {
+      justify-content: center;
+    }
+  }
+}
+
 // Column holding only an icon (league, town hall): as narrow as its content, icon centred.
 .mat-mdc-table .cn-icon-cell {
   width: 1%;

@@ -108,8 +108,8 @@
             [filters]="filters()"
           >
             <ng-container matColumnDef="rank">
-              <th mat-header-cell *matHeaderCellDef>#</th>
-              <td mat-cell *matCellDef="let p" class="cn-num rank">{{ p.rank }}</td>
+              <th mat-header-cell *matHeaderCellDef class="cn-rank-cell">#</th>
+              <td mat-cell *matCellDef="let p" class="cn-num cn-rank-cell rank">{{ p.rank }}</td>
             </ng-container>
 
             <ng-container matColumnDef="name">
