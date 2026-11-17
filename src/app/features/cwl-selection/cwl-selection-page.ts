@@ -143,11 +143,13 @@ export class CwlSelectionPage {
   protected readonly cwlSeasonLabel = computed(() => {
     const season = this.selection()?.cwlSeason;
     if (!season) return null;
-    return new Intl.DateTimeFormat(this.language.current(), {
+    const label = new Intl.DateTimeFormat(this.language.current(), {
       month: 'long',
       year: 'numeric',
       timeZone: 'UTC',
     }).format(new Date(`${season}-01`));
+    // Italian and Spanish month names are lowercase ("novembre 2026"): a label starts capitalised.
+    return label.charAt(0).toLocaleUpperCase(this.language.current()) + label.slice(1);
   });
 
   /** Names of the clans of the Crusade: the clan of each player and of their last CWL. */

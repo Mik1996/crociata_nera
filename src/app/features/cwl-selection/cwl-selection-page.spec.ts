@@ -165,7 +165,7 @@ describe('CwlSelectionPage', () => {
     const facts = el.querySelector('.facts')!.textContent!;
     expect(facts).toContain('TH 16–17');
     expect(facts).toContain('Ultimi 90 giorni, tutti i clan (20 guerre)');
-    expect(facts).toContain('ottobre 2026');
+    expect(facts).toContain('Ottobre 2026');
     expect(el.querySelector('.legend')!.textContent).toContain('Esclusi: 1');
   });
 
