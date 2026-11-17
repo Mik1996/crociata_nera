@@ -141,7 +141,7 @@ export async function getWar(warKey: string): Promise<WarDetail> {
   return { ...summary, clan: plain.clan, opponent: plain.opponent, createdAt: war.createdAt.toISOString() };
 }
 
-function toSide(side: CocWar['clan']) {
+export function toSide(side: CocWar['clan']) {
   return {
     tag: side.tag,
     name: side.name,
@@ -204,7 +204,41 @@ export async function listArchive(limit: number): Promise<unknown[]> {
   const docs = await WarModel.find(clanTag ? { clanTag } : {})
     .sort({ preparationStartTime: -1 })
     .limit(limit);
-  const side = (s: WarDocument['clan']) => ({
+  return docs.map((war) => {
+    const plain = war.toObject();
+    return cocWarFormat({
+      ...plain,
+      clan: plain.clan as WarDocument['clan'],
+      opponent: plain.opponent as WarDocument['opponent'],
+    });
+  });
+}
+
+type WarSide = Pick<WarDocument['clan'], 'tag' | 'name' | 'clanLevel' | 'badgeUrl' | 'attacks' | 'stars' | 'destructionPercentage' | 'expEarned'> & {
+  members: {
+    tag: string;
+    name: string;
+    townhallLevel: number;
+    mapPosition: number;
+    opponentAttacks?: number | null;
+    attacks: { attackerTag: string; defenderTag: string; stars: number; destructionPercentage: number; order: number; duration?: number | null }[];
+    bestOpponentAttack?: unknown;
+  }[];
+};
+
+/** A war (saved, or read from the API and normalised by {@link toSide}) in the `currentwar` format of the Clash of Clans API. */
+export function cocWarFormat(war: {
+  state: string;
+  teamSize: number;
+  attacksPerMember: number;
+  battleModifier?: string | null;
+  preparationStartTime: Date;
+  startTime: Date;
+  endTime: Date;
+  clan: WarSide;
+  opponent: WarSide;
+}) {
+  const side = (s: WarSide) => ({
     tag: s.tag,
     name: s.name,
     clanLevel: s.clanLevel,
@@ -223,18 +257,15 @@ export async function listArchive(limit: number): Promise<unknown[]> {
       ...(m.bestOpponentAttack ? { bestOpponentAttack: m.bestOpponentAttack } : {}),
     })),
   });
-  return docs.map((war) => {
-    const plain = war.toObject();
-    return {
-      state: war.state,
-      teamSize: war.teamSize,
-      attacksPerMember: war.attacksPerMember,
-      battleModifier: war.battleModifier ?? 'none',
-      preparationStartTime: toCocDate(war.preparationStartTime),
-      startTime: toCocDate(war.startTime),
-      endTime: toCocDate(war.endTime),
-      clan: side(plain.clan as WarDocument['clan']),
-      opponent: side(plain.opponent as WarDocument['opponent']),
-    };
-  });
+  return {
+    state: war.state,
+    teamSize: war.teamSize,
+    attacksPerMember: war.attacksPerMember,
+    battleModifier: war.battleModifier ?? 'none',
+    preparationStartTime: toCocDate(war.preparationStartTime),
+    startTime: toCocDate(war.startTime),
+    endTime: toCocDate(war.endTime),
+    clan: side(war.clan),
+    opponent: side(war.opponent),
+  };
 }

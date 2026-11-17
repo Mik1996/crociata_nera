@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { CocApiError, fetchRaidSeasons } from '@/lib/coc/coc-client';
+import { CocApiError } from '@/lib/coc/coc-client';
 import { cocDate } from '@/lib/coc/coc-date';
-import { cachedRead } from '@/lib/coc/live-cache';
+import { liveRaidSeasons } from '@/lib/coc/live-coc';
 import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
@@ -44,8 +44,6 @@ export const RAID_MEMBERS_TABLE = defineTable<RaidMemberRow>(
   { sort: 'rank', order: 'asc' },
 );
 
-/** How long the weekends read from the API are kept. */
-const RAIDS_TTL_MS = 60_000;
 /** Weekends read from the API when the one asked for is not saved. */
 const API_SEASONS = 10;
 
@@ -80,10 +78,7 @@ export function raidMemberRows(members: unknown[]): RaidMemberRow[] {
 /** Members of a weekend not saved, from the API; `null` when the API does not list it. */
 async function apiMembers(clanTag: string, startTime: Date): Promise<unknown[] | null> {
   try {
-    const items = await cachedRead(`raids:${clanTag}`, RAIDS_TTL_MS, async () => {
-      const list = (await fetchRaidSeasons(clanTag, API_SEASONS)) as { items?: unknown[] } | null;
-      return list?.items ?? [];
-    });
+    const items = await liveRaidSeasons(clanTag, API_SEASONS);
     for (const item of items) {
       const parsed = seasonSchema.safeParse(item);
       if (parsed.success && parsed.data.startTime.getTime() === startTime.getTime()) return parsed.data.members ?? [];

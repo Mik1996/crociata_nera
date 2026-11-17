@@ -1,5 +1,4 @@
-import { fetchClan } from '@/lib/coc/coc-client';
-import { cachedRead } from '@/lib/coc/live-cache';
+import { liveClan } from '@/lib/coc/live-coc';
 import { env } from '@/lib/config/env';
 import { defineTable, filterRows, queryTable, TablePage, TableQuery } from '@/lib/table/table-query';
 import { PlayerModel } from '@/modules/commendations/player.model';
@@ -14,8 +13,6 @@ import { War, WarModel } from './war.model';
 
 /** Wars the statistics look back on (the frontend's `statsWindow`). */
 export const STATS_WINDOW = 20;
-/** How long the member list read from the Clash of Clans API is kept. */
-const MEMBERS_TTL_MS = 60_000;
 
 export type ClanRole = 'leader' | 'coLeader' | 'elder' | 'member';
 export const CLAN_ROLES: readonly ClanRole[] = ['leader', 'coLeader', 'elder', 'member'];
@@ -159,11 +156,9 @@ async function clanMembers(): Promise<ClanMember[]> {
   const clanTag = env().CLAN_TAG;
   if (!clanTag) return [];
   try {
-    return await cachedRead(`members:${clanTag}`, MEMBERS_TTL_MS, async () => {
-      const list = (((await fetchClan(clanTag)) as { memberList?: CocMember[] } | null)?.memberList ?? []).filter(
-        (m) => m.tag && m.name,
-      );
-      return list.map((m) => ({
+    const clan = (await liveClan(clanTag)) as { memberList?: CocMember[] } | null;
+    const list = (clan?.memberList ?? []).filter((m) => m.tag && m.name);
+    return list.map((m) => ({
         tag: m.tag!,
         name: m.name!,
         role: ROLES[m.role ?? ''] ?? 'member',
@@ -173,8 +168,7 @@ async function clanMembers(): Promise<ClanMember[]> {
           m.leagueTier?.id && m.leagueTier.name
             ? { id: m.leagueTier.id, name: m.leagueTier.name, iconUrl: m.leagueTier.iconUrls?.large ?? m.leagueTier.iconUrls?.small ?? null }
             : null,
-      }));
-    });
+    }));
   } catch (error) {
     console.warn(`[players] member list read from the saved players: ${(error as Error).message}`);
     const saved = await PlayerModel.find({ inClan: true, clanTag: { $in: [clanTag, null] } }).lean();

@@ -14,6 +14,8 @@ export enum ApiName {
   RESEND_VERIFICATION = 'resend-verification',
   WARS_READ = 'wars-read',
   TABLES_READ = 'tables-read',
+  COC_READ = 'coc-read',
+  WELCOME = 'welcome',
   CLAN_RECORDS = 'clan-records',
   ADMIN = 'admin',
   BASES_READ = 'bases-read',
@@ -49,6 +51,10 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   // Tables filtered, sorted and paged by the backend: a request at every page, sort and filter
   // change (text filters after a pause), several tables per page.
   [ApiName.TABLES_READ]: { limit: 300, windowMs: MINUTE },
+  // Clash of Clans data read through the backend (kept in memory for a while: few API calls).
+  [ApiName.COC_READ]: { limit: 120, windowMs: MINUTE },
+  // Public (welcome page, "Join us" and the badge in the header).
+  [ApiName.WELCOME]: { limit: 60, windowMs: MINUTE },
   // Public (welcome page).
   [ApiName.CLAN_RECORDS]: { limit: 60, windowMs: MINUTE },
   [ApiName.ADMIN]: { limit: 120, windowMs: MINUTE },

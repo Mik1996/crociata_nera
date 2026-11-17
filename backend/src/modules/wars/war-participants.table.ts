@@ -1,12 +1,11 @@
-import { CocApiError, fetchCurrentWar } from '@/lib/coc/coc-client';
-import { cachedRead } from '@/lib/coc/live-cache';
+import { CocApiError } from '@/lib/coc/coc-client';
+import { liveCurrentWar } from '@/lib/coc/live-coc';
 import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { defineTable, queryTable, TablePage, TableQuery } from '@/lib/table/table-query';
 import { WarModel } from './war.model';
 import { buildWarKey } from './wars.service';
-import { cocWarSchema } from './wars.schemas';
 
 /**
  * Players of the clan in a war, with their attacks (`GET /wars/{warKey}/participants`): the war in
@@ -58,9 +57,6 @@ export const PARTICIPANTS_TABLE = defineTable<ParticipantRow>(
   { sort: 'mapPosition', order: 'asc' },
 );
 
-/** How long the war in progress read from the API is kept. */
-const CURRENT_WAR_TTL_MS = 30_000;
-
 interface WarMember {
   tag: string;
   name: string;
@@ -82,12 +78,7 @@ async function currentWar(warKey: string): Promise<WarSides | null> {
   const clanTag = env().CLAN_TAG;
   if (!clanTag) return null;
   try {
-    const war = await cachedRead(`currentwar:${clanTag}`, CURRENT_WAR_TTL_MS, async () => {
-      const raw = await fetchCurrentWar(clanTag);
-      // Not in a war (`notInWar`): nothing to show.
-      const parsed = cocWarSchema.safeParse(raw);
-      return parsed.success ? parsed.data : null;
-    });
+    const war = await liveCurrentWar(clanTag);
     return war && buildWarKey(war.preparationStartTime, war.opponent.tag) === warKey ? war : null;
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;

@@ -1,10 +1,10 @@
-import { CocApiError, fetchWarLog } from '@/lib/coc/coc-client';
-import { cachedRead } from '@/lib/coc/live-cache';
+import { CocApiError } from '@/lib/coc/coc-client';
+import { liveWarLogEntries } from '@/lib/coc/live-coc';
 import { env } from '@/lib/config/env';
 import { defineTable, queryTable, TablePage, TableQuery } from '@/lib/table/table-query';
 import { WarModel } from './war.model';
 import { buildWarKey } from './wars.service';
-import { cocWarLogSchema, CocWarLogEntry } from './wars.schemas';
+import { CocWarLogEntry } from './wars.schemas';
 
 /**
  * War history of the main clan (`GET /wars/history`): the saved wars, completed by the war log of
@@ -55,8 +55,6 @@ export const WAR_HISTORY_TABLE = defineTable<WarHistoryRow>(
   { sort: 'date', order: 'desc' },
 );
 
-/** How long the war log read for the history is kept. */
-const WAR_LOG_TTL_MS = 5 * 60_000;
 /** Tolerance between the end of a saved war and that of its war log entry. */
 const WAR_END_TOLERANCE_MS = 60_000;
 
@@ -71,9 +69,7 @@ export function outcome(clan: { stars: number; destruction: number }, opponent: 
 /** The war log of the main clan (every war it lists); empty when private or unreachable. */
 async function warLog(clanTag: string): Promise<CocWarLogEntry[]> {
   try {
-    return await cachedRead(`warlog:${clanTag}`, WAR_LOG_TTL_MS, async () =>
-      cocWarLogSchema.parse(await fetchWarLog(clanTag, null)).items,
-    );
+    return await liveWarLogEntries(clanTag);
   } catch (error) {
     if (!(error instanceof CocApiError)) console.warn(`[wars] war log not read: ${(error as Error).message}`);
     return [];

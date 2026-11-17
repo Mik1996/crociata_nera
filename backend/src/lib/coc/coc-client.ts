@@ -96,6 +96,9 @@ export function fetchRaidSeasons(clanTag: string, limit = 5): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/capitalraidseasons?limit=${limit}`);
 }
 
+/** Location id of the worldwide ("International") rankings. */
+export const GLOBAL_LOCATION_ID = 32000006;
+
 /** `GET /locations/{id}/rankings/clans`: clan trophy rankings of a location (top 200). */
 export function fetchClanRankings(locationId: number, limit = 200): Promise<unknown> {
   return cocGet(`/locations/${locationId}/rankings/clans?limit=${limit}`);
