@@ -4,7 +4,7 @@ import { Icon } from '../../shared/icon/icon';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import { APP_CONFIG } from '../../core/config/app-config';
@@ -24,6 +24,7 @@ import { Table } from '../../shared/table/table';
 import { memberStatsFilters } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
 import { Meter } from '../../shared/components/meter';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 @Component({
   selector: 'crn-players-page',
@@ -32,7 +33,6 @@ import { Meter } from '../../shared/components/meter';
     Table,
     LocalNumberPipe,
     TranslatePipe,
-    RouterLink,
     MatTableModule,
     MatSortModule,
     Icon,
@@ -43,6 +43,7 @@ import { Meter } from '../../shared/components/meter';
     CommendationMedal,
     TownHallIcon,
     Meter,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

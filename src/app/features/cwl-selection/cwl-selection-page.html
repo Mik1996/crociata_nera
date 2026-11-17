@@ -130,16 +130,12 @@
                       />
                     }
                   </span>
-                  <div class="player__info">
-                    <a
-                      class="cn-link-cell"
-                      [routerLink]="['/players', p.tag]"
-                      (click)="$event.stopPropagation()"
-                      >{{ p.name }}</a
-                    >
-                    @if (isMine(p.tag)) {
-                      <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
-                    }
+                  <crn-player-cell
+                    class="player__info"
+                    [tag]="p.tag"
+                    [name]="p.name"
+                    stopPropagation
+                  >
                     <div class="cn-muted meta">
                       <span>{{ clanName(p.clanTag) }}</span>
                       @if (roleLabel(p.role); as role) {
@@ -159,7 +155,7 @@
                         >
                       </div>
                     }
-                  </div>
+                  </crn-player-cell>
                 </div>
               </td>
             </ng-container>

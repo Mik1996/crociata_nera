@@ -20,6 +20,7 @@ import { RAID_MEMBER_FILTERS } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
 import { Tag } from '../../shared/components/tag';
 import { Select, SelectOption } from '../../shared/components/select';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -41,6 +42,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     ScrollFade,
     Tag,
     Select,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

@@ -115,16 +115,11 @@
                 {{ 'common.player' | translate }}
               </th>
               <td mat-cell *matCellDef="let r">
-                @if (r.isCurrentMember) {
-                  <a class="cn-link-cell" [routerLink]="['/players', r.tag]">{{ r.name }}</a>
-                  @if (isMine(r.tag)) {
-                    <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+                <crn-player-cell [tag]="r.tag" [name]="r.name" [link]="r.isCurrentMember" showTag>
+                  @if (!r.isCurrentMember) {
+                    <crn-tag>{{ 'statistics.formerMember' | translate }}</crn-tag>
                   }
-                } @else {
-                  <span class="former-name">{{ r.name }}</span>
-                  <crn-tag>{{ 'statistics.formerMember' | translate }}</crn-tag>
-                }
-                <div class="cn-muted tag">{{ r.tag }}</div>
+                </crn-player-cell>
               </td>
             </ng-container>
 

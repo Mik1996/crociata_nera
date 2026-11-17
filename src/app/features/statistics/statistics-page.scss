@@ -27,10 +27,7 @@
     padding-left: $space-m;
   }
 
-  .cn-link-cell,
-  .former-name {
-    white-space: nowrap;
-  }
+  --crn-player-name-wrap: nowrap;
 }
 
 .pos {
@@ -57,15 +54,6 @@
 .pos--3 {
   background: var(--cn-stats-rank-bronze);
   color: var(--cn-on-gold);
-}
-
-.tag {
-  font-size: var(--cn-fs-xs);
-}
-
-.former-name {
-  font-weight: 600;
-  color: var(--cn-text-muted);
 }
 
 tr.former-row {

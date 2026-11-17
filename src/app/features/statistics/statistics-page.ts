@@ -34,6 +34,7 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag } from '../../shared/components/tag';
 import { Select, SelectOption } from '../../shared/components/select';
 import { Meter } from '../../shared/components/meter';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 /** Choices of the minimum number of wars to be ranked. */
 const MIN_WARS_CHOICES = [1, 2, 3, 5, 10];
@@ -63,6 +64,7 @@ const MAX_STARS_PER_WAR = 6;
     Tag,
     Select,
     Meter,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

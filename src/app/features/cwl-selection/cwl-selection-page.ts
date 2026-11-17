@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import {
@@ -36,6 +36,7 @@ import { Tag, TagTone } from '../../shared/components/tag';
 import { Meter, MeterSegment } from '../../shared/components/meter';
 import { Legend } from '../../shared/components/legend';
 import { LegendItem } from '../../shared/components/legend-item';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -98,7 +99,6 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
   imports: [
     Table,
     TranslatePipe,
-    RouterLink,
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
@@ -115,6 +115,7 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
     Meter,
     Legend,
     LegendItem,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -128,7 +129,6 @@ export class CwlSelectionPage {
   private readonly snackBar = inject(MatSnackBar);
   private readonly language = inject(LanguageService);
   private readonly auth = inject(AuthService);
-  protected readonly isMine = this.auth.isMyPlayer;
   /** Only administrators exclude players (always with mock data, for the demo). */
   private readonly config = inject(APP_CONFIG);
   private readonly useMock = this.config.useMockApi;

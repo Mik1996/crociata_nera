@@ -727,19 +727,6 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
-.cn-me-badge {
-  display: inline-block;
-  margin-left: $space-s;
-  padding: 0.05rem $space-s;
-  border-radius: $radius-pill;
-  background: var(--cn-me);
-  color: var(--cn-on-me);
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-2xs);
-  letter-spacing: 0.03em;
-  vertical-align: middle;
-}
-
 .cn-section {
   padding: $space-m $space-l;
   margin-bottom: $space-l;

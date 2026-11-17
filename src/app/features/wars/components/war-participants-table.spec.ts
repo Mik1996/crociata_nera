@@ -126,10 +126,10 @@ describe('WarParticipantsTable', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     const badged = [...el.querySelectorAll('tr.mat-mdc-row')].filter((r) =>
-      r.querySelector('.cn-me-badge'),
+      r.querySelector('crn-tag.tag--me'),
     );
     expect(badged.map(nameOf)).toEqual(['Player #B', 'Player #C']);
-    expect(badged[0].querySelector('.cn-me-badge')!.textContent!.trim()).toBe('Tu');
+    expect(badged[0].querySelector('crn-tag.tag--me')!.textContent!.trim()).toBe('Tu');
     expect(el.querySelector('tr.cn-row-me')).toBeNull();
 
     const without = el.querySelector('tr.row-without-attacks')!;

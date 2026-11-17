@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatTableModule } from '@angular/material/table';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CREST_URL } from '../../core/api/clan-badge';
 import { CocApiService } from '../../core/api/coc-api';
@@ -22,6 +21,7 @@ import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag } from '../../shared/components/tag';
 import { Select, SelectOption } from '../../shared/components/select';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
@@ -35,7 +35,6 @@ import { Select, SelectOption } from '../../shared/components/select';
     Table,
     TranslatePipe,
     LocalNumberPipe,
-    RouterLink,
     MatTableModule,
     PageHeader,
     LoadState,
@@ -44,6 +43,7 @@ import { Select, SelectOption } from '../../shared/components/select';
     TownHallIcon,
     Tag,
     Select,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
