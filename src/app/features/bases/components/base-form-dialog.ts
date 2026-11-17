@@ -21,6 +21,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Icon } from '../../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import {
@@ -30,6 +31,7 @@ import {
 } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { townHallImage } from '../../../core/game/units';
 import {
   ClanCastleTroop,
@@ -101,6 +103,8 @@ export class BaseFormDialog {
   protected readonly data = inject<BaseFormDialogData>(MAT_DIALOG_DATA);
   private readonly ref = inject<MatDialogRef<BaseFormDialog, DefenseBase>>(MatDialogRef);
   private readonly service = inject(DefenseBasesService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly language = inject(LanguageService);
 
   protected readonly editing = !!this.data.base;
   protected readonly accept = ACCEPTED_IMAGE_TYPES.join(',');
@@ -152,7 +156,6 @@ export class BaseFormDialog {
   protected readonly preparing = signal(false);
   protected readonly dragging = signal(false);
   protected readonly busy = signal(false);
-  protected readonly errors = signal<BackendMessage[]>([]);
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.releasePreview());
@@ -231,7 +234,6 @@ export class BaseFormDialog {
       return;
     }
     this.busy.set(true);
-    this.errors.set([]);
     this.castleError.set(null);
     request.subscribe({
       next: (base) => this.ref.close(base),
@@ -261,7 +263,10 @@ export class BaseFormDialog {
     return Object.keys(changes).length ? this.service.update(base.id, changes) : null;
   }
 
-  /** Field messages go under their field, the others below the form. */
+  /**
+   * Field messages go under their field; the others (arsenal full, too many requests, offline...)
+   * pop up as a toast, which cannot go unnoticed below a long form.
+   */
   private showErrors(error: unknown): void {
     const { fields, general } = backendErrors(error);
     const unplaced: BackendMessage[] = [...general];
@@ -278,7 +283,10 @@ export class BaseFormDialog {
         unplaced.push(message);
       }
     }
-    this.errors.set(unplaced);
+    if (unplaced.length) {
+      const text = unplaced.map((m) => this.language.t(m.key, m.params)).join(' ');
+      this.snackBar.open(text, this.language.t('common.close'), { duration: 6000 });
+    }
   }
 
   private releasePreview(): void {

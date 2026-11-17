@@ -110,10 +110,6 @@
         }
       </mat-error>
     </mat-form-field>
-
-    @for (m of errors(); track $index) {
-      <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
-    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

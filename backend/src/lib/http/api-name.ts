@@ -49,8 +49,9 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.CLAN_RECORDS]: { limit: 60, windowMs: MINUTE },
   [ApiName.ADMIN]: { limit: 120, windowMs: MINUTE },
   [ApiName.BASES_READ]: { limit: 120, windowMs: MINUTE },
-  // Administrators only; each request may carry an image of up to 10 MB.
-  [ApiName.BASES_WRITE]: { limit: 60, windowMs: 15 * MINUTE },
+  // Administrators only; each request may carry an image of up to 10 MB (shrunk in the browser
+  // first). Generous: filling the arsenal means adding many bases in one sitting.
+  [ApiName.BASES_WRITE]: { limit: 300, windowMs: 15 * MINUTE },
   // A page of the arsenal loads one thumbnail per base (cached by the browser afterwards).
   [ApiName.BASE_IMAGES]: { limit: 600, windowMs: MINUTE },
   // The OpenAPI document and its viewer (Swagger UI). In production a password is checked:

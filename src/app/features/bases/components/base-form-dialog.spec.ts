@@ -136,6 +136,27 @@ describe('BaseFormDialog', () => {
     expect(await closed).toEqual(saved);
   });
 
+  it('shows the errors not tied to a field in a toast and stays open', async () => {
+    fakeImageApis();
+    await open();
+    type(query('input[formcontrolname="layoutUrl"]'), LINK);
+    await ref.componentInstance.pick(new File(['png'], 'base.png', { type: 'image/png' }));
+    await settle();
+    query<HTMLButtonElement>('button[type="submit"]').click();
+    httpMock
+      .expectOne('/api/v1/bases')
+      .flush(
+        { result: null, messages: [{ key: 'ERROR.BASE_LIMIT_REACHED', params: { max: 400 } }] },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await settle();
+    expect(document.querySelector('mat-snack-bar-container')?.textContent).toContain(
+      "L'arsenale è pieno (massimo 400 basi)",
+    );
+    expect(dialog()).not.toBeNull();
+    expect(query<HTMLButtonElement>('button[type="submit"]').disabled).toBe(false);
+  });
+
   it('refuses files that are not images', async () => {
     await open();
     await ref.componentInstance.pick(new File(['%PDF'], 'base.pdf', { type: 'application/pdf' }));
