@@ -55,10 +55,10 @@ describe('PlayersPage', () => {
     );
 
     expect(cells.length).toBeGreaterThan(10);
-    // No footer row with averages.
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('tr.mat-mdc-footer-row'),
-    ).toBeNull();
+    // No footer with averages: the table keeps its footer row hidden and empty.
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('tr.mat-mdc-footer-row')!;
+    expect(footer.classList).toContain('crn-table__footer-row--hidden');
+    expect(footer.textContent!.trim()).toBe('');
     for (const cell of cells) {
       // The number has its own box (fixed width): the bars all get the same length.
       expect(cell.querySelector('crn-meter.attendance__bar')).not.toBeNull();
