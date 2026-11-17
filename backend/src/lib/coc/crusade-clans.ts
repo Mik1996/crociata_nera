@@ -7,6 +7,13 @@ import { env } from '@/lib/config/env';
  */
 export const CRUSADE_CLAN_TAGS: readonly string[] = ['#2J8JVVCLC', '#2JU8RPR2G', '#2RRYUGQYJ'];
 
+/** Names of the clans of the Crusade (searched by the text filters of the CWL line-up). */
+export const CRUSADE_CLAN_NAMES: Readonly<Record<string, string>> = {
+  '#2J8JVVCLC': 'Crociata Nera',
+  '#2JU8RPR2G': 'Crociata Rossa',
+  '#2RRYUGQYJ': "Crociata d'Oro",
+};
+
 /** The main clan (`CLAN_TAG`), whose data the pages show; `null` when not configured. */
 export function primaryClanTag(): string | null {
   return env().CLAN_TAG ?? null;

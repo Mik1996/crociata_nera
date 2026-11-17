@@ -24,7 +24,7 @@ export const CwlExclusionResult = model(
   }),
 );
 
-const SelectionPlayer = model(
+export const SelectionPlayer = model(
   'CwlSelectionPlayer',
   'A current member of a clan of the Crusade in the ranking for the Clan War League line-up.',
   z.strictObject({

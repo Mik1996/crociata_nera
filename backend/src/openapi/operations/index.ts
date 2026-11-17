@@ -4,6 +4,7 @@ import { AUTH_OPERATIONS } from './auth';
 import { BASE_OPERATIONS } from './bases';
 import { CLAN_OPERATIONS } from './clan';
 import { SYSTEM_OPERATIONS } from './system';
+import { TABLE_OPERATIONS } from './tables';
 import { WAR_OPERATIONS } from './wars';
 
 /**
@@ -14,6 +15,7 @@ export const API_OPERATIONS: readonly ApiOperation[] = [
   ...AUTH_OPERATIONS,
   ...ADMIN_OPERATIONS,
   ...WAR_OPERATIONS,
+  ...TABLE_OPERATIONS,
   ...CLAN_OPERATIONS,
   ...BASE_OPERATIONS,
   ...SYSTEM_OPERATIONS,

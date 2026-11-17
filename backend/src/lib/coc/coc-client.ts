@@ -73,9 +73,9 @@ export function fetchCurrentWar(clanTag: string): Promise<unknown> {
   return cocGet(`${clanPath(clanTag)}/currentwar`);
 }
 
-/** `GET /clans/{tag}/warlog`: summaries of the latest wars (final result, stars, XP). */
-export function fetchWarLog(clanTag: string, limit = 10): Promise<unknown> {
-  return cocGet(`${clanPath(clanTag)}/warlog?limit=${limit}`);
+/** `GET /clans/{tag}/warlog`: summaries of the latest wars (final result, stars, XP); `null`: every war. */
+export function fetchWarLog(clanTag: string, limit: number | null = 10): Promise<unknown> {
+  return cocGet(`${clanPath(clanTag)}/warlog${limit === null ? '' : `?limit=${limit}`}`);
 }
 
 /** `GET /clans/{tag}/currentwar/leaguegroup`: the Clan War League group of the season (404 outside CWL). */

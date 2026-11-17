@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { afterAll, beforeEach, inject } from 'vitest';
+import { resetLiveCache } from '@/lib/coc/live-cache';
 import { resetEnvCache } from '@/lib/config/env';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { resetRateLimits } from '@/lib/http/rate-limit';
@@ -16,6 +17,7 @@ resetEnvCache();
 beforeEach(async () => {
   resetRateLimits();
   resetClanAccessCache();
+  resetLiveCache();
   await connectToDatabase();
   await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).syncIndexes()));
   await Promise.all(Object.values(mongoose.connection.collections).map((c) => c.deleteMany({})));

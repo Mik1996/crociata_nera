@@ -212,7 +212,7 @@ const HistoryWarPlayer = model(
   }),
 );
 
-const HistoryWar = model(
+export const HistoryWar = model(
   'HistoryWar',
   'An ended war in the history.',
   z.strictObject({
@@ -231,7 +231,7 @@ const HistoryWar = model(
   }),
 );
 
-const HistoryPlayerStats = model(
+export const HistoryPlayerStats = model(
   'HistoryPlayerStats',
   'Totals and averages of a player over the wars of a period.',
   z.strictObject({
