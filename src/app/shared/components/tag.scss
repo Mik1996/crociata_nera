@@ -22,6 +22,7 @@
 
 :host(.tag--m) {
   padding: $space-xs $space-s;
+  font-family: var(--cn-font-body);
   font-size: var(--cn-fs-xs);
   font-weight: 600;
 }

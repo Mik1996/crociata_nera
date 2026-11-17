@@ -97,6 +97,11 @@
   flex: 1;
 }
 
+// Demo data notice: the plain text font, like the header pickers.
+crn-tag.mock-chip {
+  font-family: var(--cn-font-body);
+}
+
 .container {
   flex: 1;
 }
