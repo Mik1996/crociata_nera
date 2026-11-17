@@ -29,6 +29,9 @@ import {
   PLAYER_TAG_PATTERN,
   strongPassword,
 } from '../auth/auth-form';
+import { Tag } from '../../shared/components/tag';
+import { PasswordToggle } from '../../shared/components/password-toggle';
+import { Avatar } from '../../shared/components/avatar';
 
 /** Most accounts a user can link (same limit as the backend). */
 const MAX_LINKED_PLAYERS = 10;
@@ -50,6 +53,9 @@ type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null
     LocalDatePipe,
     PageHeader,
     ScrollFade,
+    Tag,
+    PasswordToggle,
+    Avatar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

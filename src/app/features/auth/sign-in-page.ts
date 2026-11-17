@@ -13,6 +13,8 @@ import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { applyServerErrors, errorKey } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
+import { PasswordToggle } from '../../shared/components/password-toggle';
+import { Alert } from '../../shared/components/alert';
 
 /** Sign-in with email or username and password. */
 @Component({
@@ -27,6 +29,8 @@ import { AuthPanel } from './components/auth-panel';
     MatProgressSpinnerModule,
     TranslatePipe,
     AuthPanel,
+    PasswordToggle,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sign-in-page.html',

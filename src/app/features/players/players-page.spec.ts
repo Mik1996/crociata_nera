@@ -45,4 +45,24 @@ describe('PlayersPage', () => {
         ?.getAttribute('aria-sort'),
     ).toBe('descending');
   });
+
+  it('shows the attendance as a bar and a percentage of its own, in every row', async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([]), provideCocApiTest()] });
+    const fixture = TestBed.createComponent(PlayersPage);
+    await fixture.whenStable();
+    const cells = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row .attendance'),
+    );
+
+    expect(cells.length).toBeGreaterThan(10);
+    // No footer with averages: the table keeps its footer row hidden and empty.
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('tr.mat-mdc-footer-row')!;
+    expect(footer.classList).toContain('crn-table__footer-row--hidden');
+    expect(footer.textContent!.trim()).toBe('');
+    for (const cell of cells) {
+      // The number has its own box (fixed width): the bars all get the same length.
+      expect(cell.querySelector('crn-meter.attendance__bar')).not.toBeNull();
+      expect(cell.querySelector('.attendance__value')!.textContent).toMatch(/^\d+%$/);
+    }
+  });
 });

@@ -125,29 +125,18 @@
 }
 
 .bar {
-  display: flex;
+  --crn-meter-height: 0.5rem;
+  --crn-meter-track: #{palette.alpha(var(--cn-light), 9%)};
+  --crn-meter-fill: var(--cn-bar-fire);
+  --crn-meter-glow: 0 0 0.625rem #{palette.alpha(var(--cn-clan-black-flame-2), 60%)};
   flex: 1;
-  height: 0.5rem;
   min-width: 0;
-  overflow: hidden;
-  border-radius: $radius-pill;
-  background: palette.alpha(var(--cn-light), 9%);
   box-shadow: inset 0 1px 2px var(--cn-shadow);
 }
 
 .side--opponent .bar {
-  justify-content: flex-end;
-}
-
-.bar__fill {
-  border-radius: $radius-pill;
-  background: var(--cn-bar-fire);
-  box-shadow: 0 0 0.625rem palette.alpha(var(--cn-clan-black-flame-2), 60%);
-}
-
-.side--opponent .bar__fill {
-  background: var(--cn-bar-steel);
-  box-shadow: none;
+  --crn-meter-fill: var(--cn-bar-steel);
+  --crn-meter-glow: none;
 }
 
 .side__stars-value {

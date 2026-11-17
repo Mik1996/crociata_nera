@@ -76,7 +76,7 @@
         }
       </label>
       @if (imageError(); as m) {
-        <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
+        <crn-form-errors [messages]="[m]" />
       }
     </div>
 
@@ -86,7 +86,7 @@
       (click)="castleError.set(null)"
     />
     @if (castleError(); as m) {
-      <p class="error castle-error" role="alert">{{ m.key | translate: m.params }}</p>
+      <crn-form-errors [messages]="[m]" />
     }
 
     <mat-form-field appearance="outline" class="field" subscriptSizing="dynamic">

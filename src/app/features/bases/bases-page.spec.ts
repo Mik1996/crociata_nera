@@ -127,7 +127,7 @@ describe('BasesPage', () => {
       await fixture.whenStable();
       expect(dialog()!.textContent).toContain('La base del municipio 18 verrà eliminata');
 
-      dialog()!.querySelector<HTMLButtonElement>('.danger')!.click();
+      dialog()!.querySelector<HTMLButtonElement>('.cn-button--danger')!.click();
       const del = httpMock.expectOne('/api/v1/bases/a');
       expect(del.request.method).toBe('DELETE');
       del.flush(ok(null));

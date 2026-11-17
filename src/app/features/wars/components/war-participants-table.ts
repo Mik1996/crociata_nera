@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/backend/auth.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
@@ -13,6 +12,7 @@ import { Icon } from '../../../shared/icon/icon';
 import { participantFilters } from '../../../shared/table/clan-tables';
 import { serverTable } from '../../../shared/table/server-table';
 import { Table } from '../../../shared/table/table';
+import { PlayerCell } from '../../../shared/components/player-cell';
 
 /** The clan's players in a war, filtered, sorted and paged by the backend. */
 @Component({
@@ -21,13 +21,13 @@ import { Table } from '../../../shared/table/table';
     Table,
     LocalNumberPipe,
     TranslatePipe,
-    RouterLink,
     MatTableModule,
     MatSortModule,
     Icon,
     MatTooltipModule,
     Stars,
     TownHallIcon,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './war-participants-table.html',

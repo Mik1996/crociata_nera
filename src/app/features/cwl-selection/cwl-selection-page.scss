@@ -9,39 +9,7 @@
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-s $space-l;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.legend__item {
-  display: flex;
-  align-items: center;
-  gap: $space-s;
   font-family: var(--cn-font-display);
-
-  &--starter {
-    --lineup: var(--cn-lineup-starter);
-  }
-
-  &--reserve {
-    --lineup: var(--cn-lineup-reserve);
-  }
-
-  &--excluded {
-    --lineup: var(--cn-red-text);
-  }
-}
-
-.legend__swatch {
-  width: 1rem;
-  height: 1rem;
-  border-radius: $radius-s;
-  background: var(--lineup);
-  box-shadow: 0 0 0.5rem var(--lineup);
 }
 
 .facts {
@@ -95,7 +63,6 @@
 
 // --- Table ---
 .rank {
-  width: 2.5rem;
   font-weight: 700;
   color: var(--cn-gold-light);
 }
@@ -109,39 +76,6 @@
   color: var(--cn-red-text);
 }
 
-.status {
-  display: inline-block;
-  padding: 0.1rem $space-s;
-  border-radius: $radius-pill;
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-2xs);
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  background: var(--cn-surface-3);
-  color: var(--cn-text-muted);
-
-  &--starter {
-    background: var(--cn-lineup-starter);
-    color: var(--cn-on-lineup);
-  }
-
-  &--reserve {
-    background: var(--cn-lineup-reserve);
-    color: var(--cn-on-lineup);
-  }
-
-  &--ineligible {
-    background: transparent;
-    border: 1px solid var(--cn-border);
-  }
-
-  &--excluded {
-    background: transparent;
-    border: 1px solid var(--cn-red-text);
-    color: var(--cn-red-text);
-  }
-}
-
 .reason {
   max-width: 14rem;
   white-space: normal;
@@ -153,20 +87,6 @@
   flex-wrap: wrap;
   gap: $space-xs;
   margin-top: $space-xs;
-}
-
-.flag {
-  padding: 0 $space-s;
-  border-radius: $radius-pill;
-  border: 1px solid var(--cn-gold-dark);
-  color: var(--cn-gold-light);
-  font-size: var(--cn-fs-2xs);
-  white-space: nowrap;
-
-  &--alert {
-    border-color: var(--cn-red-text);
-    color: var(--cn-red-text);
-  }
 }
 
 .cwl-clan {
@@ -235,38 +155,7 @@
 }
 
 .score__bar {
-  display: flex;
   flex: 1 0 4rem;
-  height: 0.375rem;
-  border-radius: $radius-s;
-  background: var(--cn-surface-3);
-  overflow: hidden;
-}
-
-.score__part {
-  &--cwlCommendations {
-    background: var(--cn-gold);
-  }
-
-  &--cwlPerformance {
-    background: var(--cn-gold-dark);
-  }
-
-  &--war {
-    background: var(--cn-red-mid);
-  }
-
-  &--heroes {
-    background: var(--cn-chart-series-2);
-  }
-
-  &--townHall {
-    background: var(--cn-text-muted);
-  }
-
-  &--league {
-    background: var(--cn-score-league);
-  }
 }
 
 .medals {

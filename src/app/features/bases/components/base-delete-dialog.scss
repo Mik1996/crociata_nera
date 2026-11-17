@@ -13,14 +13,3 @@
 .intro {
   margin: 0;
 }
-
-.error {
-  margin: $space-s 0 0;
-  color: var(--cn-red-text);
-  font-size: var(--cn-fs-sm);
-}
-
-.danger:not(:disabled) {
-  --mat-button-filled-container-color: var(--cn-red-mid);
-  --mat-button-filled-label-text-color: var(--cn-text);
-}

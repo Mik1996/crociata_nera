@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -11,6 +10,7 @@ import {
   CwlSelectionService,
   MAX_EXCLUSION_REASON_LENGTH,
 } from '../../../core/backend/cwl-selection.service';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
 
 export interface ExcludePlayerDialogData {
   tag: string;
@@ -25,14 +25,7 @@ export interface ExcludePlayerDialogData {
  */
 @Component({
   selector: 'crn-exclude-player-dialog',
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    TranslatePipe,
-  ],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, TranslatePipe, ConfirmDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './exclude-player-dialog.html',
   styleUrl: './exclude-player-dialog.scss',

@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import {
@@ -32,6 +32,11 @@ import { Icon } from '../../shared/icon/icon';
 import { roleKey } from '../../shared/labels';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
+import { Tag, TagTone } from '../../shared/components/tag';
+import { Meter, MeterSegment } from '../../shared/components/meter';
+import { Legend } from '../../shared/components/legend';
+import { LegendItem } from '../../shared/components/legend-item';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -53,6 +58,15 @@ const BREAKDOWN_PARTS: readonly (keyof CwlScoreBreakdown)[] = [
   'activity',
 ];
 const BAR_PARTS = BREAKDOWN_PARTS.slice(0, 6);
+/** Colour of each part in the score bar (the tooltip uses the same ones). */
+const BAR_COLORS: Partial<Record<keyof CwlScoreBreakdown, string>> = {
+  cwlCommendations: 'var(--cn-gold)',
+  cwlPerformance: 'var(--cn-gold-dark)',
+  war: 'var(--cn-red-mid)',
+  heroes: 'var(--cn-chart-series-2)',
+  townHall: 'var(--cn-text-muted)',
+  league: 'var(--cn-score-league)',
+};
 /** Parts that come from the last CWL, left out for who was not in its line-up. */
 const CWL_PARTS: readonly (keyof CwlScoreBreakdown)[] = ['cwlCommendations', 'cwlPerformance'];
 /** Highest points of each part of the bar (the wars depend on the player: `war.maxPoints`). */
@@ -71,12 +85,20 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
  * the scores; the page explains the rules. Administrators can exclude players, who stay in the
  * ranking marked as excluded.
  */
+/** Colour of the line-up status tags (excluded players get their own, with the reason). */
+const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
+  starter: 'starter',
+  reserve: 'reserve',
+  bench: 'neutral',
+  ineligible: 'neutral',
+  excluded: 'danger',
+};
+
 @Component({
   selector: 'crn-cwl-selection-page',
   imports: [
     Table,
     TranslatePipe,
-    RouterLink,
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
@@ -89,6 +111,11 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
     CommendationMedal,
     Icon,
     TownHallIcon,
+    Tag,
+    Meter,
+    Legend,
+    LegendItem,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -102,7 +129,6 @@ export class CwlSelectionPage {
   private readonly snackBar = inject(MatSnackBar);
   private readonly language = inject(LanguageService);
   private readonly auth = inject(AuthService);
-  protected readonly isMine = this.auth.isMyPlayer;
   /** Only administrators exclude players (always with mock data, for the demo). */
   private readonly config = inject(APP_CONFIG);
   private readonly useMock = this.config.useMockApi;
@@ -127,7 +153,6 @@ export class CwlSelectionPage {
   /** Tag of the player whose exclusion is being removed. */
   protected readonly readmitting = signal<string | null>(null);
 
-  protected readonly barParts = BAR_PARTS;
   private readonly baseColumns = [
     'rank',
     'townHall',
@@ -258,5 +283,15 @@ export class CwlSelectionPage {
 
   private notify(messageKey: string): void {
     this.snackBar.open(this.language.t(messageKey), undefined, { duration: 3000 });
+  }
+
+  /** Colour of a line-up status tag. */
+  protected statusTone(status: CwlSelectionStatus): TagTone {
+    return STATUS_TONES[status];
+  }
+
+  /** Parts of the score bar, out of 100 (penalties excluded). */
+  protected scoreSegments(row: CwlSelectionPlayer): MeterSegment[] {
+    return BAR_PARTS.map((part) => ({ value: row.breakdown[part], color: BAR_COLORS[part]! }));
   }
 }

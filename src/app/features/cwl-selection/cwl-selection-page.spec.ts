@@ -129,10 +129,10 @@ describe('CwlSelectionPage', () => {
   it('labels the status in words, shows the reason of an exclusion and the CWL medals', async () => {
     const { el } = await render();
     const rows = el.querySelectorAll('tr.mat-mdc-row');
-    expect(rows[0].querySelector('.status')!.textContent).toContain('Escluso');
+    expect(rows[0].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Escluso');
     expect(rows[0].querySelector('.reason')!.textContent).toContain('Away all month');
-    expect(rows[1].querySelector('.status')!.textContent).toContain('Schierato');
-    expect(rows[16].querySelector('.status')!.textContent).toContain('Riserva');
+    expect(rows[1].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Schierato');
+    expect(rows[16].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Riserva');
     expect(rows[0].querySelectorAll('crn-commendation-medal')).toHaveLength(2);
     expect(rows[0].textContent).toContain('Co-capo');
   });
@@ -147,7 +147,7 @@ describe('CwlSelectionPage', () => {
     expect(rows[2].textContent).toContain('Non schierato');
     expect(rows[2].querySelector('.war-bonus')!.textContent).toContain('Fino a 65 punti');
     expect(rows[1].querySelector('.war-bonus')).toBeNull();
-    expect(rows[4].querySelector('.flag')!.textContent).toContain('Nuovo');
+    expect(rows[4].querySelector('.flags crn-tag')!.textContent).toContain('Nuovo');
     expect(rows[3].textContent).toContain('In attesa');
     expect(rows[0].textContent).toContain('92%');
     // The score explains its parts.
@@ -155,7 +155,8 @@ describe('CwlSelectionPage', () => {
     expect(score).toContain('Attacchi saltati ultima CWL: -3,0');
     expect(score).toContain('Lega: 4,0 / 5');
     expect(score).toContain('Eroi: 12,0 / 20');
-    expect(rows[1].querySelector('.score__part--league')).not.toBeNull();
+    const segments = rows[1].querySelectorAll<HTMLElement>('.score__bar .meter__fill');
+    expect([...segments].map((s) => s.style.background)).toContain('var(--cn-score-league)');
   });
 
   it('shows the clan of the Crusade and the league of each player', async () => {

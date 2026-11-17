@@ -189,13 +189,13 @@ describe('AdminPage', () => {
     const input = dialog()!.querySelector<HTMLInputElement>('.tag-input')!;
     type(input, 'no!');
     await fixture.whenStable();
-    dialogButton('.submit').click();
+    dialogButton('button[type="submit"]').click();
     await fixture.whenStable();
     expect(dialog()!.textContent).toContain('Tag non valido: no!');
 
     type(input, 'mem123, #Mem456');
     await fixture.whenStable();
-    dialogButton('.submit').click();
+    dialogButton('button[type="submit"]').click();
     const link = httpMock.expectOne('/api/v1/admin/users/m1/players');
     expect(link.request.method).toBe('POST');
     expect(link.request.body).toEqual({ playerTags: ['#MEM123', '#MEM456'] });
@@ -227,7 +227,7 @@ describe('AdminPage', () => {
     await fixture.whenStable();
     type(dialog()!.querySelector<HTMLInputElement>('.tag-input')!, '#TAKEN1');
     await fixture.whenStable();
-    dialogButton('.submit').click();
+    dialogButton('button[type="submit"]').click();
     httpMock.expectOne('/api/v1/admin/users/m1/players').flush(
       {
         result: null,
@@ -267,11 +267,11 @@ describe('AdminPage', () => {
 
     const boxes = dialog()!.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
     expect(boxes).toHaveLength(3);
-    expect(dialogButton('.submit').disabled).toBe(true);
+    expect(dialogButton('button[type="submit"]').disabled).toBe(true);
     boxes[0]!.click();
     boxes[1]!.click();
     await fixture.whenStable();
-    dialogButton('.submit').click();
+    dialogButton('button[type="submit"]').click();
 
     const first = httpMock.expectOne('/api/v1/admin/users/m1/players/MEM123');
     expect(first.request.method).toBe('DELETE');

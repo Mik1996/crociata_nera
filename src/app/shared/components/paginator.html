@@ -1,0 +1,10 @@
+<mat-paginator
+  [length]="length()"
+  [pageIndex]="pageIndex()"
+  [pageSize]="pageSize()"
+  [pageSizeOptions]="pageSizeOptions()"
+  [hidePageSize]="pageSizeOptions().length === 0"
+  showFirstLastButtons
+  [attr.aria-label]="label()"
+  (page)="page.emit($event)"
+/>

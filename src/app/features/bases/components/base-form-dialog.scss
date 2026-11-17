@@ -104,9 +104,3 @@
   border-radius: $radius-l;
   background: palette.alpha(var(--cn-surface), 70%);
 }
-
-.error {
-  margin: $space-xs 0 0;
-  color: var(--cn-red-text);
-  font-size: var(--cn-fs-sm);
-}

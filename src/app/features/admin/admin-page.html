@@ -43,7 +43,7 @@
           <td mat-cell *matCellDef="let u">
             <span class="name">{{ u.username }}</span>
             @if (u.id === myId()) {
-              <span class="cn-me-badge">{{ 'common.you' | translate }}</span>
+              <crn-tag tone="me" appearance="solid">{{ 'common.you' | translate }}</crn-tag>
             }
             <div class="cn-muted email">{{ u.email }}</div>
           </td>

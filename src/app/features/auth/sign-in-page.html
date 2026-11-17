@@ -4,14 +4,11 @@
 >
   <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     @if (generalErrors().length) {
-      <div class="auth-form__alert" role="alert">
-        <crn-icon name="error" />
-        <div>
-          @for (message of generalErrors(); track message.key) {
-            <p>{{ message.key | translate: message.params }}</p>
-          }
-        </div>
-      </div>
+      <crn-alert class="auth-form__message">
+        @for (message of generalErrors(); track message.key) {
+          <p>{{ message.key | translate: message.params }}</p>
+        }
+      </crn-alert>
     }
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -38,17 +35,7 @@
         autocomplete="current-password"
         [type]="showPassword() ? 'text' : 'password'"
       />
-      <button
-        mat-icon-button
-        matSuffix
-        type="button"
-        class="picker"
-        [attr.aria-label]="'auth.showPassword' | translate"
-        [attr.aria-pressed]="showPassword()"
-        (click)="showPassword.set(!showPassword())"
-      >
-        <crn-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
-      </button>
+      <crn-password-toggle matSuffix [(visible)]="showPassword" />
       @if (errorKey(form.controls.password, passwordErrors); as key) {
         <mat-error>{{ key | translate }}</mat-error>
       }

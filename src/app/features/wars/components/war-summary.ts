@@ -19,6 +19,7 @@ import { warResult } from '../../../core/utils/war-stats';
 import { ResultBadge } from '../../../shared/components/result-badge';
 import { Crusader } from '../../../shared/crusader/crusader';
 import { warStateKey } from '../../../shared/labels';
+import { Meter } from '../../../shared/components/meter';
 
 /**
  * Battle scoreboard: our clan versus the opponent. Each side has a bar of the stars earned out of
@@ -27,7 +28,7 @@ import { warStateKey } from '../../../shared/labels';
  */
 @Component({
   selector: 'crn-war-summary',
-  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, Icon, ResultBadge, Crusader],
+  imports: [LocalNumberPipe, LocalDatePipe, TranslatePipe, Icon, ResultBadge, Crusader, Meter],
   host: { '[class.summary--scenic]': 'scenic()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './war-summary.html',
@@ -75,10 +76,4 @@ export class WarSummary {
 
   /** Stars at stake for each side: three per base. */
   protected readonly maxStars = computed(() => this.war().teamSize * 3);
-
-  /** Share of the stars at stake earned by a side, 0–100. */
-  protected starsShare(stars: number): number {
-    const max = this.maxStars();
-    return max > 0 ? Math.min(100, (stars / max) * 100) : 0;
-  }
 }

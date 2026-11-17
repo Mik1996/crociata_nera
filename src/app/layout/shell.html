@@ -37,9 +37,9 @@
   <span class="spacer"></span>
 
   @if (useMock) {
-    <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{
+    <crn-tag class="mock-chip" tone="danger" [title]="'app.demoDataTitle' | translate">{{
       'app.demoData' | translate
-    }}</span>
+    }}</crn-tag>
   }
 
   <!-- Theme picker: only when there is more than one theme -->
@@ -125,9 +125,7 @@
         [matMenuTriggerFor]="accountMenu"
         [attr.aria-label]="'auth.account.menu' | translate: { name: user.username }"
       >
-        <span class="account__avatar" aria-hidden="true">{{
-          user.username.charAt(0).toUpperCase()
-        }}</span>
+        <crn-avatar [name]="user.username" />
         <span class="account__name">{{ user.username }}</span>
         <crn-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
       </button>
@@ -243,12 +241,11 @@
 
   <mat-sidenav-content>
     @if (!connectivity.online()) {
-      <div class="offline-banner" role="status">
-        <crn-icon name="wifi_off" />
-        <span>{{
+      <crn-alert class="offline-banner" tone="warning" icon="wifi_off">
+        {{
           (auth.isUnconfirmed() ? 'app.offline.bannerSignedIn' : 'app.offline.banner') | translate
-        }}</span>
-      </div>
+        }}
+      </crn-alert>
     }
     <main id="content" #content tabindex="-1" class="content">
       <router-outlet />

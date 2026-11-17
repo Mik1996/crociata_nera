@@ -23,7 +23,9 @@
     @if (p.role || p.labels.length) {
       <div class="banner__meta cn-hscroll">
         @if (p.role) {
-          <span class="chip chip--role">{{ roleKey(p.role) | translate }}</span>
+          <crn-tag class="banner__role" tone="gold" appearance="solid" size="l">{{
+            roleKey(p.role) | translate
+          }}</crn-tag>
         }
         @if (p.labels.length) {
           <ul class="banner__labels" [attr.aria-label]="'player.labels' | translate">

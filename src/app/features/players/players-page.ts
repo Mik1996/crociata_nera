@@ -4,7 +4,7 @@ import { Icon } from '../../shared/icon/icon';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import { APP_CONFIG } from '../../core/config/app-config';
@@ -23,6 +23,8 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Table } from '../../shared/table/table';
 import { memberStatsFilters } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
+import { Meter } from '../../shared/components/meter';
+import { PlayerCell } from '../../shared/components/player-cell';
 
 @Component({
   selector: 'crn-players-page',
@@ -31,7 +33,6 @@ import { serverTable } from '../../shared/table/server-table';
     Table,
     LocalNumberPipe,
     TranslatePipe,
-    RouterLink,
     MatTableModule,
     MatSortModule,
     Icon,
@@ -41,6 +42,8 @@ import { serverTable } from '../../shared/table/server-table';
     ScrollFade,
     CommendationMedal,
     TownHallIcon,
+    Meter,
+    PlayerCell,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -93,8 +96,6 @@ export class PlayersPage {
     memberStatsFilters(this.members.summary()?.leagues ?? []),
   );
 
-  /** Averages over the matching members (every page), for the footer. */
-  protected readonly averages = computed(() => this.members.summary()?.averages ?? null);
 
   protected open(m: MemberStatsRow): void {
     void this.router.navigate(['/players', m.tag]);

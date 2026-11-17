@@ -124,19 +124,6 @@ h2 {
   }
 }
 
-.identity__avatar {
-  display: grid;
-  place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border: 3px solid var(--cn-panel-border);
-  border-radius: 50%;
-  background: var(--cn-gold-fill);
-  color: var(--cn-on-gold);
-  font-family: var(--cn-font-heading);
-  font-size: var(--cn-fs-xl);
-}
-
 .identity__name {
   font-family: var(--cn-font-heading);
   font-size: var(--cn-fs-xl);
@@ -170,37 +157,6 @@ h2 {
 
 .email {
   overflow-wrap: anywhere;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-xs;
-  padding: 0.1rem $space-s;
-  border: 1px solid var(--cn-border);
-  border-radius: $radius-pill;
-  font-size: var(--cn-fs-xs);
-
-  crn-icon {
-    width: 1rem;
-    height: 1rem;
-    font-size: 1rem;
-  }
-}
-
-.badge--ok {
-  border-color: var(--cn-win);
-  color: var(--cn-win);
-}
-
-.badge--warn {
-  border-color: var(--cn-red-mid);
-  color: var(--cn-red-text);
-}
-
-.badge--gold {
-  border-color: var(--cn-gold-dark);
-  color: var(--cn-gold-light);
 }
 
 .linked {

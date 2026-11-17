@@ -25,7 +25,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -66,6 +66,7 @@ import {
   TableQuery,
 } from './table-filters';
 import { TableSource } from './server-table';
+import { Paginator } from '../components/paginator';
 
 /** Prefix of the columns of the filter row (one per column of the table). */
 const FILTER_COLUMN = 'crn-filter:';
@@ -114,7 +115,6 @@ let nextId = 0;
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
-    MatPaginatorModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -123,6 +123,7 @@ let nextId = 0;
     Icon,
     ResizableColumns,
     TableHorizontalScroll,
+    Paginator,
   ],
   providers: [provideLocaleDateAdapter()],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -34,22 +34,7 @@
 }
 
 .bar {
-  height: 0.5rem;
-  border-radius: $radius-pill;
-  background: var(--cn-surface-3);
-  overflow: hidden;
-}
-
-.bar__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--cn-gold);
-  transition: width 0.15s ease;
-}
-
-.bar__fill--over {
-  background: var(--cn-red-mid);
+  --crn-meter-height: 0.5rem;
 }
 
 .chosen {
@@ -225,8 +210,6 @@
   }
 }
 
-.error {
-  margin: 0 0 $space-s;
-  color: var(--cn-red-text);
-  font-size: var(--cn-fs-sm);
+.over {
+  margin-bottom: $space-s;
 }

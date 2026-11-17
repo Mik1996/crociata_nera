@@ -45,6 +45,7 @@ import {
   prepareImage,
 } from '../../../core/utils/prepare-image';
 import { ClanCastlePicker } from './clan-castle-picker';
+import { FormErrors } from '../../../shared/components/form-errors';
 
 export interface BaseFormDialogData {
   /** The base to edit; absent to create a new one. */
@@ -94,6 +95,7 @@ export function layoutLinkValidator(
     MatProgressSpinnerModule,
     TranslatePipe,
     ClanCastlePicker,
+    FormErrors,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-form-dialog.html',

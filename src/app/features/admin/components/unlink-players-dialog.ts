@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
 import { concatMap, from, last } from 'rxjs';
 import { AdminService } from '../../../core/backend/admin.service';
 import { AdminUser, BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import type { AdminUserDialogData } from './link-players-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
 
 export interface UnlinkPlayersDialogData extends AdminUserDialogData {
   /** Called after each account unlinked, so the table is right even if a later one fails. */
@@ -17,7 +17,7 @@ export interface UnlinkPlayersDialogData extends AdminUserDialogData {
 /** Unlinks the Clash of Clans accounts of a user picked from a list. Closes with the updated user. */
 @Component({
   selector: 'crn-unlink-players-dialog',
-  imports: [MatButtonModule, MatCheckboxModule, MatDialogModule, TranslatePipe],
+  imports: [MatCheckboxModule, TranslatePipe, ConfirmDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './unlink-players-dialog.html',
   styleUrl: './unlink-players-dialog.scss',

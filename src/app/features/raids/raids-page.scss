@@ -14,22 +14,6 @@
   color: var(--cn-heading);
 }
 
-.state-chip {
-  display: inline-block;
-  padding: $space-xs $space-s;
-  border: 1px solid var(--cn-border);
-  border-radius: $radius-m;
-  font-family: var(--cn-font-body);
-  font-size: var(--cn-fs-xs);
-  font-weight: 600;
-  color: var(--cn-text-muted);
-}
-
-.state-chip--live {
-  border-color: var(--cn-red-mid);
-  color: var(--cn-red-text);
-}
-
 .raid-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);

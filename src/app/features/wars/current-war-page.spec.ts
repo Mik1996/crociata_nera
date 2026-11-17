@@ -37,16 +37,20 @@ describe('CurrentWarPage', () => {
     expect(summary.classList.contains('summary--scenic')).toBe(true);
     expect(el.querySelector('crn-page-header')!.getAttribute('data-scene')).toBe('war');
 
-    const war = (await new Promise<{ teamSize: number; clan: { stars: number }; opponent: { stars: number } } | null>((resolve) =>
-      TestBed.inject(CocApiService).getCurrentWar().subscribe(resolve),
-    ))!;
+    const war = (await new Promise<{
+      teamSize: number;
+      clan: { stars: number };
+      opponent: { stars: number };
+    } | null>((resolve) => TestBed.inject(CocApiService).getCurrentWar().subscribe(resolve)))!;
     const total = war.teamSize * 3;
     const bars = Array.from(summary.querySelectorAll<HTMLElement>('.bar'));
-    expect(bars.map((b) => b.getAttribute('aria-label'))).toEqual([
+    expect(bars.map((b) => b.getAttribute('aria-valuetext'))).toEqual([
       `${war.clan.stars} stelle su ${total}`,
       `${war.opponent.stars} stelle su ${total}`,
     ]);
-    const widths = bars.map((b) => parseFloat(b.querySelector<HTMLElement>('.bar__fill')!.style.width));
+    const widths = bars.map((b) =>
+      parseFloat(b.querySelector<HTMLElement>('.meter__fill')!.style.width),
+    );
     expect(widths[0]).toBeCloseTo((war.clan.stars / total) * 100, 3);
     expect(widths[1]).toBeCloseTo((war.opponent.stars / total) * 100, 3);
   });
@@ -54,7 +58,9 @@ describe('CurrentWarPage', () => {
   it('shows the badges of both clans, leaving out one that fails to load', async () => {
     configure();
     const api = TestBed.inject(CocApiService);
-    const war = (await new Promise<War | null>((resolve) => api.getCurrentWar().subscribe(resolve)))!;
+    const war = (await new Promise<War | null>((resolve) =>
+      api.getCurrentWar().subscribe(resolve),
+    ))!;
     vi.spyOn(api, 'getCurrentWar').mockReturnValue(
       of({
         ...war,
@@ -64,10 +70,14 @@ describe('CurrentWarPage', () => {
     );
     const el = await render();
     const badges = () =>
-      Array.from(el.querySelectorAll<HTMLImageElement>('crn-war-summary .side__badge')).map((b) => b.src);
+      Array.from(el.querySelectorAll<HTMLImageElement>('crn-war-summary .side__badge')).map(
+        (b) => b.src,
+      );
     expect(badges()).toEqual(['https://example.test/ours.png', 'https://example.test/theirs.png']);
 
-    el.querySelector('crn-war-summary .side--opponent .side__badge')!.dispatchEvent(new Event('error'));
+    el.querySelector('crn-war-summary .side--opponent .side__badge')!.dispatchEvent(
+      new Event('error'),
+    );
     await TestBed.inject(ApplicationRef).whenStable();
     expect(badges()).toEqual(['https://example.test/ours.png']);
 

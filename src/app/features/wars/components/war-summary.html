@@ -50,15 +50,13 @@
         }
       </div>
       <div class="side__stars">
-        <div
+        <crn-meter
           class="bar"
-          role="img"
-          [attr.aria-label]="
-            'summary.starsOutOf' | translate: { stars: side.stars, total: maxStars() }
-          "
-        >
-          <span class="bar__fill" [style.width.%]="starsShare(side.stars)"></span>
-        </div>
+          [value]="side.stars"
+          [max]="maxStars()"
+          [reverse]="isOpponent"
+          [label]="'summary.starsOutOf' | translate: { stars: side.stars, total: maxStars() }"
+        />
         <span class="side__stars-value cn-num" aria-hidden="true"
           >★ {{ side.stars }}/{{ maxStars() }}</span
         >

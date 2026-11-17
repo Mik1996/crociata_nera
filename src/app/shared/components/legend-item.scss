@@ -1,0 +1,19 @@
+@use 'variables' as *;
+
+:host {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+}
+
+.legend-item__swatch {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: $radius-s;
+  background: var(--legend-color);
+
+  &--glow {
+    box-shadow: 0 0 0.5rem var(--legend-color);
+  }
+}

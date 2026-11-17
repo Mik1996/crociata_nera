@@ -99,8 +99,8 @@
         <td mat-cell *matCellDef="let p"><crn-result-badge [result]="p.result" /></td>
       </ng-container>
       <ng-container matColumnDef="mapPosition">
-        <th mat-header-cell *matHeaderCellDef>#</th>
-        <td mat-cell *matCellDef="let p" class="cn-num">#{{ p.mapPosition }}</td>
+        <th mat-header-cell *matHeaderCellDef class="cn-rank-cell">#</th>
+        <td mat-cell *matCellDef="let p" class="cn-num cn-rank-cell">{{ p.mapPosition }}</td>
       </ng-container>
       <ng-container matColumnDef="attacks">
         <th mat-header-cell *matHeaderCellDef>{{ 'common.attacks' | translate }}</th>

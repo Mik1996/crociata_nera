@@ -17,6 +17,7 @@ import { XpBadge } from '../../../shared/game/xp-badge';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { roleKey } from '../../../shared/labels';
 import { openCommendationDialog } from './open-commendation-dialog';
+import { Tag } from '../../../shared/components/tag';
 
 /**
  * Game-style profile header: Town Hall, experience level, name, clan, league, trophies and
@@ -24,7 +25,7 @@ import { openCommendationDialog } from './open-commendation-dialog';
  */
 @Component({
   selector: 'crn-player-banner',
-  imports: [Icon, MatTooltipModule, TranslatePipe, LocalNumberPipe, XpBadge, Medal3dImage],
+  imports: [Icon, MatTooltipModule, TranslatePipe, LocalNumberPipe, XpBadge, Medal3dImage, Tag],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-banner.html',
   styleUrl: './player-banner.scss',

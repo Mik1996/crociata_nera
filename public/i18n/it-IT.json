@@ -271,8 +271,7 @@
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Distr. %",
-    "league": "Lega",
-    "average": "Media"
+    "league": "Lega"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Municipio {{th}}",

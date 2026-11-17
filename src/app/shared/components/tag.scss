@@ -1,0 +1,115 @@
+@use 'variables' as *;
+@use 'color-palette' as palette;
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+// --- Sizes ---
+
+:host(.tag--s) {
+  padding: 0.05rem $space-s;
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.03em;
+}
+
+:host(.tag--m) {
+  padding: $space-xs $space-s;
+  font-family: var(--cn-font-body);
+  font-size: var(--cn-fs-xs);
+  font-weight: 600;
+}
+
+:host(.tag--l) {
+  padding: $space-xs $space-s;
+  font-size: var(--cn-fs-sm);
+  font-weight: 600;
+}
+
+// --- Tones: ink (text and edge), fill and the text on it, tint ---
+
+:host(.tag--neutral) {
+  --tag-ink: var(--cn-text-muted);
+  --tag-edge: var(--cn-border);
+  --tag-fill: var(--cn-surface-3);
+  --tag-on-fill: var(--cn-text-muted);
+  --tag-tint: var(--cn-tint-neutral);
+}
+
+:host(.tag--gold) {
+  --tag-ink: var(--cn-gold-light);
+  --tag-edge: var(--cn-gold-dark);
+  --tag-fill: var(--cn-game-gold);
+  --tag-on-fill: var(--cn-on-gold);
+  --tag-tint: var(--cn-tint-gold);
+}
+
+:host(.tag--danger) {
+  --tag-ink: var(--cn-red-text);
+  --tag-edge: var(--cn-red-mid);
+  --tag-fill: var(--cn-red-mid);
+  --tag-on-fill: var(--cn-text);
+  --tag-tint: var(--cn-tint-loss);
+}
+
+:host(.tag--success) {
+  --tag-ink: var(--cn-win);
+  --tag-edge: var(--cn-win);
+  --tag-fill: var(--cn-win);
+  --tag-on-fill: var(--cn-bg);
+  --tag-tint: var(--cn-tint-win);
+}
+
+:host(.tag--me) {
+  --tag-ink: var(--cn-me);
+  --tag-edge: var(--cn-me);
+  --tag-fill: var(--cn-me);
+  --tag-on-fill: var(--cn-on-me);
+  --tag-tint: #{palette.alpha(var(--cn-me), 14%)};
+}
+
+:host(.tag--starter) {
+  --tag-ink: var(--cn-lineup-starter);
+  --tag-edge: var(--cn-lineup-starter);
+  --tag-fill: var(--cn-lineup-starter);
+  --tag-on-fill: var(--cn-on-lineup);
+  --tag-tint: #{palette.alpha(var(--cn-lineup-starter), 14%)};
+}
+
+:host(.tag--reserve) {
+  --tag-ink: var(--cn-lineup-reserve);
+  --tag-edge: var(--cn-lineup-reserve);
+  --tag-fill: var(--cn-lineup-reserve);
+  --tag-on-fill: var(--cn-on-lineup);
+  --tag-tint: #{palette.alpha(var(--cn-lineup-reserve), 14%)};
+}
+
+// --- Appearances ---
+
+:host(.tag--outline) {
+  border-color: var(--tag-edge);
+  color: var(--tag-ink);
+}
+
+:host(.tag--solid) {
+  background: var(--tag-fill);
+  color: var(--tag-on-fill);
+}
+
+:host(.tag--soft) {
+  border-color: currentColor;
+  background: var(--tag-tint);
+  color: var(--tag-ink);
+}
+
+// Icons before or after the text follow its size.
+:host ::ng-deep .crn-icon {
+  font-size: 1.35em;
+}

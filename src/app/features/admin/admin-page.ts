@@ -33,6 +33,7 @@ import {
 import { DeleteUserDialog } from './components/delete-user-dialog';
 import { AdminUserDialogData, LinkPlayersDialog } from './components/link-players-dialog';
 import { UnlinkPlayersDialog, UnlinkPlayersDialogData } from './components/unlink-players-dialog';
+import { Tag } from '../../shared/components/tag';
 
 /** Users per page. */
 const PAGE_SIZE = 25;
@@ -90,6 +91,7 @@ const DIALOG_CONFIG = {
     LocalDatePipe,
     PageHeader,
     ScrollFade,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

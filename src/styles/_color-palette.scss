@@ -349,6 +349,12 @@
   --cn-crest-field: #7a1414;
   --cn-crest-cross: #f0c96a;
 
+  // --- Destructive buttons (`crnButton="danger"`: delete, unlink), same in every theme ---
+  --cn-button-danger-bg: linear-gradient(180deg, #d9483a 0%, #a8281d 52%, #7a1610 100%);
+  --cn-button-danger-border: #4a0d08;
+  --cn-button-danger-ink: #fff1ee;
+  --cn-button-danger-depth: #3a0905;
+
   // --- CWL line-up: the starters glow blue, the reserves green (same in every theme) ---
   --cn-lineup-starter: #4fa8ff;
   --cn-lineup-reserve: #4ed97a;

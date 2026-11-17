@@ -318,6 +318,16 @@ h2 {
   }
 }
 
+// Destructive game buttons (`crnButton="danger"`, `shared/directives/button.ts`): red instead of
+// the theme's colours.
+.cn-button--danger {
+  --cn-button-bg: var(--cn-button-danger-bg);
+  --cn-button-border: var(--cn-button-danger-border);
+  --cn-button-ink: var(--cn-button-danger-ink);
+  --cn-button-ink-shadow: var(--cn-button-danger-depth);
+  --cn-button-depth: var(--cn-button-danger-depth);
+}
+
 // Text buttons (links like "View details"): gold, display font.
 .mat-mdc-button.mat-mdc-button-base:not(.picker) {
   --mat-button-text-label-text-color: var(--cn-gold-light);
@@ -717,19 +727,6 @@ table tr.cn-row-me.mat-mdc-row {
   }
 }
 
-.cn-me-badge {
-  display: inline-block;
-  margin-left: $space-s;
-  padding: 0.05rem $space-s;
-  border-radius: $radius-pill;
-  background: var(--cn-me);
-  color: var(--cn-on-me);
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-2xs);
-  letter-spacing: 0.03em;
-  vertical-align: middle;
-}
-
 .cn-section {
   padding: $space-m $space-l;
   margin-bottom: $space-l;
@@ -856,6 +853,23 @@ table tr.cn-row-me.mat-mdc-row {
 
   .cn-col-resizer::after {
     background: var(--cn-gold);
+  }
+}
+
+// Position column (#): narrow and the same width in every table, number centred.
+.mat-mdc-table {
+  .mat-mdc-header-cell.cn-rank-cell,
+  .mat-mdc-cell.cn-rank-cell,
+  .mat-mdc-footer-cell.cn-rank-cell {
+    width: 3.25rem;
+    min-width: 3.25rem;
+    max-width: 3.25rem;
+    padding: 0 $space-xs;
+    text-align: center;
+
+    .mat-sort-header-container {
+      justify-content: center;
+    }
   }
 }
 

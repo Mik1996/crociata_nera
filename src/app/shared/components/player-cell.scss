@@ -1,0 +1,29 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.player-cell__line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs $space-s;
+}
+
+// Names wrap unless the page asks otherwise (`--crn-player-name-wrap: nowrap`).
+.cn-link-cell,
+.player-cell__name {
+  white-space: var(--crn-player-name-wrap, normal);
+}
+
+// Without a link: a player who left the clan.
+.player-cell__name {
+  font-weight: 600;
+  color: var(--cn-text-muted);
+}
+
+.player-cell__tag {
+  font-size: var(--cn-fs-xs);
+}

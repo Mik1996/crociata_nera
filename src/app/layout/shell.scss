@@ -97,14 +97,9 @@
   flex: 1;
 }
 
-.mock-chip {
+// Demo data notice: the plain text font, like the header pickers.
+crn-tag.mock-chip {
   font-family: var(--cn-font-body);
-  padding: $space-xs $space-s;
-  border: 1px solid var(--cn-red-mid);
-  border-radius: $radius-pill;
-  font-size: var(--cn-fs-2xs);
-  color: var(--cn-red-text);
-  white-space: nowrap;
 }
 
 .container {
@@ -226,25 +221,20 @@ mat-sidenav-content {
 }
 
 // Offline: the pages show the data saved at the last visit.
-.offline-banner {
+// A thin bar across the top instead of a box (the colours come from the warning alert).
+crn-alert.offline-banner {
   flex: none;
   position: sticky;
   top: 0;
   z-index: 3;
-  display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-s;
   padding: $space-xs $space-m;
-  background: var(--cn-tint-gold);
-  border-bottom: 1px solid var(--cn-gold-dark);
-  color: var(--cn-gold-light);
+  border-width: 0 0 1px;
+  border-radius: 0;
   font-size: var(--cn-fs-xs);
   text-align: center;
-
-  crn-icon {
-    font-size: 1.125rem;
-  }
+  --crn-alert-icon-size: 1.125rem;
 }
 
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */
@@ -303,21 +293,6 @@ mat-sidenav-content {
 }
 
 // Initial of the username in a gold game-style token.
-.account__avatar {
-  display: inline-grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 2px solid var(--cn-avatar-border);
-  border-radius: 50%;
-  background: var(--cn-avatar-bg);
-  color: var(--cn-avatar-ink);
-  font-family: var(--cn-font-engraved);
-  font-weight: 900;
-  font-size: var(--cn-fs-sm);
-  line-height: 1;
-}
-
 .language .language__code {
   margin-left: $space-s;
   font-weight: 600;

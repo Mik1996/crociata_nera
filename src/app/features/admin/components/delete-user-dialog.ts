@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -9,6 +7,7 @@ import { AdminService } from '../../../core/backend/admin.service';
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import type { AdminUserDialogData } from './link-players-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
 
 /**
  * Confirms the deletion of a user: "Delete" is enabled only once the username is typed exactly
@@ -16,14 +15,7 @@ import type { AdminUserDialogData } from './link-players-dialog';
  */
 @Component({
   selector: 'crn-delete-user-dialog',
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    TranslatePipe,
-  ],
+  imports: [MatFormFieldModule, MatInputModule, TranslatePipe, ConfirmDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './delete-user-dialog.html',
   styleUrl: './delete-user-dialog.scss',

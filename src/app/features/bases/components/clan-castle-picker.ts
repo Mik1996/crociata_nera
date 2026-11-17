@@ -19,6 +19,10 @@ import {
   TroopGroup,
   TroopInfo,
 } from '../../../core/game/clan-castle';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
+import { FormErrors } from '../../../shared/components/form-errors';
+import { initials } from '../../../core/utils/initials';
+import { Meter } from '../../../shared/components/meter';
 
 const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
 
@@ -30,7 +34,7 @@ const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
  */
 @Component({
   selector: 'crn-clan-castle-picker',
-  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe],
+  imports: [MatButtonModule, Icon, MatTooltipModule, TranslatePipe, FormErrors, Meter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ClanCastlePicker), multi: true },
@@ -45,15 +49,17 @@ export class ClanCastlePicker implements ControlValueAccessor {
   protected readonly troops = signal<ClanCastleTroop[]>([]);
   protected readonly disabled = signal(false);
   protected readonly used = computed(() => housingSpaceUsed(this.troops()));
+  protected readonly overMessages = computed<BackendMessage[]>(() => [
+    {
+      key: 'ERROR.CLAN_CASTLE_OVER_CAPACITY',
+      params: { used: this.used(), max: this.capacity() ?? 0 },
+    },
+  ]);
   protected readonly free = computed(() => Math.max(0, (this.capacity() ?? 0) - this.used()));
   /** The town hall changed to one with a smaller castle: some troops must go. */
   protected readonly over = computed(() => {
     const capacity = this.capacity();
     return capacity !== null && this.used() > capacity;
-  });
-  protected readonly fill = computed(() => {
-    const capacity = this.capacity();
-    return capacity ? Math.min(100, (this.used() / capacity) * 100) : 0;
   });
   protected readonly chosen = computed(() =>
     this.troops().map((troop) => ({ ...troop, info: troopInfo(troop.name) })),
@@ -94,14 +100,7 @@ export class ClanCastlePicker implements ControlValueAccessor {
     if (!this.disabled()) this.update([]);
   }
 
-  protected initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  }
+  protected readonly initials = initials;
 
   private update(troops: ClanCastleTroop[]): void {
     this.troops.set(troops);

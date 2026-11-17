@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BackendMessage, DefenseBase } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
 
 export interface BaseDeleteDialogData {
   base: DefenseBase;
@@ -15,7 +15,7 @@ export interface BaseDeleteDialogData {
 /** Asks for confirmation, then deletes the base. Closes with `true` once deleted. */
 @Component({
   selector: 'crn-base-delete-dialog',
-  imports: [MatButtonModule, MatDialogModule, TranslatePipe],
+  imports: [TranslatePipe, ConfirmDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-delete-dialog.html',
   styleUrl: './base-delete-dialog.scss',

@@ -18,27 +18,6 @@
   }
 }
 
-.auth-form__alert {
-  display: flex;
-  gap: $space-s;
-  align-items: flex-start;
-  margin-bottom: $space-l;
-  padding: $space-s $space-m;
-  border: 2px solid var(--cn-red-mid);
-  border-radius: $radius-l;
-  background: color-mix(in srgb, var(--cn-red-mid) 14%, transparent);
-  color: var(--cn-red-text);
-  font-size: var(--cn-fs-sm);
-
-  crn-icon {
-    flex: none;
-  }
-
-  p {
-    margin: 0.1rem 0;
-  }
-}
-
 .auth-form__hint {
   color: var(--cn-text-muted);
 }
@@ -67,39 +46,9 @@
   }
 }
 
-// Confirmation and progress messages (forgot/reset password, email verification).
-.auth-form__success,
-.auth-form__status {
-  display: flex;
-  gap: $space-s;
-  align-items: center;
+// Errors, confirmation and progress messages (`crn-alert`) above the form.
+.auth-form__message {
   margin-bottom: $space-l;
-  padding: $space-m $space-m;
-  border-radius: $radius-l;
-  font-size: var(--cn-fs-sm);
-
-  p {
-    margin: 0;
-  }
-
-  crn-icon {
-    flex: none;
-  }
-}
-
-.auth-form__success {
-  border: 2px solid var(--cn-win);
-  background: color-mix(in srgb, var(--cn-win) 14%, transparent);
-  color: var(--cn-text);
-
-  crn-icon {
-    color: var(--cn-win);
-  }
-}
-
-.auth-form__status {
-  justify-content: center;
-  color: var(--cn-text-muted);
 }
 
 .auth-form__forgot {
