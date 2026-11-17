@@ -3,6 +3,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PlayerUnit } from '../../core/models';
 import { LevelBadge } from './level-badge';
+import { initials } from '../../core/utils/initials';
 
 /**
  * Game-style unit card: icon on a dark tile with the level badge in the corner
@@ -27,12 +28,5 @@ export class UnitTile {
   readonly inactive = input(false);
 
   protected readonly maxed = computed(() => this.unit().level >= this.unit().maxLevel);
-  protected readonly initials = computed(() =>
-    this.unit()
-      .name.split(/\s+/)
-      .map((w) => w[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase(),
-  );
+  protected readonly initials = computed(() => initials(this.unit().name));
 }

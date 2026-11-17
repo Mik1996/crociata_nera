@@ -28,9 +28,7 @@
         <section class="cn-card cn-section" aria-labelledby="account-title">
           <h2 id="account-title">{{ 'profile.account.title' | translate }}</h2>
           <div class="identity">
-            <span class="identity__avatar" aria-hidden="true">{{
-              u.username.charAt(0).toUpperCase()
-            }}</span>
+            <crn-avatar size="l" [name]="u.username" />
             <div>
               <p class="identity__name">{{ u.username }}</p>
               <p class="cn-muted identity__since">

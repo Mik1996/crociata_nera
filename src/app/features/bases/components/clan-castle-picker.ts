@@ -21,6 +21,7 @@ import {
 } from '../../../core/game/clan-castle';
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { FormErrors } from '../../../shared/components/form-errors';
+import { initials } from '../../../core/utils/initials';
 
 const GROUPS: TroopGroup[] = ['elixir', 'dark', 'super'];
 
@@ -102,14 +103,7 @@ export class ClanCastlePicker implements ControlValueAccessor {
     if (!this.disabled()) this.update([]);
   }
 
-  protected initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  }
+  protected readonly initials = initials;
 
   private update(troops: ClanCastleTroop[]): void {
     this.troops.set(troops);

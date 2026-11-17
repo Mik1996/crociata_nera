@@ -293,21 +293,6 @@ mat-sidenav-content {
 }
 
 // Initial of the username in a gold game-style token.
-.account__avatar {
-  display: inline-grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 2px solid var(--cn-avatar-border);
-  border-radius: 50%;
-  background: var(--cn-avatar-bg);
-  color: var(--cn-avatar-ink);
-  font-family: var(--cn-font-engraved);
-  font-weight: 900;
-  font-size: var(--cn-fs-sm);
-  line-height: 1;
-}
-
 .language .language__code {
   margin-left: $space-s;
   font-weight: 600;

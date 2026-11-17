@@ -125,9 +125,7 @@
         [matMenuTriggerFor]="accountMenu"
         [attr.aria-label]="'auth.account.menu' | translate: { name: user.username }"
       >
-        <span class="account__avatar" aria-hidden="true">{{
-          user.username.charAt(0).toUpperCase()
-        }}</span>
+        <crn-avatar [name]="user.username" />
         <span class="account__name">{{ user.username }}</span>
         <crn-icon matButtonIcon class="picker__arrow" iconPositionEnd name="expand_more" />
       </button>
