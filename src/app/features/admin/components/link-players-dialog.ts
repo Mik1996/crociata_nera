@@ -1,8 +1,7 @@
 import { COMMA, ENTER, SPACE } from '@angular/cdk/keycodes';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -10,6 +9,8 @@ import { AdminService } from '../../../core/backend/admin.service';
 import { AdminUser, BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { PLAYER_TAG_PATTERN } from '../../auth/auth-form';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
+import { FormErrors } from '../../../shared/components/form-errors';
 
 export interface AdminUserDialogData {
   user: AdminUser;
@@ -25,14 +26,7 @@ export const normalizePlayerTag = (text: string) =>
  */
 @Component({
   selector: 'crn-link-players-dialog',
-  imports: [
-    MatButtonModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    Icon,
-    TranslatePipe,
-  ],
+  imports: [MatChipsModule, MatFormFieldModule, Icon, TranslatePipe, ConfirmDialog, FormErrors],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './link-players-dialog.html',
   styleUrl: './link-players-dialog.scss',

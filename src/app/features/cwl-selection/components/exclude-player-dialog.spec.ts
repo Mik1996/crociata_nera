@@ -30,7 +30,7 @@ describe('ExcludePlayerDialog', () => {
     const textarea = el.querySelector('textarea')!;
     textarea.value = '  Away  ';
     textarea.dispatchEvent(new Event('input'));
-    el.querySelector<HTMLButtonElement>('button.submit')!.click();
+    el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
     expect(exclude).toHaveBeenCalledWith('#AAA', 'Away');
     expect(close).toHaveBeenCalledWith(exclusion);
   });
@@ -41,7 +41,7 @@ describe('ExcludePlayerDialog', () => {
       error: { result: null, messages: [{ key: 'ERROR.EXCLUSION_REASON_IS_TOO_LONG' }] },
     });
     const { fixture, close, el } = render(() => throwError(() => error));
-    el.querySelector<HTMLButtonElement>('button.submit')!.click();
+    el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
     await fixture.whenStable();
     expect(el.querySelector('[role="alert"]')!.textContent).toContain('200 caratteri');
     expect(close).not.toHaveBeenCalled();

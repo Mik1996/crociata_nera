@@ -1,6 +1,11 @@
-<h2 mat-dialog-title>{{ 'admin.linkDialog.title' | translate: { name: data.user.username } }}</h2>
-
-<mat-dialog-content>
+<crn-confirm-dialog
+  [title]="'admin.linkDialog.title' | translate: { name: data.user.username }"
+  [confirmLabel]="'admin.actions.link' | translate"
+  [busy]="busy()"
+  [disabled]="!tags().length && !draft().trim()"
+  [errors]="errors()"
+  (confirm)="submit(input)"
+>
   <p class="intro">{{ 'admin.linkDialog.intro' | translate }}</p>
 
   <mat-form-field appearance="outline" class="field">
@@ -35,22 +40,6 @@
   </mat-form-field>
 
   @if (invalid(); as wrong) {
-    <p class="error" role="alert">{{ 'admin.linkDialog.invalid' | translate: { tag: wrong } }}</p>
+    <crn-form-errors [messages]="[{ key: 'admin.linkDialog.invalid', params: { tag: wrong } }]" />
   }
-  @for (m of errors(); track $index) {
-    <p class="error" role="alert">{{ m.key | translate: m.params }}</p>
-  }
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
-  <button
-    mat-flat-button
-    type="button"
-    class="submit"
-    [disabled]="busy() || (!tags().length && !draft().trim())"
-    (click)="submit(input)"
-  >
-    {{ 'admin.actions.link' | translate }}
-  </button>
-</mat-dialog-actions>
+</crn-confirm-dialog>
