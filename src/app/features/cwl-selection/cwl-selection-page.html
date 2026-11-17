@@ -22,26 +22,23 @@
           <h2 id="summary-title" class="cn-visually-hidden">
             {{ 'cwlSelection.summary' | translate }}
           </h2>
-          <ul class="legend">
-            <li class="legend__item legend__item--starter">
-              <span class="legend__swatch" aria-hidden="true"></span>
+          <crn-legend class="legend">
+            <crn-legend-item color="var(--cn-lineup-starter)" glow>
               {{
                 'cwlSelection.legend.starter' | translate: { n: counts().starter, max: s.starters }
               }}
-            </li>
-            <li class="legend__item legend__item--reserve">
-              <span class="legend__swatch" aria-hidden="true"></span>
+            </crn-legend-item>
+            <crn-legend-item color="var(--cn-lineup-reserve)" glow>
               {{
                 'cwlSelection.legend.reserve' | translate: { n: counts().reserve, max: s.reserves }
               }}
-            </li>
+            </crn-legend-item>
             @if (counts().excluded) {
-              <li class="legend__item legend__item--excluded">
-                <span class="legend__swatch" aria-hidden="true"></span>
+              <crn-legend-item color="var(--cn-red-text)" glow>
                 {{ 'cwlSelection.legend.excluded' | translate: { n: counts().excluded } }}
-              </li>
+              </crn-legend-item>
             }
-          </ul>
+          </crn-legend>
           <dl class="facts">
             <div>
               <dt>{{ 'cwlSelection.facts.townHall' | translate }}</dt>

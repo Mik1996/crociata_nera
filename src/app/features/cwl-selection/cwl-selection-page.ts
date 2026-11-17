@@ -34,6 +34,8 @@ import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclu
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { Tag, TagTone } from '../../shared/components/tag';
 import { Meter, MeterSegment } from '../../shared/components/meter';
+import { Legend } from '../../shared/components/legend';
+import { LegendItem } from '../../shared/components/legend-item';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -111,6 +113,8 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
     TownHallIcon,
     Tag,
     Meter,
+    Legend,
+    LegendItem,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

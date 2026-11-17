@@ -9,39 +9,7 @@
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-s $space-l;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.legend__item {
-  display: flex;
-  align-items: center;
-  gap: $space-s;
   font-family: var(--cn-font-display);
-
-  &--starter {
-    --lineup: var(--cn-lineup-starter);
-  }
-
-  &--reserve {
-    --lineup: var(--cn-lineup-reserve);
-  }
-
-  &--excluded {
-    --lineup: var(--cn-red-text);
-  }
-}
-
-.legend__swatch {
-  width: 1rem;
-  height: 1rem;
-  border-radius: $radius-s;
-  background: var(--lineup);
-  box-shadow: 0 0 0.5rem var(--lineup);
 }
 
 .facts {
