@@ -1,0 +1,53 @@
+@use 'variables' as *;
+@use 'color-palette' as palette;
+
+:host {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-s;
+  padding: $space-s $space-m;
+  border: 2px solid transparent;
+  border-radius: $radius-l;
+  font-size: var(--cn-fs-sm);
+}
+
+.alert__icon {
+  flex: none;
+}
+
+.alert__body {
+  min-width: 0;
+
+  ::ng-deep p {
+    margin: 0.1rem 0;
+  }
+}
+
+:host(.alert--error) {
+  border-color: var(--cn-red-mid);
+  background: palette.alpha(var(--cn-red-mid), 14%);
+  color: var(--cn-red-text);
+}
+
+:host(.alert--success) {
+  border-color: var(--cn-win);
+  background: palette.alpha(var(--cn-win), 14%);
+  color: var(--cn-text);
+
+  .alert__icon {
+    color: var(--cn-win);
+  }
+}
+
+:host(.alert--warning) {
+  border-color: var(--cn-gold-dark);
+  background: var(--cn-tint-gold);
+  color: var(--cn-gold-light);
+}
+
+:host(.alert--info) {
+  align-items: center;
+  justify-content: center;
+  padding: $space-m;
+  color: var(--cn-text-muted);
+}
