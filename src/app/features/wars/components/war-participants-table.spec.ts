@@ -3,21 +3,42 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { AuthService } from '../../../core/backend/auth.service';
+import { WarService } from '../../../core/services/war.service';
 import { participantRows } from '../../../core/utils/war-stats';
 import { provideCocApiTest, sampleWar } from '../../../testing/fixtures';
+import { participantFilters, participantSortKey } from '../../../shared/table/clan-tables';
 import { Table } from '../../../shared/table/table';
-import { TableFilterValues } from '../../../shared/table/table-filters';
+import { TableFilterValues, TableQuery } from '../../../shared/table/table-filters';
+import { applyTableQuery } from '../../../shared/table/table-page';
 import { WarParticipantsTable } from './war-participants-table';
+
+/** The backend's answer: the players of the sample war, filtered and sorted as asked. */
+function participantsTable(warId: string, query: TableQuery) {
+  const rows = warId === sampleWar().id ? participantRows(sampleWar()) : [];
+  const summary = { townHalls: [...new Set(rows.map((r) => r.townHall))].sort((a, b) => b - a) };
+  return of(
+    applyTableQuery(rows, participantFilters(summary), query, {
+      sortKey: participantSortKey,
+      summary: () => summary,
+    }),
+  );
+}
 
 describe('WarParticipantsTable', () => {
   let fixture: ComponentFixture<WarParticipantsTable>;
 
-  /** Sets the values of the filters of the table, as typed in its filter row. */
+  /**
+   * Sets the values of the filters of the table, as typed in its filter row, and waits for the
+   * pause after which the table asks the backend for the matching rows.
+   */
   const filter = async (values: TableFilterValues) => {
     const table = fixture.debugElement.query(By.directive(Table))
       .componentInstance as Table<unknown>;
     table.filterValues.set(values as Record<string, never>);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 350));
     await fixture.whenStable();
   };
 
@@ -33,10 +54,11 @@ describe('WarParticipantsTable', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideCocApiTest({ useMockApi: true }),
+        { provide: WarService, useValue: { getParticipantsTable: participantsTable } },
       ],
     });
     fixture = TestBed.createComponent(WarParticipantsTable);
-    fixture.componentRef.setInput('rows', participantRows(sampleWar()));
+    fixture.componentRef.setInput('warId', sampleWar().id);
     fixture.componentRef.setInput('inProgress', true);
     await fixture.whenStable();
   });

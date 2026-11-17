@@ -9,42 +9,45 @@
   />
 
   <div class="page__body">
+    <!-- Without wars at all, the empty state; the table shows its own loading and errors. -->
     <crn-load-state
-      [loading]="resource.isLoading()"
-      [error]="resource.error()"
-      [empty]="record().total === 0"
+      [empty]="history.summary()?.wars === 0"
       emptyIcon="history_edu"
       [emptyMessage]="'history.empty' | translate"
-      (retry)="resource.reload()"
     >
-      @let totals = record();
-      <div class="cn-grid-kpi">
-        <crn-kpi-card
-          icon="flag"
-          [label]="'history.warsAnalyzed' | translate"
-          [value]="totals.total"
-        />
-        <crn-kpi-card
-          icon="emoji_events"
-          [label]="'history.victories' | translate"
-          [value]="totals.victories"
-          [hint]="
-            'history.ofTotal'
-              | translate
-                : { percent: ((totals.victories / totals.total) * 100 | localNumber: '1.0-0') }
-          "
-        />
-        <crn-kpi-card
-          icon="heart_broken"
-          [label]="'history.defeats' | translate"
-          [value]="totals.defeats"
-        />
-        <crn-kpi-card icon="balance" [label]="'history.draws' | translate" [value]="totals.draws" />
-      </div>
+      @if (history.summary(); as totals) {
+        <div class="cn-grid-kpi">
+          <crn-kpi-card
+            icon="flag"
+            [label]="'history.warsAnalyzed' | translate"
+            [value]="totals.wars"
+          />
+          <crn-kpi-card
+            icon="emoji_events"
+            [label]="'history.victories' | translate"
+            [value]="totals.victories"
+            [hint]="
+              'history.ofTotal'
+                | translate
+                  : { percent: ((totals.victories / totals.wars) * 100 | localNumber: '1.0-0') }
+            "
+          />
+          <crn-kpi-card
+            icon="heart_broken"
+            [label]="'history.defeats' | translate"
+            [value]="totals.defeats"
+          />
+          <crn-kpi-card
+            icon="balance"
+            [label]="'history.draws' | translate"
+            [value]="totals.draws"
+          />
+        </div>
+      }
 
       <section class="cn-card cn-section">
         <crn-table
-          [data]="rows()"
+          [source]="history"
           [columns]="columns"
           [caption]="'history.finishedWars' | translate"
           [pageSize]="25"
@@ -52,7 +55,6 @@
           matSort
           matSortActive="date"
           matSortDirection="desc"
-          (matSortChange)="updateSort($event)"
         >
           <ng-container matColumnDef="date">
             <th

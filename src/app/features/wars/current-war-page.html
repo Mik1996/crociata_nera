@@ -51,7 +51,7 @@
         <section class="cn-card cn-section">
           <crn-war-participants-table
             [caption]="'currentWar.participants' | translate"
-            [rows]="rows()"
+            [warId]="w.id"
             [attacksPerMember]="w.attacksPerMember"
             [inProgress]="w.state !== 'ended'"
             [preparation]="w.state === 'preparation'"

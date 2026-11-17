@@ -81,9 +81,8 @@
           <div class="raid-grid">
             <section class="cn-card cn-section">
               <crn-table
-                #table="crnTable"
                 class="members"
-                [data]="w.members"
+                [source]="members"
                 [columns]="columns"
                 [caption]="'raids.members' | translate"
                 [filters]="filters"
@@ -92,9 +91,7 @@
                 <ng-container matColumnDef="rank">
                   <th mat-header-cell *matHeaderCellDef>#</th>
                   <!-- Position in the whole list: it does not change when the rows are filtered. -->
-                  <td mat-cell *matCellDef="let m" class="cn-num">
-                    {{ w.members.indexOf(m) + 1 }}
-                  </td>
+                  <td mat-cell *matCellDef="let m" class="cn-num">{{ m.rank }}</td>
                   <td mat-footer-cell *matFooterCellDef>{{ 'raids.total' | translate }}</td>
                 </ng-container>
                 <ng-container matColumnDef="name">
@@ -119,7 +116,7 @@
                     {{ m.attacks }}/{{ m.attackLimit }}
                   </td>
                   <td mat-footer-cell *matFooterCellDef class="cn-num">
-                    {{ sum(table.rows(), 'attacks') }}/{{ sum(table.rows(), 'attackLimit') }}
+                    {{ members.summary()?.attacks }}/{{ members.summary()?.attackLimit }}
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="looted">
@@ -128,7 +125,7 @@
                     {{ m.looted | localNumber }}
                   </td>
                   <td mat-footer-cell *matFooterCellDef class="cn-num">
-                    {{ sum(table.rows(), 'looted') | localNumber }}
+                    {{ members.summary()?.looted | localNumber }}
                   </td>
                 </ng-container>
                 <tr

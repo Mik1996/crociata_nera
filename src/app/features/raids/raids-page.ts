@@ -12,13 +12,14 @@ import { GAME_ICONS } from '../../core/game/game-assets';
 import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
-import { RaidMember, RaidSeason } from '../../core/models';
+import { RaidSeason } from '../../core/models';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { Table } from '../../shared/table/table';
-import { TableFilters } from '../../shared/table/table-filters';
+import { RAID_MEMBER_FILTERS } from '../../shared/table/clan-tables';
+import { serverTable } from '../../shared/table/server-table';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -87,16 +88,15 @@ export class RaidsPage {
   protected readonly GAME_ICONS = GAME_ICONS;
 
   protected readonly columns = ['rank', 'name', 'attacks', 'looted'];
-  protected readonly filters: TableFilters<RaidMember> = {
-    name: { type: 'text', value: (m) => [m.name, m.tag], placeholder: 'common.nameOrTag' },
-    attacks: { type: 'number' },
-    looted: { type: 'number' },
-  };
-
-  /** Total of a field over the rows shown (footer). */
-  protected sum(rows: readonly RaidMember[], field: 'attacks' | 'attackLimit' | 'looted'): number {
-    return rows.reduce((total, m) => total + m[field], 0);
-  }
+  protected readonly filters = RAID_MEMBER_FILTERS;
+  /** Members who attacked in the weekend, filtered and paged by the backend, with their totals. */
+  protected readonly members = serverTable({
+    params: () => {
+      const weekend = this.weekend();
+      return weekend?.hasMembers ? weekend.id : undefined;
+    },
+    load: (query, weekend) => this.api.getRaidMembersTable(weekend, query),
+  });
 
   protected readonly MAXIMUM_CAPITAL_RAIDS = MAXIMUM_CAPITAL_RAIDS;
 

@@ -27,17 +27,16 @@
   </crn-page-header>
 
   <div class="page__body">
+    <!-- The KPIs need the period; the tables show their own loading and errors. -->
     <crn-load-state
-      [loading]="months.isLoading() || data.isLoading()"
-      [error]="months.error() ?? data.error()"
-      [empty]="isHistoryEmpty() || !periodData()"
+      [loading]="months.isLoading()"
+      [error]="months.error()"
+      [empty]="isHistoryEmpty()"
       emptyIcon="leaderboard"
-      [emptyMessage]="
-        (isHistoryEmpty() ? 'statistics.historyEmpty' : 'statistics.periodEmpty') | translate
-      "
+      [emptyMessage]="'statistics.historyEmpty' | translate"
       (retry)="reload()"
     >
-      @if (periodData(); as d) {
+      @if (months.hasValue()) {
         @if (kpi(); as k) {
           <div class="cn-grid-kpi">
             <crn-kpi-card
@@ -90,14 +89,13 @@
         <section class="cn-card cn-section">
           <crn-table
             class="ranking"
-            [data]="rows()"
+            [source]="ranking"
             [columns]="columns"
-            [caption]="'statistics.ranking' | translate: { period: periodLabel(d.period) }"
+            [caption]="'statistics.ranking' | translate: { period: periodLabel(period()) }"
             [filters]="rankingFilters"
             matSort
             matSortActive="averageStarsPerWar"
             matSortDirection="desc"
-            (matSortChange)="updateSort($event)"
           >
             <ng-container matColumnDef="rank">
               <th
@@ -324,11 +322,9 @@
             ></tr>
           </crn-table>
 
-          @if (d.updatedAt) {
+          @if (periodData()?.updatedAt; as updatedAt) {
             <p class="cn-muted updated">
-              {{
-                'statistics.updated' | translate: { date: (d.updatedAt | localDate: 'dateTime') }
-              }}
+              {{ 'statistics.updated' | translate: { date: (updatedAt | localDate: 'dateTime') } }}
             </p>
           }
           <p class="cn-muted legend" [innerHTML]="'statistics.legend' | translate"></p>
@@ -336,9 +332,9 @@
 
         <section class="cn-card cn-section">
           <crn-table
-            [data]="d.wars"
+            [source]="wars"
             [columns]="warColumns"
-            [caption]="'statistics.periodWars' | translate: { n: d.wars.length }"
+            [caption]="'statistics.periodWars' | translate: { n: periodData()?.wars?.length ?? 0 }"
             [pageSize]="25"
             [filters]="warFilters"
           >

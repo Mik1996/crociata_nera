@@ -499,6 +499,7 @@
     "PERIOD_IS_NOT_VALID": "Invalid period.",
     "HISTORY_NOT_FOUND": "No wars recorded in the period.",
     "CWL_SEASON_NOT_FOUND": "League season not found.",
+    "RAID_SEASON_NOT_FOUND": "Raid Weekend not found.",
     "PLAYER_NOT_FOUND": "Player not found.",
     "PLAYERS_SYNC_FAILED": "Reading the members from Clash of Clans failed.",
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Enter the API token shown in the game.",
@@ -986,7 +987,8 @@
     "from": "From",
     "to": "To",
     "paginator": "Pages of the table {{name}}",
-    "found": "{{n}} results"
+    "found": "{{n}} results",
+    "loading": "Loading…"
   },
   "cwlSelection": {
     "subtitle": "Ranking of the players of the three clans of the Crusade to pick the 15 to field in the League and the 3 reserves.",

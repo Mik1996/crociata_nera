@@ -6,7 +6,6 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { Icon } from '../../shared/icon/icon';
@@ -15,15 +14,15 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { AdminService, AdminUserQuery } from '../../core/backend/admin.service';
 import { AuthService } from '../../core/backend/auth.service';
 import { AdminUser, BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { LocalDatePipe } from '../../core/i18n/locale-pipes';
-import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { serverTable } from '../../shared/table/server-table';
 import { Table } from '../../shared/table/table';
 import {
   DayRange,
@@ -89,7 +88,6 @@ const DIALOG_CONFIG = {
     MatTooltipModule,
     TranslatePipe,
     LocalDatePipe,
-    LoadState,
     PageHeader,
     ScrollFade,
   ],
@@ -116,44 +114,21 @@ export class AdminPage {
   };
   protected readonly pageSize = PAGE_SIZE;
 
-  /** What the table asks for; the first page, most recent sign-ups first, until it asks. */
-  private readonly query = signal<TableQuery>(
-    {
-      filters: {},
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-      sort: { active: 'createdAt', direction: 'desc' },
-    },
-    { equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
-  );
-  protected readonly users = rxResource({
-    params: () => userQuery(this.query()),
-    stream: ({ params }) => this.admin.listUsers(params),
+  /** Users, filtered, sorted and paged by the backend. */
+  protected readonly users = serverTable({
+    load: (query) =>
+      this.admin
+        .listUsers(userQuery(query))
+        .pipe(map((page) => ({ ...page, limit: page.limit ?? null }))),
   });
-  /** The last page received: it stays in the table while the next one loads. */
-  private readonly page = linkedSignal<
-    { value: AdminUser[]; total: number } | undefined,
-    { value: AdminUser[]; total: number } | undefined
-  >({
-    source: () =>
-      this.users.hasValue()
-        ? { value: this.users.value().items, total: this.users.value().total }
-        : undefined,
-    computation: (page, previous) => page ?? previous?.value,
-  });
-  protected readonly rows = computed(() => this.page()?.value ?? []);
-  /** Users matching the filters. */
-  protected readonly matching = computed(() => this.page()?.total ?? 0);
   /** Registered users: the total of the last page asked without filters. */
   protected readonly total = linkedSignal<number, number>({
-    source: () => (Object.keys(this.query().filters).length || !this.page() ? -1 : this.matching()),
+    source: () =>
+      !this.users.loaded() || Object.keys(this.users.query()?.filters ?? {}).length
+        ? -1
+        : this.users.total(),
     computation: (total, previous) => (total >= 0 ? total : (previous?.value ?? 0)),
   });
-  protected readonly loaded = computed(() => this.page() !== undefined);
-
-  protected changeQuery(query: TableQuery): void {
-    this.query.set(query);
-  }
 
   protected readonly busy = signal<string | null>(null);
   protected readonly feedback = signal<{
@@ -194,14 +169,11 @@ export class AdminPage {
       .afterClosed()
       .subscribe((deleted) => {
         if (!deleted) return;
-        this.users.update(
-          (page) =>
-            page && {
-              ...page,
-              items: page.items.filter((u) => u.id !== user.id),
-              total: page.total - 1,
-            },
-        );
+        this.users.update((page) => ({
+          ...page,
+          items: page.items.filter((u) => u.id !== user.id),
+          total: page.total - 1,
+        }));
         this.feedback.set({
           kind: 'success',
           messages: [{ key: 'SUCCESS.USER_DELETED', params: { name: user.username } }],
@@ -244,8 +216,9 @@ export class AdminPage {
   }
 
   private replace(user: AdminUser): void {
-    this.users.update(
-      (page) => page && { ...page, items: page.items.map((u) => (u.id === user.id ? user : u)) },
-    );
+    this.users.update((page) => ({
+      ...page,
+      items: page.items.map((u) => (u.id === user.id ? user : u)),
+    }));
   }
 }

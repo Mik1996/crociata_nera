@@ -4,7 +4,34 @@ import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
-import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import {
+  Clan,
+  ClanRanks,
+  ClanRecords,
+  CwlPlayerRow,
+  CwlSeason,
+  CwlSeasonSummary,
+  DonationSeason,
+  HistoryPeriod,
+  MemberStatsRow,
+  MemberStatsSummary,
+  MonthSummary,
+  ParticipantsSummary,
+  PeriodWarRow,
+  PlayerProfile,
+  RaidMemberRow,
+  RaidMembersSummary,
+  RaidSeason,
+  RankingOptions,
+  RankingRow,
+  War,
+  WarHistoryRow,
+  WarHistorySummary,
+  WarPerformance,
+} from '../models';
+import { TableQuery } from '../../shared/table/table-filters';
+import { TablePage, tableQueryParams, TableParams } from '../../shared/table/table-page';
+import { ParticipantRow } from '../utils/war-stats';
 import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
 import { CocApiService } from './coc-api';
 import { CocApiClient } from './coc-api-client';
@@ -34,6 +61,9 @@ export { CocApiHttpError, toApiError } from './coc-api-errors';
  * War history and monthly statistics come first from the application backend
  * (`{backend}/wars/archive`, `{backend}/history`), which saves every war in MongoDB; if the
  * backend cannot answer, the proxy archive above is used instead.
+ *
+ * The tables of the pages are filtered, sorted and paged by the backend: one request per page,
+ * sort and filter change (`get…Table`, query string from {@link tableQueryParams}).
  *
  * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that
  * changes during a war (see {@link CACHE}).
@@ -226,6 +256,59 @@ export class HttpCocApiService extends CocApiService {
         switchMap((saved) => (saved.length ? of(saved) : api$)),
         map((seasons) => seasons.map(mapRaidSeason)),
       );
+  }
+
+  // --- Tables ---------------------------------------------------------------------------------
+
+  /** A page of a backend table route (`path` below the backend's base URL). */
+  private table<T, S = undefined>(
+    path: string,
+    query: TableQuery,
+    context = CACHE.archive,
+    extra: TableParams = {},
+  ): Observable<TablePage<T, S>> {
+    return this.http
+      .get<BaseResult<TablePage<T, S>>>(`${this.config.backendBaseUrl}${path}`, {
+        params: { ...tableQueryParams(query), ...extra },
+        context,
+      })
+      .pipe(map((response) => response.result!));
+  }
+
+  getWarHistoryTable(query: TableQuery): Observable<TablePage<WarHistoryRow, WarHistorySummary>> {
+    return this.table('/wars/history', query);
+  }
+
+  getWarParticipantsTable(warId: string, query: TableQuery): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
+    // The war in progress changes during the battle day.
+    return this.table(`/wars/${encodeURIComponent(warId)}/participants`, query, CACHE.currentWar);
+  }
+
+  getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
+    return this.table('/players', query, CACHE.currentWar);
+  }
+
+  getPlayerWarsTable(tag: string, query: TableQuery): Observable<TablePage<WarPerformance>> {
+    return this.table(`/players/${encodeURIComponent(tag)}/wars`, query);
+  }
+
+  getRankingTable(period: string, options: RankingOptions, query: TableQuery): Observable<TablePage<RankingRow>> {
+    return this.table(`/history/${encodeURIComponent(period)}/ranking`, query, CACHE.archive, {
+      minWars: String(options.minWars),
+      currentMembersOnly: String(options.currentMembersOnly),
+    });
+  }
+
+  getPeriodWarsTable(period: string, query: TableQuery): Observable<TablePage<PeriodWarRow>> {
+    return this.table(`/history/${encodeURIComponent(period)}/wars`, query);
+  }
+
+  getCwlPlayersTable(season: string, query: TableQuery): Observable<TablePage<CwlPlayerRow>> {
+    return this.table(`/cwl/seasons/${encodeURIComponent(season)}/players`, query);
+  }
+
+  getRaidMembersTable(weekend: string, query: TableQuery): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
+    return this.table(`/raids/seasons/${encodeURIComponent(weekend)}/members`, query);
   }
 
   getWar(id: string): Observable<War | null> {

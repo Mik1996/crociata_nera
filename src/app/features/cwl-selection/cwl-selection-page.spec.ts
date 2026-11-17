@@ -83,11 +83,20 @@ const SELECTION: CwlSelection = {
   ],
 };
 
+/** The ranking as the backend pages it (one page with every player). */
+const PLAYERS_PAGE = {
+  items: SELECTION.players,
+  total: SELECTION.players.length,
+  page: 1,
+  limit: null,
+};
+
 describe('CwlSelectionPage', () => {
   /** With mock data (the default of the tests) the actions are shown, as for administrators. */
   async function render() {
     const service = {
       get: vi.fn(() => of(SELECTION)),
+      getPlayersTable: vi.fn(() => of(PLAYERS_PAGE)),
       exclude: vi.fn(),
       readmit: vi.fn(() => of(undefined)),
     };
@@ -178,7 +187,9 @@ describe('CwlSelectionPage', () => {
     readmit.click();
     await fixture.whenStable();
     expect(service.readmit).toHaveBeenCalledWith('#P1');
+    // Summary and table asked again.
     expect(service.get).toHaveBeenCalledTimes(2);
+    expect(service.getPlayersTable).toHaveBeenCalledTimes(2);
   });
 
   it('hides the actions from leaders who are not administrators', async () => {
@@ -186,7 +197,10 @@ describe('CwlSelectionPage', () => {
       providers: [
         provideRouter([]),
         provideCocApiTest({ useMockApi: false }),
-        { provide: CwlSelectionService, useValue: { get: () => of(SELECTION) } },
+        {
+          provide: CwlSelectionService,
+          useValue: { get: () => of(SELECTION), getPlayersTable: () => of(PLAYERS_PAGE) },
+        },
       ],
     });
     const fixture = TestBed.createComponent(CwlSelectionPage);

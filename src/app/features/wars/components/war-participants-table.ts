@@ -1,20 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/backend/auth.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
-import { sortRows, SortState } from '../../../core/utils/sort';
-import { ParticipantRow } from '../../../core/utils/war-stats';
+import { WarService } from '../../../core/services/war.service';
 import { Stars } from '../../../shared/components/stars';
 import { TownHallIcon } from '../../../shared/game/town-hall-icon';
 import { Icon } from '../../../shared/icon/icon';
+import { participantFilters } from '../../../shared/table/clan-tables';
+import { serverTable } from '../../../shared/table/server-table';
 import { Table } from '../../../shared/table/table';
-import { TableFilters } from '../../../shared/table/table-filters';
 
-/** War participants table with filters (in the table) and sorting. */
+/** The clan's players in a war, filtered, sorted and paged by the backend. */
 @Component({
   selector: 'crn-war-participants-table',
   imports: [
@@ -34,7 +34,8 @@ import { TableFilters } from '../../../shared/table/table-filters';
   styleUrl: './war-participants-table.scss',
 })
 export class WarParticipantsTable {
-  readonly rows = input.required<ParticipantRow[]>();
+  /** The war (current or past) whose players are shown. */
+  readonly warId = input.required<string>();
   /** Name of the table, in its caption. */
   readonly caption = input('');
   readonly attacksPerMember = input(2);
@@ -59,34 +60,17 @@ export class WarParticipantsTable {
     'targets',
   ];
 
-  private readonly sort = signal<SortState>({ field: 'mapPosition', direction: 'asc' });
+  private readonly wars = inject(WarService);
+  protected readonly participants = serverTable({
+    params: () => this.warId(),
+    load: (query, warId) => this.wars.getParticipantsTable(warId, query),
+  });
 
   /** Filters of the table: the town halls offered are the ones in the war. */
-  protected readonly filters = computed<TableFilters<ParticipantRow>>(() => ({
-    townHall: {
-      type: 'select',
-      options: [...new Set(this.rows().map((r) => r.townHall))]
-        .sort((a, b) => b - a)
-        .map((th) => ({ value: th, label: 'common.townHallN', params: { n: th } })),
-    },
-    name: { type: 'text', value: (r) => [r.name, r.tag], placeholder: 'common.nameOrTag' },
-    // Yes: has attacked at least once.
-    attacks: { type: 'boolean', value: (r) => r.hasAttacked },
-    stars: { type: 'number' },
-    averageDestruction: {
-      type: 'number',
-      value: (r) => (r.hasAttacked ? r.averageDestruction : null),
-    },
-  }));
+  protected readonly filters = computed(() => participantFilters(this.participants.summary()));
 
-  /** Participants sorted; the table filters them. */
-  protected readonly sortedRows = computed(() =>
-    sortRows(this.rows(), this.sort(), (r, field) =>
-      field === 'attacks' ? r.attacksUsed : (r[field as keyof ParticipantRow] as number | string),
-    ),
-  );
-
-  protected updateSort(sort: Sort): void {
-    this.sort.set({ field: sort.active, direction: sort.direction });
+  /** Asks the rows again (the war in progress, after "Refresh"). */
+  reload(): void {
+    this.participants.reload();
   }
 }

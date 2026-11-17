@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { WarService } from '../../core/services/war.service';
-import { computeWarKpi, participantRows } from '../../core/utils/war-stats';
+import { computeWarKpi } from '../../core/utils/war-stats';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
@@ -50,10 +50,6 @@ export class WarDetailPage {
   protected readonly war = computed(() =>
     this.resource.hasValue() ? this.resource.value() : null,
   );
-  protected readonly rows = computed(() => {
-    const w = this.war();
-    return w ? participantRows(w) : [];
-  });
   protected readonly kpi = computed(() => {
     const w = this.war();
     return w?.hasDetails ? computeWarKpi(w) : null;

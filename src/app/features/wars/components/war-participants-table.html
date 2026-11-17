@@ -1,12 +1,11 @@
 <crn-table
-  [data]="sortedRows()"
+  [source]="participants"
   [columns]="columns"
   [caption]="caption()"
   [filters]="filters()"
   matSort
   matSortActive="mapPosition"
   matSortDirection="asc"
-  (matSortChange)="updateSort($event)"
 >
   <ng-container matColumnDef="mapPosition">
     <th

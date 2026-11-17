@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { WarService } from '../../core/services/war.service';
-import { computeWarKpi, participantRows } from '../../core/utils/war-stats';
+import { computeWarKpi } from '../../core/utils/war-stats';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { KpiCard } from '../../shared/components/kpi-card';
 import { LoadState } from '../../shared/components/load-state';
@@ -43,15 +43,14 @@ export class CurrentWarPage {
     this.resource.hasValue() ? this.resource.value() : null,
   );
 
-  /** "Refresh" skips the cache: the current war is read again from the API. */
+  private readonly participants = viewChild(WarParticipantsTable);
+
+  /** "Refresh" skips the cache: the current war (and its players) are read again from the API. */
   protected refresh(): void {
     this.wars.refreshCurrentWar();
+    this.participants()?.reload();
     this.resource.reload();
   }
-  protected readonly rows = computed(() => {
-    const w = this.war();
-    return w ? participantRows(w) : [];
-  });
   protected readonly kpi = computed(() => {
     const w = this.war();
     return w ? computeWarKpi(w) : null;

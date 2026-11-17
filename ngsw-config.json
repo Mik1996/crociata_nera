@@ -64,7 +64,7 @@
         "/api/v1/cwl/seasons",
         "/api/v1/raids/seasons",
         "/api/v1/donations/seasons",
-        "/api/v1/players/",
+        "/api/v1/players",
         "/api/v1/bases",
         "/api/v1/clan/records"
       ],

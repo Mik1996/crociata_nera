@@ -499,6 +499,7 @@
     "PERIOD_IS_NOT_VALID": "Periodo non valido.",
     "HISTORY_NOT_FOUND": "Nessuna guerra registrata nel periodo.",
     "CWL_SEASON_NOT_FOUND": "Stagione della Lega non trovata.",
+    "RAID_SEASON_NOT_FOUND": "Raid Weekend non trovato.",
     "PLAYER_NOT_FOUND": "Giocatore non trovato.",
     "PLAYERS_SYNC_FAILED": "Lettura dei membri da Clash of Clans non riuscita.",
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Inserisci il token API mostrato nel gioco.",
@@ -986,7 +987,8 @@
     "from": "Dal",
     "to": "Al",
     "paginator": "Pagine della tabella {{name}}",
-    "found": "{{n}} risultati"
+    "found": "{{n}} risultati",
+    "loading": "Caricamento…"
   },
   "cwlSelection": {
     "subtitle": "Classifica dei giocatori dei tre clan della Crociata per scegliere i 15 da schierare in Lega e le 3 riserve.",

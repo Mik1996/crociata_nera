@@ -6,8 +6,8 @@
           {{ caption() }}
           <!-- Always present, so screen readers announce the count when the filters change. -->
           <span class="crn-table__count" aria-live="polite">
-            @if (activeFilters()) {
-              @if (serverSide()) {
+            @if (activeFilters() && !failure()) {
+              @if (isServer()) {
                 {{ 'table.found' | translate: { n: matching() } }}
               } @else {
                 {{ 'table.shown' | translate: { shown: rows().length, total: data().length } }}
@@ -199,12 +199,36 @@
       <td class="mat-mdc-cell crn-table__empty" [attr.colspan]="columns().length">
         <!-- As wide as the visible area, so the message stays centred when the table is wider. -->
         <div class="crn-table__empty-text">
-          {{ (activeFilters() ? 'table.noResults' : 'table.empty') | translate }}
+          @if (failure()) {
+            <div class="crn-table__failure" role="alert">
+              <crn-icon name="error" />
+              <span>{{ failureText() }}</span>
+              <button mat-stroked-button type="button" (click)="retryLoad()">
+                {{ 'status.retry' | translate }}
+              </button>
+            </div>
+          } @else if (isLoading()) {
+            <div class="crn-table__loading-text">
+              <mat-progress-spinner mode="indeterminate" diameter="28" />
+              <span>{{ 'table.loading' | translate }}</span>
+            </div>
+          } @else {
+            {{ (activeFilters() ? 'table.noResults' : 'table.empty') | translate }}
+          }
         </div>
       </td>
     </tr>
   </table>
 </div>
+
+<!-- Under the header while rows load: the rows shown stay (dimmed) until the new ones arrive. -->
+@if (isLoading()) {
+  <mat-progress-bar
+    class="crn-table__progress"
+    mode="indeterminate"
+    [attr.aria-label]="'table.loading' | translate"
+  />
+}
 
 <!-- Shown while there is more than one page of the smallest size, so the size can be changed back. -->
 @if (pageSize(); as size) {

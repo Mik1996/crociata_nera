@@ -6,7 +6,8 @@ import { ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes';
-import { PlayerStats, WarPerformance } from '../../../core/models';
+import { PlayerStats } from '../../../core/models';
+import { PlayerService } from '../../../core/services/player.service';
 import { ThemeService } from '../../../core/theme/theme.service';
 import { efficiency } from '../../../core/utils/war-stats';
 import {
@@ -18,9 +19,9 @@ import {
 } from '../../../shared/charts/chart-theme';
 import { KpiCard } from '../../../shared/components/kpi-card';
 import { ResultBadge } from '../../../shared/components/result-badge';
-import { resultKey, WAR_RESULTS } from '../../../shared/labels';
 import { Table } from '../../../shared/table/table';
-import { TableFilters } from '../../../shared/table/table-filters';
+import { PLAYER_WARS_FILTERS } from '../../../shared/table/clan-tables';
+import { serverTable } from '../../../shared/table/server-table';
 import { GAME_ICONS } from '../../../core/game/game-assets';
 
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
@@ -62,22 +63,13 @@ export class PlayerWarStats {
     'stars',
     'averageDestruction',
   ];
-  protected readonly filters: TableFilters<WarPerformance> = {
-    date: { type: 'date' },
-    opponent: { type: 'text' },
-    result: {
-      type: 'select',
-      options: WAR_RESULTS.map((r) => ({ value: r, label: resultKey(r) })),
-    },
-    attacks: { type: 'number', value: (p) => p.attacksUsed },
-    stars: { type: 'number' },
-    averageDestruction: {
-      type: 'number',
-      value: (p) => (p.attacksUsed ? p.averageDestruction : null),
-    },
-  };
-  /** Table ordered from the most recent war. */
-  protected readonly recentWars = computed(() => [...this.stats().history].reverse());
+  protected readonly filters = PLAYER_WARS_FILTERS;
+  private readonly players = inject(PlayerService);
+  /** The player's wars, most recent first, filtered, sorted and paged by the backend. */
+  protected readonly wars = serverTable({
+    params: () => this.stats().tag,
+    load: (query, tag) => this.players.getPlayerWarsTable(tag, query),
+  });
 
   private readonly labels = computed(() =>
     this.stats().history.map(

@@ -499,6 +499,7 @@
     "PERIOD_IS_NOT_VALID": "Periodo no válido.",
     "HISTORY_NOT_FOUND": "No hay guerras registradas en el periodo.",
     "CWL_SEASON_NOT_FOUND": "Temporada de Liga no encontrada.",
+    "RAID_SEASON_NOT_FOUND": "Raid Weekend no encontrado.",
     "PLAYER_NOT_FOUND": "Jugador no encontrado.",
     "PLAYERS_SYNC_FAILED": "No se pudieron leer los miembros de Clash of Clans.",
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Introduce el token de API que muestra el juego.",
@@ -986,7 +987,8 @@
     "from": "Desde",
     "to": "Hasta",
     "paginator": "Páginas de la tabla {{name}}",
-    "found": "{{n}} resultados"
+    "found": "{{n}} resultados",
+    "loading": "Cargando…"
   },
   "cwlSelection": {
     "subtitle": "Clasificación de los jugadores de los tres clanes de la Cruzada para elegir los 15 que alinear en la Liga y los 3 reservas.",

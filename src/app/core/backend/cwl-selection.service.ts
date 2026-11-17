@@ -3,7 +3,9 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { noCache } from '../http/http-cache';
-import { BaseResult, CwlExclusion, CwlSelection } from './backend-api.types';
+import { TableQuery } from '../../shared/table/table-filters';
+import { TablePage, tableQueryParams } from '../../shared/table/table-page';
+import { BaseResult, CwlExclusion, CwlSelection, CwlSelectionPlayer } from './backend-api.types';
 
 /**
  * Ranking of the clan members for the CWL line-up (leaders only); exclusions by administrators.
@@ -12,6 +14,8 @@ import { BaseResult, CwlExclusion, CwlSelection } from './backend-api.types';
  */
 export abstract class CwlSelectionService {
   abstract get(): Observable<CwlSelection>;
+  /** The players of the ranking as a table, filtered, sorted and paged by the backend. */
+  abstract getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>>;
   /** Excludes a player from the line-up (administrators); excluding again replaces the reason. */
   abstract exclude(tag: string, reason: string | null): Observable<CwlExclusion>;
   /** Takes an excluded player back into the line-up (administrators). */
@@ -30,6 +34,15 @@ export class HttpCwlSelectionService extends CwlSelectionService {
     // Always fresh: the ranking follows the members, their town halls, the wars and the exclusions.
     return this.http
       .get<BaseResult<CwlSelection>>(this.url, { context: noCache() })
+      .pipe(map((response) => response.result!));
+  }
+
+  getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>> {
+    return this.http
+      .get<BaseResult<TablePage<CwlSelectionPlayer>>>(`${this.url}/players`, {
+        params: tableQueryParams(query),
+        context: noCache(),
+      })
       .pipe(map((response) => response.result!));
   }
 

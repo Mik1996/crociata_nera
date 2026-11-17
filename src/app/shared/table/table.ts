@@ -17,6 +17,7 @@ import {
   OnInit,
   output,
   signal,
+  untracked,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
@@ -25,6 +26,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort } from '@angular/material/sort';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -37,7 +40,12 @@ import {
   MatTableModule,
 } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '@ngx-translate/core';
+import { backendErrors } from '../../core/backend/backend-errors';
+import { LanguageService } from '../../core/i18n/language.service';
+import { Connectivity } from '../../core/pwa/connectivity';
+import { errorMessage } from '../components/load-state';
 import { ResizableColumns } from '../directives/resizable-columns';
 import { TableHorizontalScroll } from '../directives/table-horizontal-scroll';
 import { Icon } from '../icon/icon';
@@ -57,6 +65,7 @@ import {
   TableFilterValueByType,
   TableQuery,
 } from './table-filters';
+import { TableSource } from './server-table';
 
 /** Prefix of the columns of the filter row (one per column of the table). */
 const FILTER_COLUMN = 'crn-filter:';
@@ -91,6 +100,10 @@ let nextId = 0;
  * ```
  *
  * The filtered rows are `rows()` (`#table="crnTable"`), e.g. for totals in the footer.
+ *
+ * Rows filtered, sorted and paged by the backend come from a `ServerTable` (`[source]`): the table
+ * asks it for the rows to show at every change, and shows while they load (a bar under the header,
+ * the rows dimmed, a spinner when there are none yet) and when they fail (message and retry).
  */
 @Component({
   selector: 'crn-table',
@@ -102,6 +115,8 @@ let nextId = 0;
     MatFormFieldModule,
     MatInputModule,
     MatPaginatorModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
     TranslatePipe,
@@ -117,6 +132,8 @@ let nextId = 0;
   host: {
     class: 'crn-table',
     '[class.crn-table--filters-open]': 'filtersOpen()',
+    '[class.crn-table--loading]': 'isLoading()',
+    '[attr.aria-busy]': 'isLoading()',
     '[style.--crn-table-area.px]': 'area()',
     '[style.--crn-table-caption-h.px]': 'captionHeight()',
     '[style.--crn-table-head-h.px]': 'headHeight()',
@@ -133,8 +150,10 @@ export class Table<T> implements AfterContentChecked, OnInit {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Rows, already sorted by the page. */
-  readonly data = input.required<readonly T[]>();
+  /** Rows, already sorted by the page (not used with `source`). */
+  readonly data = input<readonly T[]>([]);
+  /** Rows filtered, sorted and paged by the backend (a `ServerTable`): replaces `data`, `serverSide`, `total`, `loading`, `error`. */
+  readonly source = input<TableSource<T> | null>(null);
   /** Ids of the columns shown, in order (the page's `matColumnDef`s). */
   readonly columns = input.required<readonly string[]>();
   /** Name of the table, shown in its caption. */
@@ -167,6 +186,12 @@ export class Table<T> implements AfterContentChecked, OnInit {
   readonly total = input<number | null>(null);
   /** Filters, page and sort to ask the backend for (`serverSide`; text filters after a pause). */
   readonly queryChange = output<TableQuery>();
+  /** The rows are loading (`serverSide`). */
+  readonly loading = input(false);
+  /** The rows could not be loaded (`serverSide`): the table shows why, with a retry button. */
+  readonly error = input<unknown>(undefined);
+  /** "Retry" pressed, or the network came back after an error. */
+  readonly retry = output<void>();
 
   private readonly columnDefs = contentChildren(MatColumnDef, { descendants: true });
   protected readonly rowDefs = contentChildren(MatRowDef, { descendants: true });
@@ -174,6 +199,30 @@ export class Table<T> implements AfterContentChecked, OnInit {
 
   @ViewChild(MatTable, { static: true }) private table!: MatTable<T>;
   @ViewChild(MatFooterCellDef, { static: true }) private emptyFooterCell!: MatFooterCellDef;
+
+  private readonly language = inject(LanguageService);
+
+  /** Rows come from the backend. */
+  protected readonly isServer = computed(() => this.serverSide() || this.source() !== null);
+  /** Rows given to the table (the page received, server-side). */
+  private readonly given = computed(() => this.source()?.rows() ?? this.data());
+  protected readonly isLoading = computed(() => this.source()?.loading() ?? this.loading());
+  protected readonly failure = computed(() => {
+    const source = this.source();
+    return source ? source.error() : this.error();
+  });
+  /** Why the rows could not be loaded. */
+  protected readonly failureText = computed(() => {
+    const error = this.failure();
+    if (!error) return '';
+    if (error instanceof HttpErrorResponse) {
+      const [first] = backendErrors(error).general;
+      if (first) return this.language.t(first.key, first.params);
+    }
+    return errorMessage(error, (key, params) =>
+      this.language.t(key, params as Record<string, unknown>),
+    );
+  });
 
   protected readonly filterRowId = `crn-table-filters-${nextId++}`;
   protected readonly filterColumns = computed(() => this.columns().map((c) => FILTER_COLUMN + c));
@@ -187,13 +236,15 @@ export class Table<T> implements AfterContentChecked, OnInit {
   readonly activeFilters = computed(() => countActiveFilters(this.filters(), this.filterValues()));
   /** Rows passing the filters (every page); server-side, the rows received. */
   readonly rows = computed(() =>
-    this.serverSide()
-      ? this.data()
-      : applyFilters(this.data(), this.filters(), this.filterValues()),
+    this.isServer()
+      ? this.given()
+      : applyFilters(this.given(), this.filters(), this.filterValues()),
   );
   /** Rows matching the filters, on every page. */
   protected readonly matching = computed(() =>
-    this.serverSide() ? (this.total() ?? this.data().length) : this.rows().length,
+    this.isServer()
+      ? (this.source()?.total() ?? this.total() ?? this.given().length)
+      : this.rows().length,
   );
 
   /** `matSort` on the element: server-side, the sort goes into the query. */
@@ -211,8 +262,13 @@ export class Table<T> implements AfterContentChecked, OnInit {
   /** Page shown, back to the first one when the rows change (new data, sorting or filters). */
   protected readonly pageIndex = linkedSignal({
     source: () =>
-      this.serverSide()
-        ? { filters: this.settledFilters(), sort: this.sortState(), size: this.pageSize() }
+      this.isServer()
+        ? {
+            filters: this.settledFilters(),
+            sort: this.sortState(),
+            size: this.pageSize(),
+            scope: this.source()?.scope(),
+          }
         : { rows: this.rows(), size: this.pageSize() },
     computation: () => 0,
   });
@@ -222,10 +278,11 @@ export class Table<T> implements AfterContentChecked, OnInit {
     const size = this.pageSize();
     return size ? [size, size * 2, size * 4] : [];
   });
-  /** Rows of the page shown (all the rows without pages). */
+  /** Rows of the page shown (all the rows without pages); none after an error (the message shows). */
   protected readonly pageRows = computed(() => {
+    if (this.failure()) return [];
     const size = this.chosenPageSize();
-    if (!size || this.serverSide()) return this.rows();
+    if (!size || this.isServer()) return this.rows();
     const start = this.pageIndex() * size;
     return this.rows().slice(start, start + size);
   });
@@ -264,13 +321,32 @@ export class Table<T> implements AfterContentChecked, OnInit {
     const zone = inject(NgZone);
     const destroyRef = inject(DestroyRef);
     effect((onCleanup) => {
-      if (!this.serverSide()) return;
+      if (!this.isServer()) return;
       const active = activeFilterValues(this.filters(), this.filterValues());
+      // Filters emptied: at once (also the first query, without filters).
+      if (!Object.keys(active).length) {
+        this.settledFilters.set(active);
+        return;
+      }
       const timer = setTimeout(() => this.settledFilters.set(active), FILTER_DELAY_MS);
       onCleanup(() => clearTimeout(timer));
     });
     effect(() => {
-      if (this.serverSide()) this.queryChange.emit(this.query());
+      if (!this.isServer()) return;
+      const query = this.query();
+      untracked(() => {
+        this.source()?.changeQuery(query);
+        this.queryChange.emit(query);
+      });
+    });
+    // After an error, the rows are asked again as soon as the network comes back.
+    const connectivity = inject(Connectivity);
+    let seen = connectivity.reconnections();
+    effect(() => {
+      const reconnections = connectivity.reconnections();
+      if (reconnections === seen) return;
+      seen = reconnections;
+      if (untracked(this.failure)) untracked(() => this.retryLoad());
     });
     afterNextRender(() =>
       zone.runOutsideAngular(() => {
@@ -368,6 +444,12 @@ export class Table<T> implements AfterContentChecked, OnInit {
     if (box) box.scrollTop = 0;
   }
 
+  /** Asks the rows again after an error. */
+  protected retryLoad(): void {
+    this.source()?.reload();
+    this.retry.emit();
+  }
+
   protected toggleFilters(): void {
     this.filtersOpen.update((open) => !open);
   }
@@ -427,7 +509,7 @@ export class Table<T> implements AfterContentChecked, OnInit {
         this.element.querySelector('.crn-table__paginator')?.getBoundingClientRect().height ?? 0,
       );
       if (tableElement && box) {
-        const key = `${this.data().length}:${tableElement.offsetWidth}`;
+        const key = `${this.given().length}:${tableElement.offsetWidth}`;
         if (this.measureRows(tableElement, key !== rowsKey)) rowsKey = key;
         fillBody(tableElement, box, filler, fillerCell, this.columns().length);
       }

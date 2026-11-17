@@ -16,6 +16,8 @@
  * scrolls sideways, 40rem by default) and `--crn-table-gap`.
  */
 .crn-table {
+  // Holds the loading bar (`crn-table__progress`).
+  position: relative;
   display: block;
   min-width: 0;
 }
@@ -290,6 +292,49 @@
   width: 100cqi;
   padding: 0 $space-l;
   text-align: center;
+}
+
+// Rows loading (`source`, `loading`): spinner, or error with a retry button, in place of the message.
+.crn-table__loading-text,
+.crn-table__failure {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: $space-m;
+}
+
+.crn-table__failure {
+  color: var(--cn-text);
+
+  > crn-icon {
+    color: var(--cn-red-text);
+  }
+}
+
+// Under the header while rows load (over the first row, which is dimmed anyway). Scoped under the
+// host: Material's own `.mdc-linear-progress` sets `position: relative`.
+.crn-table > .crn-table__progress {
+  position: absolute;
+  top: calc(
+    var(--crn-table-caption-h, 0rem) + var(--crn-table-head-h, 0rem) +
+      var(--crn-table-filter-h, 0rem)
+  );
+  left: 0;
+  right: 0;
+  z-index: 3;
+  --mat-progress-bar-active-indicator-color: var(--cn-gold);
+  --mat-progress-bar-track-color: transparent;
+  --mat-progress-bar-active-indicator-height: 0.1875rem;
+  --mat-progress-bar-track-height: 0.1875rem;
+  pointer-events: none;
+}
+
+// The rows shown while the next ones load: dimmed, not clickable.
+.crn-table--loading tbody > tr.mat-mdc-row:not(.crn-table__no-data) {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 
 // Room left below the rows (height set by the component): the footer stays at the bottom.

@@ -1,5 +1,32 @@
 import { Observable } from 'rxjs';
-import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import {
+  Clan,
+  ClanRanks,
+  ClanRecords,
+  CwlPlayerRow,
+  CwlSeason,
+  CwlSeasonSummary,
+  DonationSeason,
+  HistoryPeriod,
+  MemberStatsRow,
+  MemberStatsSummary,
+  MonthSummary,
+  ParticipantsSummary,
+  PeriodWarRow,
+  PlayerProfile,
+  RaidMemberRow,
+  RaidMembersSummary,
+  RaidSeason,
+  RankingOptions,
+  RankingRow,
+  War,
+  WarHistoryRow,
+  WarHistorySummary,
+  WarPerformance,
+} from '../models';
+import { TableQuery } from '../../shared/table/table-filters';
+import { TablePage } from '../../shared/table/table-page';
+import { ParticipantRow } from '../utils/war-stats';
 
 /**
  * Data layer contract. The concrete implementations are:
@@ -56,4 +83,40 @@ export abstract class CocApiService {
 
   /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
   abstract getPlayer(tag: string): Observable<PlayerProfile | null>;
+
+  // --- Tables filtered, sorted and paged by the backend (`query`: what the table asks for) ---
+
+  /** Ended wars, with the record of every war. */
+  abstract getWarHistoryTable(query: TableQuery): Observable<TablePage<WarHistoryRow, WarHistorySummary>>;
+
+  /** The clan's players in a war (current or past) and their attacks. */
+  abstract getWarParticipantsTable(
+    warId: string,
+    query: TableQuery,
+  ): Observable<TablePage<ParticipantRow, ParticipantsSummary>>;
+
+  /** Members with their war statistics over the last wars. */
+  abstract getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>>;
+
+  /** A player's performance in each of the last wars. */
+  abstract getPlayerWarsTable(tag: string, query: TableQuery): Observable<TablePage<WarPerformance>>;
+
+  /** Ranking of the players of a period (`YYYY-MM` or `all`). */
+  abstract getRankingTable(
+    period: string,
+    options: RankingOptions,
+    query: TableQuery,
+  ): Observable<TablePage<RankingRow>>;
+
+  /** Wars of a period (`YYYY-MM` or `all`). */
+  abstract getPeriodWarsTable(period: string, query: TableQuery): Observable<TablePage<PeriodWarRow>>;
+
+  /** The clan's players in a CWL season (`YYYY-MM`). */
+  abstract getCwlPlayersTable(season: string, query: TableQuery): Observable<TablePage<CwlPlayerRow>>;
+
+  /** Members who attacked in a Raid Weekend (`weekend`: its id, the start instant). */
+  abstract getRaidMembersTable(
+    weekend: string,
+    query: TableQuery,
+  ): Observable<TablePage<RaidMemberRow, RaidMembersSummary>>;
 }

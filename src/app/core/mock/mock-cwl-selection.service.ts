@@ -9,7 +9,11 @@ import {
   CwlSelectionStatus,
 } from '../backend/backend-api.types';
 import { CwlSelectionService } from '../backend/cwl-selection.service';
+import { APP_CONFIG } from '../config/app-config';
 import { ClanMember } from '../models';
+import { crusadeClanNames, selectionFilters } from '../../shared/table/clan-tables';
+import { TableQuery } from '../../shared/table/table-filters';
+import { applyTableQuery, TablePage } from '../../shared/table/table-page';
 import { Random } from './random';
 
 const STARTERS = 15;
@@ -31,12 +35,19 @@ const API_ROLES: Record<ClanMember['role'], string> = {
 @Injectable()
 export class MockCwlSelectionService extends CwlSelectionService {
   private readonly api = inject(CocApiService);
+  private readonly config = inject(APP_CONFIG);
   private readonly exclusions = new Map<string, CwlExclusion>();
 
   get(): Observable<CwlSelection> {
     return this.api
       .getClan()
       .pipe(map((clan) => mockSelection(clan.members, new Date(), this.exclusions)));
+  }
+
+  getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>> {
+    const names = crusadeClanNames({ tag: this.config.clanTag, name: this.config.clanName });
+    const filters = selectionFilters((tag) => names.get(tag) ?? tag);
+    return this.get().pipe(map((selection) => applyTableQuery(selection.players, filters, query)));
   }
 
   exclude(tag: string, reason: string | null): Observable<CwlExclusion> {

@@ -78,14 +78,24 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 ## Frontend notes
 
 - Tables: `<crn-table>` (`src/app/shared/table/`), a wrapper of `mat-table`: the page declares
-  `matColumnDef`s (and optionally `matRowDef`, `*matFooterCellDef`, `matSort` on the element) and
-  keeps sorting its data; the component never grows past the visible area (rows scroll inside),
-  keeps caption, header, filter row and footer in place, is as tall as `visibleRows` rows (10 by
-  default; fewer rows leave empty room above the footer), pages rows with `pageSize` (for tables
-  that keep growing: war history, wars of a period), or leaves filters, sort and pages to the
-  backend with `serverSide` + `total` + `(queryChange)` (admin users), filters by column (`TableFilters`: text,
-  number range, date range, yes/no, options) and makes columns resizable. Header labels never wrap.
-  A page's styles cannot reach `<table>` itself (it is in the component): style rows and cells.
+  `matColumnDef`s (and optionally `matRowDef`, `*matFooterCellDef`, `matSort` on the element);
+  the component never grows past the visible area (rows scroll inside), keeps caption, header,
+  filter row and footer in place, is as tall as `visibleRows` rows (10 by default; fewer rows
+  leave empty room above the footer), pages rows with `pageSize`, filters by column
+  (`TableFilters`: text, number range, date range, yes/no, options) and makes columns resizable.
+  Header labels never wrap. A page's styles cannot reach `<table>` itself: style rows and cells.
+- Every data table is filtered, sorted and paged **by the backend**: the page creates a
+  `serverTable({ params, load })` (`shared/table/server-table.ts`) and binds `[source]`; the table
+  asks for a page at every change (text filters after a pause), keeps the last rows dimmed with a
+  bar under the header while loading, a spinner when there are none yet, the error with "Retry".
+  `params` (season, period…) go to the backend too; a change returns to page 1. Totals, footers and
+  filter options come from the route's `summary`. Query string (`tableQueryParams`): `page`, `limit`
+  (left out: every row), `sort`, `order`, text `col=`, number `colMin`/`colMax`, date
+  `colFrom`/`colBefore`, yes/no `col=true`, options `col=a,b`. Backend side: `defineTable` +
+  `parseTableQuery` + `queryTable` (`backend/src/lib/table/table-query.ts`, rows built in memory),
+  documented with `tableQueryPart` (`src/openapi/table.ts`), rate limit `TABLES_READ`. Column ids
+  and filters are shared in `shared/table/clan-tables.ts`, also used by the mock services
+  (`applyTableQuery`). Only the CWL group standings (8 rows, no filters) take plain `[data]`.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).
@@ -158,7 +168,9 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Never commit `.vscode/settings.json`, `.env`, `backend/.env.local`, `deploy/.env`. Stage files
   explicitly, never `git add -A`.
 - `../continental_be` is a reference only: never modify it.
-- The frontend keeps calling the Clash of Clans API through the proxy (`/api/coc`): do not replace
-  that integration with the backend.
+- The frontend keeps calling the Clash of Clans API through the proxy (`/api/coc`) for everything
+  but the tables: do not replace that integration with the backend. The table routes read what
+  they need live (member list, current war, war log) with the backend's CoC client, kept briefly
+  in memory (`lib/coc/live-cache.ts`).
 - Respect the Supercell Fan Content Policy: keep the always-visible footer notice, no monetisation
   of features, do not modify Supercell assets.

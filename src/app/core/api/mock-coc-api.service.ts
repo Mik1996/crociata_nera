@@ -5,9 +5,51 @@ import { SISTER_CLANS } from '../config/sister-clans';
 import { generateMockData, MockDataset } from '../mock/mock-data';
 import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
 import { mockPlayer } from '../mock/mock-player';
-import { Clan, ClanRanks, ClanRecords, CwlSeason, CwlSeasonSummary, DonationSeason, HistoryPeriod, HistoryWar, MonthSummary, PlayerProfile, RaidSeason, War } from '../models';
+import {
+  Clan,
+  ClanRanks,
+  ClanRecords,
+  CwlPlayerRow,
+  CwlSeason,
+  CwlSeasonSummary,
+  DonationSeason,
+  HistoryPeriod,
+  HistoryWar,
+  MemberStatsAverages,
+  MemberStatsRow,
+  MemberStatsSummary,
+  MonthSummary,
+  ParticipantsSummary,
+  PeriodWarRow,
+  PlayerProfile,
+  RaidMemberRow,
+  RaidMembersSummary,
+  RaidSeason,
+  RankingOptions,
+  RankingRow,
+  War,
+  WarHistoryRow,
+  WarHistorySummary,
+  WarPerformance,
+} from '../models';
+import { TableQuery } from '../../shared/table/table-filters';
+import { applyTableQuery, TablePage } from '../../shared/table/table-page';
+import {
+  CWL_PLAYER_FILTERS,
+  memberStatsFilters,
+  memberStatsSortKey,
+  participantFilters,
+  participantSortKey,
+  PERIOD_WARS_FILTERS,
+  periodWarsSortKey,
+  PLAYER_WARS_FILTERS,
+  RAID_MEMBER_FILTERS,
+  RANKING_FILTERS,
+  WAR_HISTORY_FILTERS,
+} from '../../shared/table/clan-tables';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
-import { historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
+import { compareForRanking, historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
+import { computePlayerStats, participantRows, ParticipantRow, warResult } from '../utils/war-stats';
 import { CocApiService } from './coc-api';
 import { CocCapitalRaidSeason, CocCwlSeasonRecord } from './coc-api.types';
 import { mapPlayerProfile } from './coc-api.mappers';
@@ -148,5 +190,125 @@ export class MockCocApiService extends CocApiService {
     const { clan } = this.data;
     const member = clan.members.find((m) => m.tag === tag);
     return this.respond(member ? mapPlayerProfile(mockPlayer(member, clan)) : null);
+  }
+
+  // --- Tables: filtered, sorted and paged here, as the backend would ---------------------------
+
+  getWarHistoryTable(query: TableQuery): Observable<TablePage<WarHistoryRow, WarHistorySummary>> {
+    const rows: WarHistoryRow[] = this.data.wars
+      .filter((w) => w.state === 'ended')
+      .map((w) => ({
+        id: w.id,
+        date: w.endTime,
+        opponent: w.opponent.name,
+        opponentTag: w.opponent.tag,
+        teamSize: w.teamSize,
+        result: warResult(w) as WarHistoryRow['result'],
+        stars: w.clan.stars,
+        starsConceded: w.opponent.stars,
+        destruction: w.clan.destructionPercentage,
+        destructionConceded: w.opponent.destructionPercentage,
+        hasDetails: w.hasDetails,
+      }));
+    const count = (result: string) => rows.filter((r) => r.result === result).length;
+    const summary = { wars: rows.length, victories: count('victory'), defeats: count('defeat'), draws: count('draw') };
+    return this.respond(applyTableQuery(rows, WAR_HISTORY_FILTERS, query, { summary: () => summary }));
+  }
+
+  getWarParticipantsTable(warId: string, query: TableQuery): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
+    const war = this.data.wars.find((w) => w.id === warId);
+    const rows = war ? participantRows(war) : [];
+    const summary = { townHalls: [...new Set(rows.map((r) => r.townHall))].sort((a, b) => b - a) };
+    return this.respond(
+      applyTableQuery(rows, participantFilters(summary), query, { sortKey: participantSortKey, summary: () => summary }),
+    );
+  }
+
+  /** The last wars with players, as the statistics look at them. */
+  private get statsWindow(): War[] {
+    return this.data.wars.filter((w) => w.state === 'ended' && w.hasDetails).slice(0, this.config.statsWindow);
+  }
+
+  getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
+    const wars = this.statsWindow;
+    const rows: MemberStatsRow[] = this.data.clan.members.map((member) => {
+      const { history: _history, ...stats } = computePlayerStats(member, wars);
+      return { ...stats, league: stats.league ?? null };
+    });
+    const leagues = new Map<number, string>();
+    for (const m of rows) if (m.league) leagues.set(m.league.id, m.league.name);
+    const list = [...leagues].sort((a, b) => b[0] - a[0]).map(([id, name]) => ({ id, name }));
+    const mean = (matching: readonly MemberStatsRow[], field: keyof MemberStatsAverages) =>
+      matching.reduce((sum, m) => sum + m[field], 0) / matching.length;
+    return this.respond(
+      applyTableQuery(rows, memberStatsFilters(list), query, {
+        sortKey: memberStatsSortKey,
+        summary: (matching) => ({
+          members: rows.length,
+          warsTotal: wars.length,
+          leagues: list,
+          averages: matching.length
+            ? {
+                townHall: mean(matching, 'townHall'),
+                warsPlayed: mean(matching, 'warsPlayed'),
+                attendance: mean(matching, 'attendance'),
+                attacksUsed: mean(matching, 'attacksUsed'),
+                attacksAvailable: mean(matching, 'attacksAvailable'),
+                totalStars: mean(matching, 'totalStars'),
+                averageStars: mean(matching, 'averageStars'),
+                threeStarRate: mean(matching, 'threeStarRate'),
+                averageDestruction: mean(matching, 'averageDestruction'),
+              }
+            : null,
+        }),
+      }),
+    );
+  }
+
+  getPlayerWarsTable(tag: string, query: TableQuery): Observable<TablePage<WarPerformance>> {
+    const member = this.data.clan.members.find((m) => m.tag === tag);
+    const rows = member ? [...computePlayerStats(member, this.statsWindow).history].reverse() : [];
+    return this.respond(
+      applyTableQuery(rows, PLAYER_WARS_FILTERS, query, {
+        sortKey: (p, column) => (column === 'attacks' ? p.attacksUsed : (p as unknown as Record<string, number>)[column]),
+      }),
+    );
+  }
+
+  getRankingTable(period: string, options: RankingOptions, query: TableQuery): Observable<TablePage<RankingRow>> {
+    const members = new Set(this.data.clan.members.map((m) => m.tag));
+    const rows: RankingRow[] = [...(historyPeriod(period, this.history, this.updatedAt)?.players ?? [])]
+      .filter((p) => p.wars >= options.minWars)
+      .filter((p) => !options.currentMembersOnly || members.has(p.tag))
+      .sort(compareForRanking)
+      .map((p, i) => ({ ...p, rank: i + 1, isCurrentMember: members.has(p.tag) }));
+    return this.respond(applyTableQuery(rows, RANKING_FILTERS, query));
+  }
+
+  getPeriodWarsTable(period: string, query: TableQuery): Observable<TablePage<PeriodWarRow>> {
+    const rows = (historyPeriod(period, this.history, this.updatedAt)?.wars ?? []).map(
+      ({ players: _players, ...war }) => war,
+    );
+    return this.respond(applyTableQuery(rows, PERIOD_WARS_FILTERS, query, { sortKey: periodWarsSortKey }));
+  }
+
+  getCwlPlayersTable(season: string, query: TableQuery): Observable<TablePage<CwlPlayerRow>> {
+    const record = this.cwlSeasons.find((s) => s.season === season);
+    const rows = (record ? buildCwlSeason(record, this.data.clan.tag).players : []).map((p, i) => ({ ...p, index: i + 1 }));
+    return this.respond(applyTableQuery(rows, CWL_PLAYER_FILTERS, query));
+  }
+
+  getRaidMembersTable(weekend: string, query: TableQuery): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
+    const season = this.raidSeasons.map(mapRaidSeason).find((s) => s.id === weekend);
+    const rows = (season?.members ?? []).map((m, i) => ({ ...m, rank: i + 1 }));
+    return this.respond(
+      applyTableQuery(rows, RAID_MEMBER_FILTERS, query, {
+        summary: (matching) => ({
+          attacks: matching.reduce((sum, m) => sum + m.attacks, 0),
+          attackLimit: matching.reduce((sum, m) => sum + m.attackLimit, 0),
+          looted: matching.reduce((sum, m) => sum + m.looted, 0),
+        }),
+      }),
+    );
   }
 }
