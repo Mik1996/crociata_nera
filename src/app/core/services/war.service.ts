@@ -15,13 +15,13 @@ export class WarService {
 
   /** Forgets the cached war history, so the next read hits the API (manual refresh). */
   refreshHistory(): void {
-    this.cache.invalidateMatching('/archive/wars');
+    this.cache.invalidateMatching('/wars/archive');
     this.cache.invalidateMatching('/warlog');
   }
 
   /** Forgets the cached current war, so the next read hits the API (manual refresh). */
   refreshCurrentWar(): void {
-    this.cache.invalidateMatching('/currentwar');
+    this.cache.invalidateMatching('/wars/current');
     this.cache.invalidateMatching('/participants');
   }
 

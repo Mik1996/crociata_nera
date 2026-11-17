@@ -9,7 +9,7 @@ import { percentage, round, warResult } from './war-stats';
 
 /**
  * Builds the monthly history from the app models.
- * Same logic as the proxy (`server/history.mjs`): used by the mock mode and by tests.
+ * Same logic as the backend (`history.service.ts`): used by the mock mode and by tests.
  */
 
 const MONTH_FORMAT = new Intl.DateTimeFormat('en-CA', {

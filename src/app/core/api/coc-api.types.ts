@@ -223,7 +223,7 @@ export interface CocPlayer {
 }
 
 // ---------------------------------------------------------------------------
-// Other endpoints of the official API (used through `CocApiClient`)
+// Other endpoints of the official API
 // ---------------------------------------------------------------------------
 
 /** Cursors of a paginated list: pass `after`/`before` back to get the next/previous page. */

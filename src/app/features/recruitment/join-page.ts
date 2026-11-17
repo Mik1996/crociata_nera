@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CocApiService } from '../../core/api/coc-api';
+import { injectPublicClans } from '../../core/api/public-clans';
 import { injectSisterClans } from '../../core/api/sister-clans';
 import { LoadState } from '../../shared/components/load-state';
 import { PageHeader } from '../../shared/components/page-header';
@@ -22,8 +21,8 @@ import { RecruitmentBanner } from './recruitment-banner';
   styleUrl: './join-page.scss',
 })
 export class JoinPage {
-  private readonly api = inject(CocApiService);
-  protected readonly clan = rxResource({ stream: () => this.api.getClan() });
-  protected readonly data = computed(() => (this.clan.hasValue() ? this.clan.value() : null));
+  /** The public data of the clans of the Crusade (`GET /welcome`): loading, error, retry. */
+  protected readonly clan = injectPublicClans();
+  protected readonly data = computed(() => (this.clan.hasValue() ? this.clan.value().clan : null));
   protected readonly sisters = injectSisterClans();
 }

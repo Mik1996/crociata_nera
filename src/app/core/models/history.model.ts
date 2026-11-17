@@ -1,5 +1,5 @@
 /**
- * Monthly war history, produced by the proxy (`server/history.mjs`).
+ * Monthly war history, produced by the backend (`backend/src/modules/wars/history.service.ts`).
  * The JSON format matches these interfaces: no mapper needed.
  */
 

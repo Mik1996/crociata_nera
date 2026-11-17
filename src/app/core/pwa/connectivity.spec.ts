@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { CocApiHttpError, toApiError } from '../api/coc-api-errors';
+import { CocApiHttpError, toBackendError } from '../api/coc-api-errors';
 import { BACKEND_OFFLINE, BACKEND_UNREACHABLE, backendErrors } from '../backend/backend-errors';
 import { Connectivity, isOffline } from './connectivity';
 
@@ -33,20 +33,20 @@ describe('Connectivity', () => {
     const networkError = () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' });
 
     async function apiErrorKey(response = networkError()): Promise<string> {
-      const error = await firstValueFrom(toApiError(response)).catch((e: unknown) => e);
+      const error = await firstValueFrom(toBackendError(response)).catch((e: unknown) => e);
       return (error as CocApiHttpError).i18nKey;
     }
 
     it('say "offline" when a request failed for lack of network', async () => {
       goOffline();
-      expect(await apiErrorKey()).toBe('errors.offline');
+      expect(await apiErrorKey()).toBe(BACKEND_OFFLINE);
       // The service worker answers 504 when it has no saved copy.
-      expect(await apiErrorKey(new HttpErrorResponse({ status: 504 }))).toBe('errors.offline');
+      expect(await apiErrorKey(new HttpErrorResponse({ status: 504 }))).toBe(BACKEND_OFFLINE);
       expect(backendErrors(networkError()).general).toEqual([{ key: BACKEND_OFFLINE }]);
     });
 
     it('keep "service unavailable" when the network is there', async () => {
-      expect(await apiErrorKey()).toBe('errors.proxyUnreachable');
+      expect(await apiErrorKey()).toBe(BACKEND_UNREACHABLE);
       expect(backendErrors(networkError()).general).toEqual([{ key: BACKEND_UNREACHABLE }]);
     });
   });

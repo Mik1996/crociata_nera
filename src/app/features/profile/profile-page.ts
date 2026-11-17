@@ -15,7 +15,6 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { CocApiService } from '../../core/api/coc-api';
-import { injectSisterClans } from '../../core/api/sister-clans';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
@@ -67,22 +66,27 @@ export class ProfilePage {
   protected readonly hasClanAccess = this.auth.hasClanAccess;
   protected readonly roleKey = roleKey;
 
-  /** Crociata Nera and its sister clans, to show which member each linked account belongs to. */
-  private readonly clan = rxResource({
-    stream: () => this.api.getClan().pipe(catchError(() => of(null))),
-  });
-  private readonly sisterClans = injectSisterClans();
   /**
-   * Linked accounts with the clan member they belong to and its clan (`null` if the account is in
-   * none of the three clans now).
+   * Which linked accounts are in a clan of the Crusade now, with name and role (asked again when
+   * the accounts change); none when it cannot be read.
+   */
+  private readonly memberships = rxResource({
+    params: () => this.auth.linkedPlayers().map((p) => p.tag),
+    stream: () => this.api.getMemberships().pipe(catchError(() => of([]))),
+  });
+  /**
+   * Linked accounts with the clan member they are and its clan (`null` if the account is in none
+   * of the three clans now).
    */
   protected readonly linkedPlayers = computed(() => {
-    const main = this.clan.hasValue() ? this.clan.value() : null;
-    const clans = [...(main ? [main] : []), ...this.sisterClans().map((s) => s.clan)];
+    const memberships = this.memberships.hasValue() ? this.memberships.value() : [];
     return this.auth.linkedPlayers().map((player) => {
-      const clan = clans.find((c) => c.members.some((m) => m.tag === player.tag));
-      const member = clan?.members.find((m) => m.tag === player.tag) ?? null;
-      return { ...player, member, clanName: clan?.name ?? null };
+      const membership = memberships.find((m) => m.tag === player.tag);
+      return {
+        ...player,
+        member: membership ? { name: membership.name, role: membership.role } : null,
+        clanName: membership?.clanName ?? null,
+      };
     });
   });
   protected readonly maxPlayers = MAX_LINKED_PLAYERS;

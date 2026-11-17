@@ -1,13 +1,16 @@
 import { inject, Injectable } from '@angular/core';
-import { delay, Observable, of, throwError } from 'rxjs';
+import { delay, Observable, of } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { SISTER_CLANS } from '../config/sister-clans';
+import { SISTER_CLANS, SisterClan } from '../config/sister-clans';
 import { generateMockData, MockDataset } from '../mock/mock-data';
-import { generateMockCwlSeasons, generateMockDonationSeasons, generateMockRaidSeasons } from '../mock/mock-cwl';
+import {
+  generateMockCwlSeasons,
+  generateMockDonationSeasons,
+  generateMockRaidSeasons,
+} from '../mock/mock-cwl';
 import { mockPlayer } from '../mock/mock-player';
 import {
   Clan,
-  ClanRanks,
   ClanRecords,
   CwlPlayerRow,
   CwlSeason,
@@ -18,10 +21,12 @@ import {
   MemberStatsAverages,
   MemberStatsRow,
   MemberStatsSummary,
+  Membership,
   MonthSummary,
   ParticipantsSummary,
   PeriodWarRow,
   PlayerProfile,
+  PublicClansData,
   RaidMemberRow,
   RaidMembersSummary,
   RaidSeason,
@@ -48,7 +53,12 @@ import {
   WAR_HISTORY_FILTERS,
 } from '../../shared/table/clan-tables';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
-import { compareForRanking, historyPeriod, monthSummaries, toHistoryWar } from '../utils/monthly-history';
+import {
+  compareForRanking,
+  historyPeriod,
+  monthSummaries,
+  toHistoryWar,
+} from '../utils/monthly-history';
 import { computePlayerStats, participantRows, ParticipantRow, warResult } from '../utils/war-stats';
 import { CocApiService } from './coc-api';
 import { CocCapitalRaidSeason, CocCwlSeasonRecord } from './coc-api.types';
@@ -65,14 +75,22 @@ export class MockCocApiService extends CocApiService {
   private donations?: DonationSeason[];
 
   private get data(): MockDataset {
-    this.dataset ??= generateMockData({ clanTag: this.config.clanTag, clanName: this.config.clanName });
+    this.dataset ??= generateMockData({
+      clanTag: this.config.clanTag,
+      clanName: this.config.clanName,
+    });
     return this.dataset;
   }
 
   /** CWL seasons in the backend format, built from the mock clan members. */
   private get cwlSeasons(): CocCwlSeasonRecord[] {
     const { clan } = this.data;
-    this.cwl ??= generateMockCwlSeasons({ clanTag: clan.tag, clanName: clan.name, members: clan.members, now: new Date() });
+    this.cwl ??= generateMockCwlSeasons({
+      clanTag: clan.tag,
+      clanName: clan.name,
+      members: clan.members,
+      now: new Date(),
+    });
     return this.cwl;
   }
 
@@ -84,7 +102,10 @@ export class MockCocApiService extends CocApiService {
 
   /** Game seasons with the donations, in the backend format. */
   private get donationSeasons(): DonationSeason[] {
-    this.donations ??= generateMockDonationSeasons({ members: this.data.clan.members, now: new Date() });
+    this.donations ??= generateMockDonationSeasons({
+      members: this.data.clan.members,
+      now: new Date(),
+    });
     return this.donations;
   }
 
@@ -97,14 +118,31 @@ export class MockCocApiService extends CocApiService {
     return this.respond(this.data.clan);
   }
 
-  /** The clan itself, or a sister clan built from it (smaller, younger). */
-  getClanByTag(tag: string): Observable<Clan> {
-    if (tag === this.data.clan.tag) return this.getClan();
-    const sister = SISTER_CLANS.find((s) => s.tag === tag);
-    if (!sister) return throwError(() => new Error(`Clan ${tag} not found`));
+  /** The clan, its sister clans (built from it: smaller, younger) and its rankings, as the welcome page sees them. */
+  getWelcome(): Observable<PublicClansData> {
+    const publicView = (clan: Clan): Clan => ({
+      ...clan,
+      // Members by name and role only, as the backend gives them.
+      members: clan.members.map((m) => ({ name: m.name, role: m.role }) as Clan['members'][number]),
+    });
+    return this.respond({
+      clan: publicView(this.data.clan),
+      sisters: SISTER_CLANS.map((sister) => publicView(this.sisterClan(sister))),
+      // In the top 200 of its country, not worldwide.
+      ranks: { local: 27, global: null },
+    });
+  }
+
+  /** No signed-in user in the demo. */
+  getMemberships(): Observable<Membership[]> {
+    return this.respond([]);
+  }
+
+  private sisterClan(sister: SisterClan): Clan {
+    const tag = sister.tag;
     const red = sister.order === 'red';
     const clan = this.data.clan;
-    return this.respond<Clan>({
+    return {
       ...clan,
       tag,
       name: sister.name,
@@ -118,13 +156,10 @@ export class MockCocApiService extends CocApiService {
       warTies: Math.round(clan.warTies * 0.5),
       warWinStreak: red ? 7 : 3,
       clanPoints: Math.round(clan.clanPoints * (red ? 0.75 : 0.6)),
-      warLeague: red ? { id: 48000012, name: 'Crystal League I' } : { id: 48000009, name: 'Gold League I' },
-    });
-  }
-
-  /** In the top 200 of its country, not worldwide. */
-  getClanRanks(): Observable<ClanRanks> {
-    return this.respond({ local: 27, global: null });
+      warLeague: red
+        ? { id: 48000012, name: 'Crystal League I' }
+        : { id: 48000009, name: 'Gold League I' },
+    };
   }
 
   getClanRecords(): Observable<ClanRecords> {
@@ -150,7 +185,7 @@ export class MockCocApiService extends CocApiService {
     return this.respond(this.data.wars.find((w) => w.id === id) ?? null);
   }
 
-  /** Like the proxy: only ended wars with details enter the monthly history. */
+  /** Like the backend: only ended wars with details enter the monthly history. */
   private get history(): HistoryWar[] {
     return this.data.wars.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
   }
@@ -169,7 +204,10 @@ export class MockCocApiService extends CocApiService {
 
   getCwlSeasons(): Observable<CwlSeasonSummary[]> {
     return this.respond(
-      this.cwlSeasons.map((s) => ({ season: s.season, state: s.state === 'ended' ? ('ended' as const) : ('inWar' as const) })),
+      this.cwlSeasons.map((s) => ({
+        season: s.season,
+        state: s.state === 'ended' ? ('ended' as const) : ('inWar' as const),
+      })),
     );
   }
 
@@ -211,25 +249,42 @@ export class MockCocApiService extends CocApiService {
         hasDetails: w.hasDetails,
       }));
     const count = (result: string) => rows.filter((r) => r.result === result).length;
-    const summary = { wars: rows.length, victories: count('victory'), defeats: count('defeat'), draws: count('draw') };
-    return this.respond(applyTableQuery(rows, WAR_HISTORY_FILTERS, query, { summary: () => summary }));
+    const summary = {
+      wars: rows.length,
+      victories: count('victory'),
+      defeats: count('defeat'),
+      draws: count('draw'),
+    };
+    return this.respond(
+      applyTableQuery(rows, WAR_HISTORY_FILTERS, query, { summary: () => summary }),
+    );
   }
 
-  getWarParticipantsTable(warId: string, query: TableQuery): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
+  getWarParticipantsTable(
+    warId: string,
+    query: TableQuery,
+  ): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
     const war = this.data.wars.find((w) => w.id === warId);
     const rows = war ? participantRows(war) : [];
     const summary = { townHalls: [...new Set(rows.map((r) => r.townHall))].sort((a, b) => b - a) };
     return this.respond(
-      applyTableQuery(rows, participantFilters(summary), query, { sortKey: participantSortKey, summary: () => summary }),
+      applyTableQuery(rows, participantFilters(summary), query, {
+        sortKey: participantSortKey,
+        summary: () => summary,
+      }),
     );
   }
 
   /** The last wars with players, as the statistics look at them. */
   private get statsWindow(): War[] {
-    return this.data.wars.filter((w) => w.state === 'ended' && w.hasDetails).slice(0, this.config.statsWindow);
+    return this.data.wars
+      .filter((w) => w.state === 'ended' && w.hasDetails)
+      .slice(0, this.config.statsWindow);
   }
 
-  getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
+  getMemberStatsTable(
+    query: TableQuery,
+  ): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
     const wars = this.statsWindow;
     const rows: MemberStatsRow[] = this.data.clan.members.map((member) => {
       const { history: _history, ...stats } = computePlayerStats(member, wars);
@@ -270,14 +325,21 @@ export class MockCocApiService extends CocApiService {
     const rows = member ? [...computePlayerStats(member, this.statsWindow).history].reverse() : [];
     return this.respond(
       applyTableQuery(rows, PLAYER_WARS_FILTERS, query, {
-        sortKey: (p, column) => (column === 'attacks' ? p.attacksUsed : (p as unknown as Record<string, number>)[column]),
+        sortKey: (p, column) =>
+          column === 'attacks' ? p.attacksUsed : (p as unknown as Record<string, number>)[column],
       }),
     );
   }
 
-  getRankingTable(period: string, options: RankingOptions, query: TableQuery): Observable<TablePage<RankingRow>> {
+  getRankingTable(
+    period: string,
+    options: RankingOptions,
+    query: TableQuery,
+  ): Observable<TablePage<RankingRow>> {
     const members = new Set(this.data.clan.members.map((m) => m.tag));
-    const rows: RankingRow[] = [...(historyPeriod(period, this.history, this.updatedAt)?.players ?? [])]
+    const rows: RankingRow[] = [
+      ...(historyPeriod(period, this.history, this.updatedAt)?.players ?? []),
+    ]
       .filter((p) => p.wars >= options.minWars)
       .filter((p) => !options.currentMembersOnly || members.has(p.tag))
       .sort(compareForRanking)
@@ -289,16 +351,24 @@ export class MockCocApiService extends CocApiService {
     const rows = (historyPeriod(period, this.history, this.updatedAt)?.wars ?? []).map(
       ({ players: _players, ...war }) => war,
     );
-    return this.respond(applyTableQuery(rows, PERIOD_WARS_FILTERS, query, { sortKey: periodWarsSortKey }));
+    return this.respond(
+      applyTableQuery(rows, PERIOD_WARS_FILTERS, query, { sortKey: periodWarsSortKey }),
+    );
   }
 
   getCwlPlayersTable(season: string, query: TableQuery): Observable<TablePage<CwlPlayerRow>> {
     const record = this.cwlSeasons.find((s) => s.season === season);
-    const rows = (record ? buildCwlSeason(record, this.data.clan.tag).players : []).map((p, i) => ({ ...p, index: i + 1 }));
+    const rows = (record ? buildCwlSeason(record, this.data.clan.tag).players : []).map((p, i) => ({
+      ...p,
+      index: i + 1,
+    }));
     return this.respond(applyTableQuery(rows, CWL_PLAYER_FILTERS, query));
   }
 
-  getRaidMembersTable(weekend: string, query: TableQuery): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
+  getRaidMembersTable(
+    weekend: string,
+    query: TableQuery,
+  ): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
     const season = this.raidSeasons.map(mapRaidSeason).find((s) => s.id === weekend);
     const rows = (season?.members ?? []).map((m, i) => ({ ...m, rank: i + 1 }));
     return this.respond(

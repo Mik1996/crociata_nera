@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, map, of } from 'rxjs';
 import { CrusadeOrder } from '../config/sister-clans';
@@ -18,8 +18,8 @@ export const CLAN_CRESTS: Readonly<Record<CrusadeOrder, string>> = {
 export const CLAN_CREST_URL = CLAN_CRESTS.black;
 
 /**
- * Official badge of the clan (`badgeUrls.large`), read once and shared: header and the empty
- * states. `null` until loaded, when missing or when the API is unavailable (callers show
+ * Official badge of the clan (`badgeUrls.large`), from the public data of the clans: header and the
+ * empty states. `null` until loaded, when missing or when it cannot be read (callers show
  * {@link CLAN_CREST_URL}).
  */
 @Injectable({ providedIn: 'root' })
@@ -27,10 +27,11 @@ export class ClanBadge {
   // Optional: components used in isolation (tests) work without the API.
   private readonly api = inject(CocApiService, { optional: true });
 
+  // A plain subscription, not a resource: the header does not hold the app back from being stable.
   readonly url = toSignal(
     this.api
-      ? this.api.getClan().pipe(
-          map((clan) => clan?.badgeUrl ?? null),
+      ? this.api.getWelcome().pipe(
+          map((data) => data.clan.badgeUrl ?? null),
           catchError(() => of(null)),
         )
       : of(null),

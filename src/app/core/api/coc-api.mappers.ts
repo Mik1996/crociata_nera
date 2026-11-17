@@ -250,7 +250,7 @@ function totals(c: WarClan): Pick<WarClan, 'stars' | 'destructionPercentage'> {
 }
 
 /**
- * Archived wars still "in progress" whose end time has already passed (the proxy did not capture
+ * Archived wars still "in progress" whose end time has already passed (the backend did not capture
  * the final snapshot) are considered ended with the last known data.
  */
 export function closeExpiredWars(wars: War[], now: Date): War[] {

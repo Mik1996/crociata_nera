@@ -1,7 +1,6 @@
 import { Observable } from 'rxjs';
 import {
   Clan,
-  ClanRanks,
   ClanRecords,
   CwlPlayerRow,
   CwlSeason,
@@ -10,10 +9,12 @@ import {
   HistoryPeriod,
   MemberStatsRow,
   MemberStatsSummary,
+  Membership,
   MonthSummary,
   ParticipantsSummary,
   PeriodWarRow,
   PlayerProfile,
+  PublicClansData,
   RaidMemberRow,
   RaidMembersSummary,
   RaidSeason,
@@ -31,7 +32,8 @@ import { ParticipantRow } from '../utils/war-stats';
 /**
  * Data layer contract. The concrete implementations are:
  * - {@link MockCocApiService}: locally generated mock data;
- * - {@link HttpCocApiService}: HTTP calls to a backend proxy of the official API.
+ * - {@link HttpCocApiService}: HTTP calls to the backend (`/api/v1`), which reads the official API
+ *   and keeps what it saves (the frontend never calls the official API, nor the proxy).
  *
  * The implementation is chosen based on `AppConfig.useMockApi` (see `provideCocApi`).
  */
@@ -39,11 +41,14 @@ export abstract class CocApiService {
   /** Clan and member information. */
   abstract getClan(): Observable<Clan>;
 
-  /** Any other clan, by tag (e.g. the sister clans on the welcome page). */
-  abstract getClanByTag(tag: string): Observable<Clan>;
+  /**
+   * Public data of the welcome page, the "Join us" page and the header: the clans of the Crusade
+   * (members by name and role only) and the clan's positions in the trophy rankings.
+   */
+  abstract getWelcome(): Observable<PublicClansData>;
 
-  /** Position of the clan in its country's and in the worldwide trophy rankings. */
-  abstract getClanRanks(): Observable<ClanRanks>;
+  /** The signed-in user's linked accounts that are in a clan of the Crusade now. */
+  abstract getMemberships(): Observable<Membership[]>;
 
   /** All-time records of the clan (perfect wars, win streak, best league and rankings), kept by the backend. */
   abstract getClanRecords(): Observable<ClanRecords>;
@@ -87,7 +92,9 @@ export abstract class CocApiService {
   // --- Tables filtered, sorted and paged by the backend (`query`: what the table asks for) ---
 
   /** Ended wars, with the record of every war. */
-  abstract getWarHistoryTable(query: TableQuery): Observable<TablePage<WarHistoryRow, WarHistorySummary>>;
+  abstract getWarHistoryTable(
+    query: TableQuery,
+  ): Observable<TablePage<WarHistoryRow, WarHistorySummary>>;
 
   /** The clan's players in a war (current or past) and their attacks. */
   abstract getWarParticipantsTable(
@@ -96,10 +103,15 @@ export abstract class CocApiService {
   ): Observable<TablePage<ParticipantRow, ParticipantsSummary>>;
 
   /** Members with their war statistics over the last wars. */
-  abstract getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>>;
+  abstract getMemberStatsTable(
+    query: TableQuery,
+  ): Observable<TablePage<MemberStatsRow, MemberStatsSummary>>;
 
   /** A player's performance in each of the last wars. */
-  abstract getPlayerWarsTable(tag: string, query: TableQuery): Observable<TablePage<WarPerformance>>;
+  abstract getPlayerWarsTable(
+    tag: string,
+    query: TableQuery,
+  ): Observable<TablePage<WarPerformance>>;
 
   /** Ranking of the players of a period (`YYYY-MM` or `all`). */
   abstract getRankingTable(
@@ -109,10 +121,16 @@ export abstract class CocApiService {
   ): Observable<TablePage<RankingRow>>;
 
   /** Wars of a period (`YYYY-MM` or `all`). */
-  abstract getPeriodWarsTable(period: string, query: TableQuery): Observable<TablePage<PeriodWarRow>>;
+  abstract getPeriodWarsTable(
+    period: string,
+    query: TableQuery,
+  ): Observable<TablePage<PeriodWarRow>>;
 
   /** The clan's players in a CWL season (`YYYY-MM`). */
-  abstract getCwlPlayersTable(season: string, query: TableQuery): Observable<TablePage<CwlPlayerRow>>;
+  abstract getCwlPlayersTable(
+    season: string,
+    query: TableQuery,
+  ): Observable<TablePage<CwlPlayerRow>>;
 
   /** Members who attacked in a Raid Weekend (`weekend`: its id, the start instant). */
   abstract getRaidMembersTable(

@@ -12,18 +12,17 @@ describe('MockCocApiService', () => {
     api = TestBed.inject(CocApiService);
   });
 
-  it('returns the sister clans by tag, with their own name and tag', async () => {
-    for (const sister of SISTER_CLANS) {
-      const clan = await firstValueFrom(api.getClanByTag(sister.tag));
-      expect(clan.tag).toBe(sister.tag);
-      expect(clan.name).toBe(sister.name);
-      expect(clan.members.length).toBeLessThanOrEqual(50);
-    }
-  });
-
-  it('returns the clan itself by its own tag and fails for unknown clans', async () => {
+  it('gives the welcome page the clan and its sister clans, members by name and role only', async () => {
+    const welcome = await firstValueFrom(api.getWelcome());
     const own = await firstValueFrom(api.getClan());
-    expect((await firstValueFrom(api.getClanByTag(own.tag))).name).toBe(own.name);
-    await expect(firstValueFrom(api.getClanByTag('#NOPE'))).rejects.toThrow('not found');
+    expect(welcome.clan.name).toBe(own.name);
+    expect(welcome.sisters.map((c) => [c.tag, c.name])).toEqual(
+      SISTER_CLANS.map((s) => [s.tag, s.name]),
+    );
+    for (const clan of [welcome.clan, ...welcome.sisters]) {
+      expect(clan.members.length).toBeLessThanOrEqual(50);
+      expect(Object.keys(clan.members[0]).sort()).toEqual(['name', 'role']);
+    }
+    expect(welcome.ranks).toEqual({ local: 27, global: null });
   });
 });

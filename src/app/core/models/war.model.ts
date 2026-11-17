@@ -31,7 +31,7 @@ export interface War {
   teamSize: number;
   attacksPerMember: number;
   /**
-   * `true` when participants and attacks are known (current war or archived by the proxy).
+   * `true` when participants and attacks are known (current war or saved by the backend).
    * `false` for wars known only from the API war log, which provides only the summary:
    * in that case `members` is empty and `startTime`/`preparationStartTime` are estimated
    * from the end time.

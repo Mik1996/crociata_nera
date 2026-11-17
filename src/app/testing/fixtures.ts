@@ -5,7 +5,6 @@ import { Attack, ClanMember, War, WarParticipant } from '../core/models';
 export const TEST_CONFIG: AppConfig = {
   production: false,
   useMockApi: true,
-  apiBaseUrl: '/api/coc',
   backendBaseUrl: '/api/v1',
   clanTag: '#TEST',
   clanName: 'Crociata Nera',
@@ -17,7 +16,12 @@ export const TEST_CONFIG: AppConfig = {
 export const provideCocApiTest = (override: Partial<AppConfig> = {}) =>
   provideCocApi({ ...TEST_CONFIG, ...override });
 
-export function attack(attackerTag: string, defenderTag: string, stars: number, destruction: number): Attack {
+export function attack(
+  attackerTag: string,
+  defenderTag: string,
+  stars: number,
+  destruction: number,
+): Attack {
   return {
     attackerTag,
     defenderTag,
@@ -76,8 +80,24 @@ export function sampleWar(override: Partial<War> = {}): War {
     teamSize: 3,
     attacksPerMember: 2,
     hasDetails: true,
-    clan: { tag: '#TEST', name: 'Crociata Nera', level: 18, stars: 5, destructionPercentage: 60, attacksUsed: 3, members: ours },
-    opponent: { tag: '#OPP', name: 'Opponents', level: 12, stars: 5, destructionPercentage: 56.67, attacksUsed: 2, members: theirs },
+    clan: {
+      tag: '#TEST',
+      name: 'Crociata Nera',
+      level: 18,
+      stars: 5,
+      destructionPercentage: 60,
+      attacksUsed: 3,
+      members: ours,
+    },
+    opponent: {
+      tag: '#OPP',
+      name: 'Opponents',
+      level: 12,
+      stars: 5,
+      destructionPercentage: 56.67,
+      attacksUsed: 2,
+      members: theirs,
+    },
     ...override,
   };
 }

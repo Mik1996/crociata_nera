@@ -66,23 +66,14 @@
         "/api/v1/donations/seasons",
         "/api/v1/players",
         "/api/v1/bases",
-        "/api/v1/clan/records"
+        "/api/v1/clan",
+        "/api/v1/welcome"
       ],
       "cacheConfig": {
         "strategy": "freshness",
         "timeout": "8s",
         "maxSize": 300,
         "maxAge": "30d"
-      }
-    },
-    {
-      "name": "coc-api",
-      "urls": ["/api/coc/**"],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "timeout": "8s",
-        "maxSize": 300,
-        "maxAge": "7d"
       }
     }
   ]

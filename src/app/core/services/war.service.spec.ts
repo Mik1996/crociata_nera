@@ -31,18 +31,25 @@ describe('WarService', () => {
   it('refreshHistory() and refreshCurrentWar() drop the cached responses they concern', () => {
     const cache = TestBed.inject(HttpCacheService);
     const response = new HttpResponse({ status: 200, body: [] });
-    for (const url of ['/api/coc/archive/wars', '/api/coc/clans/%23X/warlog', '/api/coc/clans/%23X/currentwar', '/api/coc/clans/%23X']) {
+    const urls = {
+      archive: '/api/v1/wars/archive?limit=60',
+      warLog: '/api/v1/wars/warlog',
+      current: '/api/v1/wars/current',
+      participants: '/api/v1/wars/20261104T100000-X/participants?page=1',
+      clan: '/api/v1/clan',
+    };
+    for (const url of Object.values(urls))
       cache.set(url, response, 60_000, cache.currentGeneration);
-    }
 
     service.refreshHistory();
-    expect(cache.get('/api/coc/archive/wars')).toBeNull();
-    expect(cache.get('/api/coc/clans/%23X/warlog')).toBeNull();
-    expect(cache.get('/api/coc/clans/%23X/currentwar')).not.toBeNull();
+    expect(cache.get(urls.archive)).toBeNull();
+    expect(cache.get(urls.warLog)).toBeNull();
+    expect(cache.get(urls.current)).not.toBeNull();
 
     service.refreshCurrentWar();
-    expect(cache.get('/api/coc/clans/%23X/currentwar')).toBeNull();
-    expect(cache.get('/api/coc/clans/%23X')).not.toBeNull();
+    expect(cache.get(urls.current)).toBeNull();
+    expect(cache.get(urls.participants)).toBeNull();
+    expect(cache.get(urls.clan)).not.toBeNull();
   });
 
   it('getLatestWar prefers the current war', async () => {

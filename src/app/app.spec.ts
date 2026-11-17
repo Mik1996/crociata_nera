@@ -26,9 +26,11 @@ describe('App', () => {
 
   it('shows the clan badge returned by the API in the header', async () => {
     const api = TestBed.inject(CocApiService);
-    const clan = await firstValueFrom(api.getClan());
+    const welcome = await firstValueFrom(api.getWelcome());
     const url = 'https://api-assets.clashofclans.com/badges/512/test.png';
-    vi.spyOn(api, 'getClan').mockReturnValue(of({ ...clan, badgeUrl: url }));
+    vi.spyOn(api, 'getWelcome').mockReturnValue(
+      of({ ...welcome, clan: { ...welcome.clan, badgeUrl: url } }),
+    );
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -39,26 +41,36 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(CLAN_CREST_URL);
+    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(
+      CLAN_CREST_URL,
+    );
   });
 
   it('falls back to the clan logo when the badge fails to load', async () => {
     const api = TestBed.inject(CocApiService);
-    const clan = await firstValueFrom(api.getClan());
-    vi.spyOn(api, 'getClan').mockReturnValue(of({ ...clan, badgeUrl: 'https://example.test/badge.png' }));
+    const welcome = await firstValueFrom(api.getWelcome());
+    vi.spyOn(api, 'getWelcome').mockReturnValue(
+      of({ ...welcome, clan: { ...welcome.clan, badgeUrl: 'https://example.test/badge.png' } }),
+    );
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     el.querySelector('.brand__badge')?.dispatchEvent(new Event('error'));
     await fixture.whenStable();
-    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(CLAN_CREST_URL);
+    expect(el.querySelector<HTMLImageElement>('.brand__badge')?.getAttribute('src')).toBe(
+      CLAN_CREST_URL,
+    );
   });
 
   it('exposes the main navigation with all sections', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const nav = (fixture.nativeElement as HTMLElement).querySelector('nav[aria-label="Navigazione principale"]');
-    const items = Array.from(nav?.querySelectorAll('a [matListItemTitle]') ?? []).map((s) => s.textContent?.trim());
+    const nav = (fixture.nativeElement as HTMLElement).querySelector(
+      'nav[aria-label="Navigazione principale"]',
+    );
+    const items = Array.from(nav?.querySelectorAll('a [matListItemTitle]') ?? []).map((s) =>
+      s.textContent?.trim(),
+    );
     expect(items).toEqual([
       'Dashboard',
       'Guerra corrente',
@@ -74,18 +86,17 @@ describe('App', () => {
     ]);
     // The pages are grouped under headings: the battles first, then the clan, the arsenal and the
     // public pages of the Crusade.
-    expect(Array.from(nav!.querySelectorAll('.nav-group')).map((h) => h.textContent?.trim())).toEqual([
-      'Battaglia',
-      'Il Clan',
-      'Arsenale',
-      'La Crociata',
-    ]);
+    expect(
+      Array.from(nav!.querySelectorAll('.nav-group')).map((h) => h.textContent?.trim()),
+    ).toEqual(['Battaglia', 'Il Clan', 'Arsenale', 'La Crociata']);
   });
 
   it('offers Settings at the bottom of the side navigation', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('.sidenav__bottom a')!;
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      '.sidenav__bottom a',
+    )!;
     expect(link.textContent).toContain('Impostazioni');
     expect(link.getAttribute('href')).toBe('/settings');
   });
@@ -94,17 +105,38 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    const items = () => Array.from(el.querySelectorAll('nav a [matListItemTitle]')).map((s) => s.textContent?.trim());
+    const items = () =>
+      Array.from(el.querySelectorAll('nav a [matListItemTitle]')).map((s) => s.textContent?.trim());
 
     el.querySelector<HTMLButtonElement>('button.language')!.click();
     await fixture.whenStable();
-    const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.language-menu [mat-menu-item]'));
-    expect(options.map((o) => o.querySelector('.language-name')?.textContent?.trim())).toEqual(['Italiano', 'English', 'Español']);
-    expect(options.every((o) => o.querySelector('img.flag')?.getAttribute('src')?.startsWith('flags/'))).toBe(true);
+    const options = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.language-menu [mat-menu-item]'),
+    );
+    expect(options.map((o) => o.querySelector('.language-name')?.textContent?.trim())).toEqual([
+      'Italiano',
+      'English',
+      'Español',
+    ]);
+    expect(
+      options.every((o) => o.querySelector('img.flag')?.getAttribute('src')?.startsWith('flags/')),
+    ).toBe(true);
 
     options[1].click();
     await fixture.whenStable();
-    expect(items()).toEqual(['Dashboard', 'Current war', 'League (CWL)', 'CWL selections', 'Raid Weekend', 'War history', 'Players', 'Statistics', 'Base arsenal', 'Welcome', 'Join us']);
+    expect(items()).toEqual([
+      'Dashboard',
+      'Current war',
+      'League (CWL)',
+      'CWL selections',
+      'Raid Weekend',
+      'War history',
+      'Players',
+      'Statistics',
+      'Base arsenal',
+      'Welcome',
+      'Join us',
+    ]);
     expect(el.querySelector('button.language img')?.getAttribute('src')).toBe('flags/us.svg');
     TestBed.inject(TranslateService).use('it-IT');
     localStorage.clear();
@@ -130,14 +162,24 @@ describe('App', () => {
 
     el.querySelector<HTMLButtonElement>('button.theme-picker')!.click();
     await fixture.whenStable();
-    const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.theme-menu [mat-menu-item]'));
-    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual(['Ferro', 'Acciaio', 'theme.other']);
-    expect(options[2].querySelector<HTMLElement>('.swatch')?.style.background).toBe('rgb(255, 255, 255)');
+    const options = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.theme-menu [mat-menu-item]'),
+    );
+    expect(options.map((o) => o.querySelector('.theme-name')?.textContent?.trim())).toEqual([
+      'Ferro',
+      'Acciaio',
+      'theme.other',
+    ]);
+    expect(options[2].querySelector<HTMLElement>('.swatch')?.style.background).toBe(
+      'rgb(255, 255, 255)',
+    );
 
     options[2].click();
     await fixture.whenStable();
     expect(document.documentElement.dataset['theme']).toBe(other);
-    expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe('theme.other');
+    expect(el.querySelector('button.theme-picker .theme-picker__label')?.textContent?.trim()).toBe(
+      'theme.other',
+    );
     localStorage.clear();
     document.documentElement.dataset['theme'] = DEFAULT_THEME;
   });

@@ -114,3 +114,23 @@ export interface ClanRecords {
   /** Most Clan Capital trophies. */
   capitalPoints: ClanRecord;
 }
+
+/**
+ * Public data of the welcome page, the "Join us" page and the header (`GET /api/v1/welcome`): the
+ * clans of the Crusade with their members by name and role only, and the main clan's rankings.
+ */
+export interface PublicClansData {
+  clan: Clan;
+  /** The sister clans that could be read. */
+  sisters: Clan[];
+  ranks: ClanRanks;
+}
+
+/** A linked account of the signed-in user that is in a clan of the Crusade now. */
+export interface Membership {
+  tag: string;
+  name: string;
+  role: ClanRole;
+  clanTag: string;
+  clanName: string;
+}

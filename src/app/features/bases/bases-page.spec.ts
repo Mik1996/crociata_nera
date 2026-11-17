@@ -87,8 +87,8 @@ describe('BasesPage', () => {
 
     afterEach(() => {
       vi.unstubAllGlobals();
-      // The clan badge of the empty state comes from the Clash of Clans proxy: not under test.
-      httpMock.match((request) => request.url.startsWith('/api/coc/'));
+      // The clan badge of the empty state comes from the public data of the clans: not under test.
+      httpMock.match('/api/v1/welcome');
       httpMock.verify();
     });
 

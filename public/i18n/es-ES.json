@@ -151,15 +151,8 @@
     "unexpectedError": "Se ha producido un error inesperado."
   },
   "errors": {
-    "invalidIp": "Los datos de Clash of Clans no están disponibles en este momento. Inténtalo de nuevo en breve.",
-    "accessDenied": "Los datos de Clash of Clans no están disponibles en este momento. Inténtalo de nuevo en breve.",
-    "apiUnreachable": "No se puede contactar con Clash of Clans. Inténtalo de nuevo en breve.",
-    "proxyUnreachable": "Servicio no disponible temporalmente. Inténtalo de nuevo en breve.",
-    "notFound": "Clan o recurso no encontrado.",
     "tooManyRequests": "Demasiadas solicitudes: inténtalo de nuevo en unos instantes.",
-    "maintenance": "Clash of Clans está en mantenimiento. Inténtalo más tarde.",
-    "server": "Se ha producido un error ({{status}}). Inténtalo de nuevo en breve.",
-    "offline": "Estás sin conexión. Los datos aparecerán en cuanto vuelva la conexión."
+    "server": "Se ha producido un error ({{status}}). Inténtalo de nuevo en breve."
   },
   "result": {
     "victory": "Victoria",
@@ -500,6 +493,7 @@
     "HISTORY_NOT_FOUND": "No hay guerras registradas en el periodo.",
     "CWL_SEASON_NOT_FOUND": "Temporada de Liga no encontrada.",
     "RAID_SEASON_NOT_FOUND": "Raid Weekend no encontrado.",
+    "COC_API_UNAVAILABLE": "La API de Clash of Clans no responde: inténtalo de nuevo en un momento.",
     "PLAYER_NOT_FOUND": "Jugador no encontrado.",
     "PLAYERS_SYNC_FAILED": "No se pudieron leer los miembros de Clash of Clans.",
     "PLAYER_TOKEN_SHOULD_NOT_BE_EMPTY": "Introduce el token de API que muestra el juego.",

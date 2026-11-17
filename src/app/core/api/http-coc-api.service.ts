@@ -1,8 +1,8 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { cacheFor } from '../http/http-cache';
+import { cacheFor, noCache } from '../http/http-cache';
 import { BaseResult } from '../backend/backend-api.types';
 import {
   Clan,
@@ -15,10 +15,12 @@ import {
   HistoryPeriod,
   MemberStatsRow,
   MemberStatsSummary,
+  Membership,
   MonthSummary,
   ParticipantsSummary,
   PeriodWarRow,
   PlayerProfile,
+  PublicClansData,
   RaidMemberRow,
   RaidMembersSummary,
   RaidSeason,
@@ -34,58 +36,56 @@ import { TablePage, tableQueryParams, TableParams } from '../../shared/table/tab
 import { ParticipantRow } from '../utils/war-stats';
 import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
 import { CocApiService } from './coc-api';
-import { CocApiClient } from './coc-api-client';
-import { closeExpiredWars, mapClan, mapWar, mapWarLogEntry, mergeWarHistory, mapPlayerProfile } from './coc-api.mappers';
-import { errorBody, isPrivateWarLog, toApiError } from './coc-api-errors';
-import { CocCapitalRaidSeason, CocClan, CocCwlSeasonRecord, CocWar, CocWarLog, CocPlayer } from './coc-api.types';
+import {
+  closeExpiredWars,
+  mapClan,
+  mapPlayerProfile,
+  mapWar,
+  mapWarLogEntry,
+  mergeWarHistory,
+} from './coc-api.mappers';
+import { toBackendError } from './coc-api-errors';
+import {
+  CocCapitalRaidSeason,
+  CocClan,
+  CocCwlSeasonRecord,
+  CocPlayer,
+  CocWar,
+  CocWarLogEntry,
+} from './coc-api.types';
 
-export { CocApiHttpError, toApiError } from './coc-api-errors';
+export { CocApiHttpError, toBackendError } from './coc-api-errors';
 
 /**
- * HTTP implementation of the data layer.
+ * HTTP implementation of the data layer: every read goes to the application backend
+ * (`AppConfig.backendBaseUrl`, `/api/v1`), never to api.clashofclans.com (the token stays
+ * server-side) nor to the old proxy. The backend reads the official API (keeping each response a
+ * while) and serves what it saves in MongoDB (wars, history, CWL, Raid Weekends, donations, records).
  *
- * Requests go to `AppConfig.apiBaseUrl`, which must point to the BACKEND PROXY (`server/`),
- * never directly to api.clashofclans.com: the API token stays server-side.
+ * Responses of the official API keep its format (`GET /clan`, `/wars/current`, `/wars/warlog`,
+ * `/wars/archive`, `/players/{tag}/profile`…): the mappers of `coc-api.mappers.ts` turn them into
+ * the models of the site. The pages' tables are filtered, sorted and paged by the backend: one
+ * request per page, sort and filter change (`get…Table`, query string from {@link tableQueryParams}).
  *
- * Endpoints used:
- * - `GET {base}/clans/{tag}`              -> `/v1/clans/{tag}`
- * - `GET {base}/clans/{tag}/currentwar`   -> `/v1/clans/{tag}/currentwar`
- * - `GET {base}/clans/{tag}/warlog`       -> `/v1/clans/{tag}/warlog` (summaries only)
- * - `GET {base}/archive/wars`             -> `currentwar` snapshots saved by the proxy (with details)
- * - `GET {base}/history`                  -> list of months in the monthly history
- * - `GET {base}/history/{YYYY-MM|all}`    -> statistics for a period
- * - `GET {base}/players/{tag}`            -> `/v1/players/{tag}`
- *
- * Every other official endpoint is available, as raw responses, through `CocApiClient`.
- *
- * War history and monthly statistics come first from the application backend
- * (`{backend}/wars/archive`, `{backend}/history`), which saves every war in MongoDB; if the
- * backend cannot answer, the proxy archive above is used instead.
- *
- * The tables of the pages are filtered, sorted and paged by the backend: one request per page,
- * sort and filter change (`get…Table`, query string from {@link tableQueryParams}).
- *
- * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that
- * changes during a war (see {@link CACHE}).
+ * Responses are cached by `cacheInterceptor`: 15 minutes by default, less for data that changes
+ * during a war (see {@link CACHE}).
  */
-/** Location id of the worldwide ("International") rankings. */
-export const GLOBAL_LOCATION_ID = 32000006;
-/** The rankings list at most the top 200 clans. */
-const RANKING_SIZE = 200;
 
-/** Raid Weekends requested from the API (about 2 months). */
+/** Raid Weekends requested (about 2 months). */
 const RAID_SEASONS = 10;
 /** Game seasons read by default (one year). */
 const DONATION_SEASONS = 12;
 
-/** Saved wars requested from the backend for the history (the war log covers older ones). */
+/** Saved wars requested for the history (the war log covers older ones). */
 const ARCHIVE_LIMIT = 60;
 
 /** Cache duration per kind of data (the others use the 15-minute default). */
 const CACHE = {
   /** Attacks arrive continuously during the battle day. */
   currentWar: cacheFor({ minutes: 2 }),
-  /** The proxy archives the current war every 15 minutes. */
+  /** Members, league, capital. */
+  clan: cacheFor({ minutes: 5 }),
+  /** The backend saves the current war every few minutes. */
   archive: cacheFor({ minutes: 5 }),
   /** Profiles change with every upgrade, but rarely within minutes. */
   player: cacheFor({ minutes: 10 }),
@@ -95,76 +95,71 @@ const CACHE = {
 export class HttpCocApiService extends CocApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);
-  private readonly client = inject(CocApiClient);
 
-  private get clanPath(): string {
-    return `${this.config.apiBaseUrl}/clans/${encodeURIComponent(this.config.clanTag)}`;
+  /** `GET` of a backend route, its `result`; errors become translatable ({@link toBackendError}). */
+  private get<T>(
+    path: string,
+    options: { context?: HttpContext; params?: TableParams } = {},
+  ): Observable<T> {
+    return this.http.get<BaseResult<T>>(`${this.config.backendBaseUrl}${path}`, options).pipe(
+      map((response) => response.result as T),
+      catchError(toBackendError),
+    );
+  }
+
+  /** {@link get}, with `null` when the backend answers 404 (something not recorded). */
+  private getOrNull<T>(
+    path: string,
+    options: { context?: HttpContext; params?: TableParams } = {},
+  ): Observable<T | null> {
+    return this.http.get<BaseResult<T>>(`${this.config.backendBaseUrl}${path}`, options).pipe(
+      map((response) => response.result),
+      catchError((err: HttpErrorResponse) =>
+        err.status === 404 && isBackendError(err) ? of(null) : toBackendError(err),
+      ),
+    );
   }
 
   getClan(): Observable<Clan> {
-    return this.http.get<CocClan>(this.clanPath).pipe(map(mapClan), catchError(toApiError));
+    return this.get<CocClan>('/clan', { context: CACHE.clan }).pipe(map(mapClan));
   }
 
-  getClanByTag(tag: string): Observable<Clan> {
-    return this.http
-      .get<CocClan>(`${this.config.apiBaseUrl}/clans/${encodeURIComponent(tag)}`)
-      .pipe(map(mapClan), catchError(toApiError));
-  }
-
-  getClanRanks(): Observable<ClanRanks> {
-    return this.getClan().pipe(
-      switchMap((clan) =>
-        forkJoin({
-          local: clan.locationId ? this.rankIn(clan.locationId) : of(undefined),
-          global: this.rankIn(GLOBAL_LOCATION_ID),
-        }),
-      ),
+  getWelcome(): Observable<PublicClansData> {
+    return this.get<{ clans: CocClan[]; ranks: ClanRanks }>('/welcome', {
+      context: CACHE.clan,
+    }).pipe(
+      map(({ clans, ranks }) => {
+        const [clan, ...sisters] = clans.map(mapClan);
+        return { clan: clan!, sisters, ranks };
+      }),
     );
+  }
+
+  getMemberships(): Observable<Membership[]> {
+    // Follows the links and unlinks made on the profile page.
+    return this.get<Membership[]>('/auth/me/memberships', { context: noCache() });
   }
 
   /** Only the backend has them: it keeps the best values ever read from the API. */
   getClanRecords(): Observable<ClanRecords> {
-    return this.http
-      .get<BaseResult<ClanRecords>>(`${this.config.backendBaseUrl}/clan/records`, { context: CACHE.archive })
-      .pipe(map((response) => response.result!));
-  }
-
-  /** Position of the clan in a location ranking: `null` beyond the top 200, `undefined` on errors. */
-  private rankIn(locationId: number): Observable<number | null | undefined> {
-    return this.client.clanRankings(locationId, { limit: RANKING_SIZE }).pipe(
-      map((ranking) => ranking.items.find((c) => c.tag === this.config.clanTag)?.rank ?? null),
-      catchError(() => of(undefined)),
-    );
+    return this.get<ClanRecords>('/clan/records', { context: CACHE.archive });
   }
 
   getCurrentWar(): Observable<War | null> {
-    return this.http.get<CocWar>(`${this.clanPath}/currentwar`, { context: CACHE.currentWar }).pipe(
-      map(mapWar),
-      catchError((err: HttpErrorResponse) =>
-        // Private war log: the API does not expose the current war.
-        isPrivateWarLog(err) ? of(null) : toApiError(err),
-      ),
+    return this.get<CocWar | null>('/wars/current', { context: CACHE.currentWar }).pipe(
+      // `null`: not at war, or private war log.
+      map((war) => (war ? mapWar(war) : null)),
     );
   }
 
+  /** Saved wars (with players and attacks), completed by the war log (summaries of the older ones). */
   getWarHistory(): Observable<War[]> {
-    const proxyArchive$ = this.http.get<CocWar[]>(`${this.config.apiBaseUrl}/archive/wars`, { context: CACHE.archive });
-    const archive$ = this.http
-      .get<BaseResult<CocWar[]>>(`${this.config.backendBaseUrl}/wars/archive`, {
-        params: { limit: ARCHIVE_LIMIT },
-        context: CACHE.archive,
-      })
-      .pipe(
-        map((response) => response.result ?? []),
-        // Backend unreachable: fall back to the proxy archive.
-        catchError(() => proxyArchive$),
-        map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)),
-        // The archive is optional: if missing, only the war log is used.
-        catchError(() => of<War[]>([])),
-      );
-    const warLog$ = this.http.get<CocWarLog>(`${this.clanPath}/warlog`).pipe(
-      map((log) => log.items.map(mapWarLogEntry).filter((w): w is War => w !== null)),
-      catchError((err: HttpErrorResponse) => (isPrivateWarLog(err) ? of<War[]>([]) : toApiError(err))),
+    const archive$ = this.get<CocWar[]>('/wars/archive', {
+      params: { limit: String(ARCHIVE_LIMIT) },
+      context: CACHE.archive,
+    }).pipe(map((snapshots) => snapshots.map(mapWar).filter((w): w is War => w !== null)));
+    const warLog$ = this.get<CocWarLogEntry[]>('/wars/warlog', { context: CACHE.archive }).pipe(
+      map((items) => items.map(mapWarLogEntry).filter((w): w is War => w !== null)),
     );
     return forkJoin([archive$, warLog$]).pipe(
       map(([archived, warLog]) => mergeWarHistory(closeExpiredWars(archived, new Date()), warLog)),
@@ -172,90 +167,63 @@ export class HttpCocApiService extends CocApiService {
   }
 
   getHistoryMonths(): Observable<MonthSummary[]> {
-    const proxy$ = this.http.get<MonthSummary[]>(`${this.config.apiBaseUrl}/history`).pipe(catchError(toApiError));
-    return this.http.get<BaseResult<MonthSummary[]>>(`${this.config.backendBaseUrl}/history`).pipe(
-      map((response) => response.result ?? []),
-      catchError(() => proxy$),
-    );
+    return this.get<MonthSummary[]>('/history');
   }
 
   getHistoryPeriod(period: string): Observable<HistoryPeriod | null> {
-    const path = `/history/${encodeURIComponent(period)}`;
-    const proxy$ = this.http
-      .get<HistoryPeriod>(`${this.config.apiBaseUrl}${path}`)
-      .pipe(
-        // 404 = no wars recorded in the month.
-        catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
-      );
-    return this.http.get<BaseResult<HistoryPeriod>>(`${this.config.backendBaseUrl}${path}`).pipe(
-      map((response) => response.result),
-      // 404 from the backend = no wars in that month; any other failure: ask the proxy.
-      catchError((err: HttpErrorResponse) => (err.status === 404 && isBackendError(err) ? of(null) : proxy$)),
-    );
+    // 404 = no wars in that month.
+    return this.getOrNull<HistoryPeriod>(`/history/${encodeURIComponent(period)}`);
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {
-    return this.http.get<CocPlayer>(`${this.config.apiBaseUrl}/players/${encodeURIComponent(tag)}`, { context: CACHE.player }).pipe(
-      map(mapPlayerProfile),
-      // 404 = the player does not exist.
-      catchError((err: HttpErrorResponse) => (err.status === 404 && errorBody(err) ? of(null) : toApiError(err))),
-    );
+    // 404 = the player does not exist.
+    return this.getOrNull<CocPlayer>(`/players/${encodeURIComponent(tag)}/profile`, {
+      context: CACHE.player,
+    }).pipe(map((player) => (player ? mapPlayerProfile(player) : null)));
   }
 
   getCwlSeasons(): Observable<CwlSeasonSummary[]> {
-    return this.http
-      .get<BaseResult<{ season: string; state: string }[]>>(`${this.config.backendBaseUrl}/cwl/seasons`, { context: CACHE.archive })
-      .pipe(
-        map((response) =>
-          (response.result ?? []).map((s) => ({
-            season: cwlMonth(s.season),
-            state: s.state === 'ended' ? ('ended' as const) : s.state === 'preparation' ? ('preparation' as const) : ('inWar' as const),
-          })),
-        ),
-      );
+    return this.get<{ season: string; state: string }[]>('/cwl/seasons', {
+      context: CACHE.archive,
+    }).pipe(
+      map((seasons) =>
+        seasons.map((s) => ({
+          season: cwlMonth(s.season),
+          state:
+            s.state === 'ended'
+              ? ('ended' as const)
+              : s.state === 'preparation'
+                ? ('preparation' as const)
+                : ('inWar' as const),
+        })),
+      ),
+    );
   }
 
   getCwlSeason(season: string): Observable<CwlSeason | null> {
-    return this.http
-      .get<BaseResult<CocCwlSeasonRecord>>(`${this.config.backendBaseUrl}/cwl/seasons/${encodeURIComponent(season)}`, {
-        context: CACHE.archive,
-      })
-      .pipe(
-        map((response) => (response.result ? buildCwlSeason(response.result, this.config.clanTag) : null)),
-        // 404 = season not recorded.
-        catchError((err: HttpErrorResponse) => (err.status === 404 && isBackendError(err) ? of(null) : toApiError(err))),
-      );
+    // 404 = season not recorded.
+    return this.getOrNull<CocCwlSeasonRecord>(`/cwl/seasons/${encodeURIComponent(season)}`, {
+      context: CACHE.archive,
+    }).pipe(map((record) => (record ? buildCwlSeason(record, this.config.clanTag) : null)));
   }
 
   /** Only the backend has them: the API knows the current counters, reset when a player leaves. */
   getDonationSeasons(limit = DONATION_SEASONS): Observable<DonationSeason[]> {
-    return this.http
-      .get<BaseResult<DonationSeason[]>>(`${this.config.backendBaseUrl}/donations/seasons`, {
-        params: { limit },
-        context: CACHE.archive,
-      })
-      .pipe(map((response) => response.result ?? []));
+    return this.get<DonationSeason[]>('/donations/seasons', {
+      params: { limit: String(limit) },
+      context: CACHE.archive,
+    });
   }
 
   /**
-   * From the backend, which also keeps the members of past weekends (the API lists them only
-   * while a weekend is in progress); if the backend has nothing or cannot answer, from the API.
+   * Saved by the backend, which also keeps the members of past weekends (the API lists them only
+   * while a weekend is in progress); with none saved yet, the backend gives those of the API.
    */
   getRaidSeasons(limit = RAID_SEASONS): Observable<RaidSeason[]> {
-    const api$ = this.client
-      .clanCapitalRaidSeasons(this.config.clanTag, { limit })
-      .pipe(map((list) => list.items));
-    return this.http
-      .get<BaseResult<CocCapitalRaidSeason[]>>(`${this.config.backendBaseUrl}/raids/seasons`, {
-        params: { limit },
-        context: CACHE.archive,
-      })
-      .pipe(
-        map((response) => response.result ?? []),
-        catchError(() => of<CocCapitalRaidSeason[]>([])),
-        switchMap((saved) => (saved.length ? of(saved) : api$)),
-        map((seasons) => seasons.map(mapRaidSeason)),
-      );
+    return this.get<CocCapitalRaidSeason[]>('/raids/seasons', {
+      params: { limit: String(limit) },
+      context: CACHE.archive,
+    }).pipe(map((seasons) => seasons.map(mapRaidSeason)));
   }
 
   // --- Tables ---------------------------------------------------------------------------------
@@ -267,24 +235,27 @@ export class HttpCocApiService extends CocApiService {
     context = CACHE.archive,
     extra: TableParams = {},
   ): Observable<TablePage<T, S>> {
-    return this.http
-      .get<BaseResult<TablePage<T, S>>>(`${this.config.backendBaseUrl}${path}`, {
-        params: { ...tableQueryParams(query), ...extra },
-        context,
-      })
-      .pipe(map((response) => response.result!));
+    return this.get<TablePage<T, S>>(path, {
+      params: { ...tableQueryParams(query), ...extra },
+      context,
+    });
   }
 
   getWarHistoryTable(query: TableQuery): Observable<TablePage<WarHistoryRow, WarHistorySummary>> {
     return this.table('/wars/history', query);
   }
 
-  getWarParticipantsTable(warId: string, query: TableQuery): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
+  getWarParticipantsTable(
+    warId: string,
+    query: TableQuery,
+  ): Observable<TablePage<ParticipantRow, ParticipantsSummary>> {
     // The war in progress changes during the battle day.
     return this.table(`/wars/${encodeURIComponent(warId)}/participants`, query, CACHE.currentWar);
   }
 
-  getMemberStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
+  getMemberStatsTable(
+    query: TableQuery,
+  ): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
     return this.table('/players', query, CACHE.currentWar);
   }
 
@@ -292,7 +263,11 @@ export class HttpCocApiService extends CocApiService {
     return this.table(`/players/${encodeURIComponent(tag)}/wars`, query);
   }
 
-  getRankingTable(period: string, options: RankingOptions, query: TableQuery): Observable<TablePage<RankingRow>> {
+  getRankingTable(
+    period: string,
+    options: RankingOptions,
+    query: TableQuery,
+  ): Observable<TablePage<RankingRow>> {
     return this.table(`/history/${encodeURIComponent(period)}/ranking`, query, CACHE.archive, {
       minWars: String(options.minWars),
       currentMembersOnly: String(options.currentMembersOnly),
@@ -307,7 +282,10 @@ export class HttpCocApiService extends CocApiService {
     return this.table(`/cwl/seasons/${encodeURIComponent(season)}/players`, query);
   }
 
-  getRaidMembersTable(weekend: string, query: TableQuery): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
+  getRaidMembersTable(
+    weekend: string,
+    query: TableQuery,
+  ): Observable<TablePage<RaidMemberRow, RaidMembersSummary>> {
     return this.table(`/raids/seasons/${encodeURIComponent(weekend)}/members`, query);
   }
 
@@ -324,7 +302,12 @@ export class HttpCocApiService extends CocApiService {
   }
 }
 
-/** The backend answered with its envelope (as opposed to a proxy or network error). */
+/** The backend answered with its envelope (as opposed to a network error). */
 function isBackendError(err: HttpErrorResponse): boolean {
-  return typeof err.error === 'object' && err.error !== null && 'status' in err.error && 'messages' in err.error;
+  return (
+    typeof err.error === 'object' &&
+    err.error !== null &&
+    'status' in err.error &&
+    'messages' in err.error
+  );
 }

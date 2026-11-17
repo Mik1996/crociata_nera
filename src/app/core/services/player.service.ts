@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, combineLatest, forkJoin, map, Observable, of } from 'rxjs';
+import { combineLatest, map, Observable } from 'rxjs';
 import { CocApiService } from '../api/coc-api';
 import { APP_CONFIG } from '../config/app-config';
-import { SISTER_CLANS } from '../config/sister-clans';
 import {
   ClanMember,
   MemberStatsRow,
@@ -28,37 +27,22 @@ export class PlayerService {
   }
 
   /**
-   * Tags of the current members of the three clans of the Crusade (Crociata Nera and its sister
-   * clans): whoever is not in any of them is a former member. `null` when a member list cannot be
-   * read, so nobody is wrongly labelled as a former member.
-   */
-  getCrusadeMemberTags(): Observable<Set<string> | null> {
-    return forkJoin([
-      this.api.getClan(),
-      ...SISTER_CLANS.map((sister) => this.api.getClanByTag(sister.tag)),
-    ]).pipe(
-      map((clans) => new Set(clans.flatMap((clan) => clan.members.map((m) => m.tag)))),
-      catchError(() => of(null)),
-    );
-  }
-
-  /**
    * Stats of all current members over the configured war window.
-   * Only considers wars with participant details (current or archived by the proxy).
+   * Only considers wars with participant details (current or saved by the backend).
    */
   getMembersStats(): Observable<PlayerStats[]> {
     return combineLatest([this.getMembers(), this.wars.getHistory()]).pipe(
       map(([members, history]) => {
-        const warWindow = history
-          .filter((w) => w.hasDetails)
-          .slice(0, this.config.statsWindow);
+        const warWindow = history.filter((w) => w.hasDetails).slice(0, this.config.statsWindow);
         return members.map((m) => computePlayerStats(m, warWindow));
       }),
     );
   }
 
   /** A page of the members with their war statistics (filtered, sorted and paged by the backend). */
-  getMembersStatsTable(query: TableQuery): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
+  getMembersStatsTable(
+    query: TableQuery,
+  ): Observable<TablePage<MemberStatsRow, MemberStatsSummary>> {
     return this.api.getMemberStatsTable(query);
   }
 

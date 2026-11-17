@@ -9,7 +9,7 @@ const SESSION_PATHS = ['/auth/sign-in', '/auth/sign-up', '/auth/refresh', '/auth
 
 /**
  * Adds `Authorization: Bearer <access token>` to requests for the application backend
- * (never to the Clash of Clans proxy). On a 401 it refreshes the token once and retries (also
+ * (not to other hosts, such as the images of the Clash of Clans CDN). On a 401 it refreshes the token once and retries (also
  * without a token, for the user remembered while offline: the network is back).
  * Session endpoints are left alone: retrying a failed refresh with a refresh would loop.
  */

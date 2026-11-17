@@ -1,6 +1,6 @@
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, throwError } from 'rxjs';
 import { CLAN_CRESTS } from '../../core/api/clan-badge';
 import { CocApiService } from '../../core/api/coc-api';
 import { APP_CONFIG, AppConfig } from '../../core/config/app-config';
@@ -61,16 +61,31 @@ describe('WelcomePage', () => {
     ranks: ClanRanks = { local: 12, global: null },
     clanRecords: Observable<ClanRecords> = of(records),
     sisterClan: (tag: string) => Observable<Clan> = (tag) =>
-      of({ ...clan, tag, name: tag === '#2JU8RPR2G' ? 'Crociata Rossa' : "Crociata d'Oro", description: 'Clan gemello.' }),
+      of({
+        ...clan,
+        tag,
+        name: tag === '#2JU8RPR2G' ? 'Crociata Rossa' : "Crociata d'Oro",
+        description: 'Clan gemello.',
+      }),
   ) {
     TestBed.configureTestingModule({
       providers: [
         {
           provide: CocApiService,
           useValue: {
-            getClan: () => of(data),
-            getClanByTag: sisterClan,
-            getClanRanks: () => of(ranks),
+            // The backend leaves out a sister clan that cannot be read.
+            getWelcome: () =>
+              forkJoin(
+                ['#2JU8RPR2G', '#2RRYUGQYJ'].map((tag) =>
+                  sisterClan(tag).pipe(catchError(() => of(null))),
+                ),
+              ).pipe(
+                map((sisters) => ({
+                  clan: data,
+                  sisters: sisters.filter((c): c is Clan => c !== null),
+                  ranks,
+                })),
+              ),
             getClanRecords: () => clanRecords,
           },
         },
@@ -92,8 +107,22 @@ describe('WelcomePage', () => {
     const el = await render(clan);
 
     const acts = Array.from(el.querySelectorAll('.scrolly-act[id]')).map((act) => act.id);
-    expect(acts).toEqual(['prologue', 'army', 'capital', 'war', 'annals', 'code', 'code-scroll', 'sister-red', 'sister-gold', 'legion', 'call']);
-    expect(Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim())).toEqual([
+    expect(acts).toEqual([
+      'prologue',
+      'army',
+      'capital',
+      'war',
+      'annals',
+      'code',
+      'code-scroll',
+      'sister-red',
+      'sister-gold',
+      'legion',
+      'call',
+    ]);
+    expect(
+      Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim()),
+    ).toEqual([
       'La Crociata',
       "L'Esercito",
       'La Capitale',
@@ -109,15 +138,17 @@ describe('WelcomePage', () => {
     expect(el.querySelector('#legion .act-heading__kicker')!.textContent).toContain('Atto VIII');
     expect(el.querySelector('#call .act-heading__kicker')!.textContent).toContain('Atto IX');
     // The Black Crusader changes pose from act to act.
-    const poses = Array.from(el.querySelectorAll('crn-crusader')).map((c) => c.getAttribute('data-pose'));
+    const poses = Array.from(el.querySelectorAll('crn-crusader')).map((c) =>
+      c.getAttribute('data-pose'),
+    );
     expect(poses).toEqual(['stand', 'guard', 'heart', 'fist', 'oath', 'stand', 'stand']);
     // The call gathers the three Crusaders of the Crusade in one picture.
     expect(el.querySelector<HTMLImageElement>('#call .call__figures')!.getAttribute('src')).toBe(
       'images/crusader/crusader-trio-800.webp',
     );
-    expect(el.querySelector<HTMLImageElement>('#prologue crn-crusader img')!.getAttribute('src')).toBe(
-      'images/crusader/crusader-stand-640.webp',
-    );
+    expect(
+      el.querySelector<HTMLImageElement>('#prologue crn-crusader img')!.getAttribute('src'),
+    ).toBe('images/crusader/crusader-stand-640.webp');
   });
 
   it('presents the sister clans like the prologue, each with its Crusader and a link to the game', async () => {
@@ -125,13 +156,17 @@ describe('WelcomePage', () => {
 
     const red = el.querySelector('#sister-red')!;
     expect(red.querySelector('crn-clan-hero')!.classList).toContain('clan-hero--red');
-    expect(red.querySelector('h2.clan-name .clan-name__metal')!.textContent!.trim()).toBe('Crociata Rossa');
+    expect(red.querySelector('h2.clan-name .clan-name__metal')!.textContent!.trim()).toBe(
+      'Crociata Rossa',
+    );
     expect(red.querySelector('.hero__kicker')!.textContent).toContain('Atto VI · Clan gemello');
     expect(red.querySelector<HTMLImageElement>('crn-crusader img')!.getAttribute('src')).toBe(
       'images/crusader/crusader-red-stand-640.webp',
     );
     const cta = red.querySelector<HTMLAnchorElement>('.hero__cta')!;
-    expect(cta.href).toBe('https://link.clashofclans.com/it?action=OpenClanProfile&tag=%232JU8RPR2G');
+    expect(cta.href).toBe(
+      'https://link.clashofclans.com/it?action=OpenClanProfile&tag=%232JU8RPR2G',
+    );
     expect(cta.target).toBe('_blank');
 
     const gold = el.querySelector('#sister-gold')!;
@@ -145,7 +180,9 @@ describe('WelcomePage', () => {
 
   it('leaves out a sister clan that cannot be read', async () => {
     const el = await render(clan, undefined, undefined, (tag) =>
-      tag === '#2JU8RPR2G' ? throwError(() => new Error('offline')) : of({ ...clan, tag, name: "Crociata d'Oro" }),
+      tag === '#2JU8RPR2G'
+        ? throwError(() => new Error('offline'))
+        : of({ ...clan, tag, name: "Crociata d'Oro" }),
     );
     expect(el.querySelector('#sister-red')).toBeNull();
     expect(el.querySelector('#sister-gold .hero__kicker')!.textContent).toContain('Atto VI');
@@ -158,13 +195,19 @@ describe('WelcomePage', () => {
     expect(el.querySelector('.clan-name__metal')!.textContent!.trim()).toBe('Crociata Nera');
     expect(el.querySelector('.clan-name__fire')!.getAttribute('aria-hidden')).toBe('true');
     expect(el.querySelector<HTMLImageElement>('.badge-stage__badge')!.src).toBe(clan.badgeUrl);
-    expect(el.querySelector('.hero__motto')!.textContent).toContain('Qui non c’è posto per i deboli.');
+    expect(el.querySelector('.hero__motto')!.textContent).toContain(
+      'Qui non c’è posto per i deboli.',
+    );
     expect(el.querySelector<HTMLImageElement>('.capital__hall')!.getAttribute('src')).toBe(
       'game/capital-halls/capital-hall-10.webp',
     );
-    expect(el.querySelector('.capital__caption')!.textContent).toContain('Municipio della Capitale');
+    expect(el.querySelector('.capital__caption')!.textContent).toContain(
+      'Municipio della Capitale',
+    );
     expect(el.querySelector('.capital__ribbon')!.textContent).toContain('Livello 10');
-    expect(el.querySelector<HTMLImageElement>('.capital__league img')!.getAttribute('src')).toBe('game/leagues/legend.webp');
+    expect(el.querySelector<HTMLImageElement>('.capital__league img')!.getAttribute('src')).toBe(
+      'game/leagues/legend.webp',
+    );
     expect(el.textContent).toContain('Legend League');
     expect(valueOf(el.querySelector('.capital__points dd'))).toBe('5.365');
     expect(el.querySelector<HTMLImageElement>('.war__trophy-image')!.getAttribute('src')).toBe(
@@ -182,7 +225,9 @@ describe('WelcomePage', () => {
       );
     heroBadges().forEach((badge) => badge.dispatchEvent(new Event('error')));
     const cards = () => Array.from(el.querySelectorAll('.enlist'));
-    cards().forEach((card) => card.querySelector('.enlist__clan-badge')!.dispatchEvent(new Event('error')));
+    cards().forEach((card) =>
+      card.querySelector('.enlist__clan-badge')!.dispatchEvent(new Event('error')),
+    );
     await TestBed.inject(ApplicationRef).whenStable();
 
     // Each clan of the Crusade has its own crowned helmet.
@@ -191,11 +236,9 @@ describe('WelcomePage', () => {
       CLAN_CRESTS.red,
       CLAN_CRESTS.gold,
     ]);
-    expect(cards().map((c) => c.querySelector('.enlist__clan-badge')?.getAttribute('src') ?? null)).toEqual([
-      CLAN_CRESTS.black,
-      CLAN_CRESTS.red,
-      CLAN_CRESTS.gold,
-    ]);
+    expect(
+      cards().map((c) => c.querySelector('.enlist__clan-badge')?.getAttribute('src') ?? null),
+    ).toEqual([CLAN_CRESTS.black, CLAN_CRESTS.red, CLAN_CRESTS.gold]);
   });
 
   it('shows the districts of the capital around the Capital Hall, each with its name and level', async () => {
@@ -210,7 +253,9 @@ describe('WelcomePage', () => {
       ['Accampamento barbaro', 'game/capital-districts/district-hall-5.webp', 'Livello 5'],
       ['Parco degli scheletri', 'game/capital-districts/district-hall-4.webp', 'Livello 4'],
     ]);
-    expect(el.querySelector('.capital__districts')!.getAttribute('aria-label')).toBe('Distretti della Capitale');
+    expect(el.querySelector('.capital__districts')!.getAttribute('aria-label')).toBe(
+      'Distretti della Capitale',
+    );
   });
 
   it('shows the clan in numbers, counted up to their final value', async () => {
@@ -226,7 +271,9 @@ describe('WelcomePage', () => {
       ['140.174', 'Punti clan'],
     ]);
     // Without layout (tests) the page is static: the counters show the final numbers.
-    expect(el.querySelector('[data-stat="clanPoints"] [aria-hidden] span')!.textContent).toBe('140.174');
+    expect(el.querySelector('[data-stat="clanPoints"] [aria-hidden] span')!.textContent).toBe(
+      '140.174',
+    );
   });
 
   it('shows the war record, its bar and the win rate', async () => {
@@ -241,18 +288,29 @@ describe('WelcomePage', () => {
       ['Sconfitte', '16'],
       ['% di vittorie', '76%'],
     ]);
-    const parts = Array.from(el.querySelectorAll<HTMLElement>('.war__bar-part')).map((p) => Number(p.style.flexGrow).toFixed(2));
+    const parts = Array.from(el.querySelectorAll<HTMLElement>('.war__bar-part')).map((p) =>
+      Number(p.style.flexGrow).toFixed(2),
+    );
     expect(parts).toEqual(['0.76', '0.15', '0.09']);
   });
 
   it('copes with an unranked clan without capital or description', async () => {
-    const el = await render({ ...clan, warLeague: undefined, capitalLeague: undefined, capitalHallLevel: 0, capitalDistricts: [], description: '' });
+    const el = await render({
+      ...clan,
+      warLeague: undefined,
+      capitalLeague: undefined,
+      capitalHallLevel: 0,
+      capitalDistricts: [],
+      description: '',
+    });
 
     expect(el.textContent).toContain('Capitale non ancora fondata');
     expect(el.textContent).toContain('Non classificato');
     expect(el.querySelector('.capital__districts')).toBeNull();
     expect(el.querySelector('#prologue .hero__motto')).toBeNull();
-    expect(el.querySelector<HTMLImageElement>('.war__trophy-image')!.getAttribute('src')).toBe('game/misc/clan-war.webp');
+    expect(el.querySelector<HTMLImageElement>('.war__trophy-image')!.getAttribute('src')).toBe(
+      'game/misc/clan-war.webp',
+    );
   });
 
   it('shows the positions in the country and worldwide rankings', async () => {
@@ -269,7 +327,9 @@ describe('WelcomePage', () => {
 
   it('shows the worldwide ranking only for the top 200, the country one always', async () => {
     const el = await render({ ...clan, countryCode: 'IT' }, { local: null, global: null });
-    const values = Array.from(el.querySelectorAll('.stat--rank .stat__value')).map((v) => valueOf(v));
+    const values = Array.from(el.querySelectorAll('.stat--rank .stat__value')).map((v) =>
+      valueOf(v),
+    );
     expect(values).toEqual(['200+']);
   });
 
@@ -293,23 +353,33 @@ describe('WelcomePage', () => {
       ['#12', 'Miglior posizione capitale Italia'],
       ['5.380', 'Record trofei capitale'],
     ]);
-    expect(el.querySelector<HTMLImageElement>('[data-record="cwlLeague"] img')!.getAttribute('src')).toBe(
-      'game/war-leagues/master-1.webp',
-    );
+    expect(
+      el.querySelector<HTMLImageElement>('[data-record="cwlLeague"] img')!.getAttribute('src'),
+    ).toBe('game/war-leagues/master-1.webp');
     // Waving Italian flag for the country ranking, Legend League for the capital one.
     expect(el.querySelectorAll('[data-record="localRank"] .flag__slice').length).toBeGreaterThan(1);
-    expect(el.querySelector<HTMLImageElement>('[data-record="localCapitalRank"] img')!.getAttribute('src')).toBe(
-      'game/leagues/legend.webp',
-    );
+    expect(
+      el
+        .querySelector<HTMLImageElement>('[data-record="localCapitalRank"] img')!
+        .getAttribute('src'),
+    ).toBe('game/leagues/legend.webp');
     // Only records reached while tracked by the backend have a date.
     expect(el.querySelectorAll('.record__date')).toHaveLength(1);
-    expect(el.querySelector('[data-record="capitalPoints"] .record__date')!.textContent).toContain('Raggiunto il');
+    expect(el.querySelector('[data-record="capitalPoints"] .record__date')!.textContent).toContain(
+      'Raggiunto il',
+    );
   });
 
   it('leaves the annals out when the backend cannot answer', async () => {
-    const el = await render(clan, undefined, throwError(() => new Error('offline')));
+    const el = await render(
+      clan,
+      undefined,
+      throwError(() => new Error('offline')),
+    );
     expect(el.querySelector('crn-act-annals')).toBeNull();
-    expect(Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim())).not.toContain('Gli Annali');
+    expect(
+      Array.from(el.querySelectorAll('.index__label')).map((l) => l.textContent?.trim()),
+    ).not.toContain('Gli Annali');
     expect(el.querySelector('.clan-name__metal')).not.toBeNull();
   });
 
@@ -318,20 +388,29 @@ describe('WelcomePage', () => {
       ...clan,
       members: roster(47),
       requiredTownHall: 14,
-      requiredLeague: { name: 'Master League I', iconUrl: 'https://api-assets.clashofclans.com/leaguetiers/326/x.png' },
+      requiredLeague: {
+        name: 'Master League I',
+        iconUrl: 'https://api-assets.clashofclans.com/leaguetiers/326/x.png',
+      },
     });
 
     const cta = el.querySelector<HTMLAnchorElement>('.enlist__cta')!;
     // The `#` of the tag is encoded, otherwise it would become a URL fragment.
-    expect(cta.href).toBe('https://link.clashofclans.com/it?action=OpenClanProfile&tag=%232J8JVVCLC');
+    expect(cta.href).toBe(
+      'https://link.clashofclans.com/it?action=OpenClanProfile&tag=%232J8JVVCLC',
+    );
     expect(cta.target).toBe('_blank');
     expect(cta.rel).toContain('noopener');
     expect(el.querySelector('.enlist__slots')!.textContent).toContain('3');
     const requirements = el.querySelector('.enlist__requirements')!;
-    const [townHall, league] = Array.from(requirements.querySelectorAll<HTMLImageElement>('.enlist__badge'));
+    const [townHall, league] = Array.from(
+      requirements.querySelectorAll<HTMLImageElement>('.enlist__badge'),
+    );
     expect(townHall.getAttribute('src')).toBe('game/town-halls/th-14.webp');
     expect(requirements.textContent).toContain('Municipio 14');
-    expect(league.getAttribute('src')).toBe('https://api-assets.clashofclans.com/leaguetiers/326/x.png');
+    expect(league.getAttribute('src')).toBe(
+      'https://api-assets.clashofclans.com/leaguetiers/326/x.png',
+    );
     expect(requirements.textContent).toContain('Lega richiesta');
     expect(requirements.textContent).toContain('Master League I');
     expect(el.querySelector('.perks')).toBeNull();
@@ -367,7 +446,9 @@ describe('WelcomePage', () => {
       'https://link.clashofclans.com/it?action=OpenClanProfile&tag=%232RRYUGQYJ',
     ]);
     // Each card is named after its clan; the hint on the game link is shown once.
-    expect(cards[1].getAttribute('aria-labelledby')).toBe(cards[1].querySelector('.enlist__clan')!.id);
+    expect(cards[1].getAttribute('aria-labelledby')).toBe(
+      cards[1].querySelector('.enlist__clan')!.id,
+    );
     expect(el.querySelectorAll('.recruit__hint')).toHaveLength(1);
   });
 

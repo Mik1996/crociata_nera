@@ -11,22 +11,22 @@ Italian only in the UI translations (`public/i18n/it-IT.json`).
 | Folder | What | Stack |
 |---|---|---|
 | `src/` | Frontend | Angular 22 (standalone, zoneless, signals, `rxResource`), Angular Material, ngx-translate, Chart.js |
-| `server/` | Proxy to the official Clash of Clans API (keeps the API token server-side) | Node, plain `.mjs` |
-| `backend/` | Application backend: auth, saved wars/CWL/raids, players, commendations, scheduler | Next.js 16 route handlers, Mongoose 9, zod 4 |
+| `server/` | Old proxy to the official Clash of Clans API: no longer called by the frontend, still deployed (to retire) | Node, plain `.mjs` |
+| `backend/` | Application backend: every datum of the site (auth, Clash of Clans data read live or saved: wars/CWL/raids, players, commendations), scheduler | Next.js 16 route handlers, Mongoose 9, zod 4 |
 | `deploy/` | Production: docker compose + Caddy on the VPS, `deploy.sh`, `backup.sh` | |
 
 Request routing (same in dev via `proxy.conf.json` and in prod via `deploy/Caddyfile`):
-`/api/coc/*` → proxy (`:3000`), `/api/v1/*` → backend (`:3001`).
+`/api/v1/*` → backend (`:3001`); `/api/coc/*` → old proxy (`:3000`), unused by the frontend.
 
 ## Commands
 
 ```sh
-npm start                 # frontend on :4200 (needs proxy + backend for real data)
+npm start                 # frontend on :4200 (needs the backend for real data)
 npm run start:mock        # frontend with mock data, no backend needed (no signed-in user)
 npm run start:prod        # builds, then serves dist/ like Caddy on :4400 to test the service worker (not
                           # `ng serve`: its files fail the worker's hash check). Own port: the worker stays
                           # registered. Needs http://localhost:4400 in FRONTEND_URL of backend/.env.local
-npm run server            # CoC proxy on :3000 (reads root .env)
+npm run server            # old CoC proxy on :3000 (reads root .env; the frontend no longer uses it)
 npm run backend           # backend on :3001 (reads backend/.env.local)
 
 npx ng test --watch=false                          # frontend tests (Vitest)
@@ -117,7 +117,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   `scripts/generate-icons.mjs` and run `npm run icons` (writes the SVGs and `icon-names.ts`).
   Inside Material buttons add `matButtonIcon`, inside menu items `matMenuItemIcon` (projection slots).
 - Service worker (production build only, `ngsw-config.json`): app files precached, pictures cached
-  on first use, `/api/coc` and the clan data (`clan-data` group, dropped at sign-out) network-first
+  on first use, the clan data (`clan-data` group, dropped at sign-out) network-first
   with the cache as offline fallback. A new deploy reaches open tabs through the "Update" prompt
   (`core/pwa/app-updates.ts`). A new private `/api/v1` GET must not join a cached data group
   unless it is cleared at sign-out too.
@@ -168,9 +168,14 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Never commit `.vscode/settings.json`, `.env`, `backend/.env.local`, `deploy/.env`. Stage files
   explicitly, never `git add -A`.
 - `../continental_be` is a reference only: never modify it.
-- The frontend keeps calling the Clash of Clans API through the proxy (`/api/coc`) for everything
-  but the tables: do not replace that integration with the backend. The table routes read what
-  they need live (member list, current war, war log) with the backend's CoC client, kept briefly
-  in memory (`lib/coc/live-cache.ts`).
+- Every Clash of Clans datum reaches the frontend through the backend (`/api/v1`), never from the
+  proxy nor the official API: one path, one cache. The backend reads the API live with its client
+  (`lib/coc/live-coc.ts`, responses kept in memory: clan 1 min, current war 30 s, war log 5 min,
+  profiles 10 min) and keeps the official format (`GET /clan`, `/wars/current`, `/wars/warlog`,
+  `/players/{tag}/profile`), mapped by the frontend's `coc-api.mappers.ts`; an API failure answers
+  502 `ERROR.COC_API_UNAVAILABLE`. Clan routes stay behind `clanAccess`: public pages get ad-hoc
+  routes with only what they show (`GET /welcome`: the clans with members by name and role, the
+  rankings; used by the welcome page, "Join us" and the header badge); the profile gets
+  `GET /auth/me/memberships`.
 - Respect the Supercell Fan Content Policy: keep the always-visible footer notice, no monetisation
   of features, do not modify Supercell assets.

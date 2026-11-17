@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CocApiService } from '../../core/api/coc-api';
+import { injectPublicClans } from '../../core/api/public-clans';
 import { injectSisterClans } from '../../core/api/sister-clans';
 import { warLeagueIcon } from '../../core/game/clan-assets';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -25,8 +26,9 @@ import { ActWar } from './acts/war/act-war';
  * names of every Crusader of the three clans and the call to join.
  * The Black Crusader, the clan's mascot, changes pose from act to act.
  *
- * Data comes from `GET /clans/{tag}` (proxy); rankings and records are a bonus (hidden while
- * loading or on error), the records from the backend.
+ * Data comes from the backend's public `GET /welcome` (the clans of the Crusade, members by name
+ * and role only, and the rankings); rankings and records are a bonus (hidden while loading or on
+ * error).
  */
 @Component({
   selector: 'crn-welcome-page',
@@ -52,12 +54,13 @@ import { ActWar } from './acts/war/act-war';
 })
 export class WelcomePage {
   private readonly api = inject(CocApiService);
-  protected readonly clan = rxResource({ stream: () => this.api.getClan() });
+  /** The public data of the clans of the Crusade (`GET /welcome`): loading, error, retry. */
+  protected readonly clan = injectPublicClans();
 
-  protected readonly data = computed(() => (this.clan.hasValue() ? this.clan.value() : null));
-
-  private readonly ranksResource = rxResource({ stream: () => this.api.getClanRanks() });
-  protected readonly ranks = computed(() => (this.ranksResource.hasValue() ? this.ranksResource.value() : null));
+  protected readonly data = computed(() => (this.clan.hasValue() ? this.clan.value().clan : null));
+  protected readonly ranks = computed(() =>
+    this.clan.hasValue() ? this.clan.value().ranks : null,
+  );
 
   private readonly recordsResource = rxResource({ stream: () => this.api.getClanRecords() });
   protected readonly records = computed<RecordTile[] | null>(() => {
@@ -121,7 +124,11 @@ export class WelcomePage {
     const c = this.data();
     return [
       ...(c ? [{ order: 'black' as const, name: c.name, members: c.members }] : []),
-      ...this.sisters().map((s) => ({ order: s.sister.order, name: s.clan.name, members: s.clan.members })),
+      ...this.sisters().map((s) => ({
+        order: s.sister.order,
+        name: s.clan.name,
+        members: s.clan.members,
+      })),
     ];
   });
 
