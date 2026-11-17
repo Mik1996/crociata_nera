@@ -9,8 +9,13 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-echo "== Updating the code =="
-git -C .. pull --ff-only
+if [ "${1:-}" != "--updated" ]; then
+  echo "== Updating the code =="
+  git -C .. pull --ff-only
+  # Go on with the deploy.sh just pulled: a running script keeps executing its old version (git
+  # replaces the file), which may build services the new docker-compose.yml no longer has.
+  exec "$PWD/$(basename "$0")" --updated
+fi
 
 echo "== Building the images (one at a time to spare memory) =="
 for service in backend web; do
