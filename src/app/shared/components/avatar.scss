@@ -1,0 +1,28 @@
+:host {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+:host(.avatar--s) {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--cn-avatar-border);
+  background: var(--cn-avatar-bg);
+  color: var(--cn-avatar-ink);
+  font-family: var(--cn-font-engraved);
+  font-weight: 900;
+  font-size: var(--cn-fs-sm);
+}
+
+:host(.avatar--l) {
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 3px solid var(--cn-panel-border);
+  background: var(--cn-gold-fill);
+  color: var(--cn-on-gold);
+  font-family: var(--cn-font-heading);
+  font-size: var(--cn-fs-xl);
+}
