@@ -6,12 +6,9 @@
 }
 
 // League icon (first column), with its name in the tooltip.
-.league-cell {
-  width: 3.5rem;
-}
-
 .league-icon {
   display: block;
+  margin-inline: auto;
   width: 2.25rem;
   height: 2.25rem;
   object-fit: contain;

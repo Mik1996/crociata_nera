@@ -17,6 +17,7 @@ import { matchesText, sortRows, SortState } from '../../../core/utils/sort';
 import { ParticipantRow } from '../../../core/utils/war-stats';
 import { Stars } from '../../../shared/components/stars';
 import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
+import { TownHallIcon } from '../../../shared/game/town-hall-icon';
 
 /** War participants table with filters and sorting. */
 @Component({
@@ -37,6 +38,7 @@ import { TABLE_WRAP } from '../../../shared/directives/table-wrap';
     MatButtonModule,
     MatTooltipModule,
     Stars,
+    TownHallIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './war-participants-table.html',
@@ -58,8 +60,8 @@ export class WarParticipantsTable {
 
   protected readonly columns = [
     'mapPosition',
-    'name',
     'townHall',
+    'name',
     'attacks',
     'stars',
     'averageDestruction',

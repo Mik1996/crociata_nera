@@ -25,6 +25,7 @@ import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { CLAN_ROLES, roleKey } from '../../shared/labels';
 import { StarText } from '../../shared/components/star-text';
+import { TownHallIcon } from '../../shared/game/town-hall-icon';
 
 const ROLE_ORDER: Record<ClanRole, number> = { leader: 0, coLeader: 1, elder: 2, member: 3 };
 
@@ -57,6 +58,7 @@ function leagueSortKey(m: PlayerStats): number {
     LoadState,
     ScrollFade,
     CommendationMedal,
+    TownHallIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -84,9 +86,9 @@ export class PlayersPage {
   protected readonly emblemOf = emblemOf;
   protected readonly columns = [
     'league',
+    'townHall',
     'name',
     'role',
-    'townHall',
     'warsPlayed',
     'attendance',
     'attacksUsed',

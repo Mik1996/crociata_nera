@@ -30,6 +30,7 @@ import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { Icon } from '../../shared/icon/icon';
 import { roleKey } from '../../shared/labels';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
+import { TownHallIcon } from '../../shared/game/town-hall-icon';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -86,6 +87,7 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
     StarText,
     CommendationMedal,
     Icon,
+    TownHallIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -127,9 +129,9 @@ export class CwlSelectionPage {
   protected readonly barParts = BAR_PARTS;
   private readonly baseColumns = [
     'rank',
+    'townHall',
     'name',
     'status',
-    'townHall',
     'score',
     'cwl',
     'war',

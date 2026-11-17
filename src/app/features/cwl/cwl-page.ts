@@ -20,6 +20,7 @@ import { ResultBadge } from '../../shared/components/result-badge';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { StarText } from '../../shared/components/star-text';
+import { TownHallIcon } from '../../shared/game/town-hall-icon';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
@@ -42,6 +43,7 @@ import { StarText } from '../../shared/components/star-text';
     LoadState,
     ResultBadge,
     ScrollFade,
+    TownHallIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -81,8 +83,8 @@ export class CwlPage {
   protected readonly standingColumns = ['rank', 'clan', 'wins', 'stars', 'destruction'];
   protected readonly playerColumns = [
     'index',
-    'name',
     'townHall',
+    'name',
     'attacks',
     'stars',
     'averageStars',

@@ -1,0 +1,15 @@
+@let label = 'common.townHallN' | translate: { n: level() };
+@if (image(); as src) {
+  <img
+    class="town-hall"
+    [src]="src"
+    [alt]="label"
+    [matTooltip]="label"
+    width="36"
+    height="36"
+    tabindex="0"
+    (click)="$event.stopPropagation()"
+  />
+} @else {
+  <span class="cn-th" [attr.aria-label]="label">{{ level() }}</span>
+}

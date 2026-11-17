@@ -192,15 +192,15 @@
               </ng-container>
 
               <ng-container matColumnDef="townHall">
-                <th mat-header-cell *matHeaderCellDef>{{ 'common.th' | translate }}</th>
-                <td mat-cell *matCellDef="let p">
+                <th mat-header-cell class="cn-icon-cell" *matHeaderCellDef>
+                  {{ 'common.th' | translate }}
+                </th>
+                <td mat-cell *matCellDef="let p" class="cn-icon-cell">
                   @if (p.townHallLevel !== null) {
-                    <span
-                      class="cn-th"
+                    <crn-town-hall-icon
                       [class.th--low]="p.status === 'ineligible'"
-                      [attr.aria-label]="'common.townHallN' | translate: { n: p.townHallLevel }"
-                      >{{ p.townHallLevel }}</span
-                    >
+                      [level]="p.townHallLevel"
+                    />
                   } @else {
                     <span class="cn-muted" aria-hidden="true">—</span>
                   }

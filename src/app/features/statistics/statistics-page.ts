@@ -28,6 +28,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { TABLE_WRAP } from '../../shared/directives/table-wrap';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { StarText } from '../../shared/components/star-text';
+import { TownHallIcon } from '../../shared/game/town-hall-icon';
 
 /** Ranking row: stats + rank + current membership of a clan of the Crusade. */
 export interface RankingRow extends HistoryPlayerStats {
@@ -61,6 +62,7 @@ const MAX_STARS_PER_WAR = 6;
     KpiCard,
     ResultBadge,
     ScrollFade,
+    TownHallIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -115,8 +117,8 @@ export class StatisticsPage {
 
   protected readonly columns = [
     'rank',
-    'name',
     'townHall',
+    'name',
     'wars',
     'attacksUsed',
     'stars',

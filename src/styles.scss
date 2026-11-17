@@ -924,6 +924,17 @@ table tr.cn-row-me.mat-mdc-row {
   mask-image: linear-gradient(to left, transparent, var(--cn-mask) 2.5rem);
 }
 
+// Column holding only an icon (league, town hall): as narrow as its content, icon centred.
+.mat-mdc-table .cn-icon-cell {
+  width: 1%;
+  text-align: center;
+  vertical-align: middle;
+
+  .mat-sort-header-container {
+    justify-content: center;
+  }
+}
+
 .cn-th {
   display: inline-flex;
   align-items: center;
