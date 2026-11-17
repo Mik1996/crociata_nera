@@ -6,7 +6,10 @@ API applicativa in **Next.js 16**: usa solo i route handler dell'App Router, sen
 - **sincronizzazione automatica delle guerre**: un'attività pianificata legge l'API di Clash of Clans e salva ogni
   guerra, con tutti i dati disponibili, nella collezione `Wars` di **MongoDB**.
 
-Il frontend Angular continua a leggere i dati di Clash of Clans dal proxy in `../server`. Questo backend non lo sostituisce.
+Il frontend Angular legge **tutti** i dati di Clash of Clans da questo backend (il vecchio proxy `server/` è stato
+rimosso): il backend li legge dall'API ufficiale, li tiene in memoria per un po' e li restituisce nel formato
+dell'API (`GET /clan`, `/wars/current`, `/wars/warlog`, `/players/{tag}/profile`), oppure li calcola da quello che
+salva su MongoDB. Le pagine pubbliche hanno rotte dedicate con solo i dati che mostrano (`GET /welcome`).
 
 Struttura, busta di risposta, chiavi dei messaggi e limiti di frequenza seguono le convenzioni di `continental-be`.
 
@@ -131,7 +134,7 @@ I messaggi sono chiavi (`SUCCESS.*` / `ERROR.*`), non testo: il frontend le trad
 | DELETE | `/api/v1/admin/users/{id}/players/{tag}` | ADMIN | scollega un account di Clash of Clans dell'utente (tag senza `#`); un admin non può collegarne, serve il token del gioco |
 | PATCH | `/api/v1/admin/users/{id}` | ADMIN | `{ roles? }`: un admin non può togliersi il ruolo da solo; se i ruoli cambiano, le sessioni dell'utente vengono chiuse |
 | GET | `/api/v1/wars/archive?limit=60` | Bearer | guerre salvate complete, nel formato `currentwar` dell'API di Clash of Clans: è la fonte dello storico nel frontend |
-| GET | `/api/v1/history` · `/api/v1/history/{YYYY-MM\|all}` | Bearer | mesi registrati e classifiche, calcolati da MongoDB con lo stesso formato del proxy |
+| GET | `/api/v1/history` · `/api/v1/history/{YYYY-MM\|all}` | Bearer | mesi registrati e classifiche, calcolati da MongoDB |
 | GET | `/api/v1/cwl/seasons` · `/api/v1/cwl/seasons/{YYYY-MM}` | Bearer | stagioni della Lega (CWL) salvate e dettaglio di una stagione: girone e tutte le guerre, nel formato dell'API di Clash of Clans. Lo scheduler delle guerre salva anche la CWL (gruppo e guerre; quelle concluse si leggono una volta sola) |
 | GET | `/api/v1/raids/seasons?limit=10` | Bearer | Raid Weekend salvati, nel formato di `capitalraidseasons`. L'API elenca i membri (attacchi e oro) solo mentre il weekend è in corso: lo scheduler li salva a ogni lettura e un minuto prima della fine, così restano anche per i weekend passati |
 | GET | `/api/v1/players/{tag}` | Bearer | giocatore salvato (attuale o ex membro) con i dati di Clash of Clans e `commendations: [{ id, name, type, tier, quantity }]`: `id` è l'id univoco dell'encomio (catalogo `COMMENDATION_IDS`, da `95000001`), `name` è `<type>-<tier>` (anche il nome della medaglia), e il frontend traduce da `type` e `tier` (`commendations.<type>.<tier>`, chiavi da lasciare nei file di traduzione anche se un encomio viene ritirato). Gli encomi vengono assegnati dallo scheduler quando un periodo si chiude (mese concluso, Raid Weekend con i membri, stagione CWL conclusa) e salvati in `CommendationAwards`; ogni periodo è elaborato una volta sola (`CommendationPeriods`), quindi lo storico non cambia se in futuro cambiano le regole |
@@ -179,8 +182,8 @@ Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpire
 4. Riavvia il backend (`npm run backend`). Nel terminale deve comparire
    `[war-sync] reading the current war of #2J8JVVCLC every 10 min` seguito dall'esito della prima lettura.
 
-`.env.local` è escluso da git. In produzione la chiave va nei secret della piattaforma, mai nel codice. Se il backend
-gira sulla stessa macchina del proxy (`server/`), puoi usare la stessa chiave del proxy, perché è legata allo stesso IP.
+`.env.local` è escluso da git. In produzione la chiave va nei secret della piattaforma, mai nel codice. La chiave è
+legata all'IP pubblico della macchina su cui gira il backend.
 Se l'IP cambia (per esempio una connessione di casa con IP dinamico), l'API risponde `accessDenied.invalidIp`: crea una
 chiave per il nuovo IP.
 

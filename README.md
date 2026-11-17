@@ -3,8 +3,9 @@
 Webapp Angular per il clan **Crociata Nera** di Clash of Clans (tag `#2J8JVVCLC`).
 Permette di consultare le guerre del clan e di analizzare nel tempo le performance dei partecipanti.
 
-I dati reali arrivano dall'[API ufficiale di Clash of Clans](https://developer.clashofclans.com) tramite un
-piccolo **proxy Node** incluso nel progetto (`server/`), che conserva il token lontano dal browser.
+I dati reali arrivano dall'[API ufficiale di Clash of Clans](https://developer.clashofclans.com) tramite il
+**backend** del progetto (`backend/`, Next.js), che conserva il token lontano dal browser, salva guerre, Lega e Raid
+Weekend su MongoDB e restituisce al frontend tutti i dati, tabelle comprese (filtrate, ordinate e paginate dal backend).
 Per provare l'interfaccia senza token è disponibile una modalità con **dati mock** di fantasia.
 
 ## Funzionalità
@@ -19,7 +20,7 @@ Per provare l'interfaccia senza token è disponibile una modalità con **dati mo
 | Dettaglio guerra | `/wars/:id` | Performance individuali di una guerra |
 | Giocatori | `/players` | Elenco membri con statistiche di guerra, ricerca e ordinamento |
 | Scheda giocatore | `/players/:tag` | Profilo in stile Clash of Clans (municipio, livello, lega, trofei, eroi con equipaggiamento, esercito, obiettivi) e statistiche di guerra con grafici e storico |
-| Statistiche | `/statistics` | Classifica dei membri per **media stelle per guerra** (max 6), per mese o su tutti i mesi, dallo storico mensile del proxy |
+| Statistiche | `/statistics` | Classifica dei membri per **media stelle per guerra** (max 6), per mese o su tutti i mesi, dalle guerre salvate dal backend |
 
 Inoltre:
 
@@ -37,29 +38,15 @@ Inoltre:
 
 ### Con i dati reali
 
-1. Crea il file `.env` partendo dall'esempio e inserisci il token (vedi [Chiave API](#chiave-api)):
-
-   ```bash
-   cp .env.example .env
-   ```
-
+1. Configura il backend (chiave dell'API di Clash of Clans, MongoDB, segreto JWT) in `backend/.env.local`, come
+   descritto in [backend/README.md](backend/README.md) (vedi anche [Chiave API](#chiave-api)).
 2. In due terminali separati:
 
    ```bash
-   npm install
-   npm run server       # proxy su http://localhost:3000
-   npm start            # app su http://localhost:4200 (le chiamate /api/coc vanno al proxy)
+   npm install && npm --prefix backend install
+   npm run backend      # Next.js su http://localhost:3001
+   npm start            # app su http://localhost:4200 (le chiamate /api/v1 vanno al backend)
    ```
-
-3. Facoltativo: per login e salvataggio automatico delle guerre avvia anche il backend applicativo, in un terzo terminale
-   (configurazione in [backend/README.md](backend/README.md)):
-
-   ```bash
-   npm run backend      # Next.js su http://localhost:3001 (le chiamate /api/v1 vanno al backend)
-   ```
-
-   Senza backend il sito funziona lo stesso: il ripristino della sessione fallisce senza conseguenze e le guerre non
-   vengono salvate.
 
 ### Con i dati mock (senza token né backend)
 
@@ -77,7 +64,6 @@ entrano ed escono dal clan, migliorano il Municipio e cambiano rendimento nel te
 ```bash
 npm test                    # test unitari del frontend (Vitest) in modalità watch
 npx ng test --watch=false   # esecuzione singola, per CI
-npm run test:server         # test del proxy (node:test)
 npm --prefix backend test   # test del backend (Vitest + MongoDB in memoria)
 npm run build               # build di produzione in dist/crociata_nera
 ```
@@ -96,7 +82,8 @@ npm run build               # build di produzione in dist/crociata_nera
   crescono linearmente tra 360 e 1440 px di larghezza (per esempio i titoli di pagina da 22 a 30 px) e seguono lo zoom
   del browser. Anche testi di tabelle, campi e pulsanti di Material usano la stessa scala.
 - **Vitest** + jsdom per i test unitari
-- **Proxy**: Node.js 24 senza dipendenze (`node:http`, `fetch` nativa, `node:test`)
+- **Backend**: Next.js 16 (route handler), Mongoose 9, zod 4, Vitest con MongoDB in memoria (vedi
+  [backend/README.md](backend/README.md))
 
 ## Convenzioni
 
@@ -107,22 +94,12 @@ in `public/i18n/*.json`.
 ## Struttura del progetto
 
 ```
-server/                           Proxy verso l'API ufficiale
-├── index.mjs                     Avvio, lettura .env, aggiornamento periodico dell'archivio
-├── app.mjs                       Server HTTP con le sole rotte consentite
-├── coc-routes.mjs                Elenco degli endpoint ufficiali inoltrati, con validazione dei parametri
-├── rate-limit.mjs                Limite di richieste per IP sugli endpoint generici
-├── coc-client.mjs                Client API con token e cache in memoria (al massimo 1000 risposte)
-├── archive.mjs                   Archivio delle guerre (server/data/wars.json)
-├── history.mjs                   Storico mensile e statistiche cumulative (server/data/history/AAAA-MM.json)
-├── server.test.mjs               Test del proxy
-└── history.test.mjs              Test dello storico mensile
-proxy.conf.json                   Inoltro /api/coc → proxy durante `npm start`
-.env.example                      Modello delle variabili d'ambiente del proxy
+backend/                          Backend applicativo (Next.js): dati di Clash of Clans, account, MongoDB
+proxy.conf.json                   Inoltro /api/v1 → backend durante `npm start`
 src/
-├── environments/                 Configurazione (mock/API, URL proxy, tag clan)
+├── environments/                 Configurazione (mock/API, URL del backend, tag clan)
 │   ├── environment.ts            produzione (npm run build) – dati reali
-│   ├── environment.development.ts sviluppo (npm start) – dati reali via proxy
+│   ├── environment.development.ts sviluppo (npm start) – dati reali dal backend
 │   └── environment.mock.ts       demo (npm run start:mock) – dati mock
 └── app/
     ├── app.config.ts             Provider globali (router, HTTP, grafici, traduzioni)
@@ -133,8 +110,7 @@ src/
     │   ├── api/
     │   │   ├── coc-api.ts            Contratto astratto CocApiService
     │   │   ├── mock-coc-api.service.ts  Implementazione mock
-    │   │   ├── http-coc-api.service.ts  Implementazione HTTP (via proxy)
-    │   │   ├── coc-api-client.ts     Client grezzo di tutti gli endpoint GET dell'API ufficiale
+    │   │   ├── http-coc-api.service.ts  Implementazione HTTP (backend /api/v1)
     │   │   ├── coc-api.types.ts      Tipi della risposta dell'API ufficiale
     │   │   ├── coc-api.mappers.ts    Conversione API → modelli dell'app
     │   │   └── provide-coc-api.ts    Sceglie mock o HTTP in base alla configurazione
@@ -168,18 +144,19 @@ Pagine (rxResource) ─► WarService / PlayerService ─► CocApiService (astr
                                                         ├─ MockCocApiService  (useMockApi: true)
                                                         └─ HttpCocApiService  (useMockApi: false)
                                                               │
-                              browser ─► /api/coc (proxy.conf.json) ─► server/ (token) ─► api.clashofclans.com/v1
+                     browser ─► /api/v1 (proxy.conf.json, Caddy) ─► backend/ (token, cache, MongoDB) ─► api.clashofclans.com/v1
 ```
 
-### Tutti gli endpoint dell'API ufficiale
+### Dati di Clash of Clans dal backend
 
-`CocApiClient` (`core/api/coc-api-client.ts`) espone un metodo per ogni endpoint GET dell'API di
-Clash of Clans (giocatori, clan, leghe, posizioni e classifiche), con le risposte così come arrivano
-dall'API. Il proxy li inoltra solo se sono nell'elenco di `server/coc-routes.mjs`: percorsi e
-parametri vengono validati, le richieste sono limitate a 60 al minuto per IP (le rotte del nostro
-clan non hanno limite) e le risposte restano in cache da 1 minuto a 1 ora a seconda del tipo di dato.
+Il frontend non chiama mai l'API ufficiale: ogni dato passa dal backend, che la legge con il suo token
+(`backend/src/lib/coc/live-coc.ts`) e tiene in memoria le risposte per un po' (clan 1 minuto, guerra in corso 30
+secondi, registro guerre 5 minuti, profili 10 minuti). I dati dell'API mantengono il loro formato (`GET /api/v1/clan`,
+`/wars/current`, `/wars/warlog`, `/players/{tag}/profile`) e vengono convertiti dai mapper del frontend. Le rotte del
+clan sono riservate ai membri; le pagine pubbliche hanno rotte dedicate con solo i dati che mostrano (`GET /welcome`).
+Se l'API non risponde, il backend risponde 502 con `ERROR.COC_API_UNAVAILABLE` e la pagina mostra il messaggio tradotto.
 
-Le statistiche (KPI, medie, percentuali, rendimento) si calcolano lato client in
+Le tabelle sono filtrate, ordinate e paginate dal backend; KPI e grafici si calcolano lato client in
 `core/utils/war-stats.ts`, quindi funzionano allo stesso modo con i dati mock e con quelli reali.
 
 ### Definizioni delle metriche
@@ -212,9 +189,10 @@ vengono richiamate.
   | Dato | Durata |
   | --- | --- |
   | guerra corrente | 2 minuti |
-  | archivio del proxy | 5 minuti |
+  | guerre salvate, registro guerre, Lega, Raid Weekend | 5 minuti |
   | profilo giocatore | 10 minuti |
-  | clan, registro guerre, storico mensile, traduzioni | 15 minuti (default) |
+  | clan e dati pubblici della pagina di benvenuto | 5 minuti |
+  | storico mensile, traduzioni | 15 minuti (default) |
 
 - **Aggiornamento manuale:** "Aggiorna" nella guerra corrente salta la cache (`WarService.refreshCurrentWar()`); per lo
   storico c'è `WarService.refreshHistory()`.
@@ -233,8 +211,10 @@ vengono richiamate.
 
 ## Pagina di benvenuto
 
-La home (`/`) presenta il clan come un banner del gioco, con i dati di `GET /clans/{tag}`. È pubblica: è la pagina che
-vede chi non ha ancora fatto login.
+La home (`/`) presenta il clan come un banner del gioco, con i dati di `GET /api/v1/welcome`: la rotta pubblica del
+backend fatta per questa pagina (i tre clan della Crociata con i membri ridotti a nome e ruolo, e le posizioni in
+classifica). È pubblica: è la pagina che vede chi non ha ancora fatto login. La usano anche "Unisciti a noi" e lo stemma
+nell'header.
 
 - **Nome del clan** in testa: lettere in metallo grigio scuro con bordo argento, riflesso in movimento e fiamme che
   salgono dalle lettere.
@@ -261,7 +241,7 @@ La scelta dell'immagine dal nome della lega è in `src/app/core/game/clan-assets
 ## Scheda giocatore
 
 Cliccando un giocatore si apre la sua scheda, ispirata al profilo del gioco. I dati arrivano da
-`GET /v1/players/{tag}` tramite il proxy.
+`GET /v1/players/{tag}` tramite il backend (`GET /api/v1/players/{tag}/profile`).
 
 - **Intestazione**: municipio (con livello dell'arma), stella dell'esperienza, nome, ruolo, clan, preferenza di guerra,
   etichette, lega con icona ufficiale, trofei e record.
@@ -269,7 +249,7 @@ Cliccando un giocatore si apre la sua scheda, ispirata al profilo del gioco. I d
   leggenda, base del costruttore; eroi con livello, barra di avanzamento ed equipaggiamento assegnato.
 - **Esercito**: truppe, super truppe (attive a colori), macchine d'assedio, animali, incantesimi, equipaggiamenti e base
   del costruttore, con il livello nell'angolo (oro se al massimo).
-- **Obiettivi**: achievement con stelle e avanzamento. **Guerre**: le statistiche di guerra dall'archivio del proxy.
+- **Obiettivi**: achievement con stelle e avanzamento. **Guerre**: le statistiche di guerra dalle guerre salvate dal backend.
 
 Immagini: municipi, eroi, truppe, incantesimi ed equipaggiamenti vengono dal
 [Supercell Fan Kit](https://fankit.supercell.com/d/vkEdmkUCngKw/game-assets), ritagliati, ridimensionati e salvati in WebP
@@ -323,26 +303,15 @@ Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
 
 | Chiave | Descrizione | Default |
 | --- | --- | --- |
-| `useMockApi` | `true` = dati mock, `false` = chiamate HTTP al proxy | `false` (`true` solo in `environment.mock.ts`) |
-| `apiBaseUrl` | URL base del **proxy backend** | `/api/coc` |
-| `backendBaseUrl` | URL base del **backend applicativo** (`backend/`: login, guerre salvate) | `/api/v1` |
+| `useMockApi` | `true` = dati mock, `false` = chiamate HTTP al backend | `false` (`true` solo in `environment.mock.ts`) |
+| `backendBaseUrl` | URL base del **backend** (`backend/`: tutti i dati e gli account) | `/api/v1` |
 | `clanTag` | Tag del clan, con `#` | `#2J8JVVCLC` |
 | `clanName` | Nome mostrato nell'header | `Crociata Nera` |
 | `mockLatencyMs` | Latenza simulata del mock (ms) | `500` dev / `300` prod |
 | `statsWindow` | Numero di guerre usate per le statistiche dei giocatori | `20` |
 
-### Proxy (`.env`)
-
-| Variabile | Descrizione | Default |
-| --- | --- | --- |
-| `COC_API_TOKEN` | Token dell'API (obbligatorio) | — |
-| `COC_CLAN_TAG` | Tag del clan, **tra virgolette** (in `.env` il `#` inizia un commento) | `"#2J8JVVCLC"` |
-| `PORT` | Porta del proxy; deve coincidere con `target` in `proxy.conf.json` | `3000` |
-| `COC_POLL_MINUTES` | Ogni quanti minuti archiviare la guerra corrente (`0` = mai) | `15` |
-| `COC_ARCHIVE_FILE` | File dell'archivio | `server/data/wars.json` |
-| `COC_HISTORY_DIR` | Cartella dello storico mensile | `server/data/history` |
-
-`.env` e `server/data/` sono esclusi da git.
+Le variabili del backend (chiave dell'API, MongoDB, JWT, email) sono in `backend/.env.local` in sviluppo e in
+`deploy/.env` in produzione: vedi [backend/README.md](backend/README.md).
 
 ## Backend applicativo
 
@@ -350,9 +319,8 @@ Le opzioni sono in `src/environments/environment*.ts` (interfaccia `AppConfig`):
 
 - l'autenticazione: sign-up, sign-in, refresh, sign-out e `me`;
 - il **salvataggio automatico delle guerre** su MongoDB: un'attività pianificata del backend legge da sola l'API di
-  Clash of Clans, senza browser né proxy.
-
-Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si aggiunge, non sostituisce niente.
+  Clash of Clans, senza browser;
+- **tutti i dati di Clash of Clans** che le pagine mostrano (vedi [Dati di Clash of Clans dal backend](#dati-di-clash-of-clans-dal-backend)).
 
 - **Sessione:** l'access token resta in memoria (`AuthService`). Il refresh token è un cookie httpOnly; all'avvio
   l'app lo usa per ripristinare la sessione.
@@ -390,7 +358,7 @@ Il frontend continua a leggere i dati di Clash of Clans dal proxy. Il backend si
 
   Profilo e amministrazione si aprono dal menu account nell'header.
 - **Storico e statistiche:** arrivano dal backend (`/api/v1/wars/archive`, `/api/v1/history`), cioè dalle guerre
-  salvate su MongoDB. Se il backend non risponde, il frontend usa l'archivio del proxy.
+  salvate su MongoDB.
 
 Rotte, modello dati e sicurezza sono descritti in [backend/README.md](backend/README.md).
 
@@ -399,35 +367,30 @@ Rotte, modello dati e sicurezza sono descritti in [backend/README.md](backend/RE
 ### Chiave API
 
 1. Accedi a <https://developer.clashofclans.com> e crea una chiave.
-2. Nel campo **IP addresses** inserisci l'**IP pubblico della macchina su cui gira il proxy**
+2. Nel campo **IP addresses** inserisci l'**IP pubblico della macchina su cui gira il backend**
    (per scoprirlo: `curl https://api.ipify.org`). La chiave funziona **solo** da quegli IP.
-3. Copia il token in `COC_API_TOKEN` nel file `.env`.
+3. Copia il token in `COC_API_TOKEN` di `backend/.env.local` (in produzione, di `deploy/.env`).
 
-Se l'IP cambia (le connessioni domestiche hanno spesso IP dinamico) l'app mostra l'errore
-*"La chiave API non autorizza l'indirizzo IP del server proxy"* con l'IP rilevato: crea una nuova chiave
-con quell'IP. Il portale permette più chiavi per account.
+Se l'IP cambia (le connessioni domestiche hanno spesso IP dinamico) l'API risponde `accessDenied.invalidIp`: le pagine
+mostrano "L'API di Clash of Clans non risponde" e il log del backend riporta il motivo. Crea una nuova chiave con
+quell'IP; il portale permette più chiavi per account.
 
 **Non inserire mai il token nel codice del frontend** né negli `environment.ts`: sarebbe pubblico.
 Il browser non può comunque chiamare l'API direttamente (IP variabili, nessun CORS).
 
-### Endpoint del proxy
+### Rotte del backend con i dati di Clash of Clans
 
-Il proxy accetta solo `GET` sulle rotte del clan configurato, quindi non funziona come inoltro aperto:
+| Rotta | Accesso | Contenuto |
+| --- | --- | --- |
+| `GET /api/v1/welcome` | pubblica | i tre clan della Crociata (membri: solo nome e ruolo) e le posizioni in classifica |
+| `GET /api/v1/clan` | membri | il clan con i membri, come `GET /v1/clans/{tag}` |
+| `GET /api/v1/wars/current` | membri | la guerra in corso, come `GET /v1/clans/{tag}/currentwar` (`null` fuori guerra o con registro privato) |
+| `GET /api/v1/wars/warlog` | membri | il registro guerre, come `GET /v1/clans/{tag}/warlog` (vuoto se privato) |
+| `GET /api/v1/players/{tag}/profile` | membri | il profilo di un giocatore, come `GET /v1/players/{tag}` |
+| `GET /api/v1/auth/me/memberships` | utente | gli account collegati che sono in un clan della Crociata |
 
-| Endpoint del proxy | Sorgente |
-| --- | --- |
-| `GET /api/coc/clans/{tag}` | `GET /v1/clans/{tag}`: dati del clan e `memberList` |
-| `GET /api/coc/clans/{tag}/currentwar` | `GET /v1/clans/{tag}/currentwar`: guerra corrente con attacchi |
-| `GET /api/coc/clans/{tag}/warlog` | `GET /v1/clans/{tag}/warlog?limit=50`: riepiloghi delle guerre passate |
-| `GET /api/coc/archive/wars` | Snapshot `currentwar` salvati dal proxy |
-| `GET /api/coc/history` | Elenco dei mesi dello storico, con il bilancio delle guerre |
-| `GET /api/coc/history/AAAA-MM` | Guerre e statistiche dei giocatori di un mese (404 se vuoto) |
-| `GET /api/coc/history/all` | Tutti i mesi sommati |
-| `GET /api/coc/players/{tag}` | Profilo completo di un giocatore (`/v1/players/{tag}`), solo per i membri attuali del clan |
-| `GET /api/health` | Stato del proxy |
-
-Le risposte dell'API restano in cache per 60 secondi. Gli errori dell'API (`{ reason, message }`) vengono
-inoltrati invariati, così il frontend distingue i casi.
+Le tabelle delle pagine, le guerre salvate, la Lega, i Raid Weekend e le altre rotte sono descritte in
+[backend/README.md](backend/README.md) e nella documentazione OpenAPI (`/api/v1/docs`).
 
 ### Da dove arriva lo storico
 
@@ -436,60 +399,55 @@ L'API ufficiale **non fornisce gli attacchi individuali delle guerre passate**:
 - `/currentwar` contiene partecipanti e attacchi, ma solo per la guerra in corso, o appena finita (`warEnded`);
 - `/warlog` elenca le guerre passate con risultato, stelle e distruzione, ma **senza partecipanti**.
 
-Per questo il proxy interroga `/currentwar` ogni `COC_POLL_MINUTES` minuti e salva l'ultimo snapshot di
-ogni guerra in `server/data/wars.json`. Il frontend unisce le due sorgenti:
+Per questo il backend interroga `/currentwar` ogni `WAR_SYNC_INTERVAL_MINUTES` minuti e salva ogni guerra nella
+collezione `Wars` di MongoDB. Il frontend unisce le due sorgenti:
 
 - guerre **archiviate**: dettaglio completo, con i totali definitivi presi dal registro;
 - guerre presenti **solo nel registro**: segnate come *"solo riepilogo"* nello storico. Il dettaglio mostra
   il tabellone senza la tabella dei partecipanti, e queste guerre sono escluse dalle statistiche dei giocatori.
 
-Conseguenza pratica: le statistiche individuali si costruiscono **da quando il proxy è attivo**. Tienilo in
-esecuzione con continuità (server, Raspberry Pi, VPS…) per non perdere guerre: ne basta uno snapshot
-durante le ~24 ore di `warEnded`.
+Conseguenza pratica: le statistiche individuali si costruiscono **da quando il backend salva le guerre**. Va tenuto in
+esecuzione con continuità per non perdere guerre: ne basta una lettura durante le ~24 ore di `warEnded`.
 
 ### Storico mensile e classifica
 
-Quando una guerra arriva allo stato `warEnded` (sia con il controllo periodico sia quando qualcuno apre la guerra
-corrente), il proxy la **somma allo storico del mese in cui è terminata** (fuso orario Europe/Rome):
-`server/data/history/2026-11.json`. All'avvio recupera anche le guerre terminate già presenti nell'archivio.
+Il backend calcola lo storico dalle guerre terminate salvate su MongoDB (`backend/src/modules/wars/history.service.ts`),
+raggruppandole per il mese in cui sono terminate (fuso orario Europe/Rome).
 
-Ogni file mensile contiene:
+Ogni periodo (un mese o tutti i mesi) contiene:
 
-- `guerre`: riepilogo di ogni guerra (avversario, risultato, stelle, distruzione) con, per ogni giocatore,
+- `wars`: riepilogo di ogni guerra (avversario, risultato, stelle, distruzione) con, per ogni giocatore,
   municipio, posizione, attacchi disponibili, ogni attacco (stelle, distruzione, municipio e posizione del bersaglio),
   attacchi subiti e stelle concesse in difesa;
-- `giocatori`: totali per giocatore ricalcolati a ogni guerra. Comprendono guerre, attacchi disponibili, usati e
+- `players`: totali per giocatore. Comprendono guerre, attacchi disponibili, usati e
   mancati, stelle, attacchi da 3/2/1/0 stelle, **media stelle per guerra**, media stelle per attacco, % 3 stelle,
   distruzione media, partecipazione e media delle stelle concesse.
 
-La registrazione è **idempotente**: la stessa guerra, cioè con lo stesso inizio della preparazione e lo stesso
-avversario, sostituisce la precedente invece di essere contata due volte.
+Il salvataggio è **idempotente**: la stessa guerra, cioè con lo stesso inizio della preparazione e lo stesso
+avversario, aggiorna la precedente invece di essere contata due volte.
 
 La pagina **Statistiche** mostra la classifica ordinata per **media stelle per guerra** = stelle totali ÷ guerre
 disputate. Il massimo è 6, cioè due attacchi da 3 stelle, e gli attacchi non usati valgono 0. A parità decidono
 distruzione media, partecipazione e numero di guerre. Si può scegliere un mese o "Tutti i mesi", filtrare per numero
 minimo di guerre e nascondere gli ex membri.
 
-> Le guerre della Lega (CWL) non passano da `/currentwar` e quindi non entrano nello storico.
-> Per un backup basta copiare la cartella `server/data/`.
+> Le guerre della Lega (CWL) non passano da `/currentwar` e quindi non entrano nello storico: hanno la loro pagina.
 
 ### Casi particolari
 
 | Risposta API | Comportamento dell'app |
 | --- | --- |
-| `403 accessDenied.invalidIp` | Errore con l'IP rilevato: crea una chiave per quell'IP |
+| `403 accessDenied.invalidIp` | "L'API di Clash of Clans non risponde" (502 dal backend, motivo nel log): crea una chiave per l'IP del backend |
 | `403 accessDenied` su `currentwar`/`warlog` | Registro guerre del clan **privato**: nessuna guerra visibile. Rendilo pubblico dalle impostazioni del clan nel gioco |
 | `state: notInWar` | "Il clan non è attualmente in guerra" |
-| `429 requestThrottled` / `503 inMaintenance` | Messaggio dedicato e pulsante Riprova |
-| Proxy spento | "Proxy non raggiungibile. Avvia il backend con npm run server" |
+| `429 requestThrottled` / `503 inMaintenance` | "L'API di Clash of Clans non risponde" e pulsante Riprova |
+| Backend spento | "Servizio non raggiungibile" e pulsante Riprova |
 | Voci CWL nel registro (`result: null`) | Ignorate: le guerre della Lega usano endpoint diversi, non ancora gestiti |
 
 ### In produzione
 
-Pubblica `dist/crociata_nera/browser` come sito statico e rendi raggiungibile il proxy sotto `/api/coc`
-dello stesso dominio, per esempio con un reverse proxy nginx verso `node server/index.mjs`. In alternativa
-imposta in `environment.ts` l'URL completo del proxy e abilita CORS sul proxy. La chiave API deve
-autorizzare l'IP pubblico del server dove gira il proxy.
+Il sito e il backend girano sulla VPS dietro Caddy, che serve l'app e inoltra `/api/v1` al backend: vedi
+[Pubblicazione](#pubblicazione-vps). La chiave API deve autorizzare l'IP pubblico della VPS.
 
 ## Pubblicazione (VPS)
 
@@ -498,18 +456,17 @@ cartella `deploy/` contiene tutto quello che serve:
 
 | File | A cosa serve |
 | --- | --- |
-| `docker-compose.yml` | i tre servizi: `web` (Caddy + Angular), `proxy` (`server/`) e `backend` (`backend/`) |
-| `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/coc` va al proxy, `/api/v1` al backend, il resto è l'app Angular |
-| `web.Dockerfile`, `proxy.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
+| `docker-compose.yml` | i due servizi: `web` (Caddy + Angular) e `backend` (`backend/`) |
+| `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/v1` va al backend, il resto è l'app Angular (`/api/coc`, il vecchio proxy, risponde 410) |
+| `web.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
 | `deploy.sh` | aggiorna il codice, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
 | `service-worker.sh` | interruttore d'emergenza del service worker nei browser (`off`, `on`, `status`) |
 
 **Architettura:**
-- da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; proxy e backend restano sulla rete interna di
-  Docker;
+- da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; il backend resta sulla rete interna di Docker;
 - il database è MongoDB Atlas (M0), con l'IP della VPS autorizzato;
-- proxy e backend usano la stessa chiave dell'API di Clash of Clans, creata per l'IP della VPS.
+- il backend usa la chiave dell'API di Clash of Clans creata per l'IP della VPS.
 
 **Primo avvio**, sulla VPS:
 
@@ -539,8 +496,9 @@ I secret del repository sono:
 Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS, oppure "Run workflow" nella scheda Actions.
 
 **Backup:**
-- `deploy/backup.sh` salva il database con `mongodump` e l'archivio del proxy in `/root/backups`, per 14 giorni. Sulla
-  VPS va pianificato con cron:
+- `deploy/backup.sh` salva il database con `mongodump` e l'archivio del vecchio proxy (volume `proxy_data`, non più
+  usato, conservato finché le sue guerre non vengono importate o scartate) in `/root/backups`, per 14 giorni. Sulla VPS
+  va pianificato con cron:
   ```bash
   ( crontab -l 2>/dev/null; echo "30 3 * * * /root/crociata_nera/deploy/backup.sh >> /var/log/crociata-backup.log 2>&1" ) | crontab -
   ```
@@ -550,7 +508,8 @@ Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS, oppure "Run
   docker run --rm -i -e DATABASE_URL mongo:8 sh -c 'mongorestore --uri="$DATABASE_URL" --archive --gzip --drop' < /root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz
   ```
 
-**Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e il proxy. Se
+**Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e la lettura
+dell'API di Clash of Clans dal backend (`/api/v1/welcome`). Se
 qualcosa non risponde, GitHub manda un'email di "workflow fallito".
 
 **Service worker (cache offline) e interruttore d'emergenza:**
@@ -577,12 +536,12 @@ Per provare la build di produzione in locale: `npm run start:prod` (http://local
 `http://localhost:4400` in `FRONTEND_URL` di `backend/.env.local`).
 
 **Comandi utili:**
-- `docker compose logs -f backend` (oppure `web` o `proxy`): mostra i log;
+- `docker compose logs -f backend` (oppure `web`): mostra i log;
 - `docker compose ps`: mostra lo stato dei servizi;
 - `curl -s https://crociatanera.it/api/v1/health`: stato del database e della sincronizzazione delle guerre.
 
 **Dati:**
-- l'archivio del proxy è nel volume `proxy_data`, i certificati in `caddy_data`;
+- l'archivio del vecchio proxy è nel volume `proxy_data` (non più usato), i certificati in `caddy_data`;
 - `deploy/.env` resta solo sul server ed è escluso da git.
 
 ## Test
@@ -592,11 +551,10 @@ I test unitari coprono:
 - calcolo statistiche e KPI (`war-stats.spec.ts`), ordinamento e ricerca (`sort.spec.ts`);
 - generatore mock: determinismo e rispetto delle regole di guerra (`mock-data.spec.ts`);
 - mapper dell'API ufficiale, compresi registro guerre, voci CWL e unione con l'archivio (`coc-api.mappers.spec.ts`);
-- servizio HTTP con `HttpTestingController`: tag codificato, assenza del token, distinzione tra registro privato e IP
-  non autorizzato, proxy spento, unione di archivio e registro;
-- proxy (`server/server.test.mjs`): archiviazione, inoltro con token, errori, rotte non consentite, cache;
-- storico mensile (`server/history.test.mjs`, `monthly-history.spec.ts`): somma delle guerre, medie, ordinamento della
-  classifica, mese con fuso italiano, idempotenza, registrazioni concorrenti, rotte;
+- servizio HTTP con `HttpTestingController`: solo rotte del backend, assenza del token, errori del backend tradotti,
+  backend irraggiungibile, unione di archivio e registro;
+- storico mensile (`monthly-history.spec.ts`, `backend/test/history.test.ts`): somma delle guerre, medie, ordinamento
+  della classifica, mese con fuso italiano;
 - pagina Statistiche: ordinamento per media stelle, filtro sul minimo di guerre, storico vuoto;
 - traduzioni (`i18n.spec.ts`): stesse chiavi e segnaposto in tutti i file, scelta della lingua iniziale, cambio
   lingua, formattazione di numeri e date;

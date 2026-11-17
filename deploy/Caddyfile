@@ -16,9 +16,10 @@ www.{$DOMAIN} {
 		-Server
 	}
 
-	# Clash of Clans proxy (server/)
+	# The old Clash of Clans proxy is retired (the backend serves every datum): tabs still running an
+	# older version of the app get a clear error, not the page, until they update.
 	handle /api/coc/* {
-		reverse_proxy proxy:3000
+		respond "Gone" 410
 	}
 
 	# Application backend (backend/): auth, saved wars, defense bases.

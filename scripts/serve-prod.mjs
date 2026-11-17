@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Serves the production build (`dist/`) on http://localhost:4400 the way Caddy does on the VPS:
 // the files exactly as built (the service worker checks their hashes, so `ng serve` cannot be
-// used), index.html for deep links, and /api/* forwarded to the proxy and the backend as in
+// used), index.html for deep links, and /api/v1 forwarded to the backend as in
 // `proxy.conf.json`. Used by `npm run start:prod`, which builds first.
 //
 // Own port on purpose: a service worker stays registered for its origin, and on :4200 it would

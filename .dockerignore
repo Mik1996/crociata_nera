@@ -9,7 +9,6 @@ coverage
 **/.env
 **/.env.*
 !**/.env.example
-server/data
 deploy/.env
 *.pem
 *.key

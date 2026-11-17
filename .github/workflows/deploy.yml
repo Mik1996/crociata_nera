@@ -48,8 +48,6 @@ jobs:
         run: npx ng test --watch=false
       - name: Frontend — production build
         run: npx ng build --configuration production
-      - name: Proxy — tests
-        run: npm run test:server
 
       - name: Backend — install
         working-directory: backend

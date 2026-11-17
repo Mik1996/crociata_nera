@@ -13,7 +13,7 @@ echo "== Updating the code =="
 git -C .. pull --ff-only
 
 echo "== Building the images (one at a time to spare memory) =="
-for service in proxy backend web; do
+for service in backend web; do
   docker compose build "$service"
 done
 

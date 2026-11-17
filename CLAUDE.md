@@ -11,12 +11,12 @@ Italian only in the UI translations (`public/i18n/it-IT.json`).
 | Folder | What | Stack |
 |---|---|---|
 | `src/` | Frontend | Angular 22 (standalone, zoneless, signals, `rxResource`), Angular Material, ngx-translate, Chart.js |
-| `server/` | Old proxy to the official Clash of Clans API: no longer called by the frontend, still deployed (to retire) | Node, plain `.mjs` |
 | `backend/` | Application backend: every datum of the site (auth, Clash of Clans data read live or saved: wars/CWL/raids, players, commendations), scheduler | Next.js 16 route handlers, Mongoose 9, zod 4 |
 | `deploy/` | Production: docker compose + Caddy on the VPS, `deploy.sh`, `backup.sh` | |
 
 Request routing (same in dev via `proxy.conf.json` and in prod via `deploy/Caddyfile`):
-`/api/v1/*` → backend (`:3001`); `/api/coc/*` → old proxy (`:3000`), unused by the frontend.
+`/api/v1/*` → backend (`:3001`). The old Clash of Clans proxy (`server/`, `/api/coc`) is retired: Caddy answers
+410 there; its archive volume `proxy_data` is kept on the VPS (and backed up) until imported or discarded.
 
 ## Commands
 
@@ -26,7 +26,6 @@ npm run start:mock        # frontend with mock data, no backend needed (no signe
 npm run start:prod        # builds, then serves dist/ like Caddy on :4400 to test the service worker (not
                           # `ng serve`: its files fail the worker's hash check). Own port: the worker stays
                           # registered. Needs http://localhost:4400 in FRONTEND_URL of backend/.env.local
-npm run server            # old CoC proxy on :3000 (reads root .env; the frontend no longer uses it)
 npm run backend           # backend on :3001 (reads backend/.env.local)
 
 npx ng test --watch=false                          # frontend tests (Vitest)
@@ -34,7 +33,6 @@ npx ng test --watch=false --include <spec path>    # a single spec
 npx tsc -p tsconfig.app.json --noEmit              # frontend type check
 npm run lint:colors                                # colours only from the palette
 npm run lint:units                                 # sizes in rem, no hard-coded pixels
-npm run test:server                                # proxy tests (node:test)
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
 ```
 
@@ -169,7 +167,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   explicitly, never `git add -A`.
 - `../continental_be` is a reference only: never modify it.
 - Every Clash of Clans datum reaches the frontend through the backend (`/api/v1`), never from the
-  proxy nor the official API: one path, one cache. The backend reads the API live with its client
+  official API: one path, one cache. The backend reads the API live with its client
   (`lib/coc/live-coc.ts`, responses kept in memory: clan 1 min, current war 30 s, war log 5 min,
   profiles 10 min) and keeps the official format (`GET /clan`, `/wars/current`, `/wars/warlog`,
   `/players/{tag}/profile`), mapped by the frontend's `coc-api.mappers.ts`; an API failure answers
