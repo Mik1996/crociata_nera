@@ -1,0 +1,17 @@
+<span class="player-cell__line">
+  @if (link()) {
+    <a class="cn-link-cell" [routerLink]="['/players', tag()]" (click)="linkClicked($event)">{{
+      name()
+    }}</a>
+  } @else {
+    <span class="player-cell__name">{{ name() }}</span>
+  }
+  @if (mine()) {
+    <crn-tag tone="me" appearance="solid">{{ 'common.you' | translate }}</crn-tag>
+  }
+  <ng-content select="crn-tag" />
+</span>
+@if (showTag()) {
+  <div class="cn-muted player-cell__tag">{{ tag() }}</div>
+}
+<ng-content />
