@@ -44,14 +44,16 @@
               <dd>
                 <span class="email">{{ u.email }}</span>
                 @if (u.emailVerified) {
-                  <span class="badge badge--ok"
-                    ><crn-icon name="verified" />{{ 'profile.account.verified' | translate }}</span
+                  <crn-tag size="m" tone="success"
+                    ><crn-icon name="verified" />{{
+                      'profile.account.verified' | translate
+                    }}</crn-tag
                   >
                 } @else {
-                  <span class="badge badge--warn"
+                  <crn-tag size="m" tone="danger"
                     ><crn-icon name="mark_email_unread" />{{
                       'profile.account.notVerified' | translate
-                    }}</span
+                    }}</crn-tag
                   >
                 }
               </dd>
@@ -60,9 +62,9 @@
               <dt>{{ 'profile.account.roles' | translate }}</dt>
               <dd>
                 @for (role of u.roles; track role) {
-                  <span class="badge" [class.badge--gold]="role === 'ADMIN'">{{
+                  <crn-tag size="m" [tone]="role === 'ADMIN' ? 'gold' : 'neutral'">{{
                     'profile.roles.' + role | translate
-                  }}</span>
+                  }}</crn-tag>
                 }
               </dd>
             </div>

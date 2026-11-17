@@ -33,6 +33,7 @@ import { serverTable } from '../../shared/table/server-table';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
+import { Tag } from '../../shared/components/tag';
 
 /** Maximum stars per war (two 3-star attacks). */
 const MAX_STARS_PER_WAR = 6;
@@ -58,6 +59,7 @@ const MAX_STARS_PER_WAR = 6;
     ResultBadge,
     ScrollFade,
     TownHallIcon,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

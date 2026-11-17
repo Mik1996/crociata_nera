@@ -107,3 +107,8 @@
   background: var(--tag-tint);
   color: var(--tag-ink);
 }
+
+// Icons before or after the text follow its size.
+:host ::ng-deep .crn-icon {
+  font-size: 1.35em;
+}

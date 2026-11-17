@@ -32,9 +32,9 @@
     >
       @if (weekend(); as w) {
         <p class="weekend-state">
-          <span class="state-chip" [class.state-chip--live]="w.state === 'ongoing'">{{
+          <crn-tag size="m" [tone]="w.state === 'ongoing' ? 'danger' : 'neutral'">{{
             'raids.state.' + w.state | translate
-          }}</span>
+          }}</crn-tag>
           {{ label(w) }}
         </p>
 

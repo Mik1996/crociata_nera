@@ -29,6 +29,7 @@ import {
   PLAYER_TAG_PATTERN,
   strongPassword,
 } from '../auth/auth-form';
+import { Tag } from '../../shared/components/tag';
 
 /** Most accounts a user can link (same limit as the backend). */
 const MAX_LINKED_PLAYERS = 10;
@@ -50,6 +51,7 @@ type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null
     LocalDatePipe,
     PageHeader,
     ScrollFade,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

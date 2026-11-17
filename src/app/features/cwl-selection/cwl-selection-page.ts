@@ -32,6 +32,7 @@ import { Icon } from '../../shared/icon/icon';
 import { roleKey } from '../../shared/labels';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
+import { Tag, TagTone } from '../../shared/components/tag';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -71,6 +72,15 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
  * the scores; the page explains the rules. Administrators can exclude players, who stay in the
  * ranking marked as excluded.
  */
+/** Colour of the line-up status tags (excluded players get their own, with the reason). */
+const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
+  starter: 'starter',
+  reserve: 'reserve',
+  bench: 'neutral',
+  ineligible: 'neutral',
+  excluded: 'danger',
+};
+
 @Component({
   selector: 'crn-cwl-selection-page',
   imports: [
@@ -89,6 +99,7 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
     CommendationMedal,
     Icon,
     TownHallIcon,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -258,5 +269,10 @@ export class CwlSelectionPage {
 
   private notify(messageKey: string): void {
     this.snackBar.open(this.language.t(messageKey), undefined, { duration: 3000 });
+  }
+
+  /** Colour of a line-up status tag. */
+  protected statusTone(status: CwlSelectionStatus): TagTone {
+    return STATUS_TONES[status];
   }
 }

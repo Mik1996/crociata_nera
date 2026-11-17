@@ -109,39 +109,6 @@
   color: var(--cn-red-text);
 }
 
-.status {
-  display: inline-block;
-  padding: 0.1rem $space-s;
-  border-radius: $radius-pill;
-  font-family: var(--cn-font-display);
-  font-size: var(--cn-fs-2xs);
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  background: var(--cn-surface-3);
-  color: var(--cn-text-muted);
-
-  &--starter {
-    background: var(--cn-lineup-starter);
-    color: var(--cn-on-lineup);
-  }
-
-  &--reserve {
-    background: var(--cn-lineup-reserve);
-    color: var(--cn-on-lineup);
-  }
-
-  &--ineligible {
-    background: transparent;
-    border: 1px solid var(--cn-border);
-  }
-
-  &--excluded {
-    background: transparent;
-    border: 1px solid var(--cn-red-text);
-    color: var(--cn-red-text);
-  }
-}
-
 .reason {
   max-width: 14rem;
   white-space: normal;
@@ -153,20 +120,6 @@
   flex-wrap: wrap;
   gap: $space-xs;
   margin-top: $space-xs;
-}
-
-.flag {
-  padding: 0 $space-s;
-  border-radius: $radius-pill;
-  border: 1px solid var(--cn-gold-dark);
-  color: var(--cn-gold-light);
-  font-size: var(--cn-fs-2xs);
-  white-space: nowrap;
-
-  &--alert {
-    border-color: var(--cn-red-text);
-    color: var(--cn-red-text);
-  }
 }
 
 .cwl-clan {

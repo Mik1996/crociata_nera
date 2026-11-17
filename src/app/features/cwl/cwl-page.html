@@ -33,9 +33,9 @@
     >
       @if (season(); as s) {
         <p class="season-state">
-          <span class="state-chip" [class.state-chip--live]="s.state !== 'ended'">{{
+          <crn-tag size="m" [tone]="s.state !== 'ended' ? 'danger' : 'neutral'">{{
             'cwl.state.' + s.state | translate
-          }}</span>
+          }}</crn-tag>
           {{ periodLabel(s.season) }}
         </p>
 
@@ -130,9 +130,9 @@
                     @if (w.state === 'ended') {
                       <crn-result-badge [result]="result(r)" />
                     } @else {
-                      <span class="state-chip state-chip--live">{{
+                      <crn-tag size="m" tone="danger">{{
                         'cwl.warState.' + w.state | translate
-                      }}</span>
+                      }}</crn-tag>
                     }
                   } @else {
                     <span class="round__opponent cn-muted">{{

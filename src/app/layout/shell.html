@@ -37,9 +37,9 @@
   <span class="spacer"></span>
 
   @if (useMock) {
-    <span class="mock-chip" [title]="'app.demoDataTitle' | translate">{{
+    <crn-tag class="mock-chip" tone="danger" [title]="'app.demoDataTitle' | translate">{{
       'app.demoData' | translate
-    }}</span>
+    }}</crn-tag>
   }
 
   <!-- Theme picker: only when there is more than one theme -->

@@ -20,6 +20,7 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { Table } from '../../shared/table/table';
 import { RAID_MEMBER_FILTERS } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
+import { Tag } from '../../shared/components/tag';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -41,6 +42,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     LoadState,
     KpiCard,
     ScrollFade,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

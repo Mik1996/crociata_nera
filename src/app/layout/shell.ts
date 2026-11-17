@@ -30,6 +30,7 @@ import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
 import { ThemeService } from '../core/theme/theme.service';
+import { Tag } from '../shared/components/tag';
 
 interface MenuItem {
   path: string;
@@ -68,6 +69,7 @@ interface MenuGroup {
     MatButtonModule,
     MatMenuModule,
     TranslatePipe,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shell.html',

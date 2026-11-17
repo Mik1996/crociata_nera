@@ -14,23 +14,6 @@
   color: var(--cn-heading);
 }
 
-.state-chip {
-  display: inline-block;
-  padding: $space-xs $space-s;
-  border: 1px solid var(--cn-border);
-  border-radius: $radius-pill;
-  font-family: var(--cn-font-body);
-  font-size: var(--cn-fs-xs);
-  font-weight: 600;
-  color: var(--cn-text-muted);
-  white-space: nowrap;
-}
-
-.state-chip--live {
-  border-color: var(--cn-red-mid);
-  color: var(--cn-red-text);
-}
-
 .cwl-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -168,7 +151,7 @@
 
     .round__score,
     crn-result-badge,
-    .state-chip {
+    crn-tag {
       grid-column: 2;
       justify-self: start;
       align-items: flex-start;

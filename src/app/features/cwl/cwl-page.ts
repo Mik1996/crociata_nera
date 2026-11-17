@@ -23,6 +23,7 @@ import { CWL_PLAYER_FILTERS } from '../../shared/table/clan-tables';
 import { serverTable } from '../../shared/table/server-table';
 import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
+import { Tag } from '../../shared/components/tag';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a
@@ -46,6 +47,7 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
     ResultBadge,
     ScrollFade,
     TownHallIcon,
+    Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

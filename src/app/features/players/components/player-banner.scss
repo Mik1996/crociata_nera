@@ -115,25 +115,6 @@
   gap: $space-s;
 }
 
-.chip {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: $space-xs;
-  padding: $space-xs $space-s;
-  border-radius: $radius-pill;
-  background: palette.alpha(var(--cn-shadow), 35%);
-  border: 1px solid palette.alpha(var(--cn-light), 18%);
-  font-size: var(--cn-fs-sm);
-  font-weight: 600;
-}
-
-.chip--role {
-  background: var(--cn-game-gold);
-  border-color: transparent;
-  color: var(--cn-on-gold);
-}
-
 .banner__labels {
   flex: none;
   display: flex;
@@ -265,11 +246,6 @@
     flex-wrap: nowrap;
     // Room for the focus outline, clipped by the scroll area.
     padding: $space-xs;
-  }
-
-  .chip {
-    padding: $space-xs $space-s;
-    font-size: var(--cn-fs-xs);
   }
 
   .banner__labels img {

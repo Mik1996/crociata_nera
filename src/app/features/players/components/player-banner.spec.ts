@@ -42,7 +42,6 @@ async function render() {
 }
 
 describe('PlayerBanner', () => {
-
   it('shows the commendations as still 3D medals in one row, without title or names', async () => {
     const { el, snapshot } = await render();
 
@@ -54,7 +53,9 @@ describe('PlayerBanner', () => {
     expect(snapshot).toHaveBeenCalledWith('commendations/present-bronze.svg', 'bronze', false, 80);
     // Named for screen readers and in the tooltip only.
     expect(medals[0].textContent!.trim()).toBe('');
-    expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toContain("Bastione d'Acciaio");
+    expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toContain(
+      "Bastione d'Acciaio",
+    );
     // The list keeps its accessible name, the visible "Commendations" title is gone.
     expect(el.querySelector('.banner__medals')!.getAttribute('aria-label')).toBe('Encomi');
     expect(el.textContent).not.toMatch(/\bEncomi\b/);
@@ -63,8 +64,8 @@ describe('PlayerBanner', () => {
   it('shows the role but not the clan or the war preference', async () => {
     const { el } = await render();
 
-    expect(el.querySelector('.chip--role')!.textContent).toContain('Capo');
-    expect(el.querySelectorAll('.chip')).toHaveLength(1);
+    expect(el.querySelector('.banner__role')!.textContent).toContain('Capo');
+    expect(el.querySelectorAll('crn-tag')).toHaveLength(1);
     expect(el.textContent).not.toContain('Crociata Nera');
   });
 
