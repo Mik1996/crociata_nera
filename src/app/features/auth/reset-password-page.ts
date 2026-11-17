@@ -12,6 +12,7 @@ import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { applyServerErrors, errorKey, passwordsMatch, strongPassword } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
+import { PasswordToggle } from '../../shared/components/password-toggle';
 
 /** New password from the emailed link (`/reset-password?token=…`). */
 @Component({
@@ -26,6 +27,7 @@ import { AuthPanel } from './components/auth-panel';
     MatProgressSpinnerModule,
     TranslatePipe,
     AuthPanel,
+    PasswordToggle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reset-password-page.html',

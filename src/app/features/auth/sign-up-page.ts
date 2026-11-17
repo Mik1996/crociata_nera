@@ -19,6 +19,7 @@ import {
   USERNAME_PATTERN,
 } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
+import { PasswordToggle } from '../../shared/components/password-toggle';
 
 /** Account creation; on success the user is signed in. */
 @Component({
@@ -33,6 +34,7 @@ import { AuthPanel } from './components/auth-panel';
     MatProgressSpinnerModule,
     TranslatePipe,
     AuthPanel,
+    PasswordToggle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sign-up-page.html',

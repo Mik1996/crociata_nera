@@ -30,6 +30,7 @@ import {
   strongPassword,
 } from '../auth/auth-form';
 import { Tag } from '../../shared/components/tag';
+import { PasswordToggle } from '../../shared/components/password-toggle';
 
 /** Most accounts a user can link (same limit as the backend). */
 const MAX_LINKED_PLAYERS = 10;
@@ -52,6 +53,7 @@ type Feedback = { kind: 'success' | 'error'; messages: BackendMessage[] } | null
     PageHeader,
     ScrollFade,
     Tag,
+    PasswordToggle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },

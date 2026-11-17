@@ -112,17 +112,7 @@
                 autocomplete="current-password"
                 [type]="showPassword() ? 'text' : 'password'"
               />
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                class="picker"
-                [attr.aria-label]="'auth.showPassword' | translate"
-                [attr.aria-pressed]="showPassword()"
-                (click)="showPassword.set(!showPassword())"
-              >
-                <crn-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
-              </button>
+              <crn-password-toggle matSuffix [(visible)]="showPassword" />
               @if (
                 errorKey(passwordForm.controls.currentPassword, passwordErrors.currentPassword);
                 as key
