@@ -32,6 +32,7 @@ import { LanguageCode } from '../core/i18n/languages';
 import { ThemeService } from '../core/theme/theme.service';
 import { Tag } from '../shared/components/tag';
 import { Avatar } from '../shared/components/avatar';
+import { Alert } from '../shared/components/alert';
 
 interface MenuItem {
   path: string;
@@ -72,6 +73,7 @@ interface MenuGroup {
     TranslatePipe,
     Tag,
     Avatar,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shell.html',

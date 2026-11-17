@@ -216,25 +216,20 @@ mat-sidenav-content {
 }
 
 // Offline: the pages show the data saved at the last visit.
-.offline-banner {
+// A thin bar across the top instead of a box (the colours come from the warning alert).
+crn-alert.offline-banner {
   flex: none;
   position: sticky;
   top: 0;
   z-index: 3;
-  display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-s;
   padding: $space-xs $space-m;
-  background: var(--cn-tint-gold);
-  border-bottom: 1px solid var(--cn-gold-dark);
-  color: var(--cn-gold-light);
+  border-width: 0 0 1px;
+  border-radius: 0;
   font-size: var(--cn-fs-xs);
   text-align: center;
-
-  crn-icon {
-    font-size: 1.125rem;
-  }
+  --crn-alert-icon-size: 1.125rem;
 }
 
 /* Notice required by the Supercell Fan Content Policy (game assets and font). */

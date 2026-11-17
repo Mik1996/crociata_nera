@@ -241,12 +241,11 @@
 
   <mat-sidenav-content>
     @if (!connectivity.online()) {
-      <div class="offline-banner" role="status">
-        <crn-icon name="wifi_off" />
-        <span>{{
+      <crn-alert class="offline-banner" tone="warning" icon="wifi_off">
+        {{
           (auth.isUnconfirmed() ? 'app.offline.bannerSignedIn' : 'app.offline.banner') | translate
-        }}</span>
-      </div>
+        }}
+      </crn-alert>
     }
     <main id="content" #content tabindex="-1" class="content">
       <router-outlet />

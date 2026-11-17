@@ -12,6 +12,7 @@ import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { applyServerErrors, errorKey } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
+import { Alert } from '../../shared/components/alert';
 
 /** "Forgot password": asks for the email and sends a reset link. */
 @Component({
@@ -26,6 +27,7 @@ import { AuthPanel } from './components/auth-panel';
     MatProgressSpinnerModule,
     TranslatePipe,
     AuthPanel,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password-page.html',

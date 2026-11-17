@@ -20,6 +20,7 @@ import {
 } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
 import { PasswordToggle } from '../../shared/components/password-toggle';
+import { Alert } from '../../shared/components/alert';
 
 /** Account creation; on success the user is signed in. */
 @Component({
@@ -35,6 +36,7 @@ import { PasswordToggle } from '../../shared/components/password-toggle';
     TranslatePipe,
     AuthPanel,
     PasswordToggle,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sign-up-page.html',

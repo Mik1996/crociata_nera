@@ -13,6 +13,7 @@ import { backendErrors } from '../../core/backend/backend-errors';
 import { applyServerErrors, errorKey, passwordsMatch, strongPassword } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
 import { PasswordToggle } from '../../shared/components/password-toggle';
+import { Alert } from '../../shared/components/alert';
 
 /** New password from the emailed link (`/reset-password?token=…`). */
 @Component({
@@ -28,6 +29,7 @@ import { PasswordToggle } from '../../shared/components/password-toggle';
     TranslatePipe,
     AuthPanel,
     PasswordToggle,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reset-password-page.html',

@@ -13,6 +13,7 @@
 
 .alert__icon {
   flex: none;
+  font-size: var(--crn-alert-icon-size, 1.5rem);
 }
 
 .alert__body {
@@ -50,4 +51,11 @@
   justify-content: center;
   padding: $space-m;
   color: var(--cn-text-muted);
+}
+
+// A spinner or a picture next to the text (e.g. "Verifying…").
+:host(.alert--info) .alert__body {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
 }
