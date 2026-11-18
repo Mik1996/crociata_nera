@@ -1,5 +1,5 @@
 import { clanCastleCapacity } from './clan-castle';
-import { isSquad, townHallImage } from './units';
+import { isSquad, leagueTierImage, townHallImage } from './units';
 
 describe('townHallImage', () => {
   it('returns the picture of each known level', () => {
@@ -37,5 +37,15 @@ describe('isSquad', () => {
     expect(isSquad('P.E.K.K.A Titan Squad')).toBe(true);
     expect(isSquad('Some Future Squad')).toBe(true);
     expect(isSquad('Barbarian')).toBe(false);
+  });
+});
+
+describe('leagueTierImage', () => {
+  it('points to the local badge of a known league tier, null otherwise', () => {
+    expect(leagueTierImage(105000000)).toBe('game/league-tiers/105000000.webp');
+    expect(leagueTierImage(105000036)).toBe('game/league-tiers/105000036.webp');
+    expect(leagueTierImage(105000037)).toBeNull();
+    expect(leagueTierImage(29000022)).toBeNull();
+    expect(leagueTierImage(null)).toBeNull();
   });
 });

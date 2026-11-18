@@ -97,3 +97,16 @@ export function townHallImage(level: number): string | undefined {
   const best = Math.min(Math.max(level, Math.min(...levels)), Math.max(...levels));
   return TOWN_HALL_IMAGES[best];
 }
+
+/** Ids of the home village league tiers saved in `public/game/league-tiers/` (Unranked to Legend I). */
+const FIRST_LEAGUE_TIER = 105000000;
+const LAST_LEAGUE_TIER = 105000036;
+
+/**
+ * Local copy of a home village league badge (`leagueTier.id`), for the code that must read the
+ * picture itself (PDF export: the official host sends no CORS headers); `null` for an unknown tier.
+ */
+export function leagueTierImage(id: number | null | undefined): string | null {
+  if (!id || id < FIRST_LEAGUE_TIER || id > LAST_LEAGUE_TIER) return null;
+  return `game/league-tiers/${id}.webp`;
+}
