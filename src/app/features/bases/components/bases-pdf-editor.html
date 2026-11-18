@@ -1,0 +1,315 @@
+<h2 mat-dialog-title class="head">
+  <crn-icon name="picture_as_pdf" />
+  {{ 'bases.pdf.editorTitle' | translate }}
+</h2>
+
+<mat-dialog-content class="content" (paste)="onPaste($event)">
+  <div class="editor">
+    <!-- Cover: a small A4 page (the picture, tap or drop to change it) next to the title. -->
+    <section class="cover" [attr.aria-label]="'bases.pdf.cover' | translate">
+      <label
+        class="sheet"
+        [class.sheet--active]="dragging()"
+        [class.sheet--error]="coverError() || (attempted() && !cover())"
+        [class.sheet--filled]="cover()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="dragging.set(false)"
+        (drop)="onDrop($event)"
+      >
+        <input
+          type="file"
+          class="cn-visually-hidden"
+          [attr.aria-label]="'bases.pdf.coverImage' | translate"
+          [accept]="accept"
+          (change)="onCoverInput($event)"
+        />
+        @if (cover(); as c) {
+          <img class="sheet__picture" [src]="c.url" [alt]="'bases.pdf.coverPreview' | translate" />
+        } @else {
+          <crn-icon class="sheet__icon" name="add_photo_alternate" />
+        }
+        <span class="sheet__brand">{{ clanName }}</span>
+        <span class="sheet__title">{{ title.value }}</span>
+      </label>
+
+      <div class="cover__fields">
+        <mat-form-field appearance="outline" class="cover__title" subscriptSizing="dynamic">
+          <mat-label>{{ 'bases.pdf.coverTitle' | translate }}</mat-label>
+          <input
+            matInput
+            [formControl]="title"
+            [attr.maxlength]="maxTitle"
+            autocomplete="off"
+            cdkFocusInitial
+          />
+          <mat-hint align="end" class="cn-num">{{ title.value.length }}/{{ maxTitle }}</mat-hint>
+          <mat-error>{{ 'bases.pdf.missingTitle' | translate }}</mat-error>
+        </mat-form-field>
+        <p class="cover__hint cn-muted">
+          <crn-icon name="photo_camera" />
+          <span>
+            {{ (cover() ? 'bases.pdf.coverChange' : 'bases.pdf.coverDrop') | translate }}
+            · {{ 'bases.form.imageFormats' | translate }}
+          </span>
+        </p>
+        @if (coverError(); as m) {
+          <crn-form-errors [messages]="[m]" />
+        }
+      </div>
+    </section>
+
+    <section class="pages" aria-labelledby="pdf-pages-title">
+      <div class="section-head">
+        <h3 class="section-title" id="pdf-pages-title">
+          {{ 'bases.pdf.pages' | translate }}
+          <span class="section-title__count cn-num">{{ pages().length }}</span>
+        </h3>
+        @if (pages().length) {
+          <button mat-button type="button" (click)="clear()">
+            <crn-icon matButtonIcon name="clear" />
+            {{ 'bases.pdf.clear' | translate }}
+          </button>
+        }
+      </div>
+
+      <div class="panel" crnScrollFade>
+        @if (rows().length) {
+          <ol class="page-list" cdkDropList (cdkDropListDropped)="drop($event)">
+            @for (page of rows(); track page.key; let i = $index, first = $first, last = $last) {
+              <li class="page-item" cdkDrag cdkDragLockAxis="y">
+                <div class="page-item__media">
+                  <img [src]="thumb(page.base)" alt="" loading="lazy" decoding="async" />
+                  <span class="page-item__number cn-num">{{ i + 2 }}</span>
+                  <span class="badge page-item__th">
+                    @if (townHallImage(page.base.townHallLevel); as src) {
+                      <img [src]="src" alt="" />
+                    }
+                    {{ 'bases.thShort' | translate: { n: page.base.townHallLevel } }}
+                  </span>
+                </div>
+
+                <div class="page-item__body">
+                  <textarea
+                    class="page-item__description"
+                    rows="2"
+                    [value]="page.description"
+                    [attr.maxlength]="maxDescription"
+                    [placeholder]="'bases.pdf.description' | translate"
+                    [attr.aria-label]="'bases.pdf.description' | translate"
+                    (input)="setDescription(page, $event)"
+                  ></textarea>
+
+                  <button
+                    type="button"
+                    class="troops"
+                    [class.troops--open]="editingTroops() === page.key"
+                    [attr.aria-expanded]="editingTroops() === page.key"
+                    [attr.aria-label]="
+                      'bases.pdf.editTroops' | translate: { used: page.used, max: page.capacity }
+                    "
+                    (click)="toggleTroops(page)"
+                  >
+                    <crn-icon class="troops__castle" name="castle" />
+                    @for (troop of page.icons; track troop.name) {
+                      <span class="troops__item">
+                        @if (troop.icon; as icon) {
+                          <img [src]="icon" [alt]="troop.name" />
+                        } @else {
+                          <span>{{ troop.name }}</span>
+                        }
+                        <span class="cn-num">×{{ troop.count }}</span>
+                      </span>
+                    } @empty {
+                      <span class="troops__none">{{ 'bases.pdf.noTroops' | translate }}</span>
+                    }
+                    <span class="troops__space cn-num">{{ page.used }}/{{ page.capacity }}</span>
+                    <crn-icon class="troops__edit" name="edit" />
+                  </button>
+                </div>
+
+                <div class="page-item__tools">
+                  <button
+                    type="button"
+                    class="tool tool--handle"
+                    cdkDragHandle
+                    [matTooltip]="'bases.pdf.drag' | translate"
+                    [attr.aria-label]="'bases.pdf.drag' | translate"
+                  >
+                    <crn-icon name="drag_indicator" />
+                  </button>
+                  <button
+                    type="button"
+                    class="tool"
+                    [disabled]="first"
+                    (click)="move(i, -1)"
+                    [matTooltip]="'bases.pdf.moveUp' | translate"
+                    [attr.aria-label]="'bases.pdf.moveUp' | translate"
+                  >
+                    <crn-icon name="arrow_upward" />
+                  </button>
+                  <button
+                    type="button"
+                    class="tool"
+                    [disabled]="last"
+                    (click)="move(i, 1)"
+                    [matTooltip]="'bases.pdf.moveDown' | translate"
+                    [attr.aria-label]="'bases.pdf.moveDown' | translate"
+                  >
+                    <crn-icon name="arrow_downward" />
+                  </button>
+                  <button
+                    type="button"
+                    class="tool tool--remove page-item__remove"
+                    (click)="remove(page)"
+                    [matTooltip]="'bases.pdf.remove' | translate"
+                    [attr.aria-label]="'bases.pdf.remove' | translate"
+                  >
+                    <crn-icon name="delete" />
+                  </button>
+                </div>
+
+                @if (editingTroops() === page.key) {
+                  <div class="page-item__picker">
+                    <crn-clan-castle-picker
+                      [capacity]="page.capacity"
+                      [ngModel]="page.troops"
+                      (ngModelChange)="setTroops(page, $event)"
+                    />
+                    <button
+                      mat-flat-button
+                      type="button"
+                      class="picker-done"
+                      (click)="toggleTroops(page)"
+                    >
+                      <crn-icon matButtonIcon name="check" />
+                      {{ 'bases.pdf.troopsDone' | translate }}
+                    </button>
+                  </div>
+                }
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="panel__empty" [class.panel__empty--error]="attempted()">
+            <crn-icon name="playlist_add" />
+            {{ 'bases.pdf.pagesEmpty' | translate }}
+          </p>
+        }
+      </div>
+    </section>
+
+    <section class="arsenal" aria-labelledby="pdf-arsenal-title">
+      <div class="section-head">
+        <h3 class="section-title" id="pdf-arsenal-title">{{ 'bases.pdf.arsenal' | translate }}</h3>
+        <button
+          mat-button
+          type="button"
+          class="add-all"
+          [disabled]="!addable().length"
+          (click)="addAll()"
+        >
+          <crn-icon matButtonIcon name="playlist_add" />
+          {{ 'bases.pdf.addAll' | translate: { n: addable().length } }}
+        </button>
+      </div>
+
+      @if (levels().length > 1) {
+        <mat-chip-listbox
+          class="filter"
+          hideSingleSelectionIndicator
+          [attr.aria-label]="'bases.filterByTownHall' | translate"
+          [value]="filter()"
+          (change)="filter.set($event.value ?? null)"
+        >
+          <mat-chip-option [value]="null" [selectable]="filter() !== null">
+            {{ 'bases.all' | translate }}
+          </mat-chip-option>
+          @for (level of levels(); track level) {
+            <mat-chip-option [value]="level" [selectable]="filter() !== level">
+              {{ 'bases.thShort' | translate: { n: level } }}
+            </mat-chip-option>
+          }
+        </mat-chip-listbox>
+      }
+
+      <div class="panel" crnScrollFade>
+        <ul class="choices">
+          @for (base of shown(); track base.id) {
+            @let isChosen = chosen().has(base.id);
+            <li>
+              <button
+                type="button"
+                class="choice"
+                [class.choice--chosen]="isChosen"
+                [attr.aria-pressed]="isChosen"
+                [matTooltip]="base.description"
+                [attr.aria-label]="
+                  (isChosen ? 'bases.pdf.removeOf' : 'bases.pdf.addOf')
+                    | translate: { n: base.townHallLevel }
+                "
+                (click)="toggle(base)"
+              >
+                <img [src]="thumb(base)" alt="" loading="lazy" decoding="async" />
+                <span class="badge choice__th">
+                  @if (townHallImage(base.townHallLevel); as src) {
+                    <img [src]="src" alt="" />
+                  }
+                  {{ 'bases.thShort' | translate: { n: base.townHallLevel } }}
+                </span>
+                <span class="choice__mark">
+                  <crn-icon [name]="isChosen ? 'check' : 'add'" />
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+        @if (feed().loading()) {
+          <div class="panel__status" role="status">
+            <mat-spinner diameter="28" [attr.aria-label]="'bases.loadingMore' | translate" />
+          </div>
+        } @else if (feed().error() !== undefined) {
+          <div class="panel__status" role="alert">
+            <p>{{ 'bases.loadMoreError' | translate }}</p>
+            <button mat-stroked-button type="button" (click)="feed().retry()">
+              <crn-icon matButtonIcon name="refresh" /> {{ 'status.retry' | translate }}
+            </button>
+          </div>
+        } @else if (!shown().length) {
+          <p class="panel__empty">{{ 'bases.empty' | translate }}</p>
+        }
+      </div>
+    </section>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="actions">
+  @if (attempted() && missing().length) {
+    <p class="actions__missing" role="alert">
+      @for (key of missing(); track key) {
+        <span>{{ key | translate }}</span>
+      }
+    </p>
+  } @else {
+    <p class="actions__summary cn-muted">
+      @if (pages().length) {
+        {{ 'bases.pdf.summary' | translate: { n: pages().length + 1 } }}
+      }
+    </p>
+  }
+  <button mat-button type="button" mat-dialog-close>{{ 'bases.pdf.close' | translate }}</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="actions__create"
+    [disabled]="busy()"
+    [attr.aria-busy]="busy()"
+    (click)="create()"
+  >
+    @if (busy()) {
+      <mat-spinner matButtonIcon diameter="18" />
+    } @else {
+      <crn-icon matButtonIcon name="picture_as_pdf" />
+    }
+    {{ (busy() ? 'bases.pdf.creating' : 'bases.pdf.create') | translate }}
+  </button>
+</mat-dialog-actions>

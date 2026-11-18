@@ -1,7 +1,15 @@
 @use 'variables' as *;
 @use 'color-palette' as palette;
 
-.add crn-icon {
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $space-s;
+}
+
+.add crn-icon,
+.make-pdf crn-icon {
   margin-inline-end: $space-xs;
 }
 

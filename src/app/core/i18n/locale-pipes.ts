@@ -13,6 +13,15 @@ export function formatLocalNumber(value: number, locale: string, format?: string
   return formatNumber(value, locale, format);
 }
 
+/** Formats a date in a supported language (`formatDate` with the locale data registered here). */
+export function formatLocalDate(
+  value: string | number | Date,
+  format: string,
+  locale: string,
+): string {
+  return formatDate(value, format, locale);
+}
+
 /**
  * Like `number`, but formats with the language chosen by the user and updates on language change
  * (Angular's `LOCALE_ID` is fixed for the whole app lifetime).
@@ -36,7 +45,10 @@ export type DateFormat = 'date' | 'dateTime';
 export class LocalDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
 
-  transform(value: string | number | Date | null | undefined, format: DateFormat = 'date'): string | null {
+  transform(
+    value: string | number | Date | null | undefined,
+    format: DateFormat = 'date',
+  ): string | null {
     if (value === null || value === undefined || value === '') return null;
     return formatDate(value, this.language.t(`formats.${format}`), this.language.current());
   }

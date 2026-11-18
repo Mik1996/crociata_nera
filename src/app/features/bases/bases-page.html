@@ -6,11 +6,21 @@
     [title]="'bases.title' | translate"
     [subtitle]="'bases.subtitle' | translate"
   >
-    @if (canEdit()) {
-      <button mat-flat-button type="button" class="add" (click)="openCreate()">
-        <crn-icon matButtonIcon name="add" />
-        {{ 'bases.add' | translate }}
-      </button>
+    @if (canEdit() || canMakePdf()) {
+      <div class="header-actions">
+        @if (canMakePdf()) {
+          <button mat-stroked-button type="button" class="make-pdf" (click)="openPdfEditor()">
+            <crn-icon matButtonIcon name="picture_as_pdf" />
+            {{ 'bases.pdf.button' | translate }}
+          </button>
+        }
+        @if (canEdit()) {
+          <button mat-flat-button type="button" class="add" (click)="openCreate()">
+            <crn-icon matButtonIcon name="add" />
+            {{ 'bases.add' | translate }}
+          </button>
+        }
+      </div>
     }
   </crn-page-header>
 

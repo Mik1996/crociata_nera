@@ -1,12 +1,12 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    effect,
-    inject,
-    input,
-    untracked,
-    viewChild,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  untracked,
+  viewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -31,6 +31,7 @@ import { BaseArsenal } from './base-arsenal';
 import { BaseDeleteDialog, BaseDeleteDialogData } from './components/base-delete-dialog';
 import { BaseFormDialog, BaseFormDialogData } from './components/base-form-dialog';
 import { BaseImageDialog, BaseImageDialogData } from './components/base-image-dialog';
+import { BasesPdfEditor } from './components/bases-pdf-editor';
 import { ClanCastleTroops } from './components/clan-castle-troops';
 
 const FORM_DIALOG = {
@@ -83,6 +84,8 @@ export class BasesPage {
 
   /** Administrators only (and everybody in the demo with mock data, which has no sign-in). */
   protected readonly canEdit = computed(() => this.useMock || this.auth.isAdmin());
+  /** Administrators, leaders and co-leaders of the clans (and everybody in the demo). */
+  protected readonly canMakePdf = computed(() => this.useMock || this.auth.hasLeaderAccess());
 
   /** `?th=18`, bound by the router. */
   readonly th = input<string>();
@@ -151,6 +154,18 @@ export class BasesPage {
 
   protected openEdit(base: DefenseBase): void {
     this.openForm({ base, imageUrl: this.imageUrl(base, 'full') });
+  }
+
+  /** The editor of the bases PDF, as large as the screen: it lists the whole arsenal. */
+  protected openPdfEditor(): void {
+    this.dialog.open(BasesPdfEditor, {
+      width: '80rem',
+      maxWidth: 'calc(100vw - 2rem)',
+      height: 'calc(100dvh - 2rem)',
+      autoFocus: 'first-tabbable',
+      // Closed only with its buttons: a click beside it would lose the composition.
+      disableClose: true,
+    });
   }
 
   protected openImage(base: DefenseBase): void {

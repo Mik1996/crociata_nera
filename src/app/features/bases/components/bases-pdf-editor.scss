@@ -1,0 +1,602 @@
+@use 'variables' as *;
+@use 'color-palette' as palette;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+
+  crn-icon {
+    color: var(--cn-gold);
+  }
+}
+
+// The dialog is as tall as the screen. Narrow: everything scrolls together. Wide (see the
+// container query at the end): the cover is a strip on top, pages and arsenal fill the rest side
+// by side and scroll inside.
+.content.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+  container-type: inline-size;
+}
+
+.editor {
+  display: grid;
+  gap: $space-l;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-s;
+  min-height: 2.5rem;
+  margin-bottom: $space-xs;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: $space-s;
+  margin: 0;
+  color: var(--cn-text);
+  font-family: var(--cn-font-heading);
+  font-size: var(--cn-fs-lg);
+  font-weight: 700;
+}
+
+.section-title__count {
+  padding: 0 $space-s;
+  border-radius: $radius-pill;
+  background: palette.alpha(var(--cn-gold), 16%);
+  color: var(--cn-gold-light);
+  font-family: var(--cn-font-body);
+  font-size: var(--cn-fs-sm);
+}
+
+// Town hall over a picture.
+.badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 0 $space-s 0 $space-xs;
+  border-radius: $radius-pill;
+  background: palette.alpha(var(--cn-surface), 85%);
+  color: var(--cn-text);
+  font-size: var(--cn-fs-xs);
+  font-weight: 700;
+  pointer-events: none;
+
+  img {
+    width: 1.1rem;
+    height: 1.1rem;
+    object-fit: contain;
+  }
+}
+
+// --- Cover -------------------------------------------------------------------------------------
+
+.cover {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-l;
+  // Room for the floating label of the title field, at the top of the scrolling area.
+  padding-top: $space-s;
+}
+
+// The cover as a small A4 page: the picture, the clan's name and the title, as in the PDF.
+.sheet {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  border: 2px dashed var(--cn-border);
+  border-radius: $radius-s;
+  background: var(--cn-pdf-band);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:hover,
+  &.sheet--active {
+    border-color: var(--cn-gold);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: 2px;
+  }
+}
+
+.sheet--filled {
+  border-style: solid;
+  border-color: var(--cn-gold-dark);
+}
+
+.sheet--error {
+  border-color: var(--cn-red-text);
+}
+
+.sheet__picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.6);
+}
+
+.sheet__icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--cn-gold);
+}
+
+.sheet__brand,
+.sheet__title {
+  position: absolute;
+  inset-inline: $space-xs;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.sheet__brand {
+  top: $space-s;
+  color: var(--cn-pdf-gold-text);
+  font-family: var(--cn-font-engraved);
+  font-size: 0.4rem;
+  text-transform: uppercase;
+}
+
+.sheet__title {
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cn-pdf-band-text);
+  font-family: 'Cinzel', serif;
+  font-size: 0.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cover__fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.cover__title {
+  width: 100%;
+}
+
+.cover__hint {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  margin: $space-s 0 0;
+  font-size: var(--cn-fs-sm);
+
+  crn-icon {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--cn-gold);
+  }
+}
+
+// --- Lists -------------------------------------------------------------------------------------
+
+.pages,
+.arsenal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.panel {
+  position: relative;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-l;
+  background: palette.alpha(var(--cn-surface-2), 50%);
+}
+
+.panel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-s;
+  margin: 0;
+  padding: $space-xxl $space-l;
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-sm);
+  text-align: center;
+
+  crn-icon {
+    color: var(--cn-gold);
+  }
+}
+
+.panel__empty--error {
+  color: var(--cn-red-text);
+}
+
+.panel__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-s;
+  padding: $space-l;
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-sm);
+
+  p {
+    margin: 0;
+  }
+}
+
+.filter {
+  display: block;
+  margin-bottom: $space-s;
+}
+
+// Pages of the PDF, in order: picture, description and reinforcements, tools.
+.page-list {
+  display: grid;
+  gap: $space-s;
+  margin: 0;
+  padding: $space-s;
+  list-style: none;
+  container-type: inline-size;
+}
+
+.page-item {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    'media body tools'
+    'picker picker picker';
+  gap: $space-s $space-m;
+  padding: $space-s;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-m;
+  background: var(--cn-surface);
+}
+
+// While dragged: the item follows the pointer above the dialog, its place stays marked.
+.page-item.cdk-drag-preview {
+  border-color: var(--cn-gold);
+  box-shadow: 0 0.5rem 1.5rem palette.alpha(var(--cn-pdf-band), 50%);
+}
+
+.page-item.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+.page-list.cdk-drop-list-dragging .page-item:not(.cdk-drag-placeholder) {
+  transition: transform 0.2s ease;
+}
+
+.page-item__media {
+  grid-area: media;
+  position: relative;
+  align-self: start;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: $radius-s;
+  background: var(--cn-surface-3);
+
+  > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.page-item__number {
+  position: absolute;
+  top: $space-xs;
+  left: $space-xs;
+  display: grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 $space-xs;
+  border-radius: $radius-pill;
+  background: var(--cn-gold-fill);
+  color: var(--cn-on-gold);
+  font-size: var(--cn-fs-xs);
+  font-weight: 700;
+}
+
+.page-item__th {
+  bottom: $space-xs;
+  left: $space-xs;
+}
+
+.page-item__body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  min-width: 0;
+}
+
+.page-item__description {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: $space-xs $space-s;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-s;
+  background: var(--cn-surface-2);
+  color: var(--cn-text);
+  font: inherit;
+  font-size: var(--cn-fs-sm);
+  line-height: 1.35;
+  resize: vertical;
+
+  &::placeholder {
+    color: var(--cn-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--cn-gold);
+  }
+}
+
+// Reinforcements of the page: a tap opens the picker.
+.troops {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs $space-s;
+  padding: $space-xs $space-s;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: none;
+  color: var(--cn-text);
+  font: inherit;
+  font-size: var(--cn-fs-xs);
+  text-align: start;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible,
+  &.troops--open {
+    border-color: var(--cn-gold-dark);
+    background: var(--cn-hover);
+  }
+}
+
+.troops__castle,
+.troops__edit {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--cn-gold);
+}
+
+.troops__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-weight: 700;
+
+  img {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: $radius-s;
+    object-fit: contain;
+  }
+}
+
+.troops__none {
+  color: var(--cn-text-muted);
+}
+
+.troops__space {
+  margin-inline-start: auto;
+  color: var(--cn-text-muted);
+}
+
+.page-item__tools {
+  grid-area: tools;
+  display: grid;
+  grid-template-columns: repeat(2, 2rem);
+  align-content: start;
+  gap: 0.125rem;
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  color: var(--cn-text-muted);
+  cursor: pointer;
+
+  crn-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--cn-hover);
+    color: var(--cn-gold);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.tool--handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tool--remove {
+  color: var(--cn-red-text);
+}
+
+.page-item__picker {
+  grid-area: picker;
+  padding-top: $space-s;
+  border-top: 1px solid var(--cn-border);
+}
+
+.picker-done {
+  display: flex;
+  margin: $space-s 0 0 auto;
+}
+
+// Bases of the arsenal: a tap adds one to the PDF, or takes it out.
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: $space-s;
+  margin: 0;
+  padding: $space-s;
+  list-style: none;
+}
+
+.choice {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: $radius-m;
+  background: var(--cn-surface-3);
+  cursor: pointer;
+
+  > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover > img,
+  &:focus-visible > img {
+    transform: scale(1.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: 2px;
+  }
+}
+
+.choice--chosen {
+  border-color: var(--cn-gold);
+
+  > img {
+    opacity: 0.55;
+  }
+}
+
+.choice__th {
+  bottom: $space-xs;
+  left: $space-xs;
+}
+
+.choice__mark {
+  position: absolute;
+  top: $space-xs;
+  right: $space-xs;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: palette.alpha(var(--cn-surface), 85%);
+  color: var(--cn-text);
+
+  crn-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .choice--chosen & {
+    background: var(--cn-gold-fill);
+    color: var(--cn-on-gold);
+  }
+}
+
+// --- Actions -----------------------------------------------------------------------------------
+
+.actions {
+  flex-wrap: wrap;
+  gap: $space-s;
+}
+
+.actions__missing,
+.actions__summary {
+  flex: 1 1 12rem;
+  margin: 0;
+  font-size: var(--cn-fs-sm);
+}
+
+.actions__missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs $space-m;
+  color: var(--cn-red-text);
+}
+
+// Wider page items: a larger picture.
+@container (min-width: 34rem) {
+  .page-item {
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
+  }
+
+  .page-item__tools {
+    grid-template-columns: 2rem;
+  }
+}
+
+@container (min-width: 56rem) {
+  .editor {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .cover {
+    grid-column: 1 / -1;
+  }
+
+  .cover__fields {
+    max-width: 40rem;
+  }
+
+  .panel {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+}

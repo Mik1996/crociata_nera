@@ -59,6 +59,7 @@ describe('BasesPage', () => {
     async function render(
       roles: string[],
       firstPage = page([base('a', 18, 'Castello: Drago'), base('b', 17)]),
+      leaderAccess = false,
     ) {
       TestBed.configureTestingModule({
         providers: [
@@ -75,7 +76,7 @@ describe('BasesPage', () => {
         ok({
           accessToken: 'tok',
           accessTokenExpiresAt: '',
-          user: { id: 'u', username: 'Knight', roles, players: [], clanAccess: true },
+          user: { id: 'u', username: 'Knight', roles, players: [], clanAccess: true, leaderAccess },
         }),
       );
       const fixture = TestBed.createComponent(BasesPage);
@@ -120,9 +121,30 @@ describe('BasesPage', () => {
       expect(el.querySelector('.base__delete')).toBeNull();
     });
 
+    it('offers the bases PDF to leaders and co-leaders, not to the other members', async () => {
+      const member = await render(['USER']);
+      expect(member.el.querySelector('.make-pdf')).toBeNull();
+      httpMock.match('/api/v1/welcome');
+      TestBed.resetTestingModule();
+
+      const { el, fixture } = await render(['USER'], undefined, true);
+      const button = el.querySelector<HTMLButtonElement>('.make-pdf')!;
+      expect(button.textContent).toContain('Crea PDF basi');
+      // Leaders do not edit the arsenal.
+      expect(el.querySelector('.add')).toBeNull();
+      button.click();
+      await new Promise((resolve) => setTimeout(resolve));
+      TestBed.tick();
+      expect(dialog()!.querySelector('crn-bases-pdf-editor')).not.toBeNull();
+      // The editor shows the arsenal already read (one complete page).
+      await fixture.whenStable();
+      expect(dialog()!.querySelectorAll('.choice')).toHaveLength(2);
+    });
+
     it('lets administrators add, edit and delete bases', async () => {
       const { el, fixture } = await render(['USER', 'ADMIN']);
       expect(el.querySelector('.add')!.textContent).toContain('Aggiungi base');
+      expect(el.querySelector('.make-pdf')).not.toBeNull();
       el.querySelector<HTMLButtonElement>('.base__delete')!.click();
       await fixture.whenStable();
       expect(dialog()!.textContent).toContain('La base del municipio 18 verrà eliminata');

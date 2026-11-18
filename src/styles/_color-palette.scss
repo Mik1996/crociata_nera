@@ -380,6 +380,15 @@
   --cn-pdf-starter-tint: #e7f0fb;
   --cn-pdf-reserve: #2a9d57; // CWL reserves
   --cn-pdf-reserve-tint: #e6f4ea;
+  // Bases PDF (`features/bases/pdf`): dark pages in the look of the "iron" theme.
+  --cn-pdf-iron-bg: #0d0a0b; // page (under the brushed-iron picture)
+  --cn-pdf-iron-plate: #1b1718; // panels: screenshot frame, castle, link card, description
+  --cn-pdf-iron-tile: #2a2425; // troop tiles
+  --cn-pdf-iron-edge: #4a3a22; // outlines of panels and tiles
+  --cn-pdf-iron-text: #f2ead8; // body text
+  --cn-pdf-iron-muted: #b9aa9a; // labels, troop names, footer
+  --cn-pdf-iron-ember: #ff6e1e; // glow at the foot of the page, thin rule under the header
+  --cn-pdf-iron-crimson: #6a1216; // vignette of the page picture
 
   // --- Medal metals (flat medals and the 3D medal dialog): light, base, dark ---
   --cn-medal-gold-light: #fff6c2;

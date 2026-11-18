@@ -58,6 +58,8 @@ export interface PdfTextStyle {
   size: number;
   bold: boolean;
   color: string;
+  /** A paragraph: its words wrap at this width, in points (one line otherwise). */
+  maxWidth?: number;
 }
 
 /** A text drawn as a picture: PNG data URL and its size in points. */
@@ -102,12 +104,12 @@ export function pdfImageUrls<T>(pdf: TablePdf<T>): string[] {
 }
 
 /** Page geometry, in points (A4: 595 × 842). */
-const MARGIN_X = 36;
-const MARGIN_BOTTOM = 58;
+export const MARGIN_X = 36;
+export const MARGIN_BOTTOM = 58;
 /** Height of the band at the top of every page. */
 const BAND_HEIGHT = 96;
 /** Content starts under the band and its two rules. */
-const MARGIN_TOP = BAND_HEIGHT + 4 + 18;
+export const MARGIN_TOP = BAND_HEIGHT + 4 + 18;
 const CREST_SIZE = 64;
 /** Width of the coloured band on the left of grouped rows. */
 const ACCENT_WIDTH = 4;
@@ -128,15 +130,15 @@ export function buildTablePdf<T>(pdf: TablePdf<T>, frame: PdfFrame): TDocumentDe
     info: { title: pdf.title, author: frame.brand, creator: frame.brand, subject: pdf.subtitle },
     defaultStyle: { font: 'Inter', fontSize: TEXT_SIZE, color: theme.ink, lineHeight: 1.1 },
     images: images.dictionary(),
-    background: (_page, pageSize) => background(pdf, frame, pageSize.width, pageSize.height),
+    background: (_page, pageSize) => pageBand(pdf, frame, pageSize.width, pageSize.height),
     footer: (currentPage, pageCount, pageSize) =>
-      footer(frame, currentPage, pageCount, pageSize.width),
+      pageFooter(frame, currentPage, pageCount, pageSize.width),
     content,
   };
 }
 
 /** Names the pictures of the document (pdfmake takes them by key) and draws the special texts. */
-class PictureRegistry {
+export class PictureRegistry {
   private readonly entries: Record<string, string> = {};
   private readonly keys = new Map<string, string>();
 
@@ -155,15 +157,12 @@ class PictureRegistry {
     if (!needsTextImage(text)) return null;
     const drawn = this.frame.textImage(text, style);
     if (!drawn) return null;
-    const id = `text:${style.size}:${style.bold}:${style.color}:${text}`;
+    const id = `text:${style.size}:${style.bold}:${style.color}:${style.maxWidth}:${text}`;
     return { image: this.add(id, drawn.dataUrl), width: drawn.width, height: drawn.height };
   }
 
-  dictionary(): Record<string, string> | undefined {
-    return Object.keys(this.entries).length ? { ...this.entries } : undefined;
-  }
-
-  private add(id: string, dataUrl: string): string {
+  /** Adds a picture already made (a data URL) under its own name; returns the key to use. */
+  add(id: string, dataUrl: string): string {
     let key = this.keys.get(id);
     if (!key) {
       key = `img${this.keys.size}`;
@@ -172,11 +171,21 @@ class PictureRegistry {
     }
     return key;
   }
+
+  dictionary(): Record<string, string> | undefined {
+    return Object.keys(this.entries).length ? { ...this.entries } : undefined;
+  }
+}
+
+/** Title and subtitle written on the band of every page. */
+export interface PdfBandTitle {
+  title: string;
+  subtitle?: string;
 }
 
 /** Paper, band, crest and titles: the same on every page. */
-function background(
-  pdf: TablePdf<unknown>,
+export function pageBand(
+  pdf: PdfBandTitle,
   frame: PdfFrame,
   width: number,
   height: number,
@@ -245,7 +254,13 @@ function background(
   ];
 }
 
-function footer(frame: PdfFrame, currentPage: number, pageCount: number, width: number): Content {
+/** Gold rule, fan content notice, site and page number. */
+export function pageFooter(
+  frame: PdfFrame,
+  currentPage: number,
+  pageCount: number,
+  width: number,
+): Content {
   const { theme } = frame;
   return {
     margin: [MARGIN_X, 16, MARGIN_X, 0],

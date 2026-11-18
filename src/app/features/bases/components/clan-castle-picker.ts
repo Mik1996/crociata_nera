@@ -1,10 +1,10 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    forwardRef,
-    input,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  forwardRef,
+  input,
+  signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,12 +12,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import {
-    CLAN_CASTLE_TROOPS,
-    ClanCastleTroop,
-    housingSpaceUsed,
-    TroopGroup,
-    troopInfo,
-    TroopInfo,
+  CLAN_CASTLE_TROOPS,
+  ClanCastleTroop,
+  housingSpaceUsed,
+  TroopGroup,
+  troopInfo,
+  TroopInfo,
 } from '../../../core/game/clan-castle';
 import { initials } from '../../../core/utils/initials';
 import { FormErrors } from '../../../shared/components/form-errors/form-errors';

@@ -8,7 +8,8 @@ import { DefenseBase } from '../../../core/backend/backend-api.types';
 import { provideCocApiTest } from '../../../testing/fixtures';
 import { BaseFormDialog, BaseFormDialogData, layoutLinkValidator } from './base-form-dialog';
 
-const LINK = 'https://link.clashofclans.com/en?action=OpenLayout&id=TH18%3AHV%3AAAAAFQAAAALRVVKKOsCkPrNIeGUyK9Qd';
+const LINK =
+  'https://link.clashofclans.com/en?action=OpenLayout&id=TH18%3AHV%3AAAAAFQAAAALRVVKKOsCkPrNIeGUyK9Qd';
 const LINK_17 = 'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AHV%3ABBBBFQAAAALR';
 const ok = <T>(result: T) => ({ result, messages: [], status: { code: 200, name: 'OK' } });
 const saved: DefenseBase = {
@@ -33,7 +34,9 @@ describe('layoutLinkValidator', () => {
   it('accepts empty fields (left to required) and home village layout links only', () => {
     expect(layoutLinkValidator(new FormControl(''))).toBeNull();
     expect(layoutLinkValidator(new FormControl(LINK))).toBeNull();
-    expect(layoutLinkValidator(new FormControl('https://example.com'))).toEqual({ layoutLink: true });
+    expect(layoutLinkValidator(new FormControl('https://example.com'))).toEqual({
+      layoutLink: true,
+    });
   });
 });
 
@@ -74,7 +77,13 @@ describe('BaseFormDialog', () => {
     ) {
       callback(new Blob([`${this.width}x${this.height}`], { type }));
     });
-    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: () => 'blob:preview', revokeObjectURL: () => undefined }));
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, {
+        createObjectURL: () => 'blob:preview',
+        revokeObjectURL: () => undefined,
+      }),
+    );
   }
 
   afterEach(() => {
@@ -109,7 +118,8 @@ describe('BaseFormDialog', () => {
 
     // Reinforcements: TH18 castle, 55 spaces. Golem (30) + Golem would be 60: the second does not fit.
     expect(dialog().textContent).toContain('0/55 spazi');
-    const golem = () => query<HTMLButtonElement>('.catalogue button[aria-label^="Aggiungi Golem "]');
+    const golem = () =>
+      query<HTMLButtonElement>('.catalogue button[aria-label^="Aggiungi Golem "]');
     golem().click();
     await settle();
     expect(dialog().textContent).toContain('30/55 spazi');
@@ -131,7 +141,9 @@ describe('BaseFormDialog', () => {
     expect(image.type).toBe('image/webp');
     expect(await image.text()).toBe('2000x1000');
 
-    const closed = new Promise<DefenseBase | undefined>((resolve) => ref.afterClosed().subscribe(resolve));
+    const closed = new Promise<DefenseBase | undefined>((resolve) =>
+      ref.afterClosed().subscribe(resolve),
+    );
     post.flush(ok(saved));
     expect(await closed).toEqual(saved);
   });
@@ -169,7 +181,9 @@ describe('BaseFormDialog', () => {
     expect(dialog().textContent).toContain('Modifica base difensiva');
     expect(query<HTMLInputElement>('input[formcontrolname="layoutUrl"]').value).toBe(LINK);
     expect(query<HTMLTextAreaElement>('textarea').value).toBe('Castello: Drago');
-    expect(query<HTMLImageElement>('.drop__preview').getAttribute('src')).toBe('/api/v1/base-images/key/full');
+    expect(query<HTMLImageElement>('.drop__preview').getAttribute('src')).toBe(
+      '/api/v1/base-images/key/full',
+    );
 
     type(query('input[formcontrolname="layoutUrl"]'), LINK_17);
     query<HTMLButtonElement>('button[type="submit"]').click();
@@ -190,7 +204,10 @@ describe('BaseFormDialog', () => {
   it('asks for the link before the reinforcements and blocks a castle that became too small', async () => {
     await open({ base: saved, imageUrl: '/x' });
     // TH18 with a Golem: fine. A TH10 link leaves 35 spaces, still enough.
-    type(query('input[formcontrolname="layoutUrl"]'), 'https://link.clashofclans.com/en?action=OpenLayout&id=TH4%3AHV%3ABBBBFQAAAALR');
+    type(
+      query('input[formcontrolname="layoutUrl"]'),
+      'https://link.clashofclans.com/en?action=OpenLayout&id=TH4%3AHV%3ABBBBFQAAAALR',
+    );
     await settle();
     // TH4: 15 spaces, the Golem (30) no longer fits.
     expect(dialog().textContent).toContain('30/15 spazi');
@@ -206,7 +223,9 @@ describe('BaseFormDialog', () => {
 
   it('closes without a request when nothing changed', async () => {
     await open({ base: saved, imageUrl: '/x' });
-    const closed = new Promise<DefenseBase | undefined>((resolve) => ref.afterClosed().subscribe(resolve));
+    const closed = new Promise<DefenseBase | undefined>((resolve) =>
+      ref.afterClosed().subscribe(resolve),
+    );
     query<HTMLButtonElement>('button[type="submit"]').click();
     expect(await closed).toBeUndefined();
   });
