@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GET as getPeriod } from '@/app/api/v1/history/[period]/route';
 import { GET as listMonths } from '@/app/api/v1/history/route';
 import { GET as archive } from '@/app/api/v1/wars/archive/route';
+import { monthBounds } from '@/modules/wars/history.service';
 import { syncWars } from '@/modules/wars/war-sync.service';
 import { mockCocApi } from './coc-mock';
 import { call, cocWar, memberToken } from './helpers';
@@ -51,6 +52,52 @@ describe('history from MongoDB', () => {
 
     expect((await call(getPeriod, { token: auth, params: { period: '2025-01' } })).status).toBe(404);
     expect((await call(getPeriod, { token: auth, params: { period: 'nope' } })).status).toBe(400);
+  });
+
+  it('bounds months at midnight in Rome, in summer and in winter time', async () => {
+    expect(monthBounds('2026-08')).toEqual({
+      from: new Date('2026-07-31T22:00:00Z'),
+      to: new Date('2026-08-31T22:00:00Z'),
+    });
+    expect(monthBounds('2026-10')).toEqual({
+      from: new Date('2026-09-30T22:00:00Z'),
+      to: new Date('2026-10-31T23:00:00Z'),
+    });
+    expect(monthBounds('2026-12')).toEqual({
+      from: new Date('2026-11-30T23:00:00Z'),
+      to: new Date('2026-12-31T23:00:00Z'),
+    });
+
+    const auth = await token();
+    // Last instant of July in Rome (CEST) and first instant of August.
+    await endedWar('20260729T215959.000Z', '20260731T215959.000Z', '#JUL111', 5);
+    await endedWar('20260729T220000.000Z', '20260731T220000.000Z', '#AUG111', 5);
+    // Last instant of November in Rome (CET) and first instant of December.
+    await endedWar('20261128T225959.000Z', '20261130T225959.000Z', '#NOV111', 0);
+    await endedWar('20261128T230000.000Z', '20261130T230000.000Z', '#DEC111', 0);
+
+    const months = await call(listMonths, { token: auth });
+    expect(months.body.result.map((m: { month: string; wars: number }) => [m.month, m.wars])).toEqual([
+      ['2026-12', 1],
+      ['2026-11', 1],
+      ['2026-08', 1],
+      ['2026-07', 1],
+    ]);
+    const updatedAt = new Set(months.body.result.map((m: { updatedAt: string }) => m.updatedAt));
+    expect(updatedAt.size).toBe(1);
+
+    const opponents = async (period: string) =>
+      (await call(getPeriod, { token: auth, params: { period } })).body.result.wars.map(
+        (w: { opponentTag: string }) => w.opponentTag,
+      );
+    expect(await opponents('2026-07')).toEqual(['#JUL111']);
+    expect(await opponents('2026-08')).toEqual(['#AUG111']);
+    expect(await opponents('2026-11')).toEqual(['#NOV111']);
+    expect(await opponents('2026-12')).toEqual(['#DEC111']);
+    expect(await opponents('all')).toEqual(['#DEC111', '#NOV111', '#AUG111', '#JUL111']);
+
+    const december = await call(getPeriod, { token: auth, params: { period: '2026-12' } });
+    expect(december.body.result.updatedAt).toBe([...updatedAt][0]);
   });
 
   it('serves the archive in the Clash of Clans format', async () => {

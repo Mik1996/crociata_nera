@@ -1,7 +1,7 @@
 import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
-import { WarDocument, WarModel } from './war.model';
+import { War, WarModel } from './war.model';
 
 /**
  * Monthly war history and player rankings computed from the wars saved in MongoDB.
@@ -86,21 +86,55 @@ export interface MonthSummary {
 
 export const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 
-const MONTH_FORMAT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit' });
+const MONTH_FORMAT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Rome',
+  year: 'numeric',
+  month: '2-digit',
+});
 
 /** Month (YYYY-MM) of a date, in the Italian time zone. */
 export function monthOf(date: Date | string): string {
   return MONTH_FORMAT.format(new Date(date)).slice(0, 7);
 }
 
+/** First instant of a month (YYYY-MM) in the Italian time zone (midnight of the 1st, CET or CEST). */
+function monthStart(year: number, month: number): Date {
+  const utcMidnight = Date.UTC(year, month - 1, 1);
+  const label = `${year}-${String(month).padStart(2, '0')}`;
+  // Rome is UTC+1 or UTC+2; midnight is never inside a daylight saving change.
+  for (const offsetHours of [1, 2]) {
+    const start = new Date(utcMidnight - offsetHours * 3_600_000);
+    if (monthOf(start) === label && monthOf(new Date(start.getTime() - 1)) !== label) return start;
+  }
+  throw new Error(`No start found for month ${label}`);
+}
+
+/** `[from, to)` instants of a month (YYYY-MM) in the Italian time zone. */
+export function monthBounds(month: string): { from: Date; to: Date } {
+  const year = Number(month.slice(0, 4));
+  const m = Number(month.slice(5, 7));
+  return {
+    from: monthStart(year, m),
+    to: m === 12 ? monthStart(year + 1, 1) : monthStart(year, m + 1),
+  };
+}
+
 const round = (value: number, decimals = 1) => Math.round(value * 10 ** decimals) / 10 ** decimals;
 const percentage = (part: number, total: number) => (total > 0 ? round((part / total) * 100) : 0);
 
+/** Fields of a saved war read by {@link toHistoryWar}. */
+type HistorySource = Pick<
+  War,
+  'warKey' | 'state' | 'endTime' | 'teamSize' | 'attacksPerMember' | 'clan' | 'opponent'
+>;
+
 /** History entry of an ended war saved by the war sync (with members). */
-export function toHistoryWar(war: WarDocument): HistoryWar | null {
+export function toHistoryWar(war: HistorySource): HistoryWar | null {
   if (war.state !== 'warEnded' || !war.clan.members.length) return null;
   const defenders = new Map(war.opponent.members.map((m) => [m.tag, m]));
-  const diff = war.clan.stars - war.opponent.stars || war.clan.destructionPercentage - war.opponent.destructionPercentage;
+  const diff =
+    war.clan.stars - war.opponent.stars ||
+    war.clan.destructionPercentage - war.opponent.destructionPercentage;
   return {
     id: war.warKey,
     endTime: war.endTime.toISOString(),
@@ -149,7 +183,16 @@ export function compareForRanking(a: HistoryPlayerStats, b: HistoryPlayerStats):
 export function aggregatePlayers(wars: HistoryWar[]): HistoryPlayerStats[] {
   const byTag = new Map<
     string,
-    Omit<HistoryPlayerStats, 'attacksMissed' | 'averageStarsPerWar' | 'averageStarsPerAttack' | 'threeStarRate' | 'averageDestruction' | 'participation' | 'averageStarsConceded'> & {
+    Omit<
+      HistoryPlayerStats,
+      | 'attacksMissed'
+      | 'averageStarsPerWar'
+      | 'averageStarsPerAttack'
+      | 'threeStarRate'
+      | 'averageDestruction'
+      | 'participation'
+      | 'averageStarsConceded'
+    > & {
       totalDestruction: number;
       starsConceded: number;
     }
@@ -208,36 +251,127 @@ export function aggregatePlayers(wars: HistoryWar[]): HistoryPlayerStats[] {
     .sort(compareForRanking);
 }
 
-/** Ended wars of a clan: the main one (`CLAN_TAG`) unless another clan of the Crusade is given. */
-async function endedWars(clanTag: string | undefined = env().CLAN_TAG): Promise<{ wars: HistoryWar[]; updatedAt: string | null }> {
-  const docs = await WarModel.find({ state: 'warEnded', ...(clanTag ? { clanTag } : {}) }).sort({ endTime: -1 });
-  const wars = docs.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
-  const updatedAt = docs.reduce<Date | null>((max, d) => (!max || d.updatedAt > max ? d.updatedAt : max), null);
-  return { wars, updatedAt: updatedAt?.toISOString() ?? null };
+/** Filter of the ended wars of a clan: the main one (`CLAN_TAG`) unless another clan of the Crusade is given. */
+function endedFilter(clanTag: string | undefined) {
+  return { state: 'warEnded', ...(clanTag ? { clanTag } : {}) };
+}
+
+/** Fields read by {@link toHistoryWar} (no war log details, no sync bookkeeping). */
+const HISTORY_PROJECTION = {
+  _id: 0,
+  warKey: 1,
+  state: 1,
+  endTime: 1,
+  teamSize: 1,
+  attacksPerMember: 1,
+  'clan.stars': 1,
+  'clan.destructionPercentage': 1,
+  'clan.members.tag': 1,
+  'clan.members.name': 1,
+  'clan.members.townhallLevel': 1,
+  'clan.members.mapPosition': 1,
+  'clan.members.attacks.defenderTag': 1,
+  'clan.members.attacks.stars': 1,
+  'clan.members.attacks.destructionPercentage': 1,
+  'clan.members.opponentAttacks': 1,
+  'clan.members.bestOpponentAttack.stars': 1,
+  'opponent.name': 1,
+  'opponent.tag': 1,
+  'opponent.stars': 1,
+  'opponent.destructionPercentage': 1,
+  'opponent.members.tag': 1,
+  'opponent.members.townhallLevel': 1,
+  'opponent.members.mapPosition': 1,
+} as const;
+
+/** Last change to any ended war of the clan (`updatedAt` of every period and month). */
+async function lastUpdate(clanTag: string | undefined): Promise<string | null> {
+  const last = await WarModel.findOne(endedFilter(clanTag), { _id: 0, updatedAt: 1 })
+    .sort({ updatedAt: -1 })
+    .lean<{ updatedAt?: Date }>();
+  return last?.updatedAt?.toISOString() ?? null;
+}
+
+/** Ended wars of a clan, most recent first; only those of `month` (YYYY-MM, Italian time zone) when given. */
+async function endedWars(clanTag: string | undefined, month?: string): Promise<HistoryWar[]> {
+  const bounds = month ? monthBounds(month) : null;
+  const filter = bounds
+    ? { ...endedFilter(clanTag), endTime: { $gte: bounds.from, $lt: bounds.to } }
+    : endedFilter(clanTag);
+  const docs = await WarModel.find(filter, HISTORY_PROJECTION)
+    .sort({ endTime: -1 })
+    .lean<HistorySource[]>();
+  return docs.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
+}
+
+interface MonthCount {
+  _id: string;
+  wars: number;
+  victories: number;
+  draws: number;
+  defeats: number;
 }
 
 /** `GET /history`: months with recorded wars, most recent first. */
-export async function listMonths(clanTag?: string): Promise<MonthSummary[]> {
-  const { wars, updatedAt } = await endedWars(clanTag);
-  const months = new Map<string, HistoryWar[]>();
-  for (const war of wars) months.set(monthOf(war.endTime), [...(months.get(monthOf(war.endTime)) ?? []), war]);
-  return [...months.entries()]
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([month, list]) => ({
-      month,
-      updatedAt: updatedAt ?? new Date().toISOString(),
-      wars: list.length,
-      victories: list.filter((w) => w.result === 'victory').length,
-      draws: list.filter((w) => w.result === 'draw').length,
-      defeats: list.filter((w) => w.result === 'defeat').length,
-    }));
+export async function listMonths(
+  clanTag: string | undefined = env().CLAN_TAG,
+): Promise<MonthSummary[]> {
+  // Same result as `toHistoryWar`: stars first, then destruction; wars without members are left out.
+  const diff = {
+    $let: {
+      vars: { stars: { $subtract: ['$clan.stars', '$opponent.stars'] } },
+      in: {
+        $cond: [
+          { $ne: ['$$stars', 0] },
+          '$$stars',
+          { $subtract: ['$clan.destructionPercentage', '$opponent.destructionPercentage'] },
+        ],
+      },
+    },
+  };
+  const [counts, updatedAt] = await Promise.all([
+    WarModel.aggregate<MonthCount>([
+      { $match: { ...endedFilter(clanTag), 'clan.members.0': { $exists: true } } },
+      {
+        $project: {
+          month: { $dateToString: { date: '$endTime', format: '%Y-%m', timezone: 'Europe/Rome' } },
+          diff,
+        },
+      },
+      {
+        $group: {
+          _id: '$month',
+          wars: { $sum: 1 },
+          victories: { $sum: { $cond: [{ $gt: ['$diff', 0] }, 1, 0] } },
+          draws: { $sum: { $cond: [{ $eq: ['$diff', 0] }, 1, 0] } },
+          defeats: { $sum: { $cond: [{ $lt: ['$diff', 0] }, 1, 0] } },
+        },
+      },
+      { $sort: { _id: -1 } },
+    ]),
+    lastUpdate(clanTag),
+  ]);
+  return counts.map(({ _id, wars, victories, draws, defeats }) => ({
+    month: _id,
+    updatedAt: updatedAt ?? new Date().toISOString(),
+    wars,
+    victories,
+    draws,
+    defeats,
+  }));
 }
 
 /** `GET /history/{YYYY-MM|all}`: wars and ranking of a period; 404 for a month without wars. */
-export async function getPeriod(period: string, clanTag?: string): Promise<HistoryPeriod> {
-  if (period !== 'all' && !MONTH_REGEX.test(period)) throwException(400, MessageKey.PERIOD_IS_NOT_VALID);
-  const { wars, updatedAt } = await endedWars(clanTag);
-  const selected = period === 'all' ? wars : wars.filter((w) => monthOf(w.endTime) === period);
-  if (period !== 'all' && !selected.length) throwException(404, MessageKey.HISTORY_NOT_FOUND);
-  return { period, updatedAt, wars: selected, players: aggregatePlayers(selected) };
+export async function getPeriod(
+  period: string,
+  clanTag: string | undefined = env().CLAN_TAG,
+): Promise<HistoryPeriod> {
+  if (period !== 'all' && !MONTH_REGEX.test(period))
+    throwException(400, MessageKey.PERIOD_IS_NOT_VALID);
+  const [wars, updatedAt] = await Promise.all([
+    endedWars(clanTag, period === 'all' ? undefined : period),
+    lastUpdate(clanTag),
+  ]);
+  if (period !== 'all' && !wars.length) throwException(404, MessageKey.HISTORY_NOT_FOUND);
+  return { period, updatedAt, wars, players: aggregatePlayers(wars) };
 }
