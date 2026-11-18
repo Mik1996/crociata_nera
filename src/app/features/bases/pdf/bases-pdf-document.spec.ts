@@ -1,45 +1,32 @@
 import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PdfTheme } from '../../../shared/pdf/table-pdf';
 import { PdfFrame } from '../../../shared/pdf/table-pdf-document';
-import { BasesPdf, BasesPdfArt, BasesPdfPage, basesPdfImageUrls, IronPdfTheme } from './bases-pdf';
+import { BasesPdf, BasesPdfArt, BasesPdfPage, basesPdfImageUrls } from './bases-pdf';
 import { buildBasesPdf, coverTitleSize, screenshotMaxHeight } from './bases-pdf-document';
 
 const THEME = Object.fromEntries(
   [
-    'paper',
-    'ink',
+    'bg',
+    'plate',
+    'stripe',
+    'tile',
+    'edge',
+    'line',
+    'text',
     'muted',
     'band',
-    'bandText',
-    'bandMuted',
     'gold',
     'goldText',
-    'red',
+    'ember',
     'danger',
-    'line',
-    'stripe',
     'starter',
     'starterTint',
     'reserve',
     'reserveTint',
-  ].map((key) => [key, key]),
-) as unknown as PdfTheme;
-
-const IRON = Object.fromEntries(
-  [
-    'bg',
-    'plate',
-    'tile',
-    'edge',
-    'text',
-    'muted',
-    'gold',
-    'goldText',
-    'ember',
     'qrInk',
     'qrPaper',
   ].map((key) => [key, key]),
-) as unknown as IronPdfTheme;
+) as unknown as PdfTheme;
 
 const LINK = 'https://link.clashofclans.com/en?action=OpenLayout&id=TH18%3AHV%3AAAAA';
 
@@ -125,7 +112,7 @@ function find(node: unknown, key: string): Record<string, unknown>[] {
 }
 
 function build(source = pdf(), cover: string | null = 'data:image/jpeg;base64,COVER') {
-  const art: BasesPdfArt = { cover, page: 'data:image/jpeg;base64,IRON', iron: IRON };
+  const art: BasesPdfArt = { cover, page: 'data:image/jpeg;base64,IRON' };
   const doc: TDocumentDefinitions = buildBasesPdf(source, FRAME, art);
   const background = doc.background as (page: number, size: typeof SIZE) => Content;
   const footer = doc.footer as (page: number, count: number, size: typeof SIZE) => Content;
@@ -173,8 +160,8 @@ describe('buildBasesPdf', () => {
     expect(header).toContain('Basi per la CWL');
     expect(header.join(' ')).not.toContain('Generato');
     // Brushed iron over the whole page, the dark colour under it.
-    const iron = find(page, 'image').find((v) =>
-      doc.images![v['image'] as string] === 'data:image/jpeg;base64,IRON',
+    const iron = find(page, 'image').find(
+      (v) => doc.images![v['image'] as string] === 'data:image/jpeg;base64,IRON',
     );
     expect(iron).toMatchObject({ width: 595, height: 842 });
     expect(find(page, 'color').some((v) => v['color'] === 'bg')).toBe(true);

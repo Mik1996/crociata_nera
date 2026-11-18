@@ -23,7 +23,8 @@
     "cwl",
     "UI",
     "player",
-    "refactoring"
+    "refactoring",
+    "pdf"
   ],
   "i18n-ally.localesPaths": ["public/i18n"],
   "i18n-ally.enabledFrameworks": ["ngx-translate"],

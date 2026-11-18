@@ -5,6 +5,7 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { LanguageService } from '../../core/i18n/language.service';
 // Also registers the locale data of the languages: a page may export without using the pipes.
 import { formatLocalDate } from '../../core/i18n/locale-pipes';
+import { cssColor, cssColorAlpha } from '../styles/css-color';
 import { readPdfTheme } from './table-pdf';
 import { PDF_FONTS, PdfFrame, PdfTextImage, PdfTextStyle } from './table-pdf-document';
 
@@ -23,6 +24,9 @@ const PARAGRAPH_LINE_HEIGHT = 1.35;
  * system, then whatever the browser finds for other scripts.
  */
 const TEXT_FONTS = `Inter, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif`;
+/** The iron behind the pages (A4 at about 120 dpi): smooth gradients, a low resolution is enough. */
+const PLATE_SHORT_SIDE = 992;
+const PLATE_LONG_SIDE = 1403;
 
 export type PdfMake = typeof import('pdfmake/build/pdfmake');
 
@@ -104,6 +108,54 @@ export class PdfToolkit {
     canvas.width = Math.max(1, width);
     canvas.height = Math.max(1, height);
     return canvas;
+  }
+
+  /**
+   * Brushed black iron behind the pages, as the site's "iron" theme: a warm sheen at the top, the
+   * ember glow at the foot of the page, a dark crimson vignette and fine horizontal strokes. Made
+   * once per document (every page shows the same picture). A JPEG data URL.
+   */
+  ironPlate(orientation: 'portrait' | 'landscape' = 'portrait'): string | null {
+    const portrait = orientation === 'portrait';
+    const w = portrait ? PLATE_SHORT_SIDE : PLATE_LONG_SIDE;
+    const h = portrait ? PLATE_LONG_SIDE : PLATE_SHORT_SIDE;
+    const canvas = this.canvas(w, h);
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.fillStyle = cssColor('--cn-pdf-iron-bg');
+    context.fillRect(0, 0, w, h);
+    // Fine strokes of brushed metal, the same every time (seeded).
+    let seed = 7;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let y = 0; y < h; y += 2) {
+      context.fillStyle = cssColorAlpha('--cn-pdf-iron-text', 0.006 + random() * 0.018);
+      const x = random() * w * 0.3;
+      context.fillRect(x, y, w * (0.5 + random() * 0.5), 1);
+    }
+    const size = Math.max(w, h);
+    const sheen = context.createRadialGradient(w / 2, -h * 0.1, 0, w / 2, -h * 0.1, size * 0.55);
+    sheen.addColorStop(0, cssColorAlpha('--cn-pdf-gold-text', 0.1));
+    sheen.addColorStop(1, cssColorAlpha('--cn-pdf-gold-text', 0));
+    context.fillStyle = sheen;
+    context.fillRect(0, 0, w, h);
+    const ember = context.createRadialGradient(w * 0.6, h * 1.08, 0, w * 0.6, h * 1.08, size * 0.5);
+    ember.addColorStop(0, cssColorAlpha('--cn-pdf-iron-ember', 0.3));
+    ember.addColorStop(1, cssColorAlpha('--cn-pdf-iron-ember', 0));
+    context.fillStyle = ember;
+    context.fillRect(0, 0, w, h);
+    const vignette = context.createRadialGradient(
+      w / 2,
+      h / 2,
+      size * 0.3,
+      w / 2,
+      h / 2,
+      size * 0.78,
+    );
+    vignette.addColorStop(0, cssColorAlpha('--cn-pdf-iron-crimson', 0));
+    vignette.addColorStop(1, cssColorAlpha('--cn-pdf-iron-crimson', 0.4));
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', 0.82);
   }
 
   /** Clan, date, footer texts and colours around the content of a document. */

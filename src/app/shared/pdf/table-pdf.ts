@@ -1,8 +1,8 @@
 import { cssColor } from '../styles/css-color';
 
 /**
- * A table to export as a PDF in the Crusade's look (`TablePdfExporter`): the same header on every
- * page (crest, clan, title), a row of facts, then the table, whose rows can be split in coloured
+ * A table to export as a PDF in the Crusade's iron look (`TablePdfExporter`): the same header on
+ * every page (crest, clan, title), a row of facts, then the table, whose rows can be split in coloured
  * groups (CWL starters and reserves, each on its own page if asked) and closed by a totals row, and
  * an optional page of notes (the rules). Pages describe their table with this type; the layout,
  * fonts and colours belong to `shared/pdf`.
@@ -86,43 +86,59 @@ export interface PdfRowGroup<T> {
   pageBreakBefore?: boolean;
 }
 
-/** Colours of the exported pages, from the `--cn-pdf-*` tokens of the palette. */
+/**
+ * Colours of the exported pages, from the `--cn-pdf-*` tokens of the palette: every document in the
+ * look of the site's "iron" theme (dark iron, gold edges and headings, light text).
+ */
 export interface PdfTheme {
-  paper: string;
-  ink: string;
+  /** Page colour, under the brushed-iron picture. */
+  bg: string;
+  /** Panels and table rows. */
+  plate: string;
+  /** Every other table row, totals. */
+  stripe: string;
+  tile: string;
+  /** Outlines of panels and tiles. */
+  edge: string;
+  /** Lines between table rows. */
+  line: string;
+  text: string;
   muted: string;
+  /** Table header row. */
   band: string;
-  bandText: string;
-  bandMuted: string;
   gold: string;
   goldText: string;
-  red: string;
+  ember: string;
   danger: string;
-  line: string;
-  stripe: string;
   starter: string;
   starterTint: string;
   reserve: string;
   reserveTint: string;
+  /** The QR code: dark modules on light paper, so phones read it. */
+  qrInk: string;
+  qrPaper: string;
 }
 
 const THEME_TOKENS: Record<keyof PdfTheme, string> = {
-  paper: '--cn-pdf-paper',
-  ink: '--cn-pdf-ink',
-  muted: '--cn-pdf-muted',
+  bg: '--cn-pdf-iron-bg',
+  plate: '--cn-pdf-iron-plate',
+  stripe: '--cn-pdf-iron-stripe',
+  tile: '--cn-pdf-iron-tile',
+  edge: '--cn-pdf-iron-edge',
+  line: '--cn-pdf-iron-line',
+  text: '--cn-pdf-iron-text',
+  muted: '--cn-pdf-iron-muted',
   band: '--cn-pdf-band',
-  bandText: '--cn-pdf-band-text',
-  bandMuted: '--cn-pdf-band-muted',
   gold: '--cn-pdf-gold',
   goldText: '--cn-pdf-gold-text',
-  red: '--cn-pdf-red',
+  ember: '--cn-pdf-iron-ember',
   danger: '--cn-pdf-danger',
-  line: '--cn-pdf-line',
-  stripe: '--cn-pdf-stripe',
   starter: '--cn-pdf-starter',
   starterTint: '--cn-pdf-starter-tint',
   reserve: '--cn-pdf-reserve',
   reserveTint: '--cn-pdf-reserve-tint',
+  qrInk: '--cn-pdf-band',
+  qrPaper: '--cn-pdf-band-text',
 };
 
 /** The PDF colours of the palette (identity tokens: the same in every theme). */

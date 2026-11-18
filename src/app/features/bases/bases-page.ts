@@ -82,10 +82,11 @@ export class BasesPage {
   private readonly auth = inject(AuthService);
   private readonly useMock = inject(APP_CONFIG).useMockApi;
 
-  /** Administrators only (and everybody in the demo with mock data, which has no sign-in). */
+  /**
+   * Editing the arsenal and making its PDF: administrators only (and everybody in the demo with
+   * mock data, which has no sign-in).
+   */
   protected readonly canEdit = computed(() => this.useMock || this.auth.isAdmin());
-  /** Administrators, leaders and co-leaders of the clans (and everybody in the demo). */
-  protected readonly canMakePdf = computed(() => this.useMock || this.auth.hasLeaderAccess());
 
   /** `?th=18`, bound by the router. */
   readonly th = input<string>();

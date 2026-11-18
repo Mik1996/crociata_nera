@@ -121,17 +121,20 @@ describe('BasesPage', () => {
       expect(el.querySelector('.base__delete')).toBeNull();
     });
 
-    it('offers the bases PDF to leaders and co-leaders, not to the other members', async () => {
+    it('offers the bases PDF to administrators only, not to leaders or other members', async () => {
       const member = await render(['USER']);
       expect(member.el.querySelector('.make-pdf')).toBeNull();
       httpMock.match('/api/v1/welcome');
       TestBed.resetTestingModule();
 
-      const { el, fixture } = await render(['USER'], undefined, true);
+      const leader = await render(['USER'], undefined, true);
+      expect(leader.el.querySelector('.make-pdf')).toBeNull();
+      httpMock.match('/api/v1/welcome');
+      TestBed.resetTestingModule();
+
+      const { el, fixture } = await render(['USER', 'ADMIN']);
       const button = el.querySelector<HTMLButtonElement>('.make-pdf')!;
       expect(button.textContent).toContain('Crea PDF basi');
-      // Leaders do not edit the arsenal.
-      expect(el.querySelector('.add')).toBeNull();
       button.click();
       await new Promise((resolve) => setTimeout(resolve));
       TestBed.tick();

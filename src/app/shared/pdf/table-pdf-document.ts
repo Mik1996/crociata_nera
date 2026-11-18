@@ -17,15 +17,25 @@ import {
   PdfTheme,
   TablePdf,
 } from './table-pdf';
+import {
+  IRON_MARGIN_BOTTOM,
+  IRON_MARGIN_TOP,
+  IRON_MARGIN_X,
+  IRON_SUBTITLE_SPACE,
+  ironFooter,
+  ironHeader,
+  ironPage,
+} from './iron-pdf';
 
 /**
  * Builds the pdfmake document of a {@link TablePdf}: pure (no pdfmake code, no DOM), so the layout
  * can be tested. `TablePdfExporter` adds the fonts, the pictures and renders it.
  *
- * Every page opens with the Crusade's black band (crest, clan, title, subtitle) over a gold and a
- * red rule. A group of rows can start a new page, with the header row of the table again; the
- * header row also repeats when a table runs over a page. The footer carries the site, the page
- * number and the Supercell fan content notice.
+ * Every page is dark iron inside a double gold frame, as the site's "iron" theme (`iron-pdf.ts`),
+ * and opens with the same header (crest, clan, title, subtitle, date). The facts are iron tiles, the
+ * table rows iron plates under a black header row with gold titles. A group of rows can start a new
+ * page, with the header row of the table again; the header row also repeats when a table runs over
+ * a page. The footer carries the site, the page number and the Supercell fan content notice.
  */
 
 /** Everything around the table that does not come from the page: identity, texts, colours. */
@@ -103,14 +113,6 @@ export function pdfImageUrls<T>(pdf: TablePdf<T>): string[] {
   return [...urls];
 }
 
-/** Page geometry, in points (A4: 595 × 842). */
-export const MARGIN_X = 36;
-export const MARGIN_BOTTOM = 58;
-/** Height of the band at the top of every page. */
-const BAND_HEIGHT = 96;
-/** Content starts under the band and its two rules. */
-export const MARGIN_TOP = BAND_HEIGHT + 4 + 18;
-const CREST_SIZE = 64;
 /** Width of the coloured band on the left of grouped rows. */
 const ACCENT_WIDTH = 4;
 const FACTS_PER_ROW = 4;
@@ -118,21 +120,38 @@ const FACTS_PER_ROW = 4;
 const TEXT_SIZE = 9;
 const NOTE_SIZE = 7;
 
-export function buildTablePdf<T>(pdf: TablePdf<T>, frame: PdfFrame): TDocumentDefinitions {
+/**
+ * `plate`: the brushed iron behind every page (a JPEG data URL from `PdfToolkit.ironPlate`), `null`
+ * for plain dark pages.
+ */
+export function buildTablePdf<T>(
+  pdf: TablePdf<T>,
+  frame: PdfFrame,
+  plate: string | null = null,
+): TDocumentDefinitions {
   const { theme } = frame;
   const images = new PictureRegistry(frame);
+  const plateKey = plate ? images.add('plate', plate) : null;
+  const heading = { title: pdf.title, subtitle: pdf.subtitle, date: frame.generatedAt };
   const content: Content[] = [...facts(pdf.facts ?? [], theme), ...tables(pdf, frame, images)];
   if (pdf.notes) content.push(notes(pdf.notes, theme));
   return {
     pageSize: 'A4',
     pageOrientation: pdf.orientation ?? 'portrait',
-    pageMargins: [MARGIN_X, MARGIN_TOP, MARGIN_X, MARGIN_BOTTOM],
+    pageMargins: [
+      IRON_MARGIN_X,
+      IRON_MARGIN_TOP + (pdf.subtitle ? IRON_SUBTITLE_SPACE : 0),
+      IRON_MARGIN_X,
+      IRON_MARGIN_BOTTOM,
+    ],
     info: { title: pdf.title, author: frame.brand, creator: frame.brand, subject: pdf.subtitle },
-    defaultStyle: { font: 'Inter', fontSize: TEXT_SIZE, color: theme.ink, lineHeight: 1.1 },
+    defaultStyle: { font: 'Inter', fontSize: TEXT_SIZE, color: theme.text, lineHeight: 1.1 },
     images: images.dictionary(),
-    background: (_page, pageSize) => pageBand(pdf, frame, pageSize.width, pageSize.height),
-    footer: (currentPage, pageCount, pageSize) =>
-      pageFooter(frame, currentPage, pageCount, pageSize.width),
+    background: (_page, size) => [
+      ...ironPage(plateKey, theme, size.width, size.height),
+      ...ironHeader(heading, frame, size.width),
+    ],
+    footer: (currentPage, pageCount, size) => ironFooter(frame, currentPage, pageCount, size.width),
     content,
   };
 }
@@ -177,126 +196,6 @@ export class PictureRegistry {
   }
 }
 
-/** Title and subtitle written on the band of every page. */
-export interface PdfBandTitle {
-  title: string;
-  subtitle?: string;
-}
-
-/** Paper, band, crest and titles: the same on every page. */
-export function pageBand(
-  pdf: PdfBandTitle,
-  frame: PdfFrame,
-  width: number,
-  height: number,
-): Content {
-  const { theme } = frame;
-  const textX = MARGIN_X + CREST_SIZE + 16;
-  return [
-    {
-      canvas: [
-        { type: 'rect', x: 0, y: 0, w: width, h: height, color: theme.paper },
-        { type: 'rect', x: 0, y: 0, w: width, h: BAND_HEIGHT, color: theme.band },
-        { type: 'rect', x: 0, y: BAND_HEIGHT, w: width, h: 2.5, color: theme.gold },
-        { type: 'rect', x: 0, y: BAND_HEIGHT + 2.5, w: width, h: 1.5, color: theme.red },
-      ],
-      absolutePosition: { x: 0, y: 0 },
-    },
-    frame.crest
-      ? {
-          image: 'crest',
-          fit: [CREST_SIZE, CREST_SIZE],
-          absolutePosition: { x: MARGIN_X, y: (BAND_HEIGHT - CREST_SIZE) / 2 },
-        }
-      : '',
-    {
-      columns: [
-        {
-          width: width - textX - MARGIN_X,
-          stack: [
-            {
-              text: [
-                { text: frame.brand.toUpperCase(), font: 'CinzelDecorative' },
-                { text: `   ${frame.clanTag}`, font: 'InterSemiBold', fontSize: 7.5 },
-              ],
-              fontSize: 10,
-              color: theme.goldText,
-              characterSpacing: 0.6,
-            },
-            {
-              text: pdf.title,
-              font: 'Cinzel',
-              fontSize: 22,
-              color: theme.bandText,
-              margin: [0, 3, 0, 2],
-            },
-            pdf.subtitle
-              ? { text: pdf.subtitle, fontSize: 8.5, color: theme.bandMuted, lineHeight: 1.2 }
-              : '',
-          ],
-        },
-      ],
-      absolutePosition: { x: textX, y: 19 },
-    },
-    {
-      // A column as wide as the content area: the date sits against the right margin.
-      columns: [
-        {
-          width: width - MARGIN_X * 2,
-          text: frame.generatedAt,
-          fontSize: 7,
-          color: theme.bandMuted,
-          alignment: 'right',
-        },
-      ],
-      absolutePosition: { x: MARGIN_X, y: 10 },
-    },
-  ];
-}
-
-/** Gold rule, fan content notice, site and page number. */
-export function pageFooter(
-  frame: PdfFrame,
-  currentPage: number,
-  pageCount: number,
-  width: number,
-): Content {
-  const { theme } = frame;
-  return {
-    margin: [MARGIN_X, 16, MARGIN_X, 0],
-    stack: [
-      {
-        canvas: [
-          {
-            type: 'line',
-            x1: 0,
-            y1: 0,
-            x2: width - MARGIN_X * 2,
-            y2: 0,
-            lineWidth: 0.5,
-            lineColor: theme.gold,
-          },
-        ],
-      },
-      {
-        margin: [0, 6, 0, 0],
-        columns: [
-          { width: '*', text: frame.fanContent, fontSize: 6.5, color: theme.muted },
-          {
-            width: 'auto',
-            text: `${frame.site}  ·  ${frame.page(currentPage, pageCount)}`,
-            fontSize: 7,
-            color: theme.muted,
-            alignment: 'right',
-            noWrap: true,
-            margin: [12, 0, 0, 0],
-          },
-        ],
-      },
-    ],
-  };
-}
-
 /** The facts as tiles, at most {@link FACTS_PER_ROW} per row. */
 function facts(list: readonly PdfFact[], theme: PdfTheme): Content[] {
   if (list.length === 0) return [];
@@ -312,27 +211,33 @@ function facts(list: readonly PdfFact[], theme: PdfTheme): Content[] {
           characterSpacing: 0.5,
           font: 'InterSemiBold',
         },
-        { text: fact.value, fontSize: 10, font: 'InterSemiBold', margin: [0, 2, 0, 0] },
+        {
+          text: fact.value,
+          fontSize: 10,
+          font: 'InterSemiBold',
+          color: theme.goldText,
+          margin: [0, 2, 0, 0],
+        },
       ],
-      fillColor: theme.stripe,
+      fillColor: theme.plate,
     }));
-    while (row.length < perRow) row.push({ text: '', fillColor: theme.stripe });
+    while (row.length < perRow) row.push({ text: '', fillColor: theme.plate });
     rows.push(row);
   }
   return [
     {
       table: { widths: Array<string>(perRow).fill('*'), body: rows },
       layout: {
-        hLineWidth: () => 2,
-        vLineWidth: () => 2,
-        hLineColor: () => theme.paper,
-        vLineColor: () => theme.paper,
+        hLineWidth: () => 1,
+        vLineWidth: () => 1,
+        hLineColor: () => theme.edge,
+        vLineColor: () => theme.edge,
         paddingLeft: () => 8,
         paddingRight: () => 8,
         paddingTop: () => 6,
         paddingBottom: () => 6,
       },
-      margin: [-2, 0, -2, 14],
+      margin: [0, 0, 0, 14],
     },
   ];
 }
@@ -400,7 +305,7 @@ function table<T>(
           colSpan: span,
           font: 'Cinzel',
           fontSize: 9.5,
-          color: accent?.color ?? theme.red,
+          color: accent?.color ?? theme.goldText,
           fillColor: accent?.tint ?? theme.stripe,
           margin: [0, 1, 0, 0],
         },
@@ -408,7 +313,7 @@ function table<T>(
       ]);
     }
     group.rows.forEach((row, index) => {
-      const fill = index % 2 === 1 ? theme.stripe : undefined;
+      const fill = index % 2 === 1 ? theme.stripe : theme.plate;
       body.push([
         ...lead(accent?.color),
         ...pdf.columns.map((column) => toCell(column.cell(row), column.align, fill)),
@@ -418,12 +323,13 @@ function table<T>(
 
   if (options.empty) {
     body.push([
-      ...lead(),
+      ...lead(theme.plate),
       {
         text: pdf.emptyText,
         colSpan: span,
         alignment: 'center',
         color: theme.muted,
+        fillColor: theme.plate,
         margin: [0, 10, 0, 10],
       },
       ...Array.from({ length: span - 1 }, () => ({})),
@@ -457,11 +363,11 @@ function notes(list: PdfNotes, theme: PdfTheme): Content {
         text: list.title,
         font: 'Cinzel',
         fontSize: 15,
-        color: theme.red,
+        color: theme.goldText,
         margin: [0, 0, 0, 4],
       },
       {
-        canvas: [{ type: 'rect', x: 0, y: 0, w: 60, h: 1.5, color: theme.gold }],
+        canvas: [{ type: 'rect', x: 0, y: 0, w: 60, h: 1.5, color: theme.ember }],
         margin: [0, 0, 0, 12],
       },
       {
@@ -512,7 +418,7 @@ function cellContent(value: PdfCellValue, options: CellOptions): TableCell {
   const alignment = options.align ?? 'left';
   if (typeof value !== 'object') {
     return {
-      ...line(String(value), { size: TEXT_SIZE, bold: options.bold, color: theme.ink }, images),
+      ...line(String(value), { size: TEXT_SIZE, bold: options.bold, color: theme.text }, images),
       alignment,
       fillColor: fill,
     };
@@ -525,7 +431,7 @@ function cellContent(value: PdfCellValue, options: CellOptions): TableCell {
   const emphasis = value.emphasis;
   const bold = options.bold || emphasis === 'strong' || emphasis === 'danger';
   const color =
-    emphasis === 'danger' ? theme.danger : emphasis === 'muted' ? theme.muted : theme.ink;
+    emphasis === 'danger' ? theme.danger : emphasis === 'muted' ? theme.muted : theme.text;
   const main = { ...line(value.text, { size: TEXT_SIZE, bold, color }, images), alignment };
   if (!value.note) return { ...main, fillColor: fill } as TableCell;
   const note = line(value.note, { size: NOTE_SIZE, bold: false, color: theme.muted }, images);

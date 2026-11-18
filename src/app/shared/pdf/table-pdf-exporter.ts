@@ -7,7 +7,7 @@ import { buildTablePdf, pdfImageUrls } from './table-pdf-document';
 const PICTURE_PIXELS = 128;
 
 /**
- * Downloads a {@link TablePdf} as a PDF file in the Crusade's look. The PDF library (pdfmake) and
+ * Downloads a {@link TablePdf} as a PDF file in the Crusade's iron look. The PDF library (pdfmake) and
  * the fonts load only at the first export ({@link PdfToolkit}), so pages pay nothing until a user
  * asks for a file. Built in the browser from the data the page already shows: no backend round trip.
  */
@@ -21,7 +21,8 @@ export class TablePdfExporter {
       this.toolkit.crest(),
       this.toolkit.pictures(pdfImageUrls(pdf), PICTURE_PIXELS),
     ]);
-    const definition = buildTablePdf(pdf, this.toolkit.frame(crest, images));
+    const plate = this.toolkit.ironPlate(pdf.orientation);
+    const definition = buildTablePdf(pdf, this.toolkit.frame(crest, images), plate);
     await pdfMake.createPdf(definition).download(`${pdf.fileName}.pdf`);
   }
 }

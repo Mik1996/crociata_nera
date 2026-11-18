@@ -99,12 +99,13 @@ back to the previous images if the containers do not become healthy (manual: `de
   rows with an accent and `pageBreakBefore`, image cells, facts, totals, a page of notes) from the data it
   already has and binds `<crn-pdf-button [pdf]="...">`; `TablePdfExporter` loads pdfmake (lazy chunk) and the
   fonts in `public/assets/fonts/pdf/` only at the first export, turns the pictures into PNG and draws names
-  with emoji or other scripts as pictures (browser fonts); `buildTablePdf` draws the Crusade look (same
-  header on every page, colours `--cn-pdf-*`). Pictures must be same-origin: league badges are copied in
+  with emoji or other scripts as pictures (browser fonts); `buildTablePdf` draws the pages. Every PDF has
+  the "iron" look of the site (`shared/pdf/iron-pdf.ts`: brushed iron from `PdfToolkit.ironPlate`, double gold
+  frame with studs, same header and footer on every page, colours `--cn-pdf-*` read as `PdfTheme`). Pictures must be same-origin: league badges are copied in
   `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up and the Raid Weekend.
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
-  `hasLeaderAccess`) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
+  administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).

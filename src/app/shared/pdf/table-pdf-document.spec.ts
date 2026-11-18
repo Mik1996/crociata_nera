@@ -2,24 +2,31 @@ import type { Content, ContentTable, TableCell } from 'pdfmake/interfaces';
 import { PdfTheme, TablePdf } from './table-pdf';
 import { buildTablePdf, needsTextImage, PdfFrame, pdfImageUrls } from './table-pdf-document';
 
-const THEME: PdfTheme = {
-  paper: 'paper',
-  ink: 'ink',
-  muted: 'muted',
-  band: 'band',
-  bandText: 'bandText',
-  bandMuted: 'bandMuted',
-  gold: 'gold',
-  goldText: 'goldText',
-  red: 'red',
-  danger: 'danger',
-  line: 'line',
-  stripe: 'stripe',
-  starter: 'starter',
-  starterTint: 'starterTint',
-  reserve: 'reserve',
-  reserveTint: 'reserveTint',
-};
+const THEME = Object.fromEntries(keys().map((key) => [key, key])) as unknown as PdfTheme;
+
+function keys(): (keyof PdfTheme)[] {
+  return [
+    'bg',
+    'plate',
+    'stripe',
+    'tile',
+    'edge',
+    'line',
+    'text',
+    'muted',
+    'band',
+    'gold',
+    'goldText',
+    'ember',
+    'danger',
+    'starter',
+    'starterTint',
+    'reserve',
+    'reserveTint',
+    'qrInk',
+    'qrPaper',
+  ];
+}
 
 const FRAME: PdfFrame = {
   brand: 'Crociata Nera',
@@ -92,7 +99,7 @@ describe('buildTablePdf', () => {
     const doc = buildTablePdf(pdf(), FRAME);
     expect(doc.pageSize).toBe('A4');
     expect(doc.pageOrientation).toBe('portrait');
-    expect(doc.defaultStyle).toMatchObject({ font: 'Inter', color: 'ink' });
+    expect(doc.defaultStyle).toMatchObject({ font: 'Inter', color: 'text' });
     expect(doc.info).toMatchObject({ title: 'Raid Weekend', author: 'Crociata Nera' });
     expect(doc.images).toEqual({ crest: FRAME.crest });
     const facts = content(doc)[0] as ContentTable;
@@ -117,8 +124,8 @@ describe('buildTablePdf', () => {
       verticalAlignment: 'middle',
     });
     expect(a[0]).toMatchObject({ verticalAlignment: 'middle' });
-    // Every other row is striped.
-    expect((a[1] as { fillColor?: string }).fillColor).toBeUndefined();
+    // Rows are iron plates, every other one striped.
+    expect((a[1] as { fillColor?: string }).fillColor).toBe('plate');
     expect((b[1] as { fillColor?: string }).fillColor).toBe('stripe');
   });
 
@@ -154,8 +161,8 @@ describe('buildTablePdf', () => {
     expect(empty.table.body[1][0]).toMatchObject({ text: 'Nessuno', colSpan: 2 });
   });
 
-  it('draws the same band on every page and numbers the pages', () => {
-    const doc = buildTablePdf(pdf(), FRAME);
+  it('draws the same iron page and header on every page and numbers the pages', () => {
+    const doc = buildTablePdf(pdf(), FRAME, 'data:image/jpeg;base64,IRON');
     const background = doc.background as (
       page: number,
       size: { width: number; height: number },
@@ -166,6 +173,12 @@ describe('buildTablePdf', () => {
     expect(first).toContain('14 – 17 nov 2026');
     expect(first).toContain('Generato il 18 nov 2026');
     expect(JSON.stringify(background(2, { width: 595, height: 842 }))).toBe(first);
+    // Brushed iron over the whole page, the dark colour under it.
+    const plate = Object.entries(doc.images!).find(
+      ([, url]) => url === 'data:image/jpeg;base64,IRON',
+    )![0];
+    expect(first).toContain(`"image":"${plate}","width":595,"height":842`);
+    expect(first).toContain('"color":"bg"');
 
     const footer = doc.footer as (page: number, pages: number, size: { width: number }) => Content;
     const text = JSON.stringify(footer(2, 3, { width: 595 }));

@@ -1,12 +1,16 @@
-import type {
-  CanvasElement,
-  Content,
-  ContentText,
-  TableCell,
-  TDocumentDefinitions,
-} from 'pdfmake/interfaces';
+import type { Content, ContentText, TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
+import {
+  IRON_MARGIN_BOTTOM,
+  IRON_MARGIN_TOP,
+  IRON_MARGIN_X,
+  ironFooter,
+  ironHeader,
+  ironOrnament,
+  ironPage,
+} from '../../../shared/pdf/iron-pdf';
+import { PdfTheme } from '../../../shared/pdf/table-pdf';
 import { PdfFrame, PictureRegistry } from '../../../shared/pdf/table-pdf-document';
-import { BasesPdf, BasesPdfArt, BasesPdfPage, BasesPdfTroop, IronPdfTheme } from './bases-pdf';
+import { BasesPdf, BasesPdfArt, BasesPdfPage, BasesPdfTroop } from './bases-pdf';
 
 /**
  * Builds the pdfmake document of a {@link BasesPdf}: pure (no pdfmake code, no DOM), so the layout
@@ -22,16 +26,9 @@ import { BasesPdf, BasesPdfArt, BasesPdfPage, BasesPdfTroop, IronPdfTheme } from
 
 /** A4 portrait, in points. */
 const PAGE_WIDTH = 595;
-const MARGIN_X = 40;
-/** Content of the base pages starts under their header. */
-const MARGIN_TOP = 108;
-const MARGIN_BOTTOM = 62;
+const MARGIN_X = IRON_MARGIN_X;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
-/** Insets of the double gold frame of every page. */
-const FRAME_OUTER = 16;
-const FRAME_INNER = 21;
 const COVER_CREST = 76;
-const HEADER_CREST = 40;
 const TOWN_HALL_SIZE = 52;
 /** Highest a screenshot may be drawn: lower when the description is long, so a base fits a page. */
 const SCREENSHOT_MAX_HEIGHT = 290;
@@ -46,14 +43,14 @@ export function buildBasesPdf(
   frame: PdfFrame,
   art: BasesPdfArt,
 ): TDocumentDefinitions {
-  const { iron } = art;
+  const iron = frame.theme;
   const images = new PictureRegistry(frame);
   const cover = art.cover ? images.add('cover', art.cover) : null;
   const plate = art.page ? images.add('page', art.page) : null;
   return {
     pageSize: 'A4',
     pageOrientation: 'portrait',
-    pageMargins: [MARGIN_X, MARGIN_TOP, MARGIN_X, MARGIN_BOTTOM],
+    pageMargins: [MARGIN_X, IRON_MARGIN_TOP, MARGIN_X, IRON_MARGIN_BOTTOM],
     info: {
       title: pdf.title,
       author: frame.brand,
@@ -65,107 +62,15 @@ export function buildBasesPdf(
       ...ironPage(page === 1 ? cover : plate, iron, size.width, size.height),
       ...(page === 1
         ? coverPage(pdf, frame, iron, size.width, size.height)
-        : baseHeader(pdf, frame, iron, size.width)),
+        : ironHeader({ title: pdf.title }, frame, size.width)),
     ],
     footer: (page, pageCount, size) =>
-      page === 1 ? coverFooter(frame, iron) : baseFooter(frame, iron, page, pageCount, size.width),
+      page === 1 ? coverFooter(frame, iron) : ironFooter(frame, page, pageCount, size.width),
     // The cover is all background: its content is an empty line, every base starts a new page.
     content: [{ text: ' ' }, ...pdf.pages.map((page) => basePage(page, pdf, iron, images))],
     // Registered last: the pages above add their pictures while being built.
     images: images.dictionary(),
   };
-}
-
-// --- Every page ---------------------------------------------------------------------------------
-
-/** Dark iron (or the cover picture) over the whole page, inside a double gold frame with studs. */
-function ironPage(
-  picture: string | null,
-  iron: IronPdfTheme,
-  width: number,
-  height: number,
-): Content[] {
-  const stud = (x: number, y: number): CanvasElement[] => [
-    { type: 'ellipse', x, y, r1: 3.2, r2: 3.2, color: iron.gold },
-    { type: 'ellipse', x: x - 0.8, y: y - 0.8, r1: 1.1, r2: 1.1, color: iron.goldText },
-  ];
-  const corners: [number, number][] = [
-    [FRAME_OUTER, FRAME_OUTER],
-    [width - FRAME_OUTER, FRAME_OUTER],
-    [FRAME_OUTER, height - FRAME_OUTER],
-    [width - FRAME_OUTER, height - FRAME_OUTER],
-  ];
-  return [
-    {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: width, h: height, color: iron.bg }],
-      absolutePosition: { x: 0, y: 0 },
-    },
-    picture
-      ? { image: picture, width, height, absolutePosition: { x: 0, y: 0 } }
-      : { text: '', absolutePosition: { x: 0, y: 0 } },
-    {
-      canvas: [
-        {
-          type: 'rect',
-          x: FRAME_OUTER,
-          y: FRAME_OUTER,
-          w: width - FRAME_OUTER * 2,
-          h: height - FRAME_OUTER * 2,
-          lineColor: iron.gold,
-          lineWidth: 1.3,
-        },
-        {
-          type: 'rect',
-          x: FRAME_INNER,
-          y: FRAME_INNER,
-          w: width - FRAME_INNER * 2,
-          h: height - FRAME_INNER * 2,
-          lineColor: iron.edge,
-          lineWidth: 0.6,
-        },
-        ...corners.flatMap(([x, y]) => stud(x, y)),
-      ],
-      absolutePosition: { x: 0, y: 0 },
-    },
-  ];
-}
-
-/** A gold rule with a diamond in the middle, centred on `x`. */
-function ornament(x: number, y: number, width: number, iron: IronPdfTheme): CanvasElement[] {
-  const half = width / 2;
-  const d = 3.5;
-  return [
-    {
-      type: 'line',
-      x1: x - half,
-      y1: y,
-      x2: x - d - 4,
-      y2: y,
-      lineWidth: 0.8,
-      lineColor: iron.gold,
-    },
-    {
-      type: 'line',
-      x1: x + d + 4,
-      y1: y,
-      x2: x + half,
-      y2: y,
-      lineWidth: 0.8,
-      lineColor: iron.gold,
-    },
-    {
-      type: 'polyline',
-      points: [
-        { x, y: y - d },
-        { x: x + d, y },
-        { x, y: y + d },
-        { x: x - d, y },
-      ],
-      closePath: true,
-      color: iron.gold,
-      lineColor: iron.gold,
-    },
-  ];
 }
 
 // --- Cover --------------------------------------------------------------------------------------
@@ -199,7 +104,7 @@ function coverTitleLines(title: string, size: number, width: number): number {
 function coverPage(
   pdf: BasesPdf,
   frame: PdfFrame,
-  iron: IronPdfTheme,
+  iron: PdfTheme,
   width: number,
   height: number,
 ): Content[] {
@@ -217,9 +122,9 @@ function coverPage(
   return [
     {
       canvas: [
-        ...ornament(center, 196, 110, iron),
-        ...ornament(center, top + 25 + 6, 150, iron),
-        ...ornament(center, top + 25 + 16 + titleHeight + 8, 150, iron),
+        ...ironOrnament(center, 196, 110, iron),
+        ...ironOrnament(center, top + 25 + 6, 150, iron),
+        ...ironOrnament(center, top + 25 + 16 + titleHeight + 8, 150, iron),
       ],
       absolutePosition: { x: 0, y: 0 },
     },
@@ -291,7 +196,7 @@ function coverPage(
 }
 
 /** Site and fan content notice, light on the dark bottom of the cover. */
-function coverFooter(frame: PdfFrame, iron: IronPdfTheme): Content {
+function coverFooter(frame: PdfFrame, iron: PdfTheme): Content {
   return {
     margin: [MARGIN_X + 8, 8, MARGIN_X + 8, 0],
     stack: [
@@ -307,125 +212,12 @@ function coverFooter(frame: PdfFrame, iron: IronPdfTheme): Content {
   };
 }
 
-// --- Base pages: header and footer --------------------------------------------------------------
-
-function baseHeader(pdf: BasesPdf, frame: PdfFrame, iron: IronPdfTheme, width: number): Content[] {
-  const top = 34;
-  const textX = MARGIN_X + (frame.crest ? HEADER_CREST + 12 : 0);
-  const rule = top + HEADER_CREST + 14;
-  return [
-    frame.crest
-      ? {
-          image: 'crest',
-          fit: [HEADER_CREST, HEADER_CREST],
-          absolutePosition: { x: MARGIN_X, y: top },
-        }
-      : { text: '', absolutePosition: { x: 0, y: 0 } },
-    {
-      columns: [
-        {
-          width: width - textX - MARGIN_X,
-          stack: [
-            {
-              text: [
-                { text: frame.brand.toUpperCase(), font: 'CinzelDecorative' },
-                {
-                  text: `   ${frame.clanTag}`,
-                  font: 'InterSemiBold',
-                  fontSize: 7,
-                  color: iron.muted,
-                },
-              ],
-              fontSize: 9.5,
-              color: iron.goldText,
-              characterSpacing: 0.6,
-            },
-            {
-              text: pdf.title,
-              font: 'Cinzel',
-              fontSize: 17,
-              color: iron.text,
-              margin: [0, 3, 0, 0],
-            },
-          ],
-        },
-      ],
-      absolutePosition: { x: textX, y: top + 2 },
-    },
-    {
-      canvas: [
-        {
-          type: 'line',
-          x1: MARGIN_X,
-          y1: rule,
-          x2: width - MARGIN_X,
-          y2: rule,
-          lineWidth: 1,
-          lineColor: iron.gold,
-        },
-        {
-          type: 'line',
-          x1: MARGIN_X,
-          y1: rule + 2.5,
-          x2: width - MARGIN_X,
-          y2: rule + 2.5,
-          lineWidth: 0.5,
-          lineColor: iron.ember,
-        },
-      ],
-      absolutePosition: { x: 0, y: 0 },
-    },
-  ];
-}
-
-function baseFooter(
-  frame: PdfFrame,
-  iron: IronPdfTheme,
-  currentPage: number,
-  pageCount: number,
-  width: number,
-): Content {
-  return {
-    margin: [MARGIN_X, 12, MARGIN_X, 0],
-    stack: [
-      {
-        canvas: [
-          {
-            type: 'line',
-            x1: 0,
-            y1: 0,
-            x2: width - MARGIN_X * 2,
-            y2: 0,
-            lineWidth: 0.5,
-            lineColor: iron.edge,
-          },
-        ],
-      },
-      {
-        margin: [0, 6, 0, 0],
-        columns: [
-          { width: '*', text: frame.fanContent, fontSize: 6, color: iron.muted },
-          {
-            width: 'auto',
-            text: `${frame.site}  ·  ${frame.page(currentPage, pageCount)}`,
-            fontSize: 7,
-            color: iron.goldText,
-            alignment: 'right',
-            noWrap: true,
-            margin: [12, 0, 0, 0],
-          },
-        ],
-      },
-    ],
-  };
-}
-
 // --- Base pages: content ------------------------------------------------------------------------
 
 function basePage(
   page: BasesPdfPage,
   pdf: BasesPdf,
-  iron: IronPdfTheme,
+  iron: PdfTheme,
   images: PictureRegistry,
 ): Content {
   const description = page.description.trim();
@@ -447,7 +239,7 @@ function basePage(
   };
 }
 
-function heading(page: BasesPdfPage, iron: IronPdfTheme, images: PictureRegistry): Content {
+function heading(page: BasesPdfPage, iron: PdfTheme, images: PictureRegistry): Content {
   const picture = page.townHallImage ? images.picture(page.townHallImage) : null;
   return {
     columns: [
@@ -483,7 +275,7 @@ export function screenshotMaxHeight(descriptionLength: number): number {
 }
 
 /** A panel of dark iron with an outline (gold for the main ones). */
-function panel(cell: TableCell, iron: IronPdfTheme, edge: string, padding: number): Content {
+function panel(cell: TableCell, iron: PdfTheme, edge: string, padding: number): Content {
   return {
     table: { widths: ['*'], body: [[{ ...(cell as object), fillColor: iron.plate } as TableCell]] },
     layout: {
@@ -501,7 +293,7 @@ function panel(cell: TableCell, iron: IronPdfTheme, edge: string, padding: numbe
 
 function screenshot(
   page: BasesPdfPage,
-  iron: IronPdfTheme,
+  iron: PdfTheme,
   images: PictureRegistry,
   descriptionLength: number,
 ): Content {
@@ -519,7 +311,7 @@ function screenshot(
   return panel(body, iron, iron.gold, SCREENSHOT_FRAME);
 }
 
-function sectionTitle(text: string, iron: IronPdfTheme, note?: string): Content {
+function sectionTitle(text: string, iron: PdfTheme, note?: string): Content {
   return {
     stack: [
       {
@@ -540,7 +332,7 @@ function sectionTitle(text: string, iron: IronPdfTheme, note?: string): Content 
 function castle(
   page: BasesPdfPage,
   pdf: BasesPdf,
-  iron: IronPdfTheme,
+  iron: PdfTheme,
   images: PictureRegistry,
 ): Content {
   const title = sectionTitle(pdf.labels.castle, iron, page.troops.length ? page.castleSpace : '');
@@ -584,7 +376,7 @@ function castle(
   );
 }
 
-function troopCell(troop: BasesPdfTroop, iron: IronPdfTheme, images: PictureRegistry): TableCell {
+function troopCell(troop: BasesPdfTroop, iron: PdfTheme, images: PictureRegistry): TableCell {
   const picture = troop.icon ? images.picture(troop.icon) : null;
   return {
     stack: [
@@ -607,7 +399,7 @@ function troopCell(troop: BasesPdfTroop, iron: IronPdfTheme, images: PictureRegi
 }
 
 /** The QR code of the base (dark on light, so phones read it) and the big "Link base". */
-function linkCard(page: BasesPdfPage, pdf: BasesPdf, iron: IronPdfTheme): Content {
+function linkCard(page: BasesPdfPage, pdf: BasesPdf, iron: PdfTheme): Content {
   return panel(
     {
       stack: [
@@ -668,7 +460,7 @@ function linkCard(page: BasesPdfPage, pdf: BasesPdf, iron: IronPdfTheme): Conten
 function descriptionBlock(
   description: string,
   pdf: BasesPdf,
-  iron: IronPdfTheme,
+  iron: PdfTheme,
   images: PictureRegistry,
 ): Content {
   const style = { size: 9.5, bold: false, color: iron.text, maxWidth: CONTENT_WIDTH - 28 };

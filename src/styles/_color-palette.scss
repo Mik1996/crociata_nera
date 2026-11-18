@@ -362,33 +362,29 @@
   // League points in the CWL selection score (bar segment and tooltip dot).
   --cn-score-league: #22d3ee;
 
-  // --- PDF exports (`shared/pdf`): printed pages, light paper with the Crusade's black band.
-  // Plain hex only: the PDF library reads them as they are (no gradients, no color-mix()).
-  --cn-pdf-paper: #fbf8f1; // page background
-  --cn-pdf-ink: #1b1416; // body text
-  --cn-pdf-muted: #6f625c; // notes under a value, labels, page footer
-  --cn-pdf-band: #140d0f; // header band and table header row
-  --cn-pdf-band-text: #f2ead8; // text on the band
-  --cn-pdf-band-muted: #b9aa9a; // secondary text on the band
-  --cn-pdf-gold: #d9a93f; // rules under the band and the table header
-  --cn-pdf-gold-text: #f0c96a; // titles on the band
-  --cn-pdf-red: #7a1414; // red rule of the band, Cinzel headings on paper
-  --cn-pdf-danger: #b3261e; // values that need attention (missing attacks)
-  --cn-pdf-line: #e2d8c6; // lines between rows
-  --cn-pdf-stripe: #f2ecdf; // every other row, facts and totals
-  --cn-pdf-starter: #2f7fd6; // CWL starters: accent and its light row tint
-  --cn-pdf-starter-tint: #e7f0fb;
-  --cn-pdf-reserve: #2a9d57; // CWL reserves
-  --cn-pdf-reserve-tint: #e6f4ea;
-  // Bases PDF (`features/bases/pdf`): dark pages in the look of the "iron" theme.
+  // --- PDF exports (`shared/pdf`): every document in the look of the site's "iron" theme, dark
+  // brushed iron inside a double gold frame. Plain hex only: the PDF library reads them as they are
+  // (no gradients, no color-mix()).
   --cn-pdf-iron-bg: #0d0a0b; // page (under the brushed-iron picture)
-  --cn-pdf-iron-plate: #1b1718; // panels: screenshot frame, castle, link card, description
+  --cn-pdf-iron-plate: #1b1718; // panels and table rows: screenshot frame, castle, link card, facts
+  --cn-pdf-iron-stripe: #241e1f; // every other table row, totals
   --cn-pdf-iron-tile: #2a2425; // troop tiles
-  --cn-pdf-iron-edge: #4a3a22; // outlines of panels and tiles
+  --cn-pdf-iron-edge: #4a3a22; // outlines of panels and tiles, footer rule
+  --cn-pdf-iron-line: #342b2c; // lines between table rows
   --cn-pdf-iron-text: #f2ead8; // body text
-  --cn-pdf-iron-muted: #b9aa9a; // labels, troop names, footer
+  --cn-pdf-iron-muted: #b9aa9a; // labels, notes under a value, troop names, footer
   --cn-pdf-iron-ember: #ff6e1e; // glow at the foot of the page, thin rule under the header
   --cn-pdf-iron-crimson: #6a1216; // vignette of the page picture
+  --cn-pdf-band: #140d0f; // table header row, QR modules, shading of the cover picture
+  --cn-pdf-band-text: #f2ead8; // paper of the QR code
+  --cn-pdf-gold: #d9a93f; // frame, studs, rules under the header and the table header
+  --cn-pdf-gold-text: #f0c96a; // titles, table headings, values of the facts
+  --cn-pdf-red: #7a1414; // red vignette of the cover picture
+  --cn-pdf-danger: #ff7a6b; // values that need attention (missing attacks), light on iron
+  --cn-pdf-starter: #4fa8ff; // CWL starters: accent and its dark row tint
+  --cn-pdf-starter-tint: #142438;
+  --cn-pdf-reserve: #4ed97a; // CWL reserves
+  --cn-pdf-reserve-tint: #13291b;
 
   // --- Medal metals (flat medals and the 3D medal dialog): light, base, dark ---
   --cn-medal-gold-light: #fff6c2;

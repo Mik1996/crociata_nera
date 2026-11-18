@@ -58,32 +58,12 @@ export interface BasesPdfLabels {
   description: string;
 }
 
-/**
- * Colours of the pages, in the look of the site's "iron" theme (`--cn-pdf-iron-*` and the gold of
- * `--cn-pdf-*`): dark iron, gold edges and headings, light text.
- */
-export interface IronPdfTheme {
-  bg: string;
-  plate: string;
-  tile: string;
-  edge: string;
-  text: string;
-  muted: string;
-  gold: string;
-  goldText: string;
-  ember: string;
-  /** The QR code: dark modules on light paper, so phones read it. */
-  qrInk: string;
-  qrPaper: string;
-}
-
 /** Pictures made by the exporter for the whole document, as PNG/JPEG data URLs. */
 export interface BasesPdfArt {
   /** The cover picture shaped for the page; `null`: a plain dark cover. */
   cover: string | null;
-  /** Brushed iron behind every base page; `null`: plain dark pages. */
+  /** Brushed iron behind every base page (`PdfToolkit.ironPlate`); `null`: plain dark pages. */
   page: string | null;
-  iron: IronPdfTheme;
 }
 
 /** Every picture of the pages, by kind (they are loaded at different sizes and formats). */
