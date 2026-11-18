@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { env } from '@/lib/config/env';
 import { throwException } from '@/lib/http/api-error';
 import { apiHandler } from '@/lib/http/api-handler';
+import { ApiName } from '@/lib/http/api-name';
 import { MessageKey } from '@/lib/http/message-key';
 import { runWarSync } from '@/lib/scheduler/war-sync-scheduler';
 
@@ -10,7 +11,7 @@ import { runWarSync } from '@/lib/scheduler/war-sync-scheduler';
  * once. For deployments without a long-running server (Vercel Cron, GitHub Actions, crontab…).
  * Disabled (404) while `CRON_SECRET` is not set.
  */
-export const POST = apiHandler({ database: false }, async ({ request }) => {
+export const POST = apiHandler({ apiName: ApiName.CRON_WAR_SYNC, database: false }, async ({ request }) => {
   const secret = env().CRON_SECRET;
   if (!secret) throwException(404, MessageKey.NOT_FOUND);
 

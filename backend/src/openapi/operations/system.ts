@@ -29,6 +29,7 @@ export const SYSTEM_OPERATIONS: ApiOperation[] = [
     description:
       'Runs the synchronisation once (wars, Clan War League, Raid Weekends, records, commendations), for deployments without the built-in scheduler (an external cron job). Disabled (404) while `CRON_SECRET` is not set. The result is `null` when a run was already in progress.',
     access: 'cron',
+    rateLimit: ApiName.CRON_WAR_SYNC,
     database: false,
     responses: {
       200: { description: 'Run completed (or skipped: `result` is `null`).', result: WarSyncReport.nullable() },

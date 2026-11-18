@@ -23,6 +23,7 @@ export enum ApiName {
   BASE_IMAGES = 'base-images',
   API_DOCS = 'api-docs',
   HEALTH = 'health',
+  CRON_WAR_SYNC = 'cron-war-sync',
 }
 
 export interface RateLimit {
@@ -70,4 +71,7 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   [ApiName.API_DOCS]: { limit: 30, windowMs: 15 * MINUTE },
   // Public, polled by uptime monitors (several may share an IP).
   [ApiName.HEALTH]: { limit: 120, windowMs: MINUTE },
+  // The external scheduler runs the sync every few minutes; a low limit also caps guesses of
+  // CRON_SECRET and runs triggered by whoever learned it.
+  [ApiName.CRON_WAR_SYNC]: { limit: 10, windowMs: 15 * MINUTE },
 };
