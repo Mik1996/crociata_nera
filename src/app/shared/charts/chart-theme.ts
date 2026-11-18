@@ -1,4 +1,4 @@
-import { Chart, ChartDataset, ChartOptions } from 'chart.js';
+import type { ChartDataset, ChartOptions } from 'chart.js';
 import { ThemeName } from '../../core/theme/themes';
 import { cssColor, cssColorAlpha } from '../styles/css-color';
 
@@ -59,14 +59,6 @@ function canvasColor(value: string): string {
   probe.fillStyle = 'transparent';
   probe.fillStyle = value;
   return String(probe.fillStyle);
-}
-
-/** Sets Chart.js global defaults (call only once at startup). Colours are set per chart. */
-export function configureChartTheme(): void {
-  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-  Chart.defaults.maintainAspectRatio = false;
-  // Note: legend and tooltip are configured in `baseChartOptions`, because plugin defaults
-  // only exist after registration by `provideCharts(withDefaultRegisterables())`.
 }
 
 /** Base options for line/bar charts, with the colours of the given theme chrome. */

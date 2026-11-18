@@ -53,7 +53,7 @@
       <h2 id="stars-chart-title">{{ 'player.starsChart' | translate }}</h2>
       <div class="cn-chart">
         <canvas
-          baseChart
+          crnChart
           type="bar"
           [data]="starsData()"
           [options]="starsOptions()"
@@ -66,7 +66,7 @@
       <h2 id="destruction-chart-title">{{ 'player.destructionChart' | translate }}</h2>
       <div class="cn-chart">
         <canvas
-          baseChart
+          crnChart
           type="line"
           [data]="destructionData()"
           [options]="destructionOptions()"

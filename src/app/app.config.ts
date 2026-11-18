@@ -15,7 +15,6 @@ import {
   withNavigationErrorHandler,
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { provideCocApi } from './core/api/provide-coc-api';
@@ -26,9 +25,6 @@ import { provideI18n } from './core/i18n/provide-i18n';
 import { AppUpdates } from './core/pwa/app-updates';
 import { reloadOnChunkLoadError } from './core/pwa/chunk-load-error';
 import { hideMissingCocImages } from './core/pwa/missing-images';
-import { configureChartTheme } from './shared/charts/chart-theme';
-
-configureChartTheme();
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -57,7 +53,6 @@ export const appConfig: ApplicationConfig = {
       const destroy = hideMissingCocImages(inject(DOCUMENT));
       inject(DestroyRef).onDestroy(destroy);
     }),
-    provideCharts(withDefaultRegisterables()),
     provideCocApi(environment),
     provideI18n(),
   ],

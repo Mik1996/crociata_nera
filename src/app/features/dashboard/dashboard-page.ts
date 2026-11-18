@@ -3,8 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ChartData } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import type { ChartData } from 'chart.js';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
@@ -20,6 +19,7 @@ import {
     lineSeries,
     shortDateLabel,
 } from '../../shared/charts/chart-theme';
+import { ChartCanvas } from '../../shared/charts/chart-canvas';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { LoadState } from '../../shared/components/load-state/load-state';
@@ -40,7 +40,7 @@ const RANKING_SIZE = 5;
     RouterLink,
     MatButtonModule,
     Icon,
-    BaseChartDirective,
+    ChartCanvas,
     PageHeader,
     LoadState,
     KpiCard,

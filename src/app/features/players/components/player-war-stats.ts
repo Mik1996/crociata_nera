@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ChartData } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import type { ChartData } from 'chart.js';
 import { GAME_ICONS } from '../../../core/game/game-assets';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes';
@@ -18,6 +17,7 @@ import {
     lineSeries,
     shortDateLabel,
 } from '../../../shared/charts/chart-theme';
+import { ChartCanvas } from '../../../shared/charts/chart-canvas';
 import { KpiCard } from '../../../shared/components/kpi-card/kpi-card';
 import { ResultBadge } from '../../../shared/components/result-badge/result-badge';
 import { PLAYER_WARS_FILTERS } from '../../../shared/components/table/clan-tables';
@@ -35,7 +35,7 @@ import { Table } from '../../../shared/components/table/table';
     TranslatePipe,
     RouterLink,
     MatTableModule,
-    BaseChartDirective,
+    ChartCanvas,
     KpiCard,
     ResultBadge,
   ],
