@@ -38,17 +38,34 @@ if [ "${1:-}" != "--updated" ]; then
   exec "$PWD/$(basename "$0")" --updated
 fi
 
-echo "== Building the images (one at a time to spare memory) =="
-for service in backend web; do
-  docker compose build "$service"
+. ./lib.sh
+tag=$(new_build_tag)
+
+echo "== Building the images $tag (one at a time to spare memory) =="
+for service in "${SERVICES[@]}"; do
+  IMAGE_TAG=$tag docker compose build "$service"
 done
 
 echo "== Checking the Caddy configuration =="
-docker compose run --rm --no-deps -T web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+IMAGE_TAG=$tag docker compose run --rm --no-deps -T web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 
 echo "== Starting =="
-docker compose up -d --remove-orphans
-docker image prune -f > /dev/null
+switch_current "$tag"
+if ! { docker compose up -d --remove-orphans && wait_healthy; }; then
+  # Automatic rollback to the images that were running before (README "Rollback").
+  if [ -z "$(image_id "$(image_of backend):previous")" ]; then
+    echo "== Deploy of $tag failed, no previous images to roll back to ==" >&2
+    exit 1
+  fi
+  echo "== Deploy of $tag failed: rolling back to the previous images ==" >&2
+  docker compose logs --tail 50 backend >&2 || true
+  switch_current previous
+  docker compose up -d --remove-orphans
+  wait_healthy || echo "The previous images are not healthy either." >&2
+  docker compose ps
+  exit 1
+fi
+prune_image_tags
 
 docker compose ps
-echo "== Done: https://$(grep -E '^DOMAIN=' .env | cut -d= -f2) =="
+echo "== Done: $tag on https://$(grep -E '^DOMAIN=' .env | cut -d= -f2) =="

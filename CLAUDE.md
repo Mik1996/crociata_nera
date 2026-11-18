@@ -37,7 +37,8 @@ cd backend && npm run typecheck && npm test        # backend type check + tests 
 ```
 
 CI (`.github/workflows/deploy.yml`) runs all of the above on every push; a push to `master` that passes
-is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts the backend.
+is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which restarts the backend and rolls
+back to the previous images if the containers do not become healthy (manual: `deploy/rollback.sh`).
 
 ## Conventions
 

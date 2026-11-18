@@ -460,7 +460,9 @@ cartella `deploy/` contiene tutto quello che serve:
 | `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/v1` va al backend, il resto è l'app Angular (`/api/coc`, il vecchio proxy, risponde 410) |
 | `web.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
-| `deploy.sh` | porta il codice al commit da pubblicare, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
+| `deploy.sh` | porta il codice al commit da pubblicare, costruisce le immagini una alla volta, controlla il Caddyfile, riavvia e, se i servizi non diventano sani, torna alle immagini precedenti |
+| `rollback.sh` | rimette in servizio le immagini di un deploy precedente, senza ricostruire (vedi [Rollback](#rollback)) |
+| `lib.sh` | funzioni comuni agli script (immagini, attesa dei controlli di salute) |
 | `service-worker.sh` | interruttore d'emergenza del service worker nei browser (`off`, `on`, `status`) |
 
 **Architettura:**
@@ -498,6 +500,34 @@ I secret del repository sono:
 Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS (l'ultimo `origin/master`; con uno sha completo,
 `deploy.sh <sha>`, quel commit di `master`, anche più vecchio), oppure "Run workflow" nella scheda Actions. Il `master`
 locale della VPS segue il commit pubblicato (`git checkout -B master <sha>`): non tenere modifiche locali nel clone.
+
+**Controlli di salute e limiti di memoria:** in `docker-compose.yml` il backend ha un `healthcheck` che chiama
+`/api/v1/health` con `node` (l'immagine non ha `curl`) e Caddy uno sulla sua API di amministrazione locale. Sono
+controlli di vita: per il backend basta una qualsiasi risposta HTTP, perché `/api/v1/health` risponde 503 anche quando
+il database o la sincronizzazione delle guerre sono in difficoltà, cosa che un riavvio non risolverebbe. `web` non
+aspetta che il backend sia sano (`depends_on` semplice): mentre il backend parte, il sito resta su e mostra i suoi stati
+di errore. I limiti di memoria valgono solo per i container in esecuzione (backend 1 GB, Caddy 256 MB); le build hanno
+il loro heap da 1,5 GB.
+
+#### Rollback
+
+Ogni deploy etichetta le immagini con ora e commit (`crociata-nera-backend:20261118093000-0123456789ab`, idem
+`crociata-nera-web`) e sposta su di esse l'etichetta `current`, quella che `docker-compose.yml` mette in servizio; le
+immagini che giravano prima restano come `previous`, e si conservano le ultime 3 build.
+
+- **Automatico:** dopo `docker compose up -d`, `deploy.sh` aspetta fino a 3 minuti che entrambi i container siano
+  `healthy`. Se non succede, rimette `previous`, riavvia ed esce con errore (il workflow fallisce e GitHub manda
+  l'email).
+- **A mano**, sulla VPS:
+  ```bash
+  cd ~/crociata_nera/deploy
+  ./rollback.sh              # le immagini precedenti (rilanciato, torna a quelle di prima)
+  ./rollback.sh list         # le build conservate
+  ./rollback.sh 0123456      # l'ultima build conservata di quel commit (anche lo sha completo)
+  ```
+- Il rollback non tocca il codice: il deploy successivo ricostruisce `master`. Per restare sulla versione vecchia,
+  annulla il commit difettoso su `master` (`git revert`, il push lo pubblica) oppure, sulla VPS, `./deploy.sh <sha>`
+  con lo sha completo di un commit precedente (ricostruisce).
 
 **Backup:**
 - `deploy/backup.sh` salva il database con `mongodump` e l'archivio del vecchio proxy (volume `proxy_data`, non più

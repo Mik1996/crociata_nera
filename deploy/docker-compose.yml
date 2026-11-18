@@ -11,6 +11,9 @@ x-logging: &logging
 
 services:
   web:
+    # Tagged per commit by deploy.sh, which points `current` at the deployed one (rollback.sh moves it
+    # back). IMAGE_TAG is set only by deploy.sh while building.
+    image: crociata-nera-web:${IMAGE_TAG:-current}
     build:
       context: ..
       dockerfile: deploy/web.Dockerfile
@@ -45,6 +48,7 @@ services:
     logging: *logging
 
   backend:
+    image: crociata-nera-backend:${IMAGE_TAG:-current}
     build:
       context: ..
       dockerfile: deploy/backend.Dockerfile
