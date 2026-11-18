@@ -811,6 +811,7 @@
   "commendations": {
     "title": "Encomi",
     "short": "Encomi del mese scorso",
+    "dialogUnavailable": "Impossibile aprire la medaglia: controlla la connessione e riprova.",
     "tiers": {
       "gold": "Oro",
       "silver": "Argento",

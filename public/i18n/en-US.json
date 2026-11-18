@@ -811,6 +811,7 @@
   "commendations": {
     "title": "Commendations",
     "short": "Last month's commendations",
+    "dialogUnavailable": "The medal cannot be opened: check your connection and try again.",
     "tiers": {
       "gold": "Gold",
       "silver": "Silver",

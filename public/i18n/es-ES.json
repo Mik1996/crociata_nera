@@ -811,6 +811,7 @@
   "commendations": {
     "title": "Distinciones",
     "short": "Distinciones del mes pasado",
+    "dialogUnavailable": "No se puede abrir la medalla: comprueba la conexión y vuelve a intentarlo.",
     "tiers": {
       "gold": "Oro",
       "silver": "Plata",

@@ -20,18 +20,31 @@ export function isChunkLoadError(error: unknown): boolean {
  * new version. Offline there is nothing to gain, and a page that keeps failing is not reloaded twice.
  */
 export function reloadOnChunkLoadError(event: NavigationError, win: Window = window): void {
-  if (!isChunkLoadError(event.error) || !win.navigator.onLine) return;
-  const url = event.url;
+  reloadForChunkLoadError(event.error, event.url, win);
+}
+
+/**
+ * Loads `url` again from the server when `error` is a failed download of code (see
+ * {@link reloadOnChunkLoadError}); also for dynamic imports made outside the router. Returns whether
+ * the page is being reloaded: `false` for other errors, offline, or a page that already failed.
+ */
+export function reloadForChunkLoadError(
+  error: unknown,
+  url: string,
+  win: Window = window,
+): boolean {
+  if (!isChunkLoadError(error) || !win.navigator.onLine) return false;
   const now = Date.now();
   try {
     const last = JSON.parse(win.sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? 'null') as {
       url: string;
       at: number;
     } | null;
-    if (last?.url === url && now - last.at < RELOAD_GUARD_MS) return;
+    if (last?.url === url && now - last.at < RELOAD_GUARD_MS) return false;
     win.sessionStorage.setItem(CHUNK_RELOAD_KEY, JSON.stringify({ url, at: now }));
   } catch {
     // sessionStorage unavailable: reload anyway, the browser keeps the user on the page.
   }
   win.location.assign(url);
+  return true;
 }

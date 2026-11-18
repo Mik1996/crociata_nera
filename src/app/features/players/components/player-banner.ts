@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -17,7 +16,7 @@ import { Tag } from '../../../shared/components/tag/tag';
 import { XpBadge } from '../../../shared/game/xp-badge';
 import { roleKey } from '../../../shared/labels';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
-import { openCommendationDialog } from './open-commendation-dialog';
+import { CommendationDialogOpener } from './open-commendation-dialog';
 
 /**
  * Game-style profile header: Town Hall, experience level, name, clan, league, trophies and
@@ -39,7 +38,7 @@ export class PlayerBanner {
   protected readonly medalSize = 80;
 
   private readonly language = inject(LanguageService);
-  private readonly dialog = inject(MatDialog);
+  private readonly medalDialog = inject(CommendationDialogOpener);
   /** Medals with what the template needs to name and describe them. */
   protected readonly medals = computed(() => {
     const c = this.commendations();
@@ -70,7 +69,7 @@ export class PlayerBanner {
 
   /** Opens the medal in 3D, with the period it was earned in. */
   protected open3d(medal: Commendation & { period: string }): Promise<void> {
-    return openCommendationDialog(this.dialog, {
+    return this.medalDialog.open({
       type: medal.type,
       tier: medal.tier,
       period: medal.period,

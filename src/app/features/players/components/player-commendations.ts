@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
@@ -9,7 +8,7 @@ import { CommendationService } from '../../../core/services/commendation.service
 import { COMMENDATION_THRESHOLDS, COMMENDATION_TYPES, emblemOf, tiersOf } from '../../../core/utils/commendations';
 import { LoadState } from '../../../shared/components/load-state/load-state';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
-import { openCommendationDialog } from './open-commendation-dialog';
+import { CommendationDialogOpener } from './open-commendation-dialog';
 
 /**
  * "Commendations" tab of the player page: every medal (bronze, silver and gold of each
@@ -30,7 +29,7 @@ export class PlayerCommendations {
   protected readonly medalSize = 104;
 
   private readonly commendations = inject(CommendationService);
-  private readonly dialog = inject(MatDialog);
+  private readonly medalDialog = inject(CommendationDialogOpener);
 
   protected readonly history = rxResource({
     params: () => this.tag(),
@@ -71,6 +70,6 @@ export class PlayerCommendations {
 
   /** Opens the medal in 3D. */
   protected open3d(type: CommendationType, tier: CommendationTier, count: number): Promise<void> {
-    return openCommendationDialog(this.dialog, { type, tier, count });
+    return this.medalDialog.open({ type, tier, count });
   }
 }
