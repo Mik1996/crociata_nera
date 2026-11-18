@@ -457,7 +457,7 @@ cartella `deploy/` contiene tutto quello che serve:
 | File | A cosa serve |
 | --- | --- |
 | `docker-compose.yml` | i due servizi: `web` (Caddy + Angular) e `backend` (`backend/`) |
-| `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/v1` va al backend, il resto è l'app Angular (`/api/coc`, il vecchio proxy, risponde 410) |
+| `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/v1` va al backend, il resto è l'app Angular (`/api/coc`, il vecchio proxy, risponde 410); header di sicurezza, CSP (per ora `Report-Only`), log degli accessi |
 | `web.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
 | `deploy.sh` | porta il codice al commit da pubblicare, costruisce le immagini una alla volta, controlla il Caddyfile, riavvia e, se i servizi non diventano sani, torna alle immagini precedenti |
@@ -613,6 +613,43 @@ worker si spegne nei browser di tutti.
    `SW_DISABLED` basta `./service-worker.sh on`. I browser lo reinstallano alla visita successiva.
 
 `./service-worker.sh status` mostra cosa sta servendo il sito in quel momento.
+
+#### Content Security Policy
+
+Oltre agli header di sicurezza classici, Caddy (`deploy/Caddyfile`) manda `Permissions-Policy` (niente fotocamera,
+microfono e posizione), `Cross-Origin-Opener-Policy: same-origin` e una **Content Security Policy in modalità
+`Report-Only`**: i browser segnalano nella console (DevTools) quello che bloccherebbero, ma non bloccano niente. Le
+politiche sono due: una per il sito e una per Swagger UI (`/api/v1/docs`, che carica i suoi file da `cdn.jsdelivr.net`).
+
+Quella del sito ammette: i file del sito; i due script inline dell'`index.html` costruito, per hash (lo script del tema
+di `src/index.html` e quello che la build di Angular aggiunge per caricare gli stili); gli stili inline (li inseriscono
+Angular e la build, che incorpora anche il CSS di Google Fonts) e `fonts.googleapis.com`; i font di `fonts.gstatic.com`;
+le immagini del sito, `data:`, `blob:` (anteprime degli screenshot delle basi, medaglie 3D) e
+`api-assets.clashofclans.com` (stemmi, leghe, etichette); le chiamate a `/api/v1` e ai font (il service worker li
+mette in cache); il service worker e il manifest del sito.
+
+**Gli hash vanno tenuti allineati:** ogni modifica allo script inline di `src/index.html` (anche solo agli spazi) o
+all'HTML di Swagger UI (`backend/src/app/api/v1/docs/route.ts`) cambia il suo hash. Per ricalcolarli:
+
+```bash
+npx ng build --configuration production
+node -e "const h=require('fs').readFileSync('dist/crociata_nera/browser/index.html','utf8');for(const m of h.matchAll(/<script>([\s\S]*?)<\/script>/g))console.log(\"'sha256-\"+require('crypto').createHash('sha256').update(m[1]).digest('base64')+\"'\")"
+```
+
+**Per passare da `Report-Only` a una politica applicata:**
+1. pubblica la versione `Report-Only` e usa il sito per qualche giorno (pagine pubbliche, accesso, profilo, basi con
+   caricamento di uno screenshot, medaglie, Swagger UI da amministratore), con la console del browser aperta: non
+   devono comparire violazioni `[Report Only]`; se compaiono, correggi la politica o il codice;
+2. in `deploy/Caddyfile` rinomina `Content-Security-Policy-Report-Only` in `Content-Security-Policy` (entrambe le
+   righe), poi push su `master`;
+3. ricontrolla subito il sito: una violazione ora rompe davvero la pagina. Per tornare indietro basta ripristinare il
+   nome dell'header (o `./rollback.sh` sulla VPS, che rimette l'immagine precedente di Caddy).
+
+In alternativa agli hash scritti a mano, Angular può calcolarli da sé a ogni build (`security.autoCsp` in
+`angular.json`), mettendo la politica in un `<meta>` dell'`index.html`.
+
+**Log degli accessi:** Caddy scrive una riga JSON per richiesta sullo stdout del container (`docker compose logs web`),
+con la rotazione dei log di Docker (3 file da 10 MB); cookie e header `Authorization` sono oscurati.
 
 Per provare la build di produzione in locale: `npm run start:prod` (http://localhost:4400; serve
 `http://localhost:4400` in `FRONTEND_URL` di `backend/.env.local`).

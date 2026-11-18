@@ -8,13 +8,38 @@ www.{$DOMAIN} {
 {$DOMAIN} {
 	encode zstd gzip
 
+	# Access log, one JSON line per request on stdout: Docker keeps and rotates it with the container's
+	# logs (docker-compose.yml), `docker compose logs web` shows it. Caddy redacts cookies and the
+	# Authorization header.
+	log {
+		output stdout
+		format json
+	}
+
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
 		-Server
 	}
+
+	# Content-Security-Policy is in Report-Only mode: browsers report violations in the console
+	# (DevTools) and block nothing. README "Content Security Policy" explains how to enforce it.
+	# Two policies, both set at this level: a `header` inside `handle /api/v1/*` would be overwritten
+	# by one set here (a header block that deletes a header, like the one above, is applied last).
+	#
+	# The app: the two script hashes are the inline scripts of the built index.html, the theme
+	# script of src/index.html (KEEP IN SYNC: any change to it, even whitespace, changes its hash)
+	# and the one Angular's build adds to load the styles without blocking the page (changes only
+	# with Angular). Recompute them from dist/crociata_nera/browser/index.html (see the README).
+	@not_docs not path /api/v1/docs
+	header @not_docs Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'sha256-sM2lxRb7I6NiqTZOiV6naujZdoP+QMJelf0qs7NM3co=' 'sha256-LMY6wYoFV9I4wWzxaq1N/dTpl4iurQktw706UCHK3vM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://api-assets.clashofclans.com; connect-src 'self' blob: https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	# Swagger UI (backend/src/app/api/v1/docs/route.ts): files from cdn.jsdelivr.net and an inline
+	# script whose hash is KEPT IN SYNC with the PAGE of route.ts.
+	header /api/v1/docs Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-ubKP1QM/6hG5F/i8a7NRS8sCRYEY9XSR20i7TyNoK6k='; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https://validator.swagger.io; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
 	# The old Clash of Clans proxy is retired (the backend serves every datum): tabs still running an
 	# older version of the app get a clear error, not the page, until they update.

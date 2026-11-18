@@ -122,6 +122,10 @@ back to the previous images if the containers do not become healthy (manual: `de
   unless it is cleared at sign-out too.
   Emergency switch in production: `deploy/service-worker.sh off` on the VPS (immediate, until the
   next deploy) or `SW_DISABLED=1` in `deploy/.env` (kept across deploys); see README.
+- Content Security Policy (`deploy/Caddyfile`, Report-Only for now): the inline scripts of `src/index.html`
+  and of the Swagger UI page (`backend/src/app/api/v1/docs/route.ts`) are allowed by sha256 hash: changing
+  them (even whitespace) means updating the hash (README "Content Security Policy"). A new external host
+  (images, fonts, scripts) must be added to the policy too.
 - Check visual changes in a real browser before declaring them done (mock server
   `npm run start:mock` for public pages; pages needing a session cannot be seen in mock mode).
 
