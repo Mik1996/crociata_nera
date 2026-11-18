@@ -115,7 +115,9 @@ back to the previous images if the containers do not become healthy (manual: `de
   colour them. Precached by the service worker. Names are typed: add a new one to
   `scripts/generate-icons.mjs` and run `npm run icons` (writes the SVGs and `icon-names.ts`).
   Inside Material buttons add `matButtonIcon`, inside menu items `matMenuItemIcon` (projection slots).
-- Service worker (production build only, `ngsw-config.json`): app files precached, pictures cached
+- Service worker (production build only, `ngsw-config.json`): startup files (`index.html`, `main`,
+  styles) precached, the other JS chunks (`app-code`) cached lazily — the chunks already loaded
+  are stored when the worker takes control (`core/pwa/startup-scripts.ts`) — pictures cached
   on first use, the clan data (`clan-data` group, dropped at sign-out) network-first
   with the cache as offline fallback. A new deploy reaches open tabs through the "Update" prompt
   (`core/pwa/app-updates.ts`). A new private `/api/v1` GET must not join a cached data group
