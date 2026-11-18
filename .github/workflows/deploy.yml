@@ -1,5 +1,6 @@
-# Tests every push and pull request; a push to master that passes the tests is published
-# on the VPS (https://crociatanera.it) by running deploy/deploy.sh over SSH.
+# Tests every push and pull request (frontend and backend in parallel); a push to master that passes
+# both is published on the VPS (https://crociatanera.it) by running deploy/deploy.sh over SSH with
+# the tested commit.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
 #   VPS_HOST         public IP of the VPS
@@ -22,9 +23,12 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || 'deploy-production' }}
   cancel-in-progress: false
 
+env:
+  NG_CLI_ANALYTICS: 'false'
+
 jobs:
-  test:
-    name: Test
+  frontend:
+    name: Frontend
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -34,34 +38,65 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Frontend — install
+      - name: Install
         run: npm ci --no-audit --no-fund
-      - name: Frontend — colours only from the palette
+      # Known vulnerabilities of the runtime dependencies: reported, not blocking yet.
+      - name: Audit (runtime dependencies)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      # Angular's build cache is off on CI by default: switched on for this checkout only, and kept
+      # between runs (one entry per commit, the newest one of the same lockfile restored).
+      - name: Enable the Angular build cache
+        run: npx ng config cli.cache.environment all
+      - uses: actions/cache@v4
+        with:
+          path: .angular/cache
+          key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - name: Colours only from the palette
         run: npm run lint:colors
-      - name: Frontend — sizes in rem, no hard-coded pixels
+      - name: Sizes in rem, no hard-coded pixels
         run: npm run lint:units
-      - name: Frontend — unit tests
+      - name: Unit tests
         run: npx ng test --watch=false
-      - name: Frontend — production build
+      - name: Production build
         run: npx ng build --configuration production
 
-      - name: Backend — install
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install
         working-directory: backend
         run: npm ci --no-audit --no-fund
-      - name: Backend — type check
+      # Known vulnerabilities of the runtime dependencies: reported, not blocking yet.
+      - name: Audit (runtime dependencies)
+        working-directory: backend
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+      - name: Type check
         working-directory: backend
         run: npm run typecheck
-      - name: Backend — tests
+      - name: Tests
         working-directory: backend
         run: npm test
 
   deploy:
     name: Deploy to crociatanera.it
-    needs: test
+    needs: [frontend, backend]
     if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -77,7 +112,9 @@ jobs:
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           # The key is restricted on the server to `command="…/deploy.sh"`: no shell, no forwarding.
           # The commit tested above is the ssh command: deploy.sh reads it from SSH_ORIGINAL_COMMAND
-          # and deploys exactly that commit, even if master has moved on meanwhile.
+          # and deploys exactly that commit, even if master has moved on meanwhile. deploy.sh exits
+          # with an error (after rolling back to the previous images) if the containers do not
+          # become healthy.
           ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 "root@$VPS_HOST" "$GITHUB_SHA"
 
       - name: Health check

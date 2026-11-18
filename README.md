@@ -480,8 +480,12 @@ cp .env.example .env && nano .env      # compila COC_API_TOKEN, DATABASE_URL e J
 ./deploy.sh
 ```
 
-**Aggiornamenti automatici:** il workflow `.github/workflows/deploy.yml` lancia i test a ogni push e pull request. Su
-`master`, se i test passano:
+**Aggiornamenti automatici:** il workflow `.github/workflows/deploy.yml` lancia i test a ogni push e pull request, in
+due job paralleli: `Frontend` (lint, test, build di produzione, con la cache di build di Angular conservata tra
+un'esecuzione e l'altra) e `Backend` (type check e test). Entrambi segnalano anche le vulnerabilità note delle
+dipendenze di produzione (`npm audit --omit=dev --audit-level=high`), per ora senza bloccare. Dependabot
+(`.github/dependabot.yml`) apre ogni lunedì le pull request di aggiornamento di pacchetti npm, immagini Docker e
+GitHub Actions, raggruppate. Su `master`, se entrambi i job passano:
 - si collega alla VPS ed esegue `deploy.sh`, passandogli lo sha del commit appena testato: viene pubblicato
   esattamente quel commit, anche se nel frattempo `master` è andato avanti;
 - poi controlla `https://crociatanera.it/api/v1/health`.
