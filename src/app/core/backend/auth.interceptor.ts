@@ -11,6 +11,8 @@ const SESSION_PATHS = ['/auth/sign-in', '/auth/sign-up', '/auth/refresh', '/auth
  * Adds `Authorization: Bearer <access token>` to requests for the application backend
  * (not to other hosts, such as the images of the Clash of Clans CDN). On a 401 it refreshes the token once and retries (also
  * without a token, for the user remembered while offline: the network is back).
+ * A 401 for a token that was already replaced (another request refreshed it meanwhile) is retried
+ * with the current token, without refreshing again.
  * Session endpoints are left alone: retrying a failed refresh with a refresh would loop.
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
@@ -31,6 +33,9 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !canRefresh) {
         return throwError(() => error);
       }
+      // Another request refreshed the token meanwhile: retry with it, without a new refresh.
+      const current = auth.accessToken();
+      if (current !== null && current !== token) return next(withToken(request, current));
       return auth
         .refresh()
         .pipe(

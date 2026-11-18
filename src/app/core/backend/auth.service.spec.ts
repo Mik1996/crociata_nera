@@ -199,6 +199,29 @@ describe('AuthService and authInterceptor', () => {
     expect(body).toEqual({ done: true });
   });
 
+  it('retries with the current token a 401 that arrives after another refresh completed', () => {
+    auth.restoreSession();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('old')));
+
+    let first: unknown;
+    let second: unknown;
+    http.get('/api/v1/wars').subscribe((b) => (first = b));
+    http.get('/api/v1/raids').subscribe((b) => (second = b));
+    const [wars, raids] = [httpMock.expectOne('/api/v1/wars'), httpMock.expectOne('/api/v1/raids')];
+
+    wars.flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('new')));
+    httpMock.expectOne('/api/v1/wars').flush({ wars: true });
+
+    // The second 401 (sent with the old token) comes after the refresh: no second refresh.
+    raids.flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectNone('/api/v1/auth/refresh');
+    const retry = httpMock.expectOne('/api/v1/raids');
+    expect(retry.request.headers.get('Authorization')).toBe('Bearer new');
+    retry.flush({ raids: true });
+    expect([first, second]).toEqual([{ wars: true }, { raids: true }]);
+  });
+
   it('signs out and clears the local session even if the backend fails', async () => {
     auth.restoreSession();
     httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t5')));
