@@ -2,6 +2,35 @@
 # Helpers shared by the scripts of deploy/ (sourced, not run). Expects the current directory to
 # be deploy/.
 
+# Value of KEY in deploy/.env, read literally (the file is never run as shell: a password with $, `
+# or ; stays as it is), or $2 when missing. Accepts KEY=value, KEY="value", KEY='value' and a
+# leading `export`; an unquoted value ends at " #" (comment), like docker compose reads it.
+env_get() {
+  local line value
+  line=$({ grep -E "^[[:space:]]*(export[[:space:]]+)?$1[[:space:]]*=" .env 2>/dev/null || true; } | tail -n 1)
+  if [ -z "$line" ]; then
+    printf '%s' "${2:-}"
+    return
+  fi
+  value=${line#*=}
+  value=${value%$'\r'}
+  value=${value#"${value%%[![:space:]]*}"}
+  case $value in
+    \"*) value=${value#\"} && value=${value%%\"*} ;;
+    \'*) value=${value#\'} && value=${value%%\'*} ;;
+    *)
+      value=${value%%[[:space:]]#*}
+      value=${value%"${value##*[![:space:]]}"}
+      ;;
+  esac
+  printf '%s' "$value"
+}
+
+# Setting KEY: from the environment if set there, else from deploy/.env, else $2.
+setting() {
+  if [ -n "${!1:-}" ]; then printf '%s' "${!1}"; else env_get "$1" "${2:-}"; fi
+}
+
 # Images of the stack. docker-compose.yml runs <image>:${IMAGE_TAG:-current}: deploy.sh builds
 # <image>:<build tag> and moves `current` to it; `previous` is the image that ran before.
 # Build tag: UTC time of the deploy + commit (20261118093000-0123456789ab), so that the tags sort

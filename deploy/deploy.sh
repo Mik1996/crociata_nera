@@ -68,4 +68,4 @@ fi
 prune_image_tags
 
 docker compose ps
-echo "== Done: $tag on https://$(grep -E '^DOMAIN=' .env | cut -d= -f2) =="
+echo "== Done: $tag on https://$(env_get DOMAIN) =="

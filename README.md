@@ -462,8 +462,9 @@ cartella `deploy/` contiene tutto quello che serve:
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
 | `deploy.sh` | porta il codice al commit da pubblicare, costruisce le immagini una alla volta, controlla il Caddyfile, riavvia e, se i servizi non diventano sani, torna alle immagini precedenti |
 | `rollback.sh` | rimette in servizio le immagini di un deploy precedente, senza ricostruire (vedi [Rollback](#rollback)) |
-| `lib.sh` | funzioni comuni agli script (immagini, attesa dei controlli di salute) |
+| `lib.sh` | funzioni comuni agli script (lettura di `.env`, immagini, attesa dei controlli di salute) |
 | `service-worker.sh` | interruttore d'emergenza del service worker nei browser (`off`, `on`, `status`) |
+| `backup.sh` | backup notturno del database (controllato, con copia cifrata fuori sede e allarme facoltativi) |
 
 **Architettura:**
 - da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; il backend resta sulla rete interna di Docker;
@@ -530,17 +531,60 @@ immagini che giravano prima restano come `previous`, e si conservano le ultime 3
   con lo sha completo di un commit precedente (ricostruisce).
 
 **Backup:**
-- `deploy/backup.sh` salva il database con `mongodump` e l'archivio del vecchio proxy (volume `proxy_data`, non più
-  usato, conservato finché le sue guerre non vengono importate o scartate) in `/root/backups`, per 14 giorni. Sulla VPS
-  va pianificato con cron:
+- `deploy/backup.sh` salva il database con `mongodump` in `/root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz` e lo
+  controlla: dev'essere un gzip integro (`gzip -t`) e non più piccolo di `BACKUP_MIN_BYTES` (4096 byte; un database
+  vuoto ne dà circa 150: conviene alzarlo a circa metà della dimensione abituale di un dump). I dump restano 14 giorni
+  (`KEEP_DAYS`). L'archivio del vecchio proxy (volume `proxy_data`, non più usato, conservato finché le sue guerre non
+  vengono importate o scartate) è un solo file, `proxy-data.tar.gz`, rifatto solo se i file del volume cambiano.
+- Sulla VPS va pianificato con cron:
   ```bash
   ( crontab -l 2>/dev/null; echo "30 3 * * * /root/crociata_nera/deploy/backup.sh >> /var/log/crociata-backup.log 2>&1" ) | crontab -
   ```
-- Ripristino del database:
+- Le impostazioni, tutte facoltative, vanno in `deploy/.env` (vedi `.env.example`): `BACKUP_DIR`, `KEEP_DAYS`,
+  `BACKUP_MIN_BYTES`, `BACKUP_RCLONE_REMOTE`, `BACKUP_RCLONE_KEEP_DAYS`, `BACKUP_HEALTHCHECK_URL`. Gli script leggono
+  `.env` riga per riga, alla lettera (non lo eseguono come shell): una password con `$` o `;` resta com'è.
+- **Copia fuori dalla VPS** (consigliata: oggi i backup stanno sullo stesso disco del server). Con
+  `BACKUP_RCLONE_REMOTE` impostato, ogni dump viene copiato con [rclone](https://rclone.org) e lì tenuto
+  `BACKUP_RCLONE_KEEP_DAYS` giorni (60). Il remote dev'essere cifrato (tipo `crypt`): il dump contiene utenti, email e
+  hash delle password. Una volta sola, sulla VPS:
+  ```bash
+  apt install -y rclone
+  rclone config
+  #  1. n → nome "offsite" → lo spazio scelto (Backblaze B2, S3, Google Drive, …) e le sue credenziali;
+  #  2. n → nome "crociata-crypt" → tipo "crypt" → remote "offsite:crociata-backups"
+  #     → filename_encryption "standard" → directory_name_encryption true
+  #     → password e salt: "g" (generate), e SALVALE nel password manager: senza, i backup non si decifrano.
+  rclone copy --no-traverse "$(ls -t /root/backups/mongo-*.archive.gz | head -n 1)" crociata-crypt:   # prova
+  rclone ls crociata-crypt:
+  echo 'BACKUP_RCLONE_REMOTE=crociata-crypt:' >> ~/crociata_nera/deploy/.env
+  ```
+  La configurazione di rclone (`/root/.config/rclone/rclone.conf`) contiene le credenziali: resta sulla VPS, e una copia
+  delle sole password del `crypt` va tenuta altrove.
+- **Allarme se il backup non arriva** (dead man's switch): crea un check gratuito su [healthchecks.io](https://healthchecks.io)
+  (periodo 1 giorno, tolleranza 2 ore) e metti l'URL di ping in `deploy/.env`:
+  ```bash
+  echo 'BACKUP_HEALTHCHECK_URL=https://hc-ping.com/<uuid>' >> ~/crociata_nera/deploy/.env
+  ```
+  `backup.sh` lo chiama dopo un backup riuscito e chiama `<url>/fail` dopo uno fallito: se non arriva niente (VPS
+  spenta, cron rotto) o arriva un fallimento, healthchecks.io manda un'email.
+- Ripristino del database (sostituisce i dati di produzione: `--drop`):
   ```bash
   cd ~/crociata_nera/deploy
   docker compose run --rm -T mongo-tools sh -c 'mongorestore --uri="$DATABASE_URL" --archive --gzip --drop' < /root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz
   ```
+- **Prova di ripristino, una volta al mese**: un backup mai ripristinato non è un backup. Il dump più recente va in un
+  MongoDB usa e getta sulla VPS, senza toccare Atlas:
+  ```bash
+  dump=$(ls -t /root/backups/mongo-*.archive.gz | head -n 1)
+  # oppure dalla copia fuori sede: rclone copy crociata-crypt:<nome del file> /root/restore-test/
+  docker run -d --rm --name restore-test mongo:8.0.38
+  sleep 10
+  docker exec -i restore-test mongorestore --archive --gzip --quiet < "$dump"
+  docker exec restore-test mongosh --quiet Prod --eval 'db.getCollectionNames().sort().forEach(c => print(c, db[c].countDocuments()))'
+  docker stop restore-test
+  ```
+  I conteggi devono essere plausibili (utenti, guerre, raid…) e confrontabili con quelli del sito; ogni tanto conviene
+  provare anche un file scaricato dalla copia fuori sede, per verificare che le password del `crypt` funzionino.
 
 **Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e la lettura
 dell'API di Clash of Clans dal backend (`/api/v1/welcome`). Se

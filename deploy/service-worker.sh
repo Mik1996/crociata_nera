@@ -9,9 +9,10 @@
 #   status  what the site is serving now.
 set -euo pipefail
 cd "$(dirname "$0")"
+. ./lib.sh
 
-domain=$(grep -E '^DOMAIN=' .env | cut -d= -f2)
-disabled_in_env=$(grep -E '^SW_DISABLED=' .env | cut -d= -f2 || true)
+domain=$(env_get DOMAIN)
+disabled_in_env=$(env_get SW_DISABLED)
 
 status() {
   local manifest worker
