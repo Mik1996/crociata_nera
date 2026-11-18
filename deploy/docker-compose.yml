@@ -27,8 +27,21 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    # Plain order, not `condition: service_healthy`: while the backend starts (or if it never gets
+    # healthy) Caddy keeps serving the app, which shows its offline/error states, instead of the
+    # whole site going down; deploy.sh checks the health of both after `up`.
     depends_on:
       - backend
+    # Liveness: Caddy's admin API (local to the container) answers.
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:2019/config/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # Running container only (the image builds have their own heap, see the Dockerfiles). Caddy
+    # serving static files and proxying needs a few tens of MB.
+    mem_limit: 256m
     logging: *logging
 
   backend:
@@ -52,6 +65,22 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
+    # Liveness, not readiness: any HTTP answer counts. /api/v1/health answers 503 when MongoDB or
+    # the war sync is degraded, which restarting or rolling back the backend would not fix. The
+    # image has no curl: node's fetch.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/api/v1/health', { signal: AbortSignal.timeout(8000) }).then(() => process.exit(0), () => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Running container only (the build has its own 1.5 GB heap, see backend.Dockerfile): Next.js
+    # plus sharp re-encoding a 10 MB screenshot stays well below; Node sizes its heap to the limit.
+    mem_limit: 1g
     logging: *logging
 
   # One-off tools of backup.sh (and of the restore, see README "Backup"), run with
