@@ -93,6 +93,31 @@ describe('donation tracking', () => {
     expect(await total('#A', '2026-12')).toBe(250);
   });
 
+  it('counts from zero the first read of a new season, even above the last read of the old one', async () => {
+    api({ '#A': 300 });
+    await syncMembers(at('29'));
+    // Reset at the season end, then 800 donated before the first read of December.
+    api({ '#A': 800 }, DECEMBER);
+    await syncMembers(new Date('2026-12-02T12:00:00Z'));
+    expect(await total('#A')).toBe(300);
+    expect(await total('#A', '2026-12')).toBe(800);
+    expect(await DonationCounterModel.findOne({ playerTag: '#A' })).toMatchObject({ counter: 800, season: '2026-12' });
+    api({ '#A': 1000 }, DECEMBER);
+    await syncMembers(new Date('2026-12-03T12:00:00Z'));
+    expect(await total('#A', '2026-12')).toBe(1000);
+  });
+
+  it('takes a read saved without its season as of the current season', async () => {
+    await DonationCounterModel.create({ playerTag: '#A', counter: 1000, readAt: at('08') });
+    api({ '#A': 1000 });
+    await syncMembers(at('09'));
+    expect(await total('#A')).toBeUndefined();
+    expect(await DonationCounterModel.findOne({ playerTag: '#A' })).toMatchObject({ counter: 1000, season: '2026-11' });
+    api({ '#A': 1400 });
+    await syncMembers(at('10'));
+    expect(await total('#A')).toBe(400);
+  });
+
   it('skips a read without a known season and counts it on the next one', async () => {
     mockCocApi({ '/clans/%232J8JVVCLC': { body: { memberList: [{ tag: '#A', name: 'A', donations: 500 }] } } });
     await syncMembers(at('09'));

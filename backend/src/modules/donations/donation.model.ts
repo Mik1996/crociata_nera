@@ -42,6 +42,11 @@ const donationCounterSchema = new Schema(
   {
     playerTag: { type: String, required: true, unique: true },
     counter: { type: Number, required: true },
+    /**
+     * Season (`YYYY-MM`) of the last read: the game resets the counter when a season ends, so the
+     * first read of a new season counts from 0. `null` for reads saved before it was tracked.
+     */
+    season: { type: String, default: null },
     readAt: { type: Date, required: true },
   },
   { collection: 'DonationCounters', versionKey: false },

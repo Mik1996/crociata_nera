@@ -58,7 +58,8 @@ export async function currentSeason(now: Date): Promise<{ season: string; startT
  * Adds to the season in progress the troops donated since the last read.
  *
  * The in-game counter only grows during a season, but restarts from 0 when the player leaves
- * the clan and at the end of the season. So, for each member:
+ * the clan and at the end of the season. So, for each member, from the last read (0 if it was made
+ * in an earlier season: the counter was reset at the season end, even if it has grown past it since):
  * - counter >= last read: donated `counter - last`;
  * - counter < last read: the counter was reset in between, donated `counter` (since the reset).
  * Players no longer in the clans of the Crusade get their last read set to 0, so what they
@@ -80,13 +81,19 @@ export async function recordDonations(
 
   const tags = members.map((m) => m.tag);
   const last = new Map(
-    (await DonationCounterModel.find({ playerTag: { $in: tags } }).lean()).map((c) => [c.playerTag, c.counter]),
+    (await DonationCounterModel.find({ playerTag: { $in: tags } }).lean()).map((c) => [
+      c.playerTag,
+      { counter: c.counter, season: c.season ?? null },
+    ]),
   );
   for (const m of members) {
     const previous = last.get(m.tag);
-    const donated = previous === undefined || m.donations < previous ? m.donations : m.donations - previous;
-    if (previous === m.donations) continue;
-    if (!(await advanceCounter(m.tag, previous, m.donations, now)) || donated <= 0) continue;
+    // Reads saved before the season was tracked (`null`) are taken as of this season.
+    const sameSeason = !previous || previous.season === null || previous.season === season.season;
+    const baseline = previous === undefined ? undefined : sameSeason ? previous.counter : 0;
+    const donated = baseline === undefined || m.donations < baseline ? m.donations : m.donations - baseline;
+    if (previous && previous.season === season.season && previous.counter === m.donations) continue;
+    if (!(await advanceCounter(m.tag, previous, m.donations, season.season, now)) || donated <= 0) continue;
     await DonationTotalModel.updateOne(
       { season: season.season, playerTag: m.tag },
       { $inc: { donations: donated }, $set: { playerName: m.name, updatedAt: now, ...(m.clanTag ? { clanTag: m.clanTag } : {}) } },
@@ -103,16 +110,25 @@ export async function recordDonations(
 }
 
 /** Saves the new read if the previous one is still `previous` (`undefined`: never read). */
-async function advanceCounter(tag: string, previous: number | undefined, counter: number, now: Date): Promise<boolean> {
+async function advanceCounter(
+  tag: string,
+  previous: { counter: number; season: string | null } | undefined,
+  counter: number,
+  season: string,
+  now: Date,
+): Promise<boolean> {
   if (previous === undefined) {
     const write = await DonationCounterModel.updateOne(
       { playerTag: tag },
-      { $setOnInsert: { playerTag: tag, counter, readAt: now } },
+      { $setOnInsert: { playerTag: tag, counter, season, readAt: now } },
       { upsert: true },
     );
     return write.upsertedCount === 1;
   }
-  const write = await DonationCounterModel.updateOne({ playerTag: tag, counter: previous }, { $set: { counter, readAt: now } });
+  const write = await DonationCounterModel.updateOne(
+    { playerTag: tag, counter: previous.counter, season: previous.season },
+    { $set: { counter, season, readAt: now } },
+  );
   return write.modifiedCount === 1;
 }
 
