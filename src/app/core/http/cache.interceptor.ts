@@ -43,7 +43,10 @@ export const cacheInterceptor: HttpInterceptorFn = (request, next) => {
     tap((event) => {
       if (event instanceof HttpResponse && event.ok) cache.set(key, event, duration, generation);
     }),
-    finalize(() => cache.inFlight.delete(key)),
+    // Only its own entry: an invalidation may have replaced it with a newer request.
+    finalize(() => {
+      if (cache.inFlight.get(key) === shared) cache.inFlight.delete(key);
+    }),
     share(),
   );
   cache.inFlight.set(key, shared);

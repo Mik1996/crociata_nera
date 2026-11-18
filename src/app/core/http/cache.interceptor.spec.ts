@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { cacheInterceptor } from './cache.interceptor';
+import { HttpCacheService } from './http-cache.service';
 import { CACHE_INVALIDATES, cacheFor, keepCache, noCache } from './http-cache';
 
 describe('cacheInterceptor', () => {
@@ -120,5 +121,35 @@ describe('cacheInterceptor', () => {
 
     expect(await get('/api/v1/wars')).toEqual({ n: 1 });
     expect(await get('/api/v1/raids')).toEqual({ n: 1 });
+  });
+
+  it('a GET made after a mutation does not join a request that started before it', async () => {
+    const before = firstValueFrom(http.get('/api/v1/wars'));
+    const mutation = firstValueFrom(http.post('/api/v1/wars/abc', {}));
+    httpMock.expectOne('/api/v1/wars/abc').flush({});
+    await mutation;
+
+    const after = firstValueFrom(http.get('/api/v1/wars'));
+    const after2 = firstValueFrom(http.get('/api/v1/wars'));
+    const [old, fresh] = httpMock.match('/api/v1/wars');
+    expect(fresh).toBeDefined();
+    fresh.flush({ n: 2 });
+    old.flush({ n: 1 }); // the old request ends last: it must not drop the new one's entry
+    expect(await before).toEqual({ n: 1 });
+    expect(await after).toEqual({ n: 2 });
+    expect(await after2).toEqual({ n: 2 });
+    expect(await get('/api/v1/wars')).toEqual({ n: 2 }); // cached from the new request
+  });
+
+  it('invalidateMatching() also drops the matching GETs in flight', async () => {
+    const before = firstValueFrom(http.get('/api/v1/wars/current'));
+    TestBed.inject(HttpCacheService).invalidateMatching('/wars/current');
+    const after = firstValueFrom(http.get('/api/v1/wars/current'));
+    const requests = httpMock.match('/api/v1/wars/current');
+    expect(requests).toHaveLength(2);
+    requests[0].flush({ n: 1 });
+    requests[1].flush({ n: 2 });
+    expect(await before).toEqual({ n: 1 });
+    expect(await after).toEqual({ n: 2 });
   });
 });

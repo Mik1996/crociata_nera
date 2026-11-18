@@ -52,20 +52,26 @@ export class HttpCacheService {
    */
   invalidate(...prefixes: string[]): void {
     if (prefixes.length === 0) return;
-    this.generation++;
-    for (const url of [...this.entries.keys()]) {
-      if (prefixes.some((prefix) => url.startsWith(prefix))) this.entries.delete(url);
-    }
+    this.drop((url) => prefixes.some((prefix) => url.startsWith(prefix)));
   }
 
   /** Drops cached responses whose URL contains the given fragment (e.g. `/currentwar`). */
   invalidateMatching(fragment: string): void {
-    this.generation++;
-    for (const url of [...this.entries.keys()]) if (url.includes(fragment)) this.entries.delete(url);
+    this.drop((url) => url.includes(fragment));
   }
 
   clear(): void {
     this.invalidate('');
+  }
+
+  /**
+   * Drops the matching responses and GETs in flight: a GET made after a mutation must not join
+   * a request that started before it (its answer may predate the change).
+   */
+  private drop(matches: (url: string) => boolean): void {
+    this.generation++;
+    for (const url of [...this.entries.keys()]) if (matches(url)) this.entries.delete(url);
+    for (const url of [...this.inFlight.keys()]) if (matches(url)) this.inFlight.delete(url);
   }
 
   get size(): number {
