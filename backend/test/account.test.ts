@@ -22,6 +22,7 @@ import { POST as resend } from '@/app/api/v1/auth/verify-email/resend/route';
 import { POST as verifyEmail } from '@/app/api/v1/auth/verify-email/route';
 import { migrateLinkedPlayers, UserModel } from '@/modules/auth/user.model';
 import { POST as linkPlayer } from '@/app/api/v1/auth/me/player/route';
+import { sendMail } from '@/lib/mail/mailer';
 import { mockCocApi } from './coc-mock';
 import { call, seedCrusadeRosters } from './helpers';
 
@@ -227,6 +228,8 @@ describe('password reset', () => {
     const req = await call(forgotPassword, { body: { email: 'KNIGHT@crociata.it', language: 'it-IT' } });
     expect(req.status).toBe(200);
     expect(req.body.messages).toEqual([{ key: 'SUCCESS.RESET_EMAIL_SENT' }]);
+    // The email goes out after the answer.
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
     expect(sent[0]!.subject).toContain('reimposta la password');
     const token = decodeURIComponent(tokenFrom(sent[0]!.text));
 
@@ -248,6 +251,60 @@ describe('password reset', () => {
     const res = await call(forgotPassword, { body: { email: 'ghost@crociata.it' } });
     expect(res.status).toBe(200);
     expect(res.body.messages).toEqual([{ key: 'SUCCESS.RESET_EMAIL_SENT' }]);
+    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(sent).toHaveLength(0);
+  });
+
+  it('answers before looking up the address or sending the email (no timing difference)', async () => {
+    await register();
+    sent.length = 0;
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => (release = resolve));
+    vi.mocked(sendMail).mockImplementationOnce(async (message) => {
+      await blocked;
+      sent.push(message);
+      return true;
+    });
+
+    const res = await call(forgotPassword, { body: { email: 'knight@crociata.it' } });
+    expect(res.status).toBe(200);
+    expect(sent).toHaveLength(0);
+    release();
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+  });
+
+  it('accepts a reset link once, even when it is used twice at the same time', async () => {
+    await register();
+    sent.length = 0;
+    await call(forgotPassword, { body: { email: 'knight@crociata.it' } });
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    const token = decodeURIComponent(tokenFrom(sent[0]!.text));
+
+    const results = await Promise.all(
+      ['first123', 'second12'].map((password) =>
+        call(resetPassword, { body: { token, password, repeatPassword: password } }),
+      ),
+    );
+    expect(results.map((r) => r.status).sort()).toEqual([200, 400]);
+  });
+
+  it('cancels a pending reset link when the password is changed', async () => {
+    const { token: access, cookie } = await register();
+    sent.length = 0;
+    await call(forgotPassword, { body: { email: 'knight@crociata.it' } });
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    const token = decodeURIComponent(tokenFrom(sent[0]!.text));
+
+    const changed = await call(changePassword, {
+      body: { currentPassword: 'secret123', password: 'better456', repeatPassword: 'better456' },
+      token: access,
+      cookie,
+    });
+    expect(changed.status).toBe(200);
+
+    const reset = await call(resetPassword, { body: { token, password: 'attacker1', repeatPassword: 'attacker1' } });
+    expect(reset.status).toBe(400);
+    expect(reset.body.messages).toEqual([{ key: 'ERROR.INVALID_OR_EXPIRED_RESET_TOKEN' }]);
+    expect((await call(signIn, { body: { identifier: 'knight', password: 'better456' } })).status).toBe(200);
   });
 });

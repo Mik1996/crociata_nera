@@ -90,6 +90,8 @@ export async function changePassword(
     throwException(400, [{ key: MessageKey.INCORRECT_PASSWORD, field: 'currentPassword' }]);
   }
   user.passwordHash = await hashPassword(input.password);
+  // A reset link requested earlier must not change the password chosen now.
+  user.set({ resetPasswordTokenHash: null, resetPasswordExpiresAt: null });
   await user.save();
 
   const keep = currentRefreshToken ? hashRefreshToken(currentRefreshToken) : null;
@@ -101,9 +103,16 @@ export async function changePassword(
 
 /**
  * Sends a password reset link. Always succeeds from the caller's point of view, whether
- * the email exists or not, so the endpoint does not reveal registered addresses.
+ * the email exists or not, so the endpoint does not reveal registered addresses: the lookup and
+ * the email run after the answer (not awaited), so the response time does not reveal them either.
  */
-export async function requestPasswordReset(email: string, language: MailLanguage): Promise<void> {
+export function requestPasswordReset(email: string, language: MailLanguage): void {
+  sendPasswordReset(email, language).catch((error: unknown) =>
+    console.error('[auth] password reset email failed:', (error as Error).message),
+  );
+}
+
+async function sendPasswordReset(email: string, language: MailLanguage): Promise<void> {
   const user = await UserModel.findOne({ email });
   if (!user) return;
 
@@ -116,26 +125,26 @@ export async function requestPasswordReset(email: string, language: MailLanguage
   await sendMail(passwordResetMail(language, user.email, user.username, link));
 }
 
-/** Sets a new password from a reset link; signs out every session of the account. */
+/**
+ * Sets a new password from a reset link; signs out every session of the account. The token is
+ * claimed in the same atomic update that sets the password: single use, even under concurrency.
+ */
 export async function resetPassword(input: ResetPasswordInput): Promise<void> {
-  const user = await UserModel.findOne({
-    resetPasswordTokenHash: hashRefreshToken(input.token),
-    resetPasswordExpiresAt: { $gt: new Date() },
-  });
-  if (!user) throwException(400, [{ key: MessageKey.INVALID_OR_EXPIRED_RESET_TOKEN }]);
-
-  await UserModel.updateOne(
-    { _id: user._id },
+  const passwordHash = await hashPassword(input.password);
+  const user = await UserModel.findOneAndUpdate(
+    { resetPasswordTokenHash: hashRefreshToken(input.token), resetPasswordExpiresAt: { $gt: new Date() } },
     {
       $set: {
-        passwordHash: await hashPassword(input.password),
+        passwordHash,
         resetPasswordTokenHash: null,
         resetPasswordExpiresAt: null,
         // The link reached the inbox: the address is proven.
         emailVerified: true,
       },
     },
-  );
+  ).select('_id');
+  if (!user) throwException(400, [{ key: MessageKey.INVALID_OR_EXPIRED_RESET_TOKEN }]);
+
   await SessionModel.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'revoked' } });
 }
 

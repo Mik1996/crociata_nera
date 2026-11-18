@@ -8,11 +8,11 @@ import { forgotPasswordSchema } from '@/modules/auth/auth.schemas';
 
 /**
  * `POST /api/v1/auth/forgot-password` `{ email, language? }`: emails a reset link (valid 1 hour).
- * Same answer whether the address is registered or not.
+ * Same answer, at once, whether the address is registered or not (the email goes out afterwards).
  */
 export const POST = apiHandler({ apiName: ApiName.FORGOT_PASSWORD, checkOrigin: true }, async ({ request }) => {
   const { email, language } = await parseBody(request, forgotPasswordSchema);
-  await requestPasswordReset(email, language);
+  requestPasswordReset(email, language);
   return { messages: [{ key: MessageKey.RESET_EMAIL_SENT }] };
 });
 

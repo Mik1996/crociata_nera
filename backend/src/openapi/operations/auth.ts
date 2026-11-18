@@ -123,7 +123,7 @@ export const AUTH_OPERATIONS: ApiOperation[] = [
     tag: 'Auth',
     summary: 'Request a password reset',
     description:
-      'Emails a password reset link, valid 1 hour. The answer is the same whether the address is registered or not, so the endpoint does not reveal accounts.',
+      'Emails a password reset link, valid 1 hour. The answer is the same, and comes at once (the email is sent afterwards), whether the address is registered or not, so the endpoint does not reveal accounts.',
     access: 'public',
     rateLimit: ApiName.FORGOT_PASSWORD,
     checkOrigin: true,
@@ -141,7 +141,7 @@ export const AUTH_OPERATIONS: ApiOperation[] = [
     tag: 'Auth',
     summary: 'Reset the password',
     description:
-      'Sets a new password with the token of the reset link. Every session of the account is signed out, and the email address counts as verified.',
+      'Sets a new password with the token of the reset link (single use; changing the password cancels it too). Every session of the account is signed out, and the email address counts as verified.',
     access: 'public',
     rateLimit: ApiName.RESET_PASSWORD,
     checkOrigin: true,
