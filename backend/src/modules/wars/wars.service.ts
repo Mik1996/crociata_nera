@@ -71,7 +71,9 @@ export function computeResult(
 
 /**
  * Creates or updates a war from a `currentwar` snapshot (idempotent, keyed by `warKey`).
- * A snapshot is applied only if its state is not older than the stored one.
+ * A snapshot is applied only if its state is not older than the stored one, and never to an ended
+ * war already completed with the war log: `currentwar` keeps showing the ended war for hours, but
+ * has no clan XP and its numbers must not replace the official ones of the war log.
  */
 export async function upsertWarSnapshot(
   war: CocWar,
@@ -83,7 +85,7 @@ export async function upsertWarSnapshot(
 
   try {
     const response = await WarModel.findOneAndUpdate(
-      { warKey, stateRank: { $lte: stateRank } },
+      { warKey, stateRank: { $lte: stateRank }, $or: [{ stateRank: { $lt: WAR_STATE_RANK.warEnded } }, { warLogMatched: { $ne: true } }] },
       {
         $set: {
           clanTag: war.clan.tag,
@@ -106,8 +108,8 @@ export async function upsertWarSnapshot(
     );
     return { outcome: response.lastErrorObject?.updatedExisting ? 'updated' : 'created', war: response.value! };
   } catch (error) {
-    // Stored war already in a later state: the filter did not match and the upsert hit the
-    // unique `warKey` index. Keep the stored war.
+    // Stored war already in a later state (or completed with the war log): the filter did not
+    // match and the upsert hit the unique `warKey` index. Keep the stored war.
     if ((error as { code?: number })?.code === 11000) {
       const existing = await WarModel.findOne({ warKey });
       if (existing) return { outcome: 'unchanged', war: existing };

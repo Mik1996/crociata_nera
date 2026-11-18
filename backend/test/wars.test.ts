@@ -71,6 +71,21 @@ describe('war sync', () => {
     expect((await WarModel.findOne({ warKey: WAR_KEY }))!.state).toBe('warEnded');
   });
 
+  it('keeps the war log values when currentwar still shows the ended war', async () => {
+    // `currentwar` has no clan XP, and here fewer stars than the official result.
+    const ended = cocWar({ state: 'warEnded', clan: { ...cocWar().clan, stars: 5, destructionPercentage: 90 } });
+    mockCocApi({ '/currentwar': { body: ended }, '/warlog': { body: { items: [warLogEntry()] } } });
+    expect((await syncWars(AFTER_END)).warLogMatched).toEqual([WAR_KEY]);
+
+    // Later reads still return the same ended war.
+    const report = await syncWars(new Date('2026-11-06T12:00:00Z'));
+
+    expect(report).toMatchObject({ outcome: 'unchanged', warLogMatched: [] });
+    const war = await WarModel.findOne({ warKey: WAR_KEY });
+    expect(war).toMatchObject({ state: 'warEnded', result: 'win', warLogMatched: true });
+    expect(war!.clan).toMatchObject({ expEarned: 310, stars: 6, destructionPercentage: 100 });
+  });
+
   it('closes a war whose end was never seen, using the last snapshot and the war log', async () => {
     mockCocApi({ '/currentwar': { body: cocWar() } });
     await syncWars(BATTLE_DAY);
