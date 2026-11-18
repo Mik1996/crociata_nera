@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RaidMember } from '../../core/models';
+import { TablePdf } from '../../shared/pdf/table-pdf';
+import { TablePdfExporter } from '../../shared/pdf/table-pdf-exporter';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { RaidsPage } from './raids-page';
 
@@ -82,5 +85,34 @@ describe('RaidsPage', () => {
     // The weekend before the one in progress.
     expect(el.querySelector('.weekend-state')!.textContent).toContain('30 ott');
     expect(el.querySelectorAll('.members tr.mat-mdc-row').length).toBeGreaterThan(10);
+  });
+
+  it('downloads the members of the weekend as a PDF, only when they are known', async () => {
+    const exporter = { download: vi.fn((_pdf: TablePdf<unknown>) => Promise.resolve()) };
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        provideCocApiTest(),
+        { provide: TablePdfExporter, useValue: exporter },
+      ],
+    });
+    const fixture = TestBed.createComponent(RaidsPage);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector<HTMLButtonElement>('crn-pdf-button button')!.click();
+    await fixture.whenStable();
+    const pdf = exporter.download.mock.calls[0][0] as TablePdf<RaidMember>;
+    expect(pdf.fileName).toMatch(/^crociata-nera-raid-2026-11-06/);
+    expect(pdf.subtitle).toBe('6 nov – 9 nov 2026 · In corso');
+    expect(pdf.groups[0].rows.length).toBe(el.querySelectorAll('.members tr.mat-mdc-row').length);
+
+    const page = fixture.componentInstance as unknown as {
+      weekends: () => { id: string }[];
+      changeWeekend: (id: string) => void;
+    };
+    page.changeWeekend(page.weekends().at(-1)!.id);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector('crn-pdf-button')).toBeNull();
   });
 });

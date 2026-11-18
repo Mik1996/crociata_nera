@@ -6,7 +6,9 @@
     [kicker]="'kicker.cwlSelection' | translate"
     [title]="'nav.cwlSelection' | translate"
     [subtitle]="'cwlSelection.subtitle' | translate"
-  />
+  >
+    <crn-pdf-button [pdf]="lineupPdf()" />
+  </crn-page-header>
 
   <div class="page__body">
     <crn-load-state

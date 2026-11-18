@@ -9,11 +9,12 @@ import { capitalHallImage } from '../../core/game/clan-assets';
 import { GAME_ICONS } from '../../core/game/game-assets';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
-import { RaidSeason } from '../../core/models';
+import { RaidMember, RaidSeason } from '../../core/models';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { LoadState } from '../../shared/components/load-state/load-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PdfButton } from '../../shared/components/pdf-button/pdf-button';
 import { PlayerCell } from '../../shared/components/player-cell/player-cell';
 import { Select, SelectOption } from '../../shared/components/select/select';
 import { RAID_MEMBER_FILTERS } from '../../shared/components/table/clan-tables';
@@ -21,6 +22,8 @@ import { serverTable } from '../../shared/components/table/server-table';
 import { Table } from '../../shared/components/table/table';
 import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { TablePdf } from '../../shared/pdf/table-pdf';
+import { raidMembersPdf } from './raid-members-pdf';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**
@@ -43,6 +46,7 @@ const MAXIMUM_CAPITAL_RAIDS = 6;
     Tag,
     Select,
     PlayerCell,
+    PdfButton,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -108,6 +112,17 @@ export class RaidsPage {
 
   protected readonly MAXIMUM_CAPITAL_RAIDS = MAXIMUM_CAPITAL_RAIDS;
 
+  /** Who attacked in the chosen weekend as a PDF (`null` without the members' detail). */
+  protected readonly membersPdf = computed<TablePdf<RaidMember> | null>(() => {
+    const weekend = this.weekend();
+    if (!weekend?.hasMembers) return null;
+    return raidMembersPdf(weekend, {
+      t: (key, params) => this.language.t(key, params),
+      locale: this.language.current(),
+      weekendLabel: this.fullLabel(weekend),
+    });
+  });
+
   /** "6 – 9 nov", in the current language. */
   protected label(weekend: RaidSeason): string {
     const day = new Intl.DateTimeFormat(this.language.current(), {
@@ -116,6 +131,21 @@ export class RaidsPage {
       timeZone: 'Europe/Rome',
     });
     return `${day.format(new Date(weekend.startTime))} – ${day.format(new Date(weekend.endTime))}`;
+  }
+
+  /** "6 nov – 9 nov 2026" (with the year, for the PDF), in the current language. */
+  private fullLabel(weekend: RaidSeason): string {
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Europe/Rome',
+    };
+    const locale = this.language.current();
+    const start = new Intl.DateTimeFormat(locale, options).format(new Date(weekend.startTime));
+    const end = new Intl.DateTimeFormat(locale, { ...options, year: 'numeric' }).format(
+      new Date(weekend.endTime),
+    );
+    return `${start} – ${end}`;
   }
 
   protected changeWeekend(id: string): void {

@@ -4,6 +4,8 @@ import { of } from 'rxjs';
 import { AuthService } from '../../core/backend/auth.service';
 import { CwlSelection, CwlSelectionPlayer } from '../../core/backend/backend-api.types';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
+import { PdfCell, TablePdf } from '../../shared/pdf/table-pdf';
+import { TablePdfExporter } from '../../shared/pdf/table-pdf-exporter';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { CwlSelectionPage } from './cwl-selection-page';
 
@@ -94,6 +96,7 @@ const PLAYERS_PAGE = {
 describe('CwlSelectionPage', () => {
   /** With mock data (the default of the tests) the actions are shown, as for administrators. */
   async function render() {
+    const exporter = { download: vi.fn((_pdf: TablePdf<unknown>) => Promise.resolve()) };
     const service = {
       get: vi.fn(() => of(SELECTION)),
       getPlayersTable: vi.fn(() => of(PLAYERS_PAGE)),
@@ -105,11 +108,12 @@ describe('CwlSelectionPage', () => {
         provideRouter([]),
         provideCocApiTest(),
         { provide: CwlSelectionService, useValue: service },
+        { provide: TablePdfExporter, useValue: exporter },
       ],
     });
     const fixture = TestBed.createComponent(CwlSelectionPage);
     await fixture.whenStable();
-    return { el: fixture.nativeElement as HTMLElement, service, fixture };
+    return { el: fixture.nativeElement as HTMLElement, service, fixture, exporter };
   }
 
   it('keeps the order of the ranking and highlights starters, reserves and excluded players', async () => {
@@ -210,5 +214,50 @@ describe('CwlSelectionPage', () => {
     expect(TestBed.inject(AuthService).isAdmin()).toBe(false);
     expect(el.querySelector('tr.mat-mdc-row')).not.toBeNull();
     expect(el.querySelector('td.actions')).toBeNull();
+  });
+
+  it('downloads the 15 starters, the 3 reserves on page 2 and the rules on page 3 as a PDF', async () => {
+    const { el, fixture, exporter } = await render();
+    el.querySelector<HTMLButtonElement>('crn-pdf-button button')!.click();
+    await fixture.whenStable();
+    const pdf = exporter.download.mock.calls[0][0] as TablePdf<CwlSelectionPlayer>;
+    // Named after the month of the next CWL (the last one was October).
+    expect(pdf.fileName).toBe('selezioni-cwl-crociata-nera-novembre');
+    expect(pdf.title).toBe('Formazione CWL');
+    const [starters, reserves] = pdf.groups;
+    expect(starters).toMatchObject({ title: 'Schierati: 15/15', accent: 'starter' });
+    expect(starters.pageBreakBefore).toBeFalsy();
+    expect(starters.rows.map((p) => p.rank)).toEqual(Array.from({ length: 15 }, (_, i) => i + 2));
+    expect(reserves).toMatchObject({
+      title: 'Riserve: 3/3',
+      accent: 'reserve',
+      pageBreakBefore: true,
+    });
+    expect(reserves.rows.map((p) => p.rank)).toEqual([17, 18, 19]);
+    expect(pdf.notes).toMatchObject({
+      title: 'Come si calcola la classifica',
+      pageBreakBefore: true,
+    });
+    expect(pdf.notes!.items).toHaveLength(10);
+    // Position, league and town hall first; excluded, bench and ineligible players are left out.
+    const [position, league, townHall, name, score, cwl] = pdf.columns;
+    expect(townHall.cell(starters.rows[0])).toEqual({
+      image: 'game/town-halls/th-17.webp',
+      size: 20,
+      fallback: '17',
+    });
+    expect(league.cell(starters.rows[0])).toMatchObject({
+      image: 'game/league-tiers/105000028.webp',
+    });
+    expect(league.cell(starters.rows[5])).toMatchObject({ image: null, fallback: '—' });
+    expect(position.cell(reserves.rows[0])).toBe(16);
+    expect(name.cell(starters.rows[4])).toEqual({
+      text: 'Player 6',
+      emphasis: 'strong',
+      note: "Crociata d'Oro · Membro",
+    });
+    expect((score.cell(starters.rows[0]) as PdfCell).text).toBe('98,0');
+    expect(cwl.cell(starters.rows[1])).toEqual({ text: 'Non schierato', emphasis: 'muted' });
+    expect(pdf.facts!.map((f) => f.value)).toContain('Ottobre 2026');
   });
 });

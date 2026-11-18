@@ -956,7 +956,21 @@
     "allIn": "Tutti i membri hanno partecipato.",
     "noMembersTitle": "Dettaglio dei membri non disponibile",
     "noMembersText": "Clash of Clans mostra chi ha attaccato solo mentre il weekend è in corso: il sito lo salva da quando è attivo, quindi per questo weekend sono disponibili solo i totali.",
-    "total": "Totale"
+    "total": "Totale",
+    "pdf": {
+      "title": "Raid Weekend",
+      "participants": "Partecipanti",
+      "raidsValue": "{{raids}} · {{districts}} distretti",
+      "empty": "Nessun membro ha attaccato in questo weekend."
+    }
+  },
+  "pdf": {
+    "download": "Scarica PDF",
+    "downloading": "Creo il PDF…",
+    "error": "Non è stato possibile creare il PDF. Riprova.",
+    "generatedAt": "Generato il {{date}}",
+    "page": "Pagina {{n}} di {{total}}",
+    "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la Fan Content Policy di Supercell: supercell.com/en/fan-content-policy"
   },
   "table": {
     "resizeColumn": "Ridimensiona la colonna {{name}}",
@@ -1066,6 +1080,16 @@
     "cwlCommendations": "Encomi dell'ultima CWL",
     "noCwlHint": "Non era nello schieramento dell'ultima CWL: i 25 punti della CWL passano alle guerre normali",
     "warMax": "Fino a {{n}} punti",
-    "searchPlaceholder": "Nome, tag o clan"
+    "searchPlaceholder": "Nome, tag o clan",
+    "pdf": {
+      "league": "Lega",
+      "title": "Formazione CWL",
+      "subtitle": "I {{starters}} giocatori da schierare in Lega e le {{reserves}} riserve, dalla classifica dei tre clan della Crociata.",
+      "lineup": "Formazione",
+      "lineupValue": "{{starters}} schierati + {{reserves}} riserve",
+      "cwl": "Media CWL",
+      "cwlAttacks": "{{attacks}} attacchi in {{wars}} guerre",
+      "war": "Media guerre"
+    }
   }
 }

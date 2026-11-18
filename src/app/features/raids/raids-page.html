@@ -16,6 +16,9 @@
         (valueChange)="changeWeekend($event!)"
       />
     }
+    @if (membersPdf(); as pdf) {
+      <crn-pdf-button [pdf]="pdf" />
+    }
   </crn-page-header>
 
   <div class="page__body">

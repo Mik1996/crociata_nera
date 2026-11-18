@@ -1,0 +1,10 @@
+<button
+  mat-stroked-button
+  type="button"
+  [disabled]="!pdf() || busy()"
+  [attr.aria-busy]="busy()"
+  (click)="download()"
+>
+  <crn-icon matButtonIcon name="download" />
+  {{ (busy() ? 'pdf.downloading' : 'pdf.download') | translate }}
+</button>

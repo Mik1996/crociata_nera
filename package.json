@@ -30,6 +30,7 @@
     "@ngx-translate/http-loader": "^18.1.0",
     "chart.js": "^4.6.1",
     "ng2-charts": "^11.0.0",
+    "pdfmake": "^0.3.13",
     "rxjs": "~7.8.0",
     "three": "^0.187.0",
     "tslib": "^2.3.0"
@@ -39,6 +40,7 @@
     "@angular/cli": "^22.2.6",
     "@angular/compiler-cli": "^22.2.0",
     "@material-design-icons/svg": "^0.14.15",
+    "@types/pdfmake": "^0.3.3",
     "@types/three": "^0.187.0",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",

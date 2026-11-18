@@ -362,6 +362,25 @@
   // League points in the CWL selection score (bar segment and tooltip dot).
   --cn-score-league: #22d3ee;
 
+  // --- PDF exports (`shared/pdf`): printed pages, light paper with the Crusade's black band.
+  // Plain hex only: the PDF library reads them as they are (no gradients, no color-mix()).
+  --cn-pdf-paper: #fbf8f1; // page background
+  --cn-pdf-ink: #1b1416; // body text
+  --cn-pdf-muted: #6f625c; // notes under a value, labels, page footer
+  --cn-pdf-band: #140d0f; // header band and table header row
+  --cn-pdf-band-text: #f2ead8; // text on the band
+  --cn-pdf-band-muted: #b9aa9a; // secondary text on the band
+  --cn-pdf-gold: #d9a93f; // rules under the band and the table header
+  --cn-pdf-gold-text: #f0c96a; // titles on the band
+  --cn-pdf-red: #7a1414; // red rule of the band, Cinzel headings on paper
+  --cn-pdf-danger: #b3261e; // values that need attention (missing attacks)
+  --cn-pdf-line: #e2d8c6; // lines between rows
+  --cn-pdf-stripe: #f2ecdf; // every other row, facts and totals
+  --cn-pdf-starter: #2f7fd6; // CWL starters: accent and its light row tint
+  --cn-pdf-starter-tint: #e7f0fb;
+  --cn-pdf-reserve: #2a9d57; // CWL reserves
+  --cn-pdf-reserve-tint: #e6f4ea;
+
   // --- Medal metals (flat medals and the 3D medal dialog): light, base, dark ---
   --cn-medal-gold-light: #fff6c2;
   --cn-medal-gold: #f1bd2c;

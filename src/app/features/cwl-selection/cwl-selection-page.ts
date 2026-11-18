@@ -9,10 +9,10 @@ import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import {
-    CwlExclusion,
-    CwlScoreBreakdown,
-    CwlSelectionPlayer,
-    CwlSelectionStatus,
+  CwlExclusion,
+  CwlScoreBreakdown,
+  CwlSelectionPlayer,
+  CwlSelectionStatus,
 } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
@@ -26,6 +26,7 @@ import { LegendItem } from '../../shared/components/legend-item/legend-item';
 import { LoadState } from '../../shared/components/load-state/load-state';
 import { Meter, MeterSegment } from '../../shared/components/meter/meter';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PdfButton } from '../../shared/components/pdf-button/pdf-button';
 import { PlayerCell } from '../../shared/components/player-cell/player-cell';
 import { StarText } from '../../shared/components/star-text/star-text';
 import { crusadeClanNames, selectionFilters } from '../../shared/components/table/clan-tables';
@@ -36,7 +37,9 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { roleKey } from '../../shared/labels';
+import { TablePdf } from '../../shared/pdf/table-pdf';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
+import { cwlLineupPdf } from './cwl-lineup-pdf';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {
@@ -116,6 +119,7 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
     Legend,
     LegendItem,
     PlayerCell,
+    PdfButton,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -186,6 +190,19 @@ export class CwlSelectionPage {
     }).format(new Date(`${season}-01`));
     // Italian and Spanish month names are lowercase ("novembre 2026"): a label starts capitalised.
     return label.charAt(0).toLocaleUpperCase(this.language.current()) + label.slice(1);
+  });
+
+  /** The 15 starters and the 3 reserves as a PDF (`null` until the ranking loads). */
+  protected readonly lineupPdf = computed<TablePdf<CwlSelectionPlayer> | null>(() => {
+    const selection = this.selection();
+    if (!selection) return null;
+    return cwlLineupPdf(selection, {
+      t: (key, params) => this.language.t(key, params),
+      locale: this.language.current(),
+      clanName: (tag) => this.clanName(tag),
+      roleKey: (role) => this.roleLabel(role),
+      cwlSeason: this.cwlSeasonLabel(),
+    });
   });
 
   /** Names of the clans of the Crusade: the clan of each player and of their last CWL. */

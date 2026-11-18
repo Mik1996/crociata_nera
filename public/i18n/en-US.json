@@ -956,7 +956,21 @@
     "allIn": "Every member took part.",
     "noMembersTitle": "Member detail not available",
     "noMembersText": "Clash of Clans shows who attacked only while the weekend is in progress: the site saves it since it went live, so only the totals are available for this weekend.",
-    "total": "Total"
+    "total": "Total",
+    "pdf": {
+      "title": "Raid Weekend",
+      "participants": "Participants",
+      "raidsValue": "{{raids}} · {{districts}} districts",
+      "empty": "No member attacked in this weekend."
+    }
+  },
+  "pdf": {
+    "download": "Download PDF",
+    "downloading": "Creating the PDF…",
+    "error": "The PDF could not be created. Please try again.",
+    "generatedAt": "Generated on {{date}}",
+    "page": "Page {{n}} of {{total}}",
+    "fanContent": "This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: supercell.com/en/fan-content-policy"
   },
   "table": {
     "resizeColumn": "Resize the {{name}} column",
@@ -1066,6 +1080,16 @@
     "cwlCommendations": "Commendations of the last CWL",
     "noCwlHint": "Not in the line-up of the last CWL: the 25 CWL points move to the regular wars",
     "warMax": "Up to {{n}} points",
-    "searchPlaceholder": "Name, tag or clan"
+    "searchPlaceholder": "Name, tag or clan",
+    "pdf": {
+      "league": "League",
+      "title": "CWL line-up",
+      "subtitle": "The {{starters}} players to field in the League and the {{reserves}} reserves, from the ranking of the three clans of the Crusade.",
+      "lineup": "Line-up",
+      "lineupValue": "{{starters}} starters + {{reserves}} reserves",
+      "cwl": "CWL average",
+      "cwlAttacks": "{{attacks}} attacks in {{wars}} wars",
+      "war": "War average"
+    }
   }
 }

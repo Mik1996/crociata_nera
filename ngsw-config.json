@@ -42,7 +42,8 @@
           "/game/**",
           "/flags/**",
           "/commendations/**",
-          "/icons/**"
+          "/icons/**",
+          "/assets/fonts/**"
         ]
       }
     },

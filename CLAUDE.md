@@ -95,6 +95,13 @@ back to the previous images if the containers do not become healthy (manual: `de
   documented with `tableQueryPart` (`src/openapi/table.ts`), rate limit `TABLES_READ`. Column ids
   and filters are shared in `shared/components/table/clan-tables.ts`, also used by the mock services
   (`applyTableQuery`). Only the CWL group standings (8 rows, no filters) take plain `[data]`.
+- PDF export of a table: the page builds a `TablePdf` (`shared/pdf/table-pdf.ts`: columns, groups of
+  rows with an accent and `pageBreakBefore`, image cells, facts, totals, a page of notes) from the data it
+  already has and binds `<crn-pdf-button [pdf]="...">`; `TablePdfExporter` loads pdfmake (lazy chunk) and the
+  fonts in `public/assets/fonts/pdf/` only at the first export, turns the pictures into PNG and draws names
+  with emoji or other scripts as pictures (browser fonts); `buildTablePdf` draws the Crusade look (same
+  header on every page, colours `--cn-pdf-*`). Pictures must be same-origin: league badges are copied in
+  `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up and the Raid Weekend.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).
