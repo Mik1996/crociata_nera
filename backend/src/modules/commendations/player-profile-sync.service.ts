@@ -5,6 +5,8 @@ import { PlayerModel } from './player.model';
 
 /** A profile is read again after this long. */
 export const PROFILE_TTL_MS = 6 * 3_600_000;
+/** A profile that could not be read is tried again after this long (the others go first meanwhile). */
+export const PROFILE_RETRY_MS = 3_600_000;
 /** Most profiles read per run, so a run never floods the Clash of Clans API. */
 export const PROFILES_PER_RUN = 15;
 
@@ -25,14 +27,18 @@ export interface ProfileSyncResult {
 /**
  * Reads the profile (`GET /players/{tag}`) of the current members of the main clan never read or read more than
  * {@link PROFILE_TTL_MS} ago, at most {@link PROFILES_PER_RUN}, oldest first, and saves their home
- * village heroes and the equipment the heroes wear (CWL line-up). A failure skips that player only.
+ * village heroes and the equipment the heroes wear (CWL line-up). A failure skips that player only,
+ * for {@link PROFILE_RETRY_MS}: players that keep failing never hold back the others.
  */
 export async function syncPlayerProfiles(now = new Date()): Promise<ProfileSyncResult> {
   const due = await PlayerModel.find({
     // The CWL line-up is of the main clan (players saved before the clan was tracked included).
     inClan: true,
     clanTag: { $in: [env().CLAN_TAG ?? null, null] },
-    $or: [{ profileSyncedAt: null }, { profileSyncedAt: { $lt: new Date(now.getTime() - PROFILE_TTL_MS) } }],
+    $and: [
+      { $or: [{ profileSyncedAt: null }, { profileSyncedAt: { $lt: new Date(now.getTime() - PROFILE_TTL_MS) } }] },
+      { $or: [{ profileAttemptedAt: null }, { profileAttemptedAt: { $lte: new Date(now.getTime() - PROFILE_RETRY_MS) } }] },
+    ],
   })
     .sort({ profileSyncedAt: 1 })
     .limit(PROFILES_PER_RUN)
@@ -51,6 +57,7 @@ export async function syncPlayerProfiles(now = new Date()): Promise<ProfileSyncR
             heroes: home.map(level),
             equipment: home.flatMap((h) => (h.equipment ?? []).map(level)),
             profileSyncedAt: now,
+            profileAttemptedAt: now,
           },
         },
       );
@@ -58,6 +65,7 @@ export async function syncPlayerProfiles(now = new Date()): Promise<ProfileSyncR
     } catch (error) {
       if (!(error instanceof CocApiError) && !(error instanceof z.ZodError)) throw error;
       result.failed++;
+      await PlayerModel.updateOne({ tag }, { $set: { profileAttemptedAt: now } });
       console.warn(`[profiles] ${tag} not read: ${error.message}`);
     }
   }

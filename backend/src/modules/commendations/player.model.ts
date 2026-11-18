@@ -54,6 +54,8 @@ const playerSchema = new Schema(
     equipment: { type: [levelSchema], default: null },
     /** Last read of the player's profile. */
     profileSyncedAt: { type: Date, default: null },
+    /** Last attempt to read the profile, successful or not: a failed one is retried after a while. */
+    profileAttemptedAt: { type: Date, default: null },
     commendations: { type: [earnedSchema], default: [] },
   },
   { collection: 'Players', timestamps: true, versionKey: false },

@@ -10,7 +10,7 @@ import { CommendationAwardModel } from '@/modules/commendations/commendation-awa
 import { syncMembers } from '@/modules/commendations/commendation-sync.service';
 import { COMMENDATION_IDS } from '@/modules/commendations/commendation-rules';
 import { PlayerModel } from '@/modules/commendations/player.model';
-import { PROFILES_PER_RUN, syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
+import { PROFILE_RETRY_MS, PROFILE_TTL_MS, PROFILES_PER_RUN, syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import {
   cwlCommendationScore,
   cwlPerformanceScore,
@@ -517,11 +517,25 @@ describe('data for the line-up', () => {
     });
     expect(coc).toHaveBeenCalledTimes(2);
 
-    // Read again only after a while.
+    // Read again only after a while, the failed one too.
     coc.mockClear();
     await syncPlayerProfiles(new Date(NOW.getTime() + 60_000));
+    expect(coc).not.toHaveBeenCalled();
+    await syncPlayerProfiles(new Date(NOW.getTime() + PROFILE_RETRY_MS));
     expect(coc).toHaveBeenCalledTimes(1); // the failed one only
     expect(PROFILES_PER_RUN).toBeGreaterThan(0);
+  });
+
+  it('lets the other players go first while a profile keeps failing', async () => {
+    await PlayerModel.create([
+      ...Array.from({ length: PROFILES_PER_RUN }, (_, i) => ({ tag: `#ERR${i}`, name: `Broken ${i}`, inClan: true })),
+      { tag: '#AAA111', name: 'Alice', inClan: true, profileSyncedAt: new Date(NOW.getTime() - PROFILE_TTL_MS - 1) },
+    ]);
+    // Only Alice's profile can be read (the others answer 404).
+    mockCocApi({ '/players/%23AAA111': { body: { heroes: [] } } });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await syncPlayerProfiles(NOW)).toEqual({ refreshed: 0, failed: PROFILES_PER_RUN });
+    expect(await syncPlayerProfiles(new Date(NOW.getTime() + 60_000))).toEqual({ refreshed: 1, failed: 0 });
   });
 
   it('remembers when a player joined (or came back to) the clan', async () => {
