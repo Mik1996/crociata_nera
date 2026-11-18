@@ -10,7 +10,7 @@ import {
   CwlSelectionService,
   MAX_EXCLUSION_REASON_LENGTH,
 } from '../../../core/backend/cwl-selection.service';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 export interface ExcludePlayerDialogData {
   tag: string;

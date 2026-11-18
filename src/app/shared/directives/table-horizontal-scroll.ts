@@ -6,7 +6,7 @@ const THRESHOLD = 4;
 /**
  * Horizontal scroll hint of every table (`<crn-table>`, on its scrolling area
  * `.crn-table__scroll`), which scrolls sideways on narrow screens: `crn-table__scroll--more-x`
- * while there are columns beyond the right edge, which then fades (scrollbars are hidden site-wide). Styles in `shared/table/table.scss`.
+ * while there are columns beyond the right edge, which then fades (scrollbars are hidden site-wide). Styles in `shared/components/table/table.scss`.
  *
  * Tracks scrolling and size changes of the wrapper and of the table (data loaded, columns
  * resized, window resized).

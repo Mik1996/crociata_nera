@@ -1,19 +1,19 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, map, Observable, of } from 'rxjs';
+import { crusadeClanNames, selectionFilters } from '../../shared/components/table/clan-tables';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { applyTableQuery, TablePage } from '../../shared/components/table/table-page';
 import { CocApiService } from '../api/coc-api';
 import {
-  CwlExclusion,
-  CwlScoreBreakdown,
-  CwlSelection,
-  CwlSelectionPlayer,
-  CwlSelectionStatus,
+    CwlExclusion,
+    CwlScoreBreakdown,
+    CwlSelection,
+    CwlSelectionPlayer,
+    CwlSelectionStatus,
 } from '../backend/backend-api.types';
 import { CwlSelectionService } from '../backend/cwl-selection.service';
 import { APP_CONFIG } from '../config/app-config';
 import { ClanMember } from '../models';
-import { crusadeClanNames, selectionFilters } from '../../shared/table/clan-tables';
-import { TableQuery } from '../../shared/table/table-filters';
-import { applyTableQuery, TablePage } from '../../shared/table/table-page';
 import { Random } from './random';
 
 const STARTERS = 15;

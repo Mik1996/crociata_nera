@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import {
-  FormGroupDirective,
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
+    FormGroupDirective,
+    NonNullableFormBuilder,
+    ReactiveFormsModule,
+    Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
@@ -19,19 +18,20 @@ import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { LocalDatePipe } from '../../core/i18n/locale-pipes';
-import { PageHeader } from '../../shared/components/page-header';
+import { Avatar } from '../../shared/components/avatar/avatar';
+import { Icon } from '../../shared/components/icon/icon';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PasswordToggle } from '../../shared/components/password-toggle/password-toggle';
+import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { roleKey } from '../../shared/labels';
 import {
-  applyServerErrors,
-  errorKey,
-  passwordsMatch,
-  PLAYER_TAG_PATTERN,
-  strongPassword,
+    applyServerErrors,
+    errorKey,
+    passwordsMatch,
+    PLAYER_TAG_PATTERN,
+    strongPassword,
 } from '../auth/auth-form';
-import { Tag } from '../../shared/components/tag';
-import { PasswordToggle } from '../../shared/components/password-toggle';
-import { Avatar } from '../../shared/components/avatar';
 
 /** Most accounts a user can link (same limit as the backend). */
 const MAX_LINKED_PLAYERS = 10;

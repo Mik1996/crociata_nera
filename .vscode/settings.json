@@ -22,7 +22,8 @@
     "th19",
     "cwl",
     "UI",
-    "player"
+    "player",
+    "refactoring"
   ],
   "i18n-ally.localesPaths": ["public/i18n"],
   "i18n-ally.enabledFrameworks": ["ngx-translate"],

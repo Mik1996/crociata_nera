@@ -1,23 +1,23 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    input,
+    output,
+    signal,
+    untracked,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Icon } from '../icon/icon';
-import { IconName } from '../icon/icon-names';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CLAN_CREST_URL, ClanBadge } from '../../core/api/clan-badge';
-import { isTranslatableError } from '../../core/i18n/translatable-error';
-import { LanguageService } from '../../core/i18n/language.service';
-import { Connectivity } from '../../core/pwa/connectivity';
+import { CLAN_CREST_URL, ClanBadge } from '../../../core/api/clan-badge';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { isTranslatableError } from '../../../core/i18n/translatable-error';
+import { Connectivity } from '../../../core/pwa/connectivity';
+import { Icon } from '../icon/icon';
+import { IconName } from '../icon/icon-names';
 
 /**
  * Extracts a readable message from an unknown error.

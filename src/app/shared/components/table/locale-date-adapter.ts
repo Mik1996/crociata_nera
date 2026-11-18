@@ -1,12 +1,12 @@
 import { effect, inject, Injectable, Provider } from '@angular/core';
 import {
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE,
-  MAT_NATIVE_DATE_FORMATS,
-  NativeDateAdapter,
+    DateAdapter,
+    MAT_DATE_FORMATS,
+    MAT_DATE_LOCALE,
+    MAT_NATIVE_DATE_FORMATS,
+    NativeDateAdapter,
 } from '@angular/material/core';
-import { LanguageService } from '../../core/i18n/language.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 
 /**
  * Native dates for the Material date pickers, in the language of the site: typed dates are read

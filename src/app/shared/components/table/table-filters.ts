@@ -1,4 +1,4 @@
-import { matchesText } from '../../core/utils/sort';
+import { matchesText } from '../../../core/utils/sort';
 
 /** Value of a date filter bound: a day as written by `<input type="date">` (`YYYY-MM-DD`). */
 export type IsoDay = string;

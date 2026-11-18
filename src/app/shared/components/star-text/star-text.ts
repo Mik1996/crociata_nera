@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { GAME_ICONS } from '../../core/game/game-assets';
+import { GAME_ICONS } from '../../../core/game/game-assets';
 
 /** Text where every ★ is drawn with the in-game star (e.g. table headers like "3★ %"). */
 @Component({

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { IconName } from '../icon/icon-names';
 import { Alert, AlertTone } from './alert';
+import { IconName } from '../icon/icon-names';
 
 @Component({
   imports: [Alert],

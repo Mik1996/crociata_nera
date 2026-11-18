@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CRESTS } from '../../core/api/clan-badge';
 import { LoadedSisterClan } from '../../core/api/sister-clans';
@@ -8,6 +7,7 @@ import { clanProfileLink } from '../../core/game/clan-link';
 import { townHallImage } from '../../core/game/units';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Clan } from '../../core/models';
+import { Icon } from '../../shared/components/icon/icon';
 
 /** Clan size limit in Clash of Clans. */
 const MAX_MEMBERS = 50;

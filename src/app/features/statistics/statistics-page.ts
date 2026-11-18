@@ -1,10 +1,10 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  linkedSignal,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    linkedSignal,
+    signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -14,27 +14,27 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
+import { GAME_ICONS } from '../../core/game/game-assets';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { HistoryPeriod, HistoryPlayerStats } from '../../core/models';
 import { ALL_PERIODS, HistoryService } from '../../core/services/history.service';
 import { periodLabel } from '../../core/utils/monthly-history';
 import { percentage } from '../../core/utils/war-stats';
-import { KpiCard } from '../../shared/components/kpi-card';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { ResultBadge } from '../../shared/components/result-badge';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { Meter } from '../../shared/components/meter/meter';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { ResultBadge } from '../../shared/components/result-badge/result-badge';
+import { Select, SelectOption } from '../../shared/components/select/select';
+import { StarText } from '../../shared/components/star-text/star-text';
+import { PERIOD_WARS_FILTERS, RANKING_FILTERS } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
+import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { Table } from '../../shared/table/table';
-import { PERIOD_WARS_FILTERS, RANKING_FILTERS } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
-import { GAME_ICONS } from '../../core/game/game-assets';
-import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
-import { Tag } from '../../shared/components/tag';
-import { Select, SelectOption } from '../../shared/components/select';
-import { Meter } from '../../shared/components/meter';
-import { PlayerCell } from '../../shared/components/player-cell';
 
 /** Choices of the minimum number of wars to be ranked. */
 const MIN_WARS_CHOICES = [1, 2, 3, 5, 10];

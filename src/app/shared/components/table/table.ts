@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterContentChecked,
   afterNextRender,
@@ -21,6 +22,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -30,7 +32,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort } from '@angular/material/sort';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   MatColumnDef,
   MatFooterCellDef,
@@ -40,17 +41,17 @@ import {
   MatTableModule,
 } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '@ngx-translate/core';
-import { backendErrors } from '../../core/backend/backend-errors';
-import { LanguageService } from '../../core/i18n/language.service';
-import { Connectivity } from '../../core/pwa/connectivity';
-import { errorMessage } from '../components/load-state';
-import { ResizableColumns } from '../directives/resizable-columns';
-import { TableHorizontalScroll } from '../directives/table-horizontal-scroll';
+import { backendErrors } from '../../../core/backend/backend-errors';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { Connectivity } from '../../../core/pwa/connectivity';
+import { ResizableColumns } from '../../directives/resizable-columns';
+import { TableHorizontalScroll } from '../../directives/table-horizontal-scroll';
 import { Icon } from '../icon/icon';
+import { errorMessage } from '../load-state/load-state';
+import { Paginator } from '../paginator/paginator';
 import { provideLocaleDateAdapter } from './locale-date-adapter';
-import { wheelTarget } from './wheel-routing';
+import { TableSource } from './server-table';
 import {
   activeFilterValues,
   applyFilters,
@@ -65,8 +66,7 @@ import {
   TableFilterValueByType,
   TableQuery,
 } from './table-filters';
-import { TableSource } from './server-table';
-import { Paginator } from '../components/paginator';
+import { wheelTarget } from './wheel-routing';
 
 /** Prefix of the columns of the filter row (one per column of the table). */
 const FILTER_COLUMN = 'crn-filter:';

@@ -7,7 +7,7 @@ import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { CommendationTier, CommendationType } from '../../../core/models';
 import { CommendationService } from '../../../core/services/commendation.service';
 import { COMMENDATION_THRESHOLDS, COMMENDATION_TYPES, emblemOf, tiersOf } from '../../../core/utils/commendations';
-import { LoadState } from '../../../shared/components/load-state';
+import { LoadState } from '../../../shared/components/load-state/load-state';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { openCommendationDialog } from './open-commendation-dialog';
 

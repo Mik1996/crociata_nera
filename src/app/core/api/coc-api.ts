@@ -1,4 +1,6 @@
 import { Observable } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage } from '../../shared/components/table/table-page';
 import {
   Clan,
   ClanRecords,
@@ -25,8 +27,6 @@ import {
   WarHistorySummary,
   WarPerformance,
 } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage } from '../../shared/table/table-page';
 import { ParticipantRow } from '../utils/war-stats';
 
 /**

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
-import { CLAN_CREST_URL, ClanBadge } from '../../core/api/clan-badge';
+import { CLAN_CREST_URL, ClanBadge } from '../../../core/api/clan-badge';
 import { errorMessage, LoadState } from './load-state';
 
 @Component({

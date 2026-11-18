@@ -1,12 +1,12 @@
-import { sortRows } from '../../core/utils/sort';
+import { sortRows } from '../../../core/utils/sort';
 import {
-  applyFilters,
-  DayRange,
-  dayRangeInstants,
-  NumberRange,
-  TableFilters,
-  TableFilterValue,
-  TableQuery,
+    applyFilters,
+    DayRange,
+    dayRangeInstants,
+    NumberRange,
+    TableFilters,
+    TableFilterValue,
+    TableQuery,
 } from './table-filters';
 
 /**

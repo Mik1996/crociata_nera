@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LanguageCode } from '../../core/i18n/languages';
 import { ThemeService } from '../../core/theme/theme.service';
-import { PageHeader } from '../../shared/components/page-header';
+import { Icon } from '../../shared/components/icon/icon';
+import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 
 /** Settings (public): theme and language, as large options that are easy to tap on phones. */

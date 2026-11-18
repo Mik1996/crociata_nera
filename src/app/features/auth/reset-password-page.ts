@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
@@ -10,10 +9,11 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
+import { Alert } from '../../shared/components/alert/alert';
+import { Icon } from '../../shared/components/icon/icon';
+import { PasswordToggle } from '../../shared/components/password-toggle/password-toggle';
 import { applyServerErrors, errorKey, passwordsMatch, strongPassword } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
-import { PasswordToggle } from '../../shared/components/password-toggle';
-import { Alert } from '../../shared/components/alert';
 
 /** New password from the emailed link (`/reset-password?token=…`). */
 @Component({

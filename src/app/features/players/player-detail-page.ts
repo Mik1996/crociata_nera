@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { Icon } from '../../shared/icon/icon';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -11,14 +9,15 @@ import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerUnit } from '../../core/models';
 import { CommendationService } from '../../core/services/commendation.service';
 import { PlayerService } from '../../core/services/player.service';
-import { LoadState } from '../../shared/components/load-state';
+import { Icon } from '../../shared/components/icon/icon';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { SwipeTabs } from '../../shared/directives/swipe-tabs';
 import { LevelBadge } from '../../shared/game/level-badge';
 import { UnitTile } from '../../shared/game/unit-tile';
 import { PlayerBanner } from './components/player-banner';
 import { PlayerCommendations } from './components/player-commendations';
 import { PlayerWarStats } from './components/player-war-stats';
-import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { SwipeTabs } from '../../shared/directives/swipe-tabs';
 
 interface ArmySection {
   /** Translation key of the section title. */

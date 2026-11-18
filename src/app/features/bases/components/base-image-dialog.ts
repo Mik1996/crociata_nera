@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DefenseBase } from '../../../core/backend/backend-api.types';
+import { Icon } from '../../../shared/components/icon/icon';
 import { ClanCastleTroops } from './clan-castle-troops';
 
 export interface BaseImageDialogData {

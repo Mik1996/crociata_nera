@@ -1,26 +1,26 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Icon } from '../../shared/icon/icon';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CocApiService } from '../../core/api/coc-api';
+import { AuthService } from '../../core/backend/auth.service';
 import { capitalHallImage } from '../../core/game/clan-assets';
 import { GAME_ICONS } from '../../core/game/game-assets';
-import { AuthService } from '../../core/backend/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { RaidSeason } from '../../core/models';
-import { KpiCard } from '../../shared/components/kpi-card';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
+import { Icon } from '../../shared/components/icon/icon';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { Select, SelectOption } from '../../shared/components/select/select';
+import { RAID_MEMBER_FILTERS } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
+import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { Table } from '../../shared/table/table';
-import { RAID_MEMBER_FILTERS } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
-import { Tag } from '../../shared/components/tag';
-import { Select, SelectOption } from '../../shared/components/select';
-import { PlayerCell } from '../../shared/components/player-cell';
 
 const MAXIMUM_CAPITAL_RAIDS = 6;
 /**

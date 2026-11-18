@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { BackendMessage } from '../../core/backend/backend-api.types';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
 
 /**
  * Error messages of a form or dialog (backend `MessageKey`s with their parameters), one line each,

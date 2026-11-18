@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Legend } from './legend';
-import { LegendItem } from './legend-item';
+import { LegendItem } from '../legend-item/legend-item';
 
 @Component({
   imports: [Legend, LegendItem],

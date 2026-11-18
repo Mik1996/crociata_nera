@@ -1,14 +1,13 @@
 import {
-  booleanAttribute,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  signal,
+    booleanAttribute,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    input,
+    signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { map, timer } from 'rxjs';
 import { CLAN_CREST_URL } from '../../../core/api/clan-badge';
@@ -16,10 +15,11 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { War } from '../../../core/models';
 import { warResult } from '../../../core/utils/war-stats';
-import { ResultBadge } from '../../../shared/components/result-badge';
-import { Crusader } from '../../../shared/crusader/crusader';
+import { Icon } from '../../../shared/components/icon/icon';
+import { Meter } from '../../../shared/components/meter/meter';
+import { ResultBadge } from '../../../shared/components/result-badge/result-badge';
+import { Crusader } from '../../../shared/components/crusader/crusader';
 import { warStateKey } from '../../../shared/labels';
-import { Meter } from '../../../shared/components/meter';
 
 /**
  * Battle scoreboard: our clan versus the opponent. Each side has a bar of the stars earned out of

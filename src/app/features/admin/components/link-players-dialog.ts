@@ -3,14 +3,14 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService } from '../../../core/backend/admin.service';
 import { AdminUser, BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { FormErrors } from '../../../shared/components/form-errors/form-errors';
+import { Icon } from '../../../shared/components/icon/icon';
 import { PLAYER_TAG_PATTERN } from '../../auth/auth-form';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
-import { FormErrors } from '../../../shared/components/form-errors';
 
 export interface AdminUserDialogData {
   user: AdminUser;

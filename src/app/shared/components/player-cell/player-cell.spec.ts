@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthService } from '../../core/backend/auth.service';
+import { AuthService } from '../../../core/backend/auth.service';
 import { PlayerCell } from './player-cell';
-import { Tag } from './tag';
+import { Tag } from '../tag/tag';
 
 @Component({
   imports: [PlayerCell, Tag],

@@ -1,21 +1,21 @@
 import { NgTemplateOutlet } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  input,
-  output,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    inject,
+    input,
+    output,
+    signal,
 } from '@angular/core';
-import { Icon } from '../../../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CLAN_CRESTS } from '../../../../core/api/clan-badge';
 import { CrusadeOrder } from '../../../../core/config/sister-clans';
 import { Clan } from '../../../../core/models';
+import { Icon } from '../../../../shared/components/icon/icon';
+import { Crusader } from '../../../../shared/components/crusader/crusader';
 import { ScrollyAct } from '../../../../shared/scrolly/scrolly-act';
-import { Crusader } from '../../../../shared/crusader/crusader';
 
 /** Progress from which the motto and the call to action are visible (see `--finale` in the styles). */
 const FINALE_AT = 0.6;

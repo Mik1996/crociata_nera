@@ -1,57 +1,57 @@
 import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage, TableParams, tableQueryParams } from '../../shared/components/table/table-page';
+import { BaseResult } from '../backend/backend-api.types';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor, noCache } from '../http/http-cache';
-import { BaseResult } from '../backend/backend-api.types';
 import {
-  Clan,
-  ClanRanks,
-  ClanRecords,
-  CwlPlayerRow,
-  CwlSeason,
-  CwlSeasonSummary,
-  DonationSeason,
-  HistoryPeriod,
-  MemberStatsRow,
-  MemberStatsSummary,
-  Membership,
-  MonthSummary,
-  ParticipantsSummary,
-  PeriodWarRow,
-  PlayerProfile,
-  PublicClansData,
-  RaidMemberRow,
-  RaidMembersSummary,
-  RaidSeason,
-  RankingOptions,
-  RankingRow,
-  War,
-  WarHistoryRow,
-  WarHistorySummary,
-  WarPerformance,
+    Clan,
+    ClanRanks,
+    ClanRecords,
+    CwlPlayerRow,
+    CwlSeason,
+    CwlSeasonSummary,
+    DonationSeason,
+    HistoryPeriod,
+    Membership,
+    MemberStatsRow,
+    MemberStatsSummary,
+    MonthSummary,
+    ParticipantsSummary,
+    PeriodWarRow,
+    PlayerProfile,
+    PublicClansData,
+    RaidMemberRow,
+    RaidMembersSummary,
+    RaidSeason,
+    RankingOptions,
+    RankingRow,
+    War,
+    WarHistoryRow,
+    WarHistorySummary,
+    WarPerformance,
 } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage, tableQueryParams, TableParams } from '../../shared/table/table-page';
-import { ParticipantRow } from '../utils/war-stats';
 import { buildCwlSeason, cwlMonth, mapRaidSeason } from '../utils/cwl';
+import { ParticipantRow } from '../utils/war-stats';
 import { CocApiService } from './coc-api';
-import {
-  closeExpiredWars,
-  mapClan,
-  mapPlayerProfile,
-  mapWar,
-  mapWarLogEntry,
-  mergeWarHistory,
-} from './coc-api.mappers';
 import { toBackendError } from './coc-api-errors';
 import {
-  CocCapitalRaidSeason,
-  CocClan,
-  CocCwlSeasonRecord,
-  CocPlayer,
-  CocWar,
-  CocWarLogEntry,
+    closeExpiredWars,
+    mapClan,
+    mapPlayerProfile,
+    mapWar,
+    mapWarLogEntry,
+    mergeWarHistory,
+} from './coc-api.mappers';
+import {
+    CocCapitalRaidSeason,
+    CocClan,
+    CocCwlSeasonRecord,
+    CocPlayer,
+    CocWar,
+    CocWarLogEntry,
 } from './coc-api.types';
 
 export { CocApiHttpError, toBackendError } from './coc-api-errors';

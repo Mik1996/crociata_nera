@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { GAME_ICONS } from '../../../core/game/game-assets';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { PlayerStats } from '../../../core/models';
@@ -11,18 +12,17 @@ import { PlayerService } from '../../../core/services/player.service';
 import { ThemeService } from '../../../core/theme/theme.service';
 import { efficiency } from '../../../core/utils/war-stats';
 import {
-  barSeries,
-  baseChartOptions,
-  chartChrome,
-  lineSeries,
-  shortDateLabel,
+    barSeries,
+    baseChartOptions,
+    chartChrome,
+    lineSeries,
+    shortDateLabel,
 } from '../../../shared/charts/chart-theme';
-import { KpiCard } from '../../../shared/components/kpi-card';
-import { ResultBadge } from '../../../shared/components/result-badge';
-import { Table } from '../../../shared/table/table';
-import { PLAYER_WARS_FILTERS } from '../../../shared/table/clan-tables';
-import { serverTable } from '../../../shared/table/server-table';
-import { GAME_ICONS } from '../../../core/game/game-assets';
+import { KpiCard } from '../../../shared/components/kpi-card/kpi-card';
+import { ResultBadge } from '../../../shared/components/result-badge/result-badge';
+import { PLAYER_WARS_FILTERS } from '../../../shared/components/table/clan-tables';
+import { serverTable } from '../../../shared/components/table/server-table';
+import { Table } from '../../../shared/components/table/table';
 
 /** War performance of a player: KPIs, charts and war-by-war table (from the archived wars). */
 

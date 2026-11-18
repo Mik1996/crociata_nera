@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { initials } from '../../core/utils/initials';
+import { initials } from '../../../core/utils/initials';
 
 /** `s`: next to a name in a button or a row; `l`: identity card (profile). */
 export type AvatarSize = 's' | 'l';

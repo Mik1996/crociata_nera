@@ -7,7 +7,7 @@ import { AdminService } from '../../../core/backend/admin.service';
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import type { AdminUserDialogData } from './link-players-dialog';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 /**
  * Confirms the deletion of a user: "Delete" is enabled only once the username is typed exactly

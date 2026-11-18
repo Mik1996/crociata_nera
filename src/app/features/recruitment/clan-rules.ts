@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { Icon } from '../../shared/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Icon } from '../../shared/components/icon/icon';
 
 /** Clan rules (`welcome.rules.<key>.<n>`), from the clan's own regulations. */
 const RULE_GROUPS = [

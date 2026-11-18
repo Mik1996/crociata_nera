@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage } from '../../shared/components/table/table-page';
 import { CocApiService } from '../api/coc-api';
 import { HistoryPeriod, MonthSummary, PeriodWarRow, RankingOptions, RankingRow } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage } from '../../shared/table/table-page';
 
 /** Period that sums all the months of the history. */
 export const ALL_PERIODS = 'all';

@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BackendMessage } from '../../core/backend/backend-api.types';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { FormErrors } from './form-errors';
 
 @Component({

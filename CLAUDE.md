@@ -75,7 +75,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 
 ## Frontend notes
 
-- Tables: `<crn-table>` (`src/app/shared/table/`), a wrapper of `mat-table`: the page declares
+- Tables: `<crn-table>` (`src/app/shared/components/table/`), a wrapper of `mat-table`: the page declares
   `matColumnDef`s (and optionally `matRowDef`, `*matFooterCellDef`, `matSort` on the element);
   the component never grows past the visible area (rows scroll inside), keeps caption, header,
   filter row and footer in place, is as tall as `visibleRows` rows (10 by default; fewer rows
@@ -83,7 +83,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   (`TableFilters`: text, number range, date range, yes/no, options) and makes columns resizable.
   Header labels never wrap. A page's styles cannot reach `<table>` itself: style rows and cells.
 - Every data table is filtered, sorted and paged **by the backend**: the page creates a
-  `serverTable({ params, load })` (`shared/table/server-table.ts`) and binds `[source]`; the table
+  `serverTable({ params, load })` (`shared/components/table/server-table.ts`) and binds `[source]`; the table
   asks for a page at every change (text filters after a pause), keeps the last rows dimmed with a
   bar under the header while loading, a spinner when there are none yet, the error with "Retry".
   `params` (season, period…) go to the backend too; a change returns to page 1. Totals, footers and
@@ -92,7 +92,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   `colFrom`/`colBefore`, yes/no `col=true`, options `col=a,b`. Backend side: `defineTable` +
   `parseTableQuery` + `queryTable` (`backend/src/lib/table/table-query.ts`, rows built in memory),
   documented with `tableQueryPart` (`src/openapi/table.ts`), rate limit `TABLES_READ`. Column ids
-  and filters are shared in `shared/table/clan-tables.ts`, also used by the mock services
+  and filters are shared in `shared/components/table/clan-tables.ts`, also used by the mock services
   (`applyTableQuery`). Only the CWL group standings (8 rows, no filters) take plain `[data]`.
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
@@ -109,7 +109,7 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   localStorage (no token, no email; `isUnconfirmed()`), confirmed or signed out when the backend
   answers. Network state: `Connectivity` (`core/pwa/connectivity.ts`): offline banner in the shell,
   "offline" error messages, `<crn-load-state>` retries by itself when the connection comes back.
-- Icons: `<crn-icon name="..." />` (`src/app/shared/icon/`) draws `public/assets/icons/<name>.svg`
+- Icons: `<crn-icon name="..." />` (`src/app/shared/components/icon/`) draws `public/assets/icons/<name>.svg`
   with `<use href="…#icon">` (no icon font); the files paint with `currentColor`, so set `color` to
   colour them. Precached by the service worker. Names are typed: add a new one to
   `scripts/generate-icons.mjs` and run `npm run icons` (writes the SVGs and `icon-names.ts`).

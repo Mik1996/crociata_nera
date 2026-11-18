@@ -1,51 +1,51 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    inject,
+    signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  AbstractControl,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
+    AbstractControl,
+    FormControl,
+    FormGroup,
+    ReactiveFormsModule,
+    ValidationErrors,
+    Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import {
-  BackendMessage,
-  DefenseBase,
-  DefenseBaseChanges,
+    BackendMessage,
+    DefenseBase,
+    DefenseBaseChanges,
 } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { townHallImage } from '../../../core/game/units';
 import {
-  ClanCastleTroop,
-  clanCastleCapacity,
-  housingSpaceUsed,
+    clanCastleCapacity,
+    ClanCastleTroop,
+    housingSpaceUsed,
 } from '../../../core/game/clan-castle';
 import { layoutLinkTownHall } from '../../../core/game/layout-link';
+import { townHallImage } from '../../../core/game/units';
+import { LanguageService } from '../../../core/i18n/language.service';
 import {
-  ACCEPTED_IMAGE_TYPES,
-  MAX_SOURCE_BYTES,
-  prepareImage,
+    ACCEPTED_IMAGE_TYPES,
+    MAX_SOURCE_BYTES,
+    prepareImage,
 } from '../../../core/utils/prepare-image';
+import { FormErrors } from '../../../shared/components/form-errors/form-errors';
+import { Icon } from '../../../shared/components/icon/icon';
 import { ClanCastlePicker } from './clan-castle-picker';
-import { FormErrors } from '../../../shared/components/form-errors';
 
 export interface BaseFormDialogData {
   /** The base to edit; absent to create a new one. */

@@ -6,14 +6,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { WarHistoryRow } from '../../core/models';
 import { WarService } from '../../core/services/war.service';
-import { KpiCard } from '../../shared/components/kpi-card';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { ResultBadge } from '../../shared/components/result-badge';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { ResultBadge } from '../../shared/components/result-badge/result-badge';
+import { WAR_HISTORY_FILTERS } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { WAR_HISTORY_FILTERS } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
-import { Table } from '../../shared/table/table';
 
 @Component({
   selector: 'crn-war-history-page',

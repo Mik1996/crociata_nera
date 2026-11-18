@@ -1,17 +1,16 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  untracked,
-  viewChild,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    input,
+    untracked,
+    viewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { Icon } from '../../shared/icon/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -23,8 +22,9 @@ import { BaseImageVariant, DefenseBasesService } from '../../core/backend/defens
 import { APP_CONFIG } from '../../core/config/app-config';
 import { townHallImage } from '../../core/game/units';
 import { LanguageService } from '../../core/i18n/language.service';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
+import { Icon } from '../../shared/components/icon/icon';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
 import { NearEnd } from '../../shared/directives/near-end';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { BaseArsenal } from './base-arsenal';

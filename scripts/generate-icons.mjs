@@ -1,7 +1,7 @@
 // Writes the Material icons used by the site (filled style, same look as the old Material Icons
 // font) as SVG files in public/assets/icons/, one per icon, painted with `currentColor` so the
 // stylesheets colour them through `color`. <crn-icon> draws them with <use href="…#icon">.
-// Also writes src/app/shared/icon/icon-names.ts, the typed list of names.
+// Also writes src/app/shared/components/icon/icon-names.ts, the typed list of names.
 //
 // To add an icon: append its name to NAMES (https://fonts.google.com/icons, "Material Icons"),
 // then run `npm run icons`.
@@ -98,7 +98,7 @@ const NAMES = [
 const require = createRequire(import.meta.url);
 const root = join(dirname(require.resolve('@material-design-icons/svg/package.json')), 'filled');
 const iconsDir = new URL('../public/assets/icons/', import.meta.url);
-const namesFile = new URL('../src/app/shared/icon/icon-names.ts', import.meta.url);
+const namesFile = new URL('../src/app/shared/components/icon/icon-names.ts', import.meta.url);
 
 const names = [...new Set(NAMES)].sort();
 

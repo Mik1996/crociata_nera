@@ -1,18 +1,18 @@
-import { SISTER_CLANS } from '../../core/config/sister-clans';
-import { CwlSelectionPlayer, CwlSelectionStatus } from '../../core/backend/backend-api.types';
+import { CwlSelectionPlayer, CwlSelectionStatus } from '../../../core/backend/backend-api.types';
+import { SISTER_CLANS } from '../../../core/config/sister-clans';
 import {
-  ClanRole,
-  CwlPlayerRow,
-  MemberStatsRow,
-  ParticipantsSummary,
-  PeriodWarRow,
-  RaidMemberRow,
-  RankingRow,
-  WarHistoryRow,
-  WarPerformance,
-} from '../../core/models';
-import { ParticipantRow } from '../../core/utils/war-stats';
-import { CLAN_ROLES, resultKey, roleKey, WAR_RESULTS } from '../labels';
+    ClanRole,
+    CwlPlayerRow,
+    MemberStatsRow,
+    ParticipantsSummary,
+    PeriodWarRow,
+    RaidMemberRow,
+    RankingRow,
+    WarHistoryRow,
+    WarPerformance,
+} from '../../../core/models';
+import { ParticipantRow } from '../../../core/utils/war-stats';
+import { CLAN_ROLES, resultKey, roleKey, WAR_RESULTS } from '../../labels';
 import { TableFilters } from './table-filters';
 
 /**

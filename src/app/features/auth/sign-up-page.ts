@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Icon } from '../../shared/icon/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
@@ -11,16 +10,17 @@ import { safeReturnUrl } from '../../core/backend/auth.guards';
 import { AuthService } from '../../core/backend/auth.service';
 import { BackendMessage, SignUpRequest } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
+import { Alert } from '../../shared/components/alert/alert';
+import { Icon } from '../../shared/components/icon/icon';
+import { PasswordToggle } from '../../shared/components/password-toggle/password-toggle';
 import {
-  applyServerErrors,
-  errorKey,
-  passwordsMatch,
-  strongPassword,
-  USERNAME_PATTERN,
+    applyServerErrors,
+    errorKey,
+    passwordsMatch,
+    strongPassword,
+    USERNAME_PATTERN,
 } from './auth-form';
 import { AuthPanel } from './components/auth-panel';
-import { PasswordToggle } from '../../shared/components/password-toggle';
-import { Alert } from '../../shared/components/alert';
 
 /** Account creation; on success the user is signed in. */
 @Component({

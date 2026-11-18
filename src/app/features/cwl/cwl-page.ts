@@ -10,18 +10,18 @@ import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { CwlRound } from '../../core/models';
 import { periodLabel } from '../../core/utils/monthly-history';
 import { warResult } from '../../core/utils/war-stats';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { ResultBadge } from '../../shared/components/result-badge';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { ResultBadge } from '../../shared/components/result-badge/result-badge';
+import { Select, SelectOption } from '../../shared/components/select/select';
+import { StarText } from '../../shared/components/star-text/star-text';
+import { CWL_PLAYER_FILTERS } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
+import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { Table } from '../../shared/table/table';
-import { CWL_PLAYER_FILTERS } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
-import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
-import { Tag } from '../../shared/components/tag';
-import { Select, SelectOption } from '../../shared/components/select';
-import { PlayerCell } from '../../shared/components/player-cell';
 
 /**
  * Clan War League: group standings, the clan's 7 rounds and the players' statistics of a

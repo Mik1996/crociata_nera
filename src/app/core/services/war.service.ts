@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
-import { map, Observable, switchMap, of } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage } from '../../shared/components/table/table-page';
 import { CocApiService } from '../api/coc-api';
 import { HttpCacheService } from '../http/http-cache.service';
 import { ParticipantsSummary, War, WarHistoryRow, WarHistorySummary } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage } from '../../shared/table/table-page';
 import { ParticipantRow } from '../utils/war-stats';
 
 /** Access to the clan's war data. */

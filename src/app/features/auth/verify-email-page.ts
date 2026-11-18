@@ -8,7 +8,7 @@ import { of } from 'rxjs';
 import { AuthService } from '../../core/backend/auth.service';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { AuthPanel } from './components/auth-panel';
-import { Alert } from '../../shared/components/alert';
+import { Alert } from '../../shared/components/alert/alert';
 
 /** Confirms the email address from the link (`/verify-email?token=…`) as soon as it opens. */
 @Component({

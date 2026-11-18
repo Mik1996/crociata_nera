@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Icon } from '../../shared/icon/icon';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -13,18 +12,19 @@ import { MemberStatsRow } from '../../core/models';
 import { CommendationService } from '../../core/services/commendation.service';
 import { PlayerService } from '../../core/services/player.service';
 import { emblemOf } from '../../core/utils/commendations';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
+import { Icon } from '../../shared/components/icon/icon';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { Meter } from '../../shared/components/meter/meter';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { StarText } from '../../shared/components/star-text/star-text';
+import { memberStatsFilters } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
-import { roleKey } from '../../shared/labels';
-import { StarText } from '../../shared/components/star-text';
 import { TownHallIcon } from '../../shared/game/town-hall-icon';
-import { Table } from '../../shared/table/table';
-import { memberStatsFilters } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
-import { Meter } from '../../shared/components/meter';
-import { PlayerCell } from '../../shared/components/player-cell';
+import { roleKey } from '../../shared/labels';
 
 @Component({
   selector: 'crn-players-page',

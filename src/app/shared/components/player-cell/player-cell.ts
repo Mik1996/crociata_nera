@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService } from '../../core/backend/auth.service';
-import { Tag } from './tag';
+import { AuthService } from '../../../core/backend/auth.service';
+import { Tag } from '../tag/tag';
 
 /**
  * Player name in a table cell: link to the profile, the "You" tag on the signed-in user's

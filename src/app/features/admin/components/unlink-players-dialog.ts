@@ -7,7 +7,7 @@ import { AdminService } from '../../../core/backend/admin.service';
 import { AdminUser, BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import type { AdminUserDialogData } from './link-players-dialog';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 export interface UnlinkPlayersDialogData extends AdminUserDialogData {
   /** Called after each account unlinked, so the table is right even if a later one fails. */

@@ -1,19 +1,17 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { NgTemplateOutlet } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-  viewChild,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    signal,
+    untracked,
+    viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { Icon } from '../shared/icon/icon';
-import { IconName } from '../shared/icon/icon-names';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
@@ -24,15 +22,17 @@ import { catchError, filter, forkJoin, map, of } from 'rxjs';
 import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
-import { Connectivity } from '../core/pwa/connectivity';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
+import { Connectivity } from '../core/pwa/connectivity';
 import { ThemeService } from '../core/theme/theme.service';
-import { Tag } from '../shared/components/tag';
-import { Avatar } from '../shared/components/avatar';
-import { Alert } from '../shared/components/alert';
+import { Alert } from '../shared/components/alert/alert';
+import { Avatar } from '../shared/components/avatar/avatar';
+import { Icon } from '../shared/components/icon/icon';
+import { IconName } from '../shared/components/icon/icon-names';
+import { Tag } from '../shared/components/tag/tag';
 
 interface MenuItem {
   path: string;

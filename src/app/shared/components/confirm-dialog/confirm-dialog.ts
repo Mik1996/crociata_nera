@@ -2,9 +2,9 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, input, output } f
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
-import { BackendMessage } from '../../core/backend/backend-api.types';
-import { GameButton } from '../directives/button';
-import { FormErrors } from './form-errors';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
+import { GameButton } from '../../directives/button';
+import { FormErrors } from '../form-errors/form-errors';
 
 /**
  * Frame of a dialog that asks to confirm an action: title, the projected content (intro, fields),

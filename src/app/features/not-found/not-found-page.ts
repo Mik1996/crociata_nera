@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Icon } from '../../shared/icon/icon';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Icon } from '../../shared/components/icon/icon';
 
 @Component({
   selector: 'crn-not-found-page',

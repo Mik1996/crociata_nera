@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage, tableQueryParams } from '../../shared/components/table/table-page';
 import { APP_CONFIG } from '../config/app-config';
 import { noCache } from '../http/http-cache';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage, tableQueryParams } from '../../shared/table/table-page';
 import { BaseResult, CwlExclusion, CwlSelection, CwlSelectionPlayer } from './backend-api.types';
 
 /**

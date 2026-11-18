@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { WarResult } from '../../core/models';
-import { Tag, TagTone } from './tag';
+import { WarResult } from '../../../core/models';
+import { Tag, TagTone } from '../tag/tag';
 
 const ICONS: Record<WarResult, string> = {
   victory: '▲',

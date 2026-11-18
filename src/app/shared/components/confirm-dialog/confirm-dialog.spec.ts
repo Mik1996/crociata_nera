@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialogRef } from '@angular/material/dialog';
-import { BackendMessage } from '../../core/backend/backend-api.types';
+import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { ConfirmDialog } from './confirm-dialog';
 
 @Component({

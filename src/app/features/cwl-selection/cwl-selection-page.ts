@@ -9,10 +9,10 @@ import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import {
-  CwlExclusion,
-  CwlScoreBreakdown,
-  CwlSelectionPlayer,
-  CwlSelectionStatus,
+    CwlExclusion,
+    CwlScoreBreakdown,
+    CwlSelectionPlayer,
+    CwlSelectionStatus,
 } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
@@ -20,23 +20,23 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { LanguageService } from '../../core/i18n/language.service';
 import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { ClanRole } from '../../core/models';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { StarText } from '../../shared/components/star-text';
+import { Icon } from '../../shared/components/icon/icon';
+import { Legend } from '../../shared/components/legend/legend';
+import { LegendItem } from '../../shared/components/legend-item/legend-item';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { Meter, MeterSegment } from '../../shared/components/meter/meter';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { StarText } from '../../shared/components/star-text/star-text';
+import { crusadeClanNames, selectionFilters } from '../../shared/components/table/clan-tables';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
+import { Tag, TagTone } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { Table } from '../../shared/table/table';
-import { crusadeClanNames, selectionFilters } from '../../shared/table/clan-tables';
-import { serverTable } from '../../shared/table/server-table';
 import { CommendationMedal } from '../../shared/game/commendation-medal';
-import { Icon } from '../../shared/icon/icon';
+import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { roleKey } from '../../shared/labels';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
-import { TownHallIcon } from '../../shared/game/town-hall-icon';
-import { Tag, TagTone } from '../../shared/components/tag';
-import { Meter, MeterSegment } from '../../shared/components/meter';
-import { Legend } from '../../shared/components/legend';
-import { LegendItem } from '../../shared/components/legend-item';
-import { PlayerCell } from '../../shared/components/player-cell';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
 const ROLES: Record<string, ClanRole> = {

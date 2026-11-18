@@ -4,7 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { BackendMessage, DefenseBase } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { DefenseBasesService } from '../../../core/backend/defense-bases.service';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 export interface BaseDeleteDialogData {
   base: DefenseBase;

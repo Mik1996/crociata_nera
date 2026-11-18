@@ -1,68 +1,68 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
+import {
+    CWL_PLAYER_FILTERS,
+    memberStatsFilters,
+    memberStatsSortKey,
+    participantFilters,
+    participantSortKey,
+    PERIOD_WARS_FILTERS,
+    periodWarsSortKey,
+    PLAYER_WARS_FILTERS,
+    RAID_MEMBER_FILTERS,
+    RANKING_FILTERS,
+    WAR_HISTORY_FILTERS,
+} from '../../shared/components/table/clan-tables';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { applyTableQuery, TablePage } from '../../shared/components/table/table-page';
 import { APP_CONFIG } from '../config/app-config';
 import { SISTER_CLANS, SisterClan } from '../config/sister-clans';
-import { generateMockData, MockDataset } from '../mock/mock-data';
 import {
-  generateMockCwlSeasons,
-  generateMockDonationSeasons,
-  generateMockRaidSeasons,
+    generateMockCwlSeasons,
+    generateMockDonationSeasons,
+    generateMockRaidSeasons,
 } from '../mock/mock-cwl';
+import { generateMockData, MockDataset } from '../mock/mock-data';
 import { mockPlayer } from '../mock/mock-player';
 import {
-  Clan,
-  ClanRecords,
-  CwlPlayerRow,
-  CwlSeason,
-  CwlSeasonSummary,
-  DonationSeason,
-  HistoryPeriod,
-  HistoryWar,
-  MemberStatsAverages,
-  MemberStatsRow,
-  MemberStatsSummary,
-  Membership,
-  MonthSummary,
-  ParticipantsSummary,
-  PeriodWarRow,
-  PlayerProfile,
-  PublicClansData,
-  RaidMemberRow,
-  RaidMembersSummary,
-  RaidSeason,
-  RankingOptions,
-  RankingRow,
-  War,
-  WarHistoryRow,
-  WarHistorySummary,
-  WarPerformance,
+    Clan,
+    ClanRecords,
+    CwlPlayerRow,
+    CwlSeason,
+    CwlSeasonSummary,
+    DonationSeason,
+    HistoryPeriod,
+    HistoryWar,
+    Membership,
+    MemberStatsAverages,
+    MemberStatsRow,
+    MemberStatsSummary,
+    MonthSummary,
+    ParticipantsSummary,
+    PeriodWarRow,
+    PlayerProfile,
+    PublicClansData,
+    RaidMemberRow,
+    RaidMembersSummary,
+    RaidSeason,
+    RankingOptions,
+    RankingRow,
+    War,
+    WarHistoryRow,
+    WarHistorySummary,
+    WarPerformance,
 } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { applyTableQuery, TablePage } from '../../shared/table/table-page';
-import {
-  CWL_PLAYER_FILTERS,
-  memberStatsFilters,
-  memberStatsSortKey,
-  participantFilters,
-  participantSortKey,
-  PERIOD_WARS_FILTERS,
-  periodWarsSortKey,
-  PLAYER_WARS_FILTERS,
-  RAID_MEMBER_FILTERS,
-  RANKING_FILTERS,
-  WAR_HISTORY_FILTERS,
-} from '../../shared/table/clan-tables';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
 import {
-  compareForRanking,
-  historyPeriod,
-  monthSummaries,
-  toHistoryWar,
+    compareForRanking,
+    historyPeriod,
+    monthSummaries,
+    toHistoryWar,
 } from '../utils/monthly-history';
-import { computePlayerStats, participantRows, ParticipantRow, warResult } from '../utils/war-stats';
+import { computePlayerStats, ParticipantRow, participantRows, warResult } from '../utils/war-stats';
 import { CocApiService } from './coc-api';
-import { CocCapitalRaidSeason, CocCwlSeasonRecord } from './coc-api.types';
 import { mapPlayerProfile } from './coc-api.mappers';
+import { CocCapitalRaidSeason, CocCwlSeasonRecord } from './coc-api.types';
 
 /** Mock implementation: locally generated data with simulated latency. */
 @Injectable()

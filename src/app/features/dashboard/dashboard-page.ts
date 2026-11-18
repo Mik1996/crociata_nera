@@ -1,31 +1,31 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { Icon } from '../../shared/icon/icon';
 import { RouterLink } from '@angular/router';
-import { ChartData } from 'chart.js';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { GAME_ICONS } from '../../core/game/game-assets';
 import { LanguageService } from '../../core/i18n/language.service';
-import { ThemeService } from '../../core/theme/theme.service';
 import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { PlayerStats } from '../../core/models';
 import { PlayerService } from '../../core/services/player.service';
 import { WarService } from '../../core/services/war.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { clanTrend, computeWarKpi, efficiency, rankPerformers } from '../../core/utils/war-stats';
 import {
-  barSeries,
-  baseChartOptions,
-  chartChrome,
-  lineSeries,
-  shortDateLabel,
+    barSeries,
+    baseChartOptions,
+    chartChrome,
+    lineSeries,
+    shortDateLabel,
 } from '../../shared/charts/chart-theme';
-import { GAME_ICONS } from '../../core/game/game-assets';
-import { KpiCard } from '../../shared/components/kpi-card';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
-import { WarSummary } from '../wars/components/war-summary';
+import { Icon } from '../../shared/components/icon/icon';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
+import { WarSummary } from '../wars/components/war-summary';
 
 /** Number of wars shown in the trend charts. */
 const CHART_WARS = 15;

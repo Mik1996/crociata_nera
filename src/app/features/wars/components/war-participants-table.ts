@@ -6,13 +6,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/backend/auth.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { WarService } from '../../../core/services/war.service';
-import { Stars } from '../../../shared/components/stars';
+import { Icon } from '../../../shared/components/icon/icon';
+import { PlayerCell } from '../../../shared/components/player-cell/player-cell';
+import { Stars } from '../../../shared/components/stars/stars';
+import { participantFilters } from '../../../shared/components/table/clan-tables';
+import { serverTable } from '../../../shared/components/table/server-table';
+import { Table } from '../../../shared/components/table/table';
 import { TownHallIcon } from '../../../shared/game/town-hall-icon';
-import { Icon } from '../../../shared/icon/icon';
-import { participantFilters } from '../../../shared/table/clan-tables';
-import { serverTable } from '../../../shared/table/server-table';
-import { Table } from '../../../shared/table/table';
-import { PlayerCell } from '../../../shared/components/player-cell';
 
 /** The clan's players in a war, filtered, sorted and paged by the backend. */
 @Component({

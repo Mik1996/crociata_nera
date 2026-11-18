@@ -1,23 +1,23 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Icon } from '../../../shared/icon/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import {
-  Commendation,
-  CommendationType,
-  PlayerCommendations,
-  PlayerProfile,
+    Commendation,
+    CommendationType,
+    PlayerCommendations,
+    PlayerProfile,
 } from '../../../core/models';
 import { COMMENDATION_THRESHOLDS, emblemOf } from '../../../core/utils/commendations';
 import { periodLabel } from '../../../core/utils/monthly-history';
+import { Icon } from '../../../shared/components/icon/icon';
+import { Tag } from '../../../shared/components/tag/tag';
 import { XpBadge } from '../../../shared/game/xp-badge';
-import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { roleKey } from '../../../shared/labels';
+import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { openCommendationDialog } from './open-commendation-dialog';
-import { Tag } from '../../../shared/components/tag';
 
 /**
  * Game-style profile header: Town Hall, experience level, name, clan, league, trophies and

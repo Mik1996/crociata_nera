@@ -7,11 +7,11 @@ import { of } from 'rxjs';
 import { AuthService } from '../../../core/backend/auth.service';
 import { WarService } from '../../../core/services/war.service';
 import { participantRows } from '../../../core/utils/war-stats';
+import { participantFilters, participantSortKey } from '../../../shared/components/table/clan-tables';
+import { Table } from '../../../shared/components/table/table';
+import { TableFilterValues, TableQuery } from '../../../shared/components/table/table-filters';
+import { applyTableQuery } from '../../../shared/components/table/table-page';
 import { provideCocApiTest, sampleWar } from '../../../testing/fixtures';
-import { participantFilters, participantSortKey } from '../../../shared/table/clan-tables';
-import { Table } from '../../../shared/table/table';
-import { TableFilterValues, TableQuery } from '../../../shared/table/table-filters';
-import { applyTableQuery } from '../../../shared/table/table-page';
 import { WarParticipantsTable } from './war-participants-table';
 
 /** The backend's answer: the players of the sample war, filtered and sorted as asked. */

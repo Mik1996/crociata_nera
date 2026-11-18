@@ -1,17 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
+import { TableQuery } from '../../shared/components/table/table-filters';
+import { TablePage } from '../../shared/components/table/table-page';
 import { CocApiService } from '../api/coc-api';
 import { APP_CONFIG } from '../config/app-config';
 import {
-  ClanMember,
-  MemberStatsRow,
-  MemberStatsSummary,
-  PlayerProfile,
-  PlayerStats,
-  WarPerformance,
+    ClanMember,
+    MemberStatsRow,
+    MemberStatsSummary,
+    PlayerProfile,
+    PlayerStats,
+    WarPerformance,
 } from '../models';
-import { TableQuery } from '../../shared/table/table-filters';
-import { TablePage } from '../../shared/table/table-page';
 import { computePlayerStats } from '../utils/war-stats';
 import { WarService } from './war.service';
 

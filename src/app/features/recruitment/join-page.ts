@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { TranslatePipe } from '@ngx-translate/core';
 import { injectPublicClans } from '../../core/api/public-clans';
 import { injectSisterClans } from '../../core/api/sister-clans';
-import { LoadState } from '../../shared/components/load-state';
-import { PageHeader } from '../../shared/components/page-header';
+import { LoadState } from '../../shared/components/load-state/load-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { ClanRules } from './clan-rules';
 import { RecruitmentBanner } from './recruitment-banner';

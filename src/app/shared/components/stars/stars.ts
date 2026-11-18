@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { GAME_ICONS } from '../../core/game/game-assets';
-import { LanguageService } from '../../core/i18n/language.service';
+import { GAME_ICONS } from '../../../core/game/game-assets';
+import { LanguageService } from '../../../core/i18n/language.service';
 
 /** Displays the stars of an attack with the in-game pictures (gold, grey when missed) and an accessible label. */
 @Component({

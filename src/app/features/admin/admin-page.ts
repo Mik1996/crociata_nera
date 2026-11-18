@@ -1,14 +1,13 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  linkedSignal,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    linkedSignal,
+    signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { Icon } from '../../shared/icon/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
@@ -20,20 +19,21 @@ import { AuthService } from '../../core/backend/auth.service';
 import { AdminUser, BackendMessage } from '../../core/backend/backend-api.types';
 import { backendErrors } from '../../core/backend/backend-errors';
 import { LocalDatePipe } from '../../core/i18n/locale-pipes';
-import { PageHeader } from '../../shared/components/page-header';
-import { ScrollFade } from '../../shared/directives/scroll-fade';
-import { serverTable } from '../../shared/table/server-table';
-import { Table } from '../../shared/table/table';
+import { Icon } from '../../shared/components/icon/icon';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { serverTable } from '../../shared/components/table/server-table';
+import { Table } from '../../shared/components/table/table';
 import {
-  DayRange,
-  dayRangeInstants,
-  TableFilters,
-  TableQuery,
-} from '../../shared/table/table-filters';
+    DayRange,
+    dayRangeInstants,
+    TableFilters,
+    TableQuery,
+} from '../../shared/components/table/table-filters';
+import { Tag } from '../../shared/components/tag/tag';
+import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { DeleteUserDialog } from './components/delete-user-dialog';
 import { AdminUserDialogData, LinkPlayersDialog } from './components/link-players-dialog';
 import { UnlinkPlayersDialog, UnlinkPlayersDialogData } from './components/unlink-players-dialog';
-import { Tag } from '../../shared/components/tag';
 
 /** Users per page. */
 const PAGE_SIZE = 25;

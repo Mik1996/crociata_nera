@@ -6,7 +6,7 @@ import { injectPublicClans } from '../../core/api/public-clans';
 import { injectSisterClans } from '../../core/api/sister-clans';
 import { warLeagueIcon } from '../../core/game/clan-assets';
 import { LanguageService } from '../../core/i18n/language.service';
-import { LoadState } from '../../shared/components/load-state';
+import { LoadState } from '../../shared/components/load-state/load-state';
 import { ScrollyIndex } from '../../shared/scrolly/scrolly-index';
 import { ScrollyRoot } from '../../shared/scrolly/scrolly-root';
 import { ActAnnals, RecordTile } from './acts/annals/act-annals';
