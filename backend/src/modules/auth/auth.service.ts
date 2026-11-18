@@ -6,7 +6,7 @@ import { MessageKey } from '@/lib/http/message-key';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { generateRefreshToken, hashRefreshToken, signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
-import { sendVerificationEmail } from './account.service';
+import { grantConfiguredAdmin, sendVerificationEmail } from './account.service';
 import { SignInInput, SignUpInput } from './auth.schemas';
 import { SessionDocument, SessionModel } from './session.model';
 import { publicUser } from '@/modules/access/clan-access.service';
@@ -249,13 +249,6 @@ async function startSession(user: UserDocument, client: ClientInfo): Promise<Aut
     refreshTokenExpiresAt,
     sessionId: session._id,
   };
-}
-
-/** Users listed in `ADMIN_EMAILS` get the ADMIN role (bootstrap of the first administrator). */
-async function grantConfiguredAdmin(user: UserDocument): Promise<void> {
-  if (!env().ADMIN_EMAILS.includes(user.email) || user.roles.includes(UserRole.ADMIN)) return;
-  user.roles.push(UserRole.ADMIN);
-  await UserModel.updateOne({ _id: user._id }, { $addToSet: { roles: UserRole.ADMIN } });
 }
 
 /** Signs the user out everywhere. Logged: it is the only sign-out the user did not ask for. */

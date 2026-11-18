@@ -25,10 +25,18 @@ afterEach(() => {
   resetEnvCache();
 });
 
+/** An administrator from `ADMIN_EMAILS`: the role comes once the address is confirmed. */
 async function registerAdmin() {
   process.env.ADMIN_EMAILS = 'boss@crociata.it';
   resetEnvCache();
-  return register('boss', '10.0.0.2');
+  const boss = await register('boss', '10.0.0.2');
+  await UserModel.updateOne({ _id: boss.user.id }, { $set: { emailVerified: true } });
+  const signedIn = await call(refresh, { body: {}, cookie: boss.cookie });
+  return {
+    token: signedIn.body.result.accessToken as string,
+    cookie: signedIn.refreshCookie!,
+    user: signedIn.body.result.user,
+  };
 }
 
 describe('administration', () => {
@@ -52,13 +60,9 @@ describe('administration', () => {
 
     expect(names(await list('admin=true'))).toEqual(['boss']);
     expect(names(await list('admin=false&sort=username&order=desc'))).toEqual(['carlo', 'bruno', 'Anna']);
-    expect(names(await list('verified=true'))).toEqual(['Anna']);
+    expect(names(await list('verified=true&sort=username&order=asc'))).toEqual(['Anna', 'boss']);
     expect(names(await list('playerTag=anna'))).toEqual(['Anna']);
-    expect(names(await list('user=crociata.it&verified=false&sort=username&order=asc'))).toEqual([
-      'boss',
-      'bruno',
-      'carlo',
-    ]);
+    expect(names(await list('user=crociata.it&verified=false&sort=username&order=asc'))).toEqual(['bruno', 'carlo']);
     expect(
       names(await list(`createdFrom=${encodeURIComponent('2026-01-15T00:00:00+01:00')}&createdBefore=2026-01-16T00:00:00Z`)),
     ).toEqual(['carlo']);
@@ -117,10 +121,23 @@ describe('administration', () => {
     expect(deleted.body.messages).toEqual([{ key: 'ERROR.INVALID_TOKEN' }]);
   });
 
-  it('grants ADMIN to ADMIN_EMAILS, lists and searches users, edits roles and unlinks tags', async () => {
+  it('grants ADMIN to ADMIN_EMAILS only once the address is confirmed', async () => {
     process.env.ADMIN_EMAILS = 'boss@crociata.it';
     resetEnvCache();
-    const boss = await register('boss', '10.0.0.2');
+    // Anybody can sign up with the address: unconfirmed, it grants nothing.
+    const squatter = await register('boss', '10.0.0.2');
+    expect(squatter.user.roles).toEqual(['USER']);
+    const again = await call(refresh, { body: {}, cookie: squatter.cookie });
+    expect(again.body.result.user.roles).toEqual(['USER']);
+    expect((await call(listUsers, { token: again.body.result.accessToken })).status).toBe(403);
+
+    await UserModel.updateOne({ _id: squatter.user.id }, { $set: { emailVerified: true } });
+    const confirmed = await call(refresh, { body: {}, cookie: again.refreshCookie });
+    expect(confirmed.body.result.user.roles).toEqual(['USER', 'ADMIN']);
+  });
+
+  it('grants ADMIN to ADMIN_EMAILS, lists and searches users, edits roles and unlinks tags', async () => {
+    const boss = await registerAdmin();
     expect(boss.user.roles).toEqual(['USER', 'ADMIN']);
     const member = await register('member', '10.0.0.3');
 

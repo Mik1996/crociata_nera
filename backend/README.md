@@ -45,7 +45,7 @@ npm run dev                    # http://localhost:3001
 | `WAR_SYNC_INTERVAL_MINUTES` | minuti tra due letture della guerra corrente; `0` spegne lo scheduler interno | `10` |
 | `CRON_SECRET` | se impostato (almeno 32 caratteri), attiva `POST /api/v1/cron/war-sync` per scheduler esterni | — |
 | `COC_API_BASE_URL` | URL dell'API ufficiale (si cambia solo nei test) | `https://api.clashofclans.com/v1` |
-| `ADMIN_EMAILS` | email che ricevono il ruolo ADMIN alla registrazione o all'accesso, separate da virgola | — |
+| `ADMIN_EMAILS` | email che ricevono il ruolo ADMIN, separate da virgola, solo dopo averle confermate (link nell'email o reset della password) | — |
 | `APP_URL` | URL pubblico usato nei link delle email | il primo `FRONTEND_URL` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | server SMTP per le email di reset e conferma (qualsiasi provider, per esempio Brevo) | — |
 

@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { POST as signIn } from '@/app/api/v1/auth/sign-in/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
+import { UserModel } from '@/modules/auth/user.model';
 import { POST as syncPlayers } from '@/app/api/v1/admin/players/sync/route';
 import { GET as getPlayer } from '@/app/api/v1/players/[tag]/route';
 import { resetEnvCache } from '@/lib/config/env';
@@ -237,7 +239,10 @@ describe('POST /api/v1/admin/players/sync', () => {
       body: { email: `${name}@crociata.it`, username: name, password: 'secret123', repeatPassword: 'secret123' },
       ip,
     });
-    return body.result.accessToken;
+    // `ADMIN_EMAILS` grant the role to confirmed addresses only, at the next sign-in.
+    await UserModel.updateOne({ _id: body.result.user.id }, { $set: { emailVerified: true } });
+    const signedIn = await call(signIn, { body: { identifier: name, password: 'secret123' }, ip });
+    return signedIn.body.result.accessToken;
   }
 
   it('saves the clan members missing from the database (ADMIN only)', async () => {

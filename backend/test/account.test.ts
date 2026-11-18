@@ -22,6 +22,7 @@ import { POST as resend } from '@/app/api/v1/auth/verify-email/resend/route';
 import { POST as verifyEmail } from '@/app/api/v1/auth/verify-email/route';
 import { migrateLinkedPlayers, UserModel } from '@/modules/auth/user.model';
 import { POST as linkPlayer } from '@/app/api/v1/auth/me/player/route';
+import { resetEnvCache } from '@/lib/config/env';
 import { sendMail } from '@/lib/mail/mailer';
 import { mockCocApi } from './coc-mock';
 import { call, seedCrusadeRosters } from './helpers';
@@ -43,6 +44,22 @@ afterEach(() => {
 });
 
 describe('email verification', () => {
+  it('grants ADMIN to an address of ADMIN_EMAILS when it is confirmed', async () => {
+    process.env.ADMIN_EMAILS = 'knight@crociata.it';
+    resetEnvCache();
+    try {
+      const { token } = await register();
+      expect((await call(me, { token })).body.result.roles).toEqual(['USER']);
+
+      const ok = await call(verifyEmail, { body: { token: decodeURIComponent(tokenFrom(sent[0]!.text)) } });
+      expect(ok.status).toBe(200);
+      expect(ok.body.result.roles).toEqual(['USER', 'ADMIN']);
+    } finally {
+      delete process.env.ADMIN_EMAILS;
+      resetEnvCache();
+    }
+  });
+
   it('sends a confirmation link at sign-up, in the chosen language, and confirms the address', async () => {
     const { token } = await register({ language: 'en-US' });
     expect(sent).toHaveLength(1);

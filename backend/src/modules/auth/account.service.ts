@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { CocApiError, verifyPlayerToken } from '@/lib/coc/coc-client';
 import { env } from '@/lib/config/env';
 import { generateRefreshToken, hashRefreshToken } from '@/lib/auth/tokens';
+import { UserRole } from '@/lib/auth/user-role';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
@@ -177,5 +178,17 @@ export async function verifyEmail(token: string): Promise<PublicUser> {
   user.emailVerified = true;
   user.set({ verifyEmailTokenHash: null, verifyEmailExpiresAt: null });
   await user.save();
+  await grantConfiguredAdmin(user);
   return publicUser(user);
+}
+
+/**
+ * Users listed in `ADMIN_EMAILS` get the ADMIN role (bootstrap of the first administrator), once
+ * they have proven the address is theirs: anybody can sign up with any address, so an unverified
+ * one grants nothing. Called at every session start and when the address is confirmed.
+ */
+export async function grantConfiguredAdmin(user: UserDocument): Promise<void> {
+  if (!user.emailVerified || !env().ADMIN_EMAILS.includes(user.email) || user.roles.includes(UserRole.ADMIN)) return;
+  user.roles.push(UserRole.ADMIN);
+  await UserModel.updateOne({ _id: user._id }, { $addToSet: { roles: UserRole.ADMIN } });
 }
