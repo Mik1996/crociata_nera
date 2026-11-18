@@ -7,7 +7,8 @@ import { cachedRead } from './live-cache';
 /**
  * Reads of the Clash of Clans API made on a page request (the frontend never calls the API: every
  * read goes through the backend). Each response is kept in memory for a while
- * ({@link cachedRead}), so pages and the filters of their tables do not call the API every time.
+ * ({@link cachedRead}), so pages and the filters of their tables do not call the API every time;
+ * while the API is unavailable the last response is served for a while.
  */
 
 /** How long each kind of response is kept. */
