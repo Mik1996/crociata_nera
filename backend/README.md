@@ -146,7 +146,7 @@ Sign-up, sign-in e refresh restituiscono `{ user, accessToken, accessTokenExpire
 
 ## Autenticazione
 
-- **Access token:** JWT HS256 di 15 minuti con `sub` (id utente) e `roles`. Si invia in `Authorization: Bearer`. Il frontend lo tiene solo in memoria.
+- **Access token:** JWT HS256 di 15 minuti con `sub` (id utente) e `roles` (le rotte riservate a un ruolo rileggono i ruoli dal database a ogni richiesta). Si invia in `Authorization: Bearer`. Il frontend lo tiene solo in memoria.
 - **Refresh token:** valore casuale di 256 bit in un cookie `cn_refresh` con `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth` e `Secure` in produzione. JavaScript non può leggerlo.
 - **Sessioni nel database:** ogni token ha una riga nella collezione `Sessions`, salvato solo come hash SHA-256. MongoDB cancella da solo le sessioni scadute.
 - **Rotazione:** a ogni refresh il token vecchio viene annullato. Se qualcuno riusa un token già annullato (segno che è stato rubato), si chiudono **tutte** le sessioni dell'utente.

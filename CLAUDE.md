@@ -135,7 +135,8 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
   was never used and is younger than the access token lifetime (refresh response lost: the successor
   is `retired`, a new session is issued, logged as `[auth] lost refresh … recovered`). Only once: a
   retired token, or the old token again after its recovery, counts as reuse; an unused successor too
-  old to recover just answers 401 (nothing revoked). The
+  old to recover just answers 401 (nothing revoked). Routes with `roles` read the roles from the
+  database at every request, not from the token. The
   frontend signs out only on a 401 from refresh; the startup restore keeps retrying while the backend
   is unreachable (guards wait), then retries in the background.
 - Scheduler (`backend/src/lib/scheduler/war-sync-scheduler.ts`) syncs wars, CWL, raids and
