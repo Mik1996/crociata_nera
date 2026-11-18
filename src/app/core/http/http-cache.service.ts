@@ -46,8 +46,12 @@ export class HttpCacheService {
     while (this.entries.size > MAX_ENTRIES) this.entries.delete(this.entries.keys().next().value!);
   }
 
-  /** Drops cached responses whose URL starts with one of the prefixes (`''` = everything). */
+  /**
+   * Drops cached responses whose URL starts with one of the prefixes (`''` = everything).
+   * Without prefixes nothing happens (GETs in flight may still store their response).
+   */
   invalidate(...prefixes: string[]): void {
+    if (prefixes.length === 0) return;
     this.generation++;
     for (const url of [...this.entries.keys()]) {
       if (prefixes.some((prefix) => url.startsWith(prefix))) this.entries.delete(url);

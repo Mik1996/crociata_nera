@@ -12,7 +12,8 @@ export const CACHE_DURATION = new HttpContextToken<number>(() => DEFAULT_CACHE_D
 /**
  * URL prefixes whose cached GETs are dropped when a mutation (POST, PUT, PATCH, DELETE)
  * succeeds. `null` (default) = the API the mutation belongs to (e.g. `/api/v1/…` clears
- * every cached `/api/v1/…` GET). Use `['']` to clear the whole cache.
+ * every cached `/api/v1/…` GET). Use `['']` to clear the whole cache, `[]` to keep it (see
+ * {@link keepCache}).
  */
 export const CACHE_INVALIDATES = new HttpContextToken<string[] | null>(() => null);
 
@@ -20,6 +21,11 @@ export const CACHE_INVALIDATES = new HttpContextToken<string[] | null>(() => nul
 export function cacheFor(duration: { minutes?: number; seconds?: number }, context = new HttpContext()): HttpContext {
   const ms = ((duration.minutes ?? 0) * 60 + (duration.seconds ?? 0)) * 1000;
   return context.set(CACHE_DURATION, ms);
+}
+
+/** Context of a mutation that leaves the cache alone, e.g. a token refresh. */
+export function keepCache(context = new HttpContext()): HttpContext {
+  return context.set(CACHE_INVALIDATES, []);
 }
 
 /** Request context that bypasses the cache (always hits the network, stores nothing). */

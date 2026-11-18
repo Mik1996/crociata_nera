@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { cacheInterceptor } from './cache.interceptor';
-import { CACHE_INVALIDATES, cacheFor, noCache } from './http-cache';
+import { CACHE_INVALIDATES, cacheFor, keepCache, noCache } from './http-cache';
 
 describe('cacheInterceptor', () => {
   let http: HttpClient;
@@ -106,5 +106,19 @@ describe('cacheInterceptor', () => {
     await slow;
 
     expect(await get('/api/v1/me', undefined, { user: null })).toEqual({ user: null });
+  });
+
+  it('a mutation with keepCache() leaves the cache and the GETs in flight alone', async () => {
+    await get('/api/v1/wars', undefined, { n: 1 });
+    const slow = firstValueFrom(http.get('/api/v1/raids'));
+
+    const refresh = firstValueFrom(http.post('/api/v1/auth/refresh', {}, { context: keepCache() }));
+    httpMock.expectOne('/api/v1/auth/refresh').flush({});
+    await refresh;
+    httpMock.expectOne('/api/v1/raids').flush({ n: 1 });
+    await slow;
+
+    expect(await get('/api/v1/wars')).toEqual({ n: 1 });
+    expect(await get('/api/v1/raids')).toEqual({ n: 1 });
   });
 });

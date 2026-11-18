@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { provideCocApiTest } from '../../testing/fixtures';
+import { cacheInterceptor } from '../http/cache.interceptor';
 import { authInterceptor } from './auth.interceptor';
 import {
   AuthService,
@@ -352,6 +353,78 @@ describe('AuthService and authInterceptor', () => {
       httpMock.expectOne('/api/v1/auth/sign-out').flush(ok(null));
       await done;
       expect(localStorage.getItem(OFFLINE_PROFILE_KEY)).toBeNull();
+    });
+  });
+
+  describe('with the HTTP cache', () => {
+    let client: HttpClient;
+    let mock: HttpTestingController;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(withInterceptors([cacheInterceptor, authInterceptor])),
+          provideHttpClientTesting(),
+          provideCocApiTest({ useMockApi: true }),
+        ],
+      });
+      auth = TestBed.inject(AuthService);
+      client = TestBed.inject(HttpClient);
+      mock = TestBed.inject(HttpTestingController);
+      httpMock = mock;
+    });
+
+    const other = (token: string): AuthResult => {
+      const result = session(token);
+      return { ...result, user: { ...result.user, id: '2', username: 'bob' } };
+    };
+
+    async function read(reply?: unknown): Promise<unknown> {
+      const body = firstValueFrom(client.get('/api/v1/wars'));
+      if (reply !== undefined) mock.expectOne('/api/v1/wars').flush(reply);
+      return body;
+    }
+
+    async function signIn(result: AuthResult): Promise<void> {
+      const user = firstValueFrom(auth.signIn({ identifier: 'x', password: 'secret123' }));
+      mock.expectOne('/api/v1/auth/sign-in').flush(ok(result));
+      await user;
+    }
+
+    it('keeps the cached data across a token refresh and stores the read retried after it', async () => {
+      await signIn(session('t1'));
+      expect(await read({ n: 1 })).toEqual({ n: 1 });
+
+      const refreshed = firstValueFrom(auth.refresh());
+      mock.expectOne('/api/v1/auth/refresh').flush(ok(session('t2')));
+      await refreshed;
+      expect(await read()).toEqual({ n: 1 }); // still cached: no request
+
+      // A read on another URL with an expired token: refreshed, retried and stored.
+      const body = firstValueFrom(client.get('/api/v1/raids'));
+      mock.expectOne('/api/v1/raids').flush(null, { status: 401, statusText: 'Unauthorized' });
+      mock.expectOne('/api/v1/auth/refresh').flush(ok(session('t3')));
+      mock.expectOne('/api/v1/raids').flush({ raids: 1 });
+      expect(await body).toEqual({ raids: 1 });
+      expect(await firstValueFrom(client.get('/api/v1/raids'))).toEqual({ raids: 1 });
+    });
+
+    it('clears the cache when another user signs in and at sign-out', async () => {
+      await signIn(session('t1'));
+      await read({ n: 1 });
+
+      // The same user again (e.g. a second sign-in): the cache stays.
+      await signIn(session('t2'));
+      expect(await read()).toEqual({ n: 1 });
+
+      await signIn(other('t3'));
+      expect(await read({ n: 2 })).toEqual({ n: 2 });
+
+      const done = firstValueFrom(auth.signOut());
+      mock.expectOne('/api/v1/auth/sign-out').flush(null, { status: 500, statusText: 'Error' });
+      await done;
+      expect(await read({ n: 3 })).toEqual({ n: 3 });
     });
   });
 });

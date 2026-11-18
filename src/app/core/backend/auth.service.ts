@@ -17,6 +17,8 @@ import {
   timer,
 } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
+import { keepCache } from '../http/http-cache';
+import { HttpCacheService } from '../http/http-cache.service';
 import { LanguageService } from '../i18n/language.service';
 import { isOffline } from '../pwa/connectivity';
 import { clearPrivateOfflineData } from '../pwa/offline-data';
@@ -46,6 +48,13 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${inject(APP_CONFIG).backendBaseUrl}/auth`;
   private readonly language = inject(LanguageService);
+  private readonly cache = inject(HttpCacheService);
+  /**
+   * User whose requests filled the HTTP cache (`null` = a guest). Session requests (sign-in,
+   * refresh, sign-out) leave the cache alone: it is cleared only when the user changes, so a
+   * token refresh keeps the cached data while another user never sees this one's.
+   */
+  private cacheOwner: string | null = null;
 
   private readonly session = signal<AuthResult | null>(null);
   /** User of the last session, while the backend cannot confirm it (offline). */
@@ -166,7 +175,11 @@ export class AuthService {
   /** Revokes the session on the backend; the local session is cleared in any case. */
   signOut(): Observable<void> {
     return this.http
-      .post<BaseResult<null>>(`${this.baseUrl}/sign-out`, {}, { withCredentials: true })
+      .post<BaseResult<null>>(
+        `${this.baseUrl}/sign-out`,
+        {},
+        { withCredentials: true, context: keepCache() },
+      )
       .pipe(
         map(() => undefined),
         catchError(() => of(undefined)),
@@ -192,7 +205,7 @@ export class AuthService {
     const request = this.http.post<BaseResult<AuthResult>>(
       `${this.baseUrl}/refresh`,
       {},
-      { withCredentials: true },
+      { withCredentials: true, context: keepCache() },
     );
     this.refreshing$ ??= underRefreshLock(request).pipe(
       retry({
@@ -278,6 +291,7 @@ export class AuthService {
 
   /** A session confirmed by the backend: it replaces the remembered user, whose profile is updated. */
   private startSession(result: AuthResult): void {
+    this.cachedFor(result.user.id);
     this.session.set(result);
     this.rememberedUser.set(null);
     this.stopRestoreRetries();
@@ -286,6 +300,7 @@ export class AuthService {
 
   /** Signed out or session rejected: nothing of the user stays in the browser. */
   private endSession(): void {
+    this.cachedFor(null);
     this.session.set(null);
     this.rememberedUser.set(null);
     this.stopRestoreRetries();
@@ -295,7 +310,17 @@ export class AuthService {
 
   /** The backend cannot be reached: the user of the last session, if any, stays signed in. */
   private rememberUser(): void {
-    if (!this.rememberedUser()) this.rememberedUser.set(loadOfflineProfile());
+    if (this.rememberedUser()) return;
+    const user = loadOfflineProfile();
+    if (user) this.cachedFor(user.id);
+    this.rememberedUser.set(user);
+  }
+
+  /** Clears the HTTP cache when its data were read by another user (or by a guest). */
+  private cachedFor(userId: string | null): void {
+    if (userId === this.cacheOwner) return;
+    this.cache.clear();
+    this.cacheOwner = userId;
   }
 
   /** Replaces the user in the current session (after a profile change). */
@@ -309,7 +334,10 @@ export class AuthService {
     body: SignUpRequest | SignInRequest,
   ): Observable<BackendUser> {
     return this.http
-      .post<BaseResult<AuthResult>>(`${this.baseUrl}/${path}`, body, { withCredentials: true })
+      .post<BaseResult<AuthResult>>(`${this.baseUrl}/${path}`, body, {
+        withCredentials: true,
+        context: keepCache(),
+      })
       .pipe(
         tap((response) => this.startSession(response.result!)),
         map((response) => response.result!.user),
