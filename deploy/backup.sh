@@ -17,16 +17,17 @@ mkdir -p "$BACKUP_DIR" && chmod 700 "$BACKUP_DIR"
 # A failed run must not leave half-written files that look like good backups.
 trap 'rm -f "$MONGO_FILE.part" "$PROXY_FILE.part"' EXIT
 
-# DATABASE_URL comes from deploy/.env and is passed to the container through the environment,
-# never on the command line (it contains the database password).
+# The tools run as services of docker-compose.yml (pinned images): DATABASE_URL reaches mongodump
+# from deploy/.env through the container's environment, never on the command line (it contains
+# the database password).
 set -a; . ./.env; set +a
 
 echo "[$(date -u +%FT%TZ)] backup: MongoDB"
-docker run --rm -e DATABASE_URL mongo:8 sh -c 'mongodump --uri="$DATABASE_URL" --archive --gzip --quiet' > "$MONGO_FILE.part"
+docker compose run --rm -T mongo-tools sh -c 'mongodump --uri="$DATABASE_URL" --archive --gzip --quiet' > "$MONGO_FILE.part"
 mv "$MONGO_FILE.part" "$MONGO_FILE"
 
 echo "[$(date -u +%FT%TZ)] backup: proxy archive"
-docker run --rm -v crociata-nera_proxy_data:/data:ro alpine tar czf - -C /data . > "$PROXY_FILE.part"
+docker compose run --rm -T archive-tools tar czf - -C /data . > "$PROXY_FILE.part"
 mv "$PROXY_FILE.part" "$PROXY_FILE"
 
 find "$BACKUP_DIR" -maxdepth 1 -type f -name '*.gz' -mtime +"$KEEP_DAYS" -delete

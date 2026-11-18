@@ -508,8 +508,8 @@ locale della VPS segue il commit pubblicato (`git checkout -B master <sha>`): no
   ```
 - Ripristino del database:
   ```bash
-  set -a; . ./.env; set +a
-  docker run --rm -i -e DATABASE_URL mongo:8 sh -c 'mongorestore --uri="$DATABASE_URL" --archive --gzip --drop' < /root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz
+  cd ~/crociata_nera/deploy
+  docker compose run --rm -T mongo-tools sh -c 'mongorestore --uri="$DATABASE_URL" --archive --gzip --drop' < /root/backups/mongo-AAAAMMGG-HHMMSS.archive.gz
   ```
 
 **Monitoraggio:** `.github/workflows/uptime.yml` controlla ogni 15 minuti il sito, `/api/v1/health` e la lettura
