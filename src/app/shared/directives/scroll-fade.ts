@@ -6,7 +6,8 @@ import { afterNextRender, DestroyRef, Directive, ElementRef, inject, NgZone, sig
  * `styles.scss`). Nothing is shown when the content fits.
  *
  * Tracks scrolling, size changes of the area and of its content (data loading, tab
- * switches, window resize).
+ * switches, window resize): the area and its children are resized-observed, and only the lists of
+ * children of the area (and of inline hosts in it) are watched for changes.
  */
 @Directive({
   selector: '[crnScrollFade]',
@@ -41,21 +42,33 @@ export class ScrollFade {
 
         // Not available in every environment (e.g. some test DOMs): scroll and mutations still work.
         const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
-        const observeChildren = () => {
-          if (!resize) return;
-          resize.disconnect();
-          resize.observe(this.element);
-          for (const child of Array.from(this.element.children)) resize.observe(child);
-        };
-        observeChildren();
-
-        // Content rendered later (data loaded, @if blocks) inside inline hosts such as
-        // <crn-load-state> does not trigger the ResizeObserver: watch the whole subtree.
+        // Only lists of children are watched, never the whole subtree: content changing inside a
+        // child resizes it, which the ResizeObserver reports.
         const mutations = new MutationObserver(() => {
           observeChildren();
           schedule();
         });
-        mutations.observe(this.element, { childList: true, subtree: true });
+        const observeChildren = () => {
+          resize?.disconnect();
+          mutations.disconnect();
+          resize?.observe(this.element);
+          mutations.observe(this.element, { childList: true });
+          observeBoxes(this.element.children);
+        };
+        // Inline hosts such as <crn-load-state> have no size of their own to observe: their
+        // children are observed instead, and their list of children is watched too (content
+        // rendered later, @if blocks).
+        const observeBoxes = (children: HTMLCollection) => {
+          for (const child of Array.from(children)) {
+            if (hasNoBox(child)) {
+              mutations.observe(child, { childList: true });
+              observeBoxes(child.children);
+            } else {
+              resize?.observe(child);
+            }
+          }
+        };
+        observeChildren();
 
         destroyRef.onDestroy(() => {
           this.element.removeEventListener('scroll', schedule);
@@ -75,4 +88,10 @@ export class ScrollFade {
     this.top.set(overflow && scrollTop > ScrollFade.THRESHOLD);
     this.bottom.set(overflow && scrollTop + clientHeight < scrollHeight - ScrollFade.THRESHOLD);
   }
+}
+
+/** Inline or `display: contents` elements: their size does not follow their content. */
+function hasNoBox(element: Element): boolean {
+  const display = getComputedStyle(element).display;
+  return display === 'inline' || display === 'contents';
 }
