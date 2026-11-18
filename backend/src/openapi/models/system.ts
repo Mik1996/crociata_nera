@@ -1,16 +1,29 @@
 import { z } from 'zod';
 import { dateTime, model, nullableDateTime, SyncError } from './common';
 
+/** Last success and failure of a step of the synchronisation. */
+const JOB = z
+  .strictObject({
+    lastSuccessAt: nullableDateTime('Last success; `null` since the server started without one.'),
+    lastFailureAt: nullableDateTime('Last failure; `null` since the server started without one.'),
+  });
+
 export const Health = model(
   'Health',
   'Status of the service, its database and the war synchronisation.',
   z.strictObject({
-    status: z.enum(['ok', 'degraded']).describe('`degraded` when MongoDB is unreachable.'),
+    status: z.enum(['ok', 'degraded']).describe('`degraded` when `issues` is not empty.'),
+    issues: z
+      .array(z.enum(['databaseDown', 'warSyncStale', 'cocAccessDenied']))
+      .describe(
+        'What is wrong: MongoDB unreachable; war sync without success for twice its interval (built-in scheduler only); Clash of Clans API key refused (`accessDenied*`).',
+      ),
     database: z.enum(['up', 'down']).describe('MongoDB connection.'),
     warSync: z
       .strictObject({
         scheduler: z.enum(['running', 'stopped']).describe('Built-in scheduler (stopped when disabled or not configured).'),
         lastRunAt: nullableDateTime('Last run; `null` before the first one.'),
+        lastSuccessAt: nullableDateTime('Last successful run; `null` before the first one.'),
         currentState: z
           .string()
           .nullable()
@@ -25,6 +38,16 @@ export const Health = model(
           .describe('Error of the last run; `null` when it succeeded.'),
       })
       .describe('War synchronisation.'),
+    jobs: z
+      .strictObject({
+        warSync: JOB.describe('Regular war of the main clan.'),
+        cwl: JOB.describe('Clan War League of every clan.'),
+        raids: JOB.describe('Raid Weekends of every clan.'),
+        donations: JOB.describe('Members and their donations.'),
+        commendations: JOB.describe('Commendations of the closed periods.'),
+        profiles: JOB.describe('Heroes and equipment of the members.'),
+      })
+      .describe('Last success and failure of each step of the synchronisation, since the server started.'),
     time: dateTime('Server time.'),
   }),
 );

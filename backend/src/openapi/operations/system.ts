@@ -11,12 +11,13 @@ export const SYSTEM_OPERATIONS: ApiOperation[] = [
     tag: 'System',
     summary: 'Check the service',
     description:
-      'Status of the service, MongoDB and the war synchronisation, for monitoring. Answers 503 (with the same body) when MongoDB is unreachable.',
+      'Status of the service, MongoDB and the synchronisation, for monitoring. Answers 503 (with the same body, `status: degraded`) when MongoDB is unreachable, the war sync of the built-in scheduler has not succeeded for twice its interval, or the Clash of Clans API refuses the key (`accessDenied*`); `issues` tells which.',
     access: 'public',
+    rateLimit: ApiName.HEALTH,
     database: false,
     responses: {
-      200: { description: 'Service and database up.', result: Health },
-      503: { description: 'MongoDB unreachable (`status: degraded`).', result: Health },
+      200: { description: 'Service, database and synchronisation up.', result: Health },
+      503: { description: 'Something is wrong (`status: degraded`, see `issues`).', result: Health },
     },
   },
   {

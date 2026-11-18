@@ -22,6 +22,7 @@ export enum ApiName {
   BASES_WRITE = 'bases-write',
   BASE_IMAGES = 'base-images',
   API_DOCS = 'api-docs',
+  HEALTH = 'health',
 }
 
 export interface RateLimit {
@@ -67,4 +68,6 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   // The OpenAPI document and its viewer (Swagger UI). In production a password is checked:
   // few tries, as for the sign-in (a page view makes 2 requests).
   [ApiName.API_DOCS]: { limit: 30, windowMs: 15 * MINUTE },
+  // Public, polled by uptime monitors (several may share an IP).
+  [ApiName.HEALTH]: { limit: 120, windowMs: MINUTE },
 };

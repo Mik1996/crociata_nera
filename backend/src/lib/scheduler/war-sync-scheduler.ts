@@ -8,8 +8,21 @@ import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncClanRecords } from '@/modules/records/clan-records.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 
+/** Steps of a run whose last success is tracked (health check). */
+export const SYNC_JOBS = ['warSync', 'cwl', 'raids', 'donations', 'commendations', 'profiles'] as const;
+export type SyncJob = (typeof SYNC_JOBS)[number];
+
+interface JobStatus {
+  lastSuccessAt: Date | null;
+  lastFailureAt: Date | null;
+}
+
 interface SchedulerState {
   started: boolean;
+  /** When the built-in scheduler started (`null` while stopped). */
+  startedAt: Date | null;
+  /** Last success and failure of each step, from the scheduler or the cron route. */
+  jobs: Record<SyncJob, JobStatus>;
   running: boolean;
   /** Start of the run in progress (a run stuck for too long no longer blocks the next ones). */
   runStartedAt: Date | null;
@@ -24,8 +37,12 @@ interface SchedulerState {
 
 // One scheduler per process, even if the module is evaluated again (dev hot reload).
 const globalState = globalThis as typeof globalThis & { __warSync?: SchedulerState };
+const emptyJobs = () =>
+  Object.fromEntries(SYNC_JOBS.map((job) => [job, { lastSuccessAt: null, lastFailureAt: null }])) as Record<SyncJob, JobStatus>;
 const state: SchedulerState = (globalState.__warSync ??= {
   started: false,
+  startedAt: null,
+  jobs: emptyJobs(),
   running: false,
   runStartedAt: null,
   timer: null,
@@ -34,6 +51,13 @@ const state: SchedulerState = (globalState.__warSync ??= {
   raidCheckAt: null,
   seasonCheckAt: null,
 });
+// A state created by an older version of this module (dev hot reload).
+state.jobs ??= emptyJobs();
+
+/** Records the outcome of a step of the run. */
+function track(job: SyncJob, ok: boolean): void {
+  state.jobs[job] = { ...state.jobs[job], ...(ok ? { lastSuccessAt: new Date() } : { lastFailureAt: new Date() }) };
+}
 
 /** Shortest wait between two runs, whatever the end time of the current war. */
 const MIN_DELAY_MS = 30_000;
@@ -62,6 +86,7 @@ export function startWarSyncScheduler(): void {
     return;
   }
   state.started = true;
+  state.startedAt = new Date();
   console.info(`[war-sync] reading the current war of ${config.CLAN_TAG} every ${config.WAR_SYNC_INTERVAL_MINUTES} min`);
   void runAndReschedule();
 }
@@ -103,9 +128,12 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
 async function runMainClanWarSync(): Promise<WarSyncReport> {
   const ranAt = new Date();
   try {
-    return await syncWars(ranAt);
+    const report = await syncWars(ranAt);
+    track('warSync', !report.error);
+    return report;
   } catch (error) {
     console.error('[war-sync] run failed:', error);
+    track('warSync', false);
     return {
       ranAt: ranAt.toISOString(),
       currentState: null,
@@ -123,8 +151,10 @@ async function runMainClanWarSync(): Promise<WarSyncReport> {
 async function runDonationRead(): Promise<void> {
   try {
     await syncMembers(new Date());
+    track('donations', true);
   } catch (error) {
     console.error('[commendations] last donation read of the season failed:', error);
+    track('donations', false);
   }
 }
 
@@ -153,33 +183,41 @@ async function runOtherClansWarSync(report: WarSyncReport): Promise<void> {
 
 /** Clan War League group and wars of every clan: a failure here must not stop the regular war sync. */
 async function runCwlSync(): Promise<void> {
+  let ok = true;
   for (const clanTag of crusadeClanTags()) {
     try {
       const cwl = await syncCwl(new Date(), clanTag);
+      if (cwl.error) ok = false;
       if (cwl.error) console.warn(`[cwl-sync] ${clanTag}: ${cwl.error.reason} (${cwl.error.status}): ${cwl.error.message}`);
       if (cwl.closed.length) console.info(`[cwl-sync] ${clanTag}: seasons closed after the group disappeared: ${cwl.closed.join(', ')}`);
       if (!cwl.error && cwl.season) {
         console.info(`[cwl-sync] ${clanTag}: season=${cwl.season} state=${cwl.state} wars read=${cwl.warsFetched}`);
       }
     } catch (error) {
+      ok = false;
       console.error(`[cwl-sync] ${clanTag} run failed:`, error);
     }
   }
+  track('cwl', ok);
 }
 
 /** Raid Weekends of every clan (members are only listed while the weekend is in progress). */
 async function runRaidSync(): Promise<void> {
   let checkAt: Date | null = null;
+  let ok = true;
   for (const clanTag of crusadeClanTags()) {
     try {
       const raids = await syncRaids(new Date(), clanTag);
+      if (raids.error) ok = false;
       const next = raids.nextCheckAt ? new Date(raids.nextCheckAt) : null;
       if (next && (!checkAt || next < checkAt)) checkAt = next;
       if (raids.error) console.warn(`[raid-sync] ${clanTag}: ${raids.error.reason} (${raids.error.status}): ${raids.error.message}`);
     } catch (error) {
+      ok = false;
       console.error(`[raid-sync] ${clanTag} run failed:`, error);
     }
   }
+  track('raids', ok);
   state.raidCheckAt = checkAt;
 }
 
@@ -199,12 +237,16 @@ async function runRecordSync(): Promise<void> {
 async function runCommendationSync(): Promise<void> {
   try {
     const result = await syncCommendations();
+    track('commendations', true);
+    // The members' donations are read first: an API error leaves them as they were.
+    track('donations', !result.error);
     state.seasonCheckAt = result.nextCheckAt ? new Date(result.nextCheckAt) : null;
     if (result.error) console.warn(`[commendations] members not updated: ${result.error.reason} (${result.error.status})`);
     if (result.periodsProcessed.length) {
       console.info(`[commendations] ${result.awards} awarded for ${result.periodsProcessed.join(', ')}`);
     }
   } catch (error) {
+    track('commendations', false);
     console.error('[commendations] run failed:', error);
   }
 }
@@ -213,20 +255,50 @@ async function runCommendationSync(): Promise<void> {
 async function runProfileSync(): Promise<void> {
   try {
     const result = await syncPlayerProfiles();
+    track('profiles', true);
     if (result.failed) console.warn(`[profiles] ${result.failed} profiles not read`);
   } catch (error) {
+    track('profiles', false);
     console.error('[profiles] run failed:', error);
   }
 }
 
-/** Status for the health check. */
-export function warSyncStatus() {
+/** Reasons for a `degraded` health check, besides the database. */
+export type SyncIssue = 'warSyncStale' | 'cocAccessDenied';
+
+/**
+ * Status for the health check. Issues:
+ * - `warSyncStale`: the built-in scheduler runs, but the war sync has not succeeded for twice its
+ *   interval (checked once the scheduler has had that long to run);
+ * - `cocAccessDenied`: the last war sync was refused by the Clash of Clans API (`accessDenied*`:
+ *   API key revoked or bound to another IP).
+ */
+export function warSyncStatus(now = new Date()) {
+  const issues: SyncIssue[] = [];
+  const staleAfter = 2 * env().WAR_SYNC_INTERVAL_MINUTES * 60_000;
+  const lastSuccess = state.jobs.warSync.lastSuccessAt;
+  if (
+    state.started &&
+    staleAfter > 0 &&
+    state.startedAt &&
+    now.getTime() - state.startedAt.getTime() > staleAfter &&
+    (!lastSuccess || now.getTime() - lastSuccess.getTime() > staleAfter)
+  ) {
+    issues.push('warSyncStale');
+  }
+  if (state.lastReport?.error?.reason.startsWith('accessDenied')) issues.push('cocAccessDenied');
+  const iso = (date: Date | null) => date?.toISOString() ?? null;
   return {
     scheduler: state.started ? 'running' : 'stopped',
     lastRunAt: state.lastReport?.ranAt ?? null,
+    lastSuccessAt: iso(lastSuccess),
     lastError: state.lastReport?.error ?? null,
     currentState: state.lastReport?.currentState ?? null,
-    nextRunAt: state.nextRunAt?.toISOString() ?? null,
+    nextRunAt: iso(state.nextRunAt),
+    jobs: Object.fromEntries(
+      SYNC_JOBS.map((job) => [job, { lastSuccessAt: iso(state.jobs[job].lastSuccessAt), lastFailureAt: iso(state.jobs[job].lastFailureAt) }]),
+    ) as Record<SyncJob, { lastSuccessAt: string | null; lastFailureAt: string | null }>,
+    issues,
   };
 }
 

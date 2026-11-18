@@ -121,3 +121,64 @@ describe('war sync scheduler', () => {
     expect(await withTimeout(Promise.resolve(3), 1_000)).toEqual({ timedOut: false, value: 3 });
   });
 });
+
+describe('GET /health', () => {
+  /** A fresh scheduler and the health route bound to it. */
+  async function loadHealth() {
+    const scheduler = await loadScheduler();
+    const { GET } = await import('@/app/api/v1/health/route');
+    const { call } = await import('./helpers');
+    const state = (globalThis as unknown as { __warSync: { started: boolean; startedAt: Date | null } }).__warSync;
+    return { ...scheduler, health: () => call(GET), state };
+  }
+
+  it('reports the last success of each step of the synchronisation', async () => {
+    const { runWarSync, health } = await loadHealth();
+    await runWarSync();
+
+    const { status, body } = await health();
+
+    expect(status).toBe(200);
+    expect(body.result).toMatchObject({ status: 'ok', issues: [], database: 'up', warSync: { lastError: null } });
+    expect(body.result.warSync.lastSuccessAt).toEqual(expect.any(String));
+    for (const job of ['warSync', 'cwl', 'raids', 'donations', 'commendations', 'profiles']) {
+      expect(body.result.jobs[job], job).toEqual({ lastSuccessAt: expect.any(String), lastFailureAt: null });
+    }
+  });
+
+  it('is degraded when the Clash of Clans API refuses the key', async () => {
+    const { runWarSync, health } = await loadHealth();
+    mocks.syncWars.mockResolvedValue(report({ error: { status: 403, reason: 'accessDenied.invalidIp', message: 'Invalid IP' } }));
+    await runWarSync();
+
+    const { status, body } = await health();
+
+    expect(status).toBe(503);
+    expect(body.result).toMatchObject({
+      status: 'degraded',
+      issues: ['cocAccessDenied'],
+      warSync: { lastSuccessAt: null, lastError: { status: 403, reason: 'accessDenied.invalidIp' } },
+      jobs: { warSync: { lastSuccessAt: null, lastFailureAt: expect.any(String) } },
+    });
+  });
+
+  it('is degraded when the war sync of the scheduler has not succeeded for twice its interval', async () => {
+    const { runWarSync, health, state } = await loadHealth();
+    mocks.syncWars.mockResolvedValue(report({ error: { status: 503, reason: 'inMaintenance', message: 'Maintenance' } }));
+    await runWarSync();
+    // Built-in scheduler (every 10 minutes) started 15 minutes ago: not long enough to tell.
+    state.started = true;
+    state.startedAt = new Date(Date.now() - 15 * 60_000);
+    expect((await health()).status).toBe(200);
+
+    state.startedAt = new Date(Date.now() - 25 * 60_000);
+    const { status, body } = await health();
+    expect(status).toBe(503);
+    expect(body.result).toMatchObject({ status: 'degraded', issues: ['warSyncStale'], warSync: { scheduler: 'running' } });
+
+    mocks.syncWars.mockResolvedValue(report());
+    await runWarSync();
+    expect((await health()).body.result).toMatchObject({ status: 'ok', issues: [] });
+    state.started = false;
+  });
+});
