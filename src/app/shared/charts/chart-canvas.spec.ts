@@ -2,7 +2,7 @@ import { Component, viewChildren } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Chart, ChartData, registry } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartCanvas } from './chart-canvas';
+import { CHART_REGISTERABLES, ChartCanvas } from './chart-canvas';
 import { barSeries, baseChartOptions, ChartChrome, lineSeries } from './chart-theme';
 
 const chrome: ChartChrome = {
@@ -82,6 +82,8 @@ describe('ChartCanvas', () => {
   });
 
   it('registers only the parts of Chart.js the site uses, before drawing the charts', async () => {
+    // The registry is global and other specs (pages with charts) may have filled it already.
+    Chart.unregister(...CHART_REGISTERABLES);
     expect(() => registry.getController('line')).toThrow(); // nothing registered at startup
 
     const fixture = TestBed.createComponent(Host);
