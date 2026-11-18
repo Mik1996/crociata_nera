@@ -1,7 +1,7 @@
 import { env } from '../config/env';
 import { crusadeClanTags, primaryClanTag } from '../coc/crusade-clans';
 import { connectToDatabase } from '../db/mongoose';
-import { syncCommendations } from '@/modules/commendations/commendation-sync.service';
+import { syncCommendations, syncMembers } from '@/modules/commendations/commendation-sync.service';
 import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
@@ -11,6 +11,8 @@ import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 interface SchedulerState {
   started: boolean;
   running: boolean;
+  /** Start of the run in progress (a run stuck for too long no longer blocks the next ones). */
+  runStartedAt: Date | null;
   timer: NodeJS.Timeout | null;
   lastReport: WarSyncReport | null;
   nextRunAt: Date | null;
@@ -25,6 +27,7 @@ const globalState = globalThis as typeof globalThis & { __warSync?: SchedulerSta
 const state: SchedulerState = (globalState.__warSync ??= {
   started: false,
   running: false,
+  runStartedAt: null,
   timer: null,
   lastReport: null,
   nextRunAt: null,
@@ -34,6 +37,10 @@ const state: SchedulerState = (globalState.__warSync ??= {
 
 /** Shortest wait between two runs, whatever the end time of the current war. */
 const MIN_DELAY_MS = 30_000;
+/** The scheduler waits this long for a run, then schedules the next one anyway. */
+export const RUN_TIMEOUT_MS = 15 * 60_000;
+/** A run still in progress after this long is considered stuck: a new run may start. */
+const STUCK_RUN_MS = 2 * RUN_TIMEOUT_MS;
 
 /**
  * Built-in scheduler, started once when the server boots (`src/instrumentation.ts`).
@@ -61,11 +68,17 @@ export function startWarSyncScheduler(): void {
 
 /** Runs a sync now unless one is already running; shared by the scheduler and the cron route. */
 export async function runWarSync(): Promise<WarSyncReport | null> {
-  if (state.running) return null;
+  const startedAt = new Date();
+  if (state.running && state.runStartedAt && startedAt.getTime() - state.runStartedAt.getTime() < STUCK_RUN_MS) return null;
+  if (state.running) console.error(`[war-sync] run started at ${state.runStartedAt?.toISOString()} looks stuck: starting a new one`);
   state.running = true;
+  state.runStartedAt = startedAt;
   try {
     await connectToDatabase();
-    const report = await syncWars();
+    // Last read of the donations before the season ends: first, the steps below may take a while.
+    const seasonEnding = state.seasonCheckAt !== null && state.seasonCheckAt.getTime() <= startedAt.getTime() + MIN_DELAY_MS;
+    if (seasonEnding) await runDonationRead();
+    const report = await runMainClanWarSync();
     state.lastReport = report;
     logReport(report);
     await runOtherClansWarSync(report);
@@ -78,7 +91,40 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     await runProfileSync();
     return report;
   } finally {
-    state.running = false;
+    // A stuck run that finishes after a newer one started leaves the flag to the newer run.
+    if (state.runStartedAt === startedAt) {
+      state.running = false;
+      state.runStartedAt = null;
+    }
+  }
+}
+
+/** Regular war of the main clan: an unexpected failure is reported, and the other steps still run. */
+async function runMainClanWarSync(): Promise<WarSyncReport> {
+  const ranAt = new Date();
+  try {
+    return await syncWars(ranAt);
+  } catch (error) {
+    console.error('[war-sync] run failed:', error);
+    return {
+      ranAt: ranAt.toISOString(),
+      currentState: null,
+      warKey: null,
+      outcome: null,
+      finalized: [],
+      warLogMatched: [],
+      nextCheckAt: null,
+      error: { status: 500, reason: 'internal', message: (error as Error)?.message ?? String(error) },
+    };
+  }
+}
+
+/** Members' donations, read just before the game season ends (commendations come later in the run). */
+async function runDonationRead(): Promise<void> {
+  try {
+    await syncMembers(new Date());
+  } catch (error) {
+    console.error('[commendations] last donation read of the season failed:', error);
   }
 }
 
@@ -184,12 +230,34 @@ export function warSyncStatus() {
   };
 }
 
+/**
+ * Waits for `run` at most `timeoutMs`: `timedOut` if it takes longer (the run goes on in the
+ * background), so a hung call never stops the scheduler.
+ */
+export async function withTimeout<T>(run: Promise<T>, timeoutMs: number): Promise<{ timedOut: false; value: T } | { timedOut: true }> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<{ timedOut: true }>((resolve) => {
+    timer = setTimeout(() => resolve({ timedOut: true }), timeoutMs);
+    timer.unref?.();
+  });
+  try {
+    return await Promise.race([run.then((value) => ({ timedOut: false as const, value })), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function runAndReschedule(): Promise<void> {
   let report: WarSyncReport | null = null;
   try {
-    report = await runWarSync();
-  } catch (error) {
-    console.error('[war-sync] run failed:', error);
+    const run = runWarSync();
+    // A run that keeps going after the timeout must not report an unhandled rejection.
+    run.catch((error: unknown) => console.error('[war-sync] run failed:', error));
+    const outcome = await withTimeout(run, RUN_TIMEOUT_MS);
+    if (outcome.timedOut) console.error(`[war-sync] run still in progress after ${RUN_TIMEOUT_MS / 60_000} min: scheduling the next one`);
+    else report = outcome.value;
+  } catch {
+    // Logged above.
   }
 
   const interval = env().WAR_SYNC_INTERVAL_MINUTES * 60_000;
