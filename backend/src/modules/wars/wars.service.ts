@@ -104,7 +104,7 @@ export async function upsertWarSnapshot(
           ...(ended ? { finalizedFrom: 'currentWar', endedAt: war.endTime } : {}),
         },
       },
-      { upsert: true, new: true, runValidators: true, includeResultMetadata: true },
+      { upsert: true, returnDocument: 'after', runValidators: true, includeResultMetadata: true },
     );
     return { outcome: response.lastErrorObject?.updatedExisting ? 'updated' : 'created', war: response.value! };
   } catch (error) {

@@ -184,7 +184,7 @@ export async function deleteUser(actorId: string, userId: string, input: DeleteU
 /** Unlinks one Clash of Clans account of a user. */
 export async function unlinkUserPlayer(userId: string, tag: string): Promise<AdminUser> {
   if (!Types.ObjectId.isValid(userId)) throwException(404, MessageKey.USER_NOT_FOUND);
-  const user = await UserModel.findOneAndUpdate({ _id: userId }, { $pull: { playerTags: tag } }, { new: true });
+  const user = await UserModel.findOneAndUpdate({ _id: userId }, { $pull: { playerTags: tag } }, { returnDocument: 'after' });
   if (!user) throwException(404, MessageKey.USER_NOT_FOUND);
   if (user.pendingPlayerTag === tag) {
     user.pendingPlayerTag = null;
