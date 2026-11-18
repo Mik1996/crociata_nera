@@ -155,7 +155,15 @@ export async function linkUserPlayers(userId: string, input: LinkUserPlayersInpu
 
   await UserModel.updateMany({ pendingPlayerTag: { $in: tags } }, { $set: { pendingPlayerTag: null } });
   try {
-    await UserModel.updateOne({ _id: user._id }, { $addToSet: { playerTags: { $each: tags } } });
+    // The limit is checked again in the update itself (at most MAX - new accounts already linked):
+    // concurrent links cannot exceed it.
+    const linked = await UserModel.updateOne(
+      { _id: user._id, [`playerTags.${MAX_LINKED_PLAYERS - newTags.length}`]: { $exists: false } },
+      { $addToSet: { playerTags: { $each: tags } } },
+    );
+    if (linked.matchedCount === 0) {
+      throwException(409, [{ key: MessageKey.PLAYER_LIMIT_REACHED, params: { max: MAX_LINKED_PLAYERS } }]);
+    }
   } catch (error) {
     // Another user verified one of the accounts in the meantime (unique index).
     if ((error as { code?: number }).code === 11000) {

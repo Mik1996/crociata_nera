@@ -178,6 +178,28 @@ describe('profile', () => {
     expect(tooMany.body.messages).toEqual([{ key: 'ERROR.PLAYER_LIMIT_REACHED', params: { max: 10 } }]);
   });
 
+  it('keeps the maximum when two accounts are linked at the same time', async () => {
+    mockVerifyToken();
+    const { token } = await register();
+    const nine = Array.from({ length: 9 }, (_, i) => `#ACC${i + 1}00`);
+    await UserModel.updateOne({ email: account.email }, { $set: { playerTags: nine } });
+
+    const results = await Promise.all(
+      ['#LAST1', '#LAST2'].map((playerTag, i) =>
+        call(linkPlayer, { body: { playerTag, token: 'good-token' }, token, ip: `10.9.2.${i}` }),
+      ),
+    );
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect(results.find((r) => r.status === 409)!.body.messages).toEqual([
+      { key: 'ERROR.PLAYER_LIMIT_REACHED', params: { max: 10 } },
+    ]);
+    expect((await UserModel.findOne({ email: account.email }))!.playerTags).toHaveLength(10);
+
+    // Linking again an account already linked is not blocked by the full list.
+    const relinked = await call(linkPlayer, { body: { playerTag: '#ACC100', token: 'good-token' }, token, ip: '10.9.3.1' });
+    expect(relinked.status).toBe(200);
+  });
+
   it('moves the single linked account of the old format to the list of accounts', async () => {
     await register();
     await call(signUp, { body: { email: 'b@crociata.it', username: 'Bee', password: 'secret123', repeatPassword: 'secret123' } });

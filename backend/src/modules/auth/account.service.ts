@@ -57,7 +57,14 @@ export async function linkPlayer(userId: string, input: LinkPlayerInput): Promis
   // Unverified copies of this tag (this user's or others') give way to the verified link.
   await UserModel.updateMany({ pendingPlayerTag: tag }, { $set: { pendingPlayerTag: null } });
   try {
-    await UserModel.updateOne({ _id: user._id }, { $addToSet: { playerTags: tag } });
+    // The limit is checked again in the update itself: concurrent links cannot exceed it.
+    const linked = await UserModel.updateOne(
+      { _id: user._id, $or: [{ playerTags: tag }, { [`playerTags.${MAX_LINKED_PLAYERS - 1}`]: { $exists: false } }] },
+      { $addToSet: { playerTags: tag } },
+    );
+    if (linked.matchedCount === 0) {
+      throwException(409, [{ key: MessageKey.PLAYER_LIMIT_REACHED, params: { max: MAX_LINKED_PLAYERS } }]);
+    }
   } catch (error) {
     // Another user verified the same account in the meantime (unique index).
     if ((error as { code?: number }).code === 11000) {
