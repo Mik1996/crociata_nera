@@ -1,5 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { userHasClanAccess, userHasLeaderAccess } from '@/modules/access/clan-access.service';
+import { UserModel } from '@/modules/auth/user.model';
 import { verifyAccessToken } from '../auth/tokens';
 import { UserRole } from '../auth/user-role';
 import { connectToDatabase } from '../db/mongoose';
@@ -13,6 +14,10 @@ import { consumeRateLimit } from './rate-limit';
 /** Authenticated caller, from the access token. */
 export interface AuthUser {
   id: string;
+  /**
+   * Roles in the access token (up to 15 minutes old). On routes with `roles` they are read again
+   * from the database before the check, so they are current there.
+   */
   roles: UserRole[];
 }
 
@@ -97,11 +102,16 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
         request,
         !!options.auth || !!options.roles?.length || !!options.clanAccess || !!options.leaderAccess,
       );
-      if (options.roles?.length && !options.roles.some((role) => user!.roles.includes(role))) {
-        throwException(403, MessageKey.FORBIDDEN);
+      const needsRoles = !!options.roles?.length;
+      if (options.database !== false || options.clanAccess || options.leaderAccess || needsRoles) {
+        await connectToDatabase();
       }
-
-      if (options.database !== false || options.clanAccess || options.leaderAccess) await connectToDatabase();
+      if (needsRoles) {
+        // Roles come from the database, not from the token: a demoted or deleted administrator
+        // loses access at once instead of when the access token expires.
+        user!.roles = await currentRoles(user!.id);
+        if (!options.roles!.some((role) => user!.roles.includes(role))) throwException(403, MessageKey.FORBIDDEN);
+      }
       if (options.clanAccess && !(await userHasClanAccess(user!.id))) {
         throwException(403, MessageKey.CLAN_ACCESS_REQUIRED);
       }
@@ -128,6 +138,17 @@ async function authenticate(request: Request, required: boolean): Promise<AuthUs
   const payload = await verifyAccessToken(token);
   if (!payload) return required ? throwException(401, MessageKey.INVALID_TOKEN) : null;
   return { id: payload.sub, roles: payload.roles };
+}
+
+/** Current roles of a user, from the database; `null` for a user deleted since the token was issued. */
+export async function findCurrentRoles(userId: string): Promise<UserRole[] | null> {
+  const found = Types.ObjectId.isValid(userId) ? await UserModel.findById(userId).select('roles').lean() : null;
+  return found ? ([...found.roles] as UserRole[]) : null;
+}
+
+/** {@link findCurrentRoles}; a deleted user is not authenticated (401). */
+async function currentRoles(userId: string): Promise<UserRole[]> {
+  return (await findCurrentRoles(userId)) ?? throwException(401, MessageKey.INVALID_TOKEN);
 }
 
 function respond(

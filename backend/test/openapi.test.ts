@@ -74,7 +74,14 @@ function undocumentedProperties(schema: unknown, path: string): string[] {
 }
 
 async function adminToken(): Promise<string> {
-  return (await signAccessToken({ sub: '6730f1c2a4b5c6d7e8f90123', roles: [UserRole.USER, UserRole.ADMIN] })).token;
+  const admin = await UserModel.create({
+    email: 'boss@x.io',
+    username: 'boss',
+    usernameKey: 'boss',
+    passwordHash: 'x',
+    roles: [UserRole.USER, UserRole.ADMIN],
+  });
+  return (await signAccessToken({ sub: admin._id.toString(), roles: [UserRole.USER, UserRole.ADMIN] })).token;
 }
 
 function production(): void {
@@ -193,9 +200,14 @@ describe('GET /openapi.json', () => {
     expect(anonymous.headers.get('www-authenticate')).toContain('Basic');
     expect((await call(getOpenApi, { token: await memberToken() })).status).toBe(403);
 
-    const { status, body } = await call<never>(getOpenApi, { token: await adminToken() });
+    const token = await adminToken();
+    const { status, body } = await call<never>(getOpenApi, { token });
     expect(status).toBe(200);
     expect((body as unknown as { paths: Json }).paths['/wars/{warKey}']).toBeDefined();
+
+    // The roles are read again: a demoted administrator's token no longer opens it.
+    await UserModel.updateOne({ username: 'boss' }, { $set: { roles: [UserRole.USER] } });
+    expect((await call(getOpenApi, { token })).status).toBe(403);
   });
 });
 

@@ -75,9 +75,10 @@ export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
 }
 
 /**
- * Changes the roles of a user. An administrator cannot remove
- * their own ADMIN role (no lock-out). When roles change, the user's sessions are revoked
- * so the new roles apply at the next sign-in instead of up to 15 minutes later.
+ * Changes the roles of a user. An administrator cannot remove their own ADMIN role (no lock-out).
+ * Routes restricted by role read the roles from the database at every request, so the change
+ * applies at once there. When roles change, the user's sessions are revoked too: the roles carried
+ * by the access token (shown by the frontend) are renewed at the next sign-in.
  */
 export async function updateUser(actorId: string, userId: string, input: UpdateUserInput): Promise<AdminUser> {
   const user = Types.ObjectId.isValid(userId) ? await UserModel.findById(userId) : null;

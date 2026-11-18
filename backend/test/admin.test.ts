@@ -77,6 +77,46 @@ describe('administration', () => {
     expect(res.body.messages).toEqual([{ key: 'ERROR.FORBIDDEN' }]);
   });
 
+  it('checks the current roles, not those in the access token', async () => {
+    const boss = await registerAdmin();
+    const deputy = await register('deputy', '10.0.0.3');
+    const victim = await register('victim', '10.0.0.4');
+    await UserModel.updateOne({ _id: deputy.user.id }, { $addToSet: { roles: 'ADMIN' } });
+    // A fresh access token carrying ADMIN.
+    const signedIn = await call(refresh, { body: {}, cookie: deputy.cookie });
+    const adminToken = signedIn.body.result.accessToken as string;
+    expect(signedIn.body.result.user.roles).toEqual(['USER', 'ADMIN']);
+    expect((await call(listUsers, { token: adminToken })).status).toBe(200);
+
+    const demoted = await call(updateUser, {
+      method: 'PATCH',
+      body: { roles: ['USER'] },
+      token: boss.token,
+      params: { id: deputy.user.id },
+    });
+    expect(demoted.status).toBe(200);
+    // The token still says ADMIN and has not expired: refused anyway.
+    const afterDemotion = await call(listUsers, { token: adminToken });
+    expect(afterDemotion.status).toBe(403);
+    expect(afterDemotion.body.messages).toEqual([{ key: 'ERROR.FORBIDDEN' }]);
+    const deletion = await call(deleteUser, {
+      method: 'DELETE',
+      body: { username: 'victim' },
+      token: adminToken,
+      params: { id: victim.user.id },
+    });
+    expect(deletion.status).toBe(403);
+    expect(await UserModel.exists({ _id: victim.user.id })).toBeTruthy();
+
+    // A deleted administrator is not authenticated any more.
+    await UserModel.updateOne({ _id: deputy.user.id }, { $addToSet: { roles: 'ADMIN' } });
+    expect((await call(listUsers, { token: adminToken })).status).toBe(200);
+    await UserModel.deleteOne({ _id: deputy.user.id });
+    const deleted = await call(listUsers, { token: adminToken });
+    expect(deleted.status).toBe(401);
+    expect(deleted.body.messages).toEqual([{ key: 'ERROR.INVALID_TOKEN' }]);
+  });
+
   it('grants ADMIN to ADMIN_EMAILS, lists and searches users, edits roles and unlinks tags', async () => {
     process.env.ADMIN_EMAILS = 'boss@crociata.it';
     resetEnvCache();
@@ -108,13 +148,10 @@ describe('administration', () => {
     });
     expect(unlinked.status).toBe(200);
     expect(unlinked.body.result.players).toEqual([{ tag: '#MEM456', verified: true }]);
-    const forbidden = await call(unlinkUserPlayer, {
-      method: 'DELETE',
-      token: member.token,
-      params: { id: member.user.id, tag: 'MEM456' },
-    });
-    expect(forbidden.status).toBe(403);
-    // New roles apply at the next sign-in: the member's sessions were revoked.
+    // The new roles apply at once, even with the token issued before the promotion.
+    const promotedToken = await call(listUsers, { token: member.token });
+    expect(promotedToken.status).toBe(200);
+    // The member's sessions were revoked: the next sign-in carries the new roles.
     expect((await call(refresh, { body: {}, cookie: member.cookie })).status).toBe(401);
 
     const selfDemotion = await call(updateUser, {
