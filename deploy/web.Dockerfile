@@ -1,7 +1,7 @@
 # Angular frontend served by Caddy, which also terminates HTTPS and routes the APIs.
 
 # --- build -------------------------------------------------------------------
-FROM node:24.22.3-alpine3.24 AS build
+FROM node:26.13.1-alpine3.24 AS build
 WORKDIR /app
 # Small VPS: give the build enough heap (swap covers the rest).
 ENV NODE_OPTIONS=--max-old-space-size=1536
