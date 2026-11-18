@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { AuthService } from './auth.service';
@@ -72,6 +72,27 @@ export const adminGuard: CanActivateFn = () => {
   if (inject(APP_CONFIG).useMockApi) return router.parseUrl('/');
   return auth.whenReady().pipe(map(() => (auth.isAdmin() ? true : router.parseUrl('/'))));
 };
+
+/** Guards that let only signed-in users in. */
+const SIGNED_IN_GUARDS: readonly unknown[] = [authGuard, clanGuard, leaderGuard, adminGuard];
+
+/**
+ * Whether the page shown by the router is closed to signed-out users: one of the routes on its path
+ * has a guard of the signed-in users (`canActivate` on the route, `canActivateChild` on a parent).
+ */
+export function needsSignIn(router: Router): boolean {
+  let route: ActivatedRouteSnapshot | null = router.routerState.snapshot.root;
+  while (route) {
+    const config = route.routeConfig;
+    const guards = [
+      ...(config?.canActivate ?? []),
+      ...(route.firstChild ? (config?.canActivateChild ?? []) : []),
+    ];
+    if (guards.some((guard) => SIGNED_IN_GUARDS.includes(guard))) return true;
+    route = route.firstChild;
+  }
+  return false;
+}
 
 /** Pages that need no return URL: after sign-in the user lands on the home page anyway. */
 const HOME_URLS = new Set(['', '/']);

@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatSidenav } from '@angular/material/sidenav';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
+import { authGuard } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
 import { provideCocApiTest } from '../testing/fixtures';
 import { Shell } from './shell';
@@ -156,13 +157,11 @@ describe('Shell', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     // The names come from the game profiles, read through the backend.
-    httpMock
-      .expectOne('/api/v1/players/%23AAA/profile')
-      .flush({
-        result: { tag: '#AAA', name: 'Ixion' },
-        messages: [],
-        status: { code: 200, name: 'HTTP_STATUS.OK' },
-      });
+    httpMock.expectOne('/api/v1/players/%23AAA/profile').flush({
+      result: { tag: '#AAA', name: 'Ixion' },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
     httpMock
       .expectOne('/api/v1/players/%23BBB/profile')
       .flush({}, { status: 500, statusText: 'Error' });
@@ -202,5 +201,60 @@ describe('Shell', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(httpMock.match((r) => r.url.includes('/profile'))).toEqual([]);
+  });
+
+  it('signed out, leaves a protected page for the welcome page but stays on a public one', async () => {
+    @Component({ template: '' })
+    class Blank {}
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: '', component: Blank },
+          { path: 'settings', component: Blank },
+          {
+            path: '',
+            canActivateChild: [authGuard],
+            children: [{ path: 'dashboard', component: Blank }],
+          },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi: false }),
+      ],
+    });
+    const httpMock = TestBed.inject(HttpTestingController);
+    const auth = TestBed.inject(AuthService);
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(Shell);
+    const signIn = () => {
+      auth.refresh().subscribe();
+      httpMock.expectOne('/api/v1/auth/refresh').flush({
+        result: {
+          accessToken: 'tok',
+          accessTokenExpiresAt: '',
+          user: { id: '1', email: 'k@c.it', username: 'Knight', roles: ['USER'], players: [] },
+        },
+        messages: [],
+        status: { code: 200, name: 'HTTP_STATUS.OK' },
+      });
+      fixture.detectChanges();
+    };
+    const signOut = async () => {
+      auth.signOut().subscribe();
+      httpMock.expectOne('/api/v1/auth/sign-out').flush({});
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    signIn();
+    await router.navigateByUrl('/settings');
+    await signOut();
+    expect(router.url).toBe('/settings');
+
+    signIn();
+    await router.navigateByUrl('/dashboard');
+    expect(router.url).toBe('/dashboard');
+    await signOut();
+    expect(router.url).toBe('/?returnUrl=%2Fdashboard');
   });
 });

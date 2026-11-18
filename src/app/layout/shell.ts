@@ -21,7 +21,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, forkJoin, map, of } from 'rxjs';
 import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
-import { guestRedirect, returnUrlParams } from '../core/backend/auth.guards';
+import { guestRedirect, needsSignIn, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
@@ -161,12 +161,12 @@ export class Shell {
   });
 
   constructor() {
-    // Signed out (button, expired or revoked session): leave the protected page for the welcome
-    // page, remembering where the user was.
+    // Signed out (button, expired or revoked session): leave a protected page for the welcome
+    // page, remembering where the user was. Public pages (settings, join) stay open.
     let wasSignedIn = false;
     effect(() => {
       const signedIn = this.auth.isAuthenticated();
-      if (wasSignedIn && !signedIn && !this.useMock) {
+      if (wasSignedIn && !signedIn && !this.useMock && untracked(() => needsSignIn(this.router))) {
         untracked(
           () => void this.router.navigateByUrl(guestRedirect(this.router, this.router.url)),
         );
