@@ -460,7 +460,7 @@ cartella `deploy/` contiene tutto quello che serve:
 | `Caddyfile` | HTTPS automatico con Let's Encrypt; `/api/v1` va al backend, il resto è l'app Angular (`/api/coc`, il vecchio proxy, risponde 410) |
 | `web.Dockerfile`, `backend.Dockerfile` | le immagini (il backend usa l'output `standalone` di Next.js) |
 | `.env.example` | il modello delle impostazioni di produzione: dominio, chiave dell'API di Clash of Clans, MongoDB Atlas, segreto JWT |
-| `deploy.sh` | aggiorna il codice, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
+| `deploy.sh` | porta il codice al commit da pubblicare, costruisce le immagini una alla volta, controlla il Caddyfile e riavvia |
 | `service-worker.sh` | interruttore d'emergenza del service worker nei browser (`off`, `on`, `status`) |
 
 **Architettura:**
@@ -479,11 +479,13 @@ cp .env.example .env && nano .env      # compila COC_API_TOKEN, DATABASE_URL e J
 
 **Aggiornamenti automatici:** il workflow `.github/workflows/deploy.yml` lancia i test a ogni push e pull request. Su
 `master`, se i test passano:
-- si collega alla VPS ed esegue `deploy.sh`;
+- si collega alla VPS ed esegue `deploy.sh`, passandogli lo sha del commit appena testato: viene pubblicato
+  esattamente quel commit, anche se nel frattempo `master` è andato avanti;
 - poi controlla `https://crociatanera.it/api/v1/health`.
 
 La chiave SSH usata da GitHub Actions è dedicata e, sul server, può lanciare solo `deploy.sh` (`command="…"` in
-`authorized_keys`).
+`authorized_keys`): lo sha passato come comando ssh arriva a `deploy.sh` in `SSH_ORIGINAL_COMMAND`, che accetta solo
+40 caratteri esadecimali di un commit presente su `origin/master`.
 
 I secret del repository sono:
 
@@ -493,7 +495,9 @@ I secret del repository sono:
 | `VPS_SSH_KEY` | la chiave privata dedicata |
 | `VPS_KNOWN_HOSTS` | l'output di `ssh-keyscan -t ed25519 <IP>` |
 
-Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS, oppure "Run workflow" nella scheda Actions.
+Per pubblicare a mano: `~/crociata_nera/deploy/deploy.sh` sulla VPS (l'ultimo `origin/master`; con uno sha completo,
+`deploy.sh <sha>`, quel commit di `master`, anche più vecchio), oppure "Run workflow" nella scheda Actions. Il `master`
+locale della VPS segue il commit pubblicato (`git checkout -B master <sha>`): non tenere modifiche locali nel clone.
 
 **Backup:**
 - `deploy/backup.sh` salva il database con `mongodump` e l'archivio del vecchio proxy (volume `proxy_data`, non più

@@ -76,7 +76,9 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           # The key is restricted on the server to `command="…/deploy.sh"`: no shell, no forwarding.
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 "root@$VPS_HOST"
+          # The commit tested above is the ssh command: deploy.sh reads it from SSH_ORIGINAL_COMMAND
+          # and deploys exactly that commit, even if master has moved on meanwhile.
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 "root@$VPS_HOST" "$GITHUB_SHA"
 
       - name: Health check
         run: |
