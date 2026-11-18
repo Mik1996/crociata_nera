@@ -27,6 +27,7 @@ import {
   BackendUser,
   BaseResult,
   ChangePasswordRequest,
+  LinkedPlayer,
   ResetPasswordRequest,
   SignInRequest,
   SignUpRequest,
@@ -77,8 +78,12 @@ export class AuthService {
     () => this.session() === null && this.rememberedUser() !== null,
   );
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
-  /** Clash of Clans accounts linked to the signed-in user, verified or not. */
-  readonly linkedPlayers = computed(() => this.user()?.players ?? []);
+  /**
+   * Clash of Clans accounts linked to the signed-in user, verified or not. The same list (by tag
+   * and verification) keeps its identity: a token refresh replaces the user object, and must not
+   * reload what depends on the accounts.
+   */
+  readonly linkedPlayers = computed(() => this.user()?.players ?? [], { equal: samePlayers });
   /** Tags of the signed-in user's accounts proven with the in-game API token. */
   readonly playerTags = computed(
     () =>
@@ -343,6 +348,13 @@ export class AuthService {
         map((response) => response.result!.user),
       );
   }
+}
+
+function samePlayers(a: readonly LinkedPlayer[], b: readonly LinkedPlayer[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((player, i) => player.tag === b[i].tag && player.verified === b[i].verified)
+  );
 }
 
 /** localStorage key of the {@link OfflineProfile} of the last session. */

@@ -222,6 +222,25 @@ describe('AuthService and authInterceptor', () => {
     expect([first, second]).toEqual([{ wars: true }, { raids: true }]);
   });
 
+  it('keeps the same linked accounts list across a token refresh', async () => {
+    const withPlayers = (token: string, verified: boolean): AuthResult => {
+      const result = session(token);
+      return { ...result, user: { ...result.user, players: [{ tag: '#AAA', verified }] } };
+    };
+    auth.restoreSession();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(withPlayers('t1', false)));
+    const before = auth.linkedPlayers();
+
+    auth.refresh().subscribe();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(withPlayers('t2', false)));
+    expect(auth.linkedPlayers()).toBe(before);
+
+    auth.refresh().subscribe();
+    httpMock.expectOne('/api/v1/auth/refresh').flush(ok(withPlayers('t3', true)));
+    expect(auth.linkedPlayers()).not.toBe(before);
+    expect(auth.linkedPlayers()).toEqual([{ tag: '#AAA', verified: true }]);
+  });
+
   it('signs out and clears the local session even if the backend fails', async () => {
     auth.restoreSession();
     httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t5')));

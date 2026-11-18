@@ -77,6 +77,7 @@ export class ProfilePage {
    * the accounts change); none when it cannot be read.
    */
   private readonly memberships = rxResource({
+    // `linkedPlayers` keeps its identity while the accounts stay the same (token refresh).
     params: () => this.auth.linkedPlayers().map((p) => p.tag),
     stream: () => this.api.getMemberships().pipe(catchError(() => of([]))),
   });

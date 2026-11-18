@@ -178,5 +178,29 @@ describe('Shell', () => {
     );
     expect(links.map((a) => a.textContent?.trim())).toEqual(['Ixion', '#BBB']);
     expect(links[0].getAttribute('href')).toBe('/players/%23AAA');
+
+    // A token refresh with the same accounts does not read the names again.
+    TestBed.inject(AuthService).refresh().subscribe();
+    httpMock.expectOne('/api/v1/auth/refresh').flush({
+      result: {
+        accessToken: 'tok2',
+        accessTokenExpiresAt: '',
+        user: {
+          id: '1',
+          email: 'k@c.it',
+          username: 'Knight',
+          roles: ['USER'],
+          players: players.map((p) => ({ ...p })),
+          emailVerified: true,
+          clanAccess: true,
+          createdAt: '',
+        },
+      },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(httpMock.match((r) => r.url.includes('/profile'))).toEqual([]);
   });
 });

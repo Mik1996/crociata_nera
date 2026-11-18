@@ -124,13 +124,16 @@ export class Shell {
    * menu (only with access to the clans' pages, where the player page lives). Names come from
    * the API (cached); until they arrive, or if the request fails, the tag is shown.
    */
-  private readonly accountTags = computed(() =>
-    this.useMock || !this.auth.hasClanAccess()
-      ? []
-      : this.auth
-          .linkedPlayers()
-          .filter((p) => p.verified)
-          .map((p) => p.tag),
+  private readonly accountTags = computed(
+    () =>
+      this.useMock || !this.auth.hasClanAccess()
+        ? []
+        : this.auth
+            .linkedPlayers()
+            .filter((p) => p.verified)
+            .map((p) => p.tag),
+    // Same accounts, same list: the names are not read again (e.g. at a token refresh).
+    { equal: (a, b) => a.join() === b.join() },
   );
   private readonly accountNames = rxResource({
     params: () => {
