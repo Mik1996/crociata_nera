@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SwUpdate } from '@angular/service-worker';
 import { filter } from 'rxjs';
 import { LanguageService } from '../i18n/language.service';
+import { cacheStartupScripts } from './startup-scripts';
 
 /** How often an open tab asks the server whether a new version was deployed. */
 export const UPDATE_CHECK_INTERVAL_MS = 30 * 60_000;
@@ -15,7 +16,8 @@ export const UPDATE_CHECK_INTERVAL_MS = 30 * 60_000;
  * the background. When it is ready this service offers to reload ("Update"): the page keeps working
  * on the old version until then. A cached version that cannot be completed any more (files gone from
  * the server) asks for a reload as well. Checks run at startup, every
- * {@link UPDATE_CHECK_INTERVAL_MS} and when the tab comes back to the foreground.
+ * {@link UPDATE_CHECK_INTERVAL_MS} and when the tab comes back to the foreground. On the first visit
+ * the code already running is handed to the worker once it takes control ({@link cacheStartupScripts}).
  */
 @Injectable({ providedIn: 'root' })
 export class AppUpdates {
@@ -43,8 +45,12 @@ export class AppUpdates {
       if (this.document.visibilityState === 'visible') check();
     };
     this.document.addEventListener('visibilitychange', onVisible);
+    const stopCaching = this.document.defaultView
+      ? cacheStartupScripts(this.document.defaultView)
+      : () => undefined;
 
     this.destroyRef.onDestroy(() => {
+      stopCaching();
       ready.unsubscribe();
       broken.unsubscribe();
       clearInterval(interval);

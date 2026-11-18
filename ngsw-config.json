@@ -13,13 +13,22 @@
           "/index.html",
           "/site.webmanifest",
           "/*.css",
-          "/*.js",
+          "/main-*.js",
+          "/polyfills-*.js",
           "/i18n/*.json",
           "/icons/favicon-32.png",
           "/assets/icons/*.svg",
           "/images/clan-crest-*.webp",
           "/flags/*.svg"
         ]
+      }
+    },
+    {
+      "name": "app-code",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/*.js"]
       }
     },
     {
