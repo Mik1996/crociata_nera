@@ -31,7 +31,7 @@ const WAR_END_TOLERANCE_MS = 60 * 1000;
  * One run of the war sync:
  * 1. reads `currentwar` and saves the snapshot (preparation, battle day or ended);
  * 2. closes wars whose end time has passed but were never seen as `warEnded` (the clan
- *    started a new war before the next read), using their last snapshot;
+ *    started a new war before the next read, or the API could not be read), using their last snapshot;
  * 3. completes ended wars with the war log (final stars, destruction, result, clan XP).
  *
  * Every step is idempotent: running it twice, or from two instances, gives the same data.
@@ -67,8 +67,17 @@ export async function syncWars(now = new Date(), clanTag: string | null = env().
         report.nextCheckAt = new Date(Math.max(war.endTime.getTime() + AFTER_END_DELAY_MS, now.getTime())).toISOString();
       }
     }
+  } catch (error) {
+    if (!(error instanceof CocApiError)) throw error;
+    report.error = { status: error.status, reason: error.reason, message: error.message };
+  }
 
-    report.finalized = await finalizeUnseenEndings(clanTag, report.warKey, now);
+  // Database only: wars past their end time are closed even while the API cannot be read, so the
+  // month they belong to can be closed (a later `warEnded` snapshot still completes them).
+  report.finalized = await finalizeUnseenEndings(clanTag, report.warKey, now);
+  if (report.error) return report;
+
+  try {
     report.warLogMatched = await matchWarLog(clanTag, now);
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;

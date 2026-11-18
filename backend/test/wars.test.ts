@@ -123,6 +123,23 @@ describe('war sync', () => {
     expect(await WarModel.findOne({ warKey: WAR_KEY })).toMatchObject({ state: 'warEnded', result: 'win', warLogMatched: false });
   });
 
+  it('closes a war past its end time from its last snapshot even when the API cannot be read', async () => {
+    mockCocApi({ '/currentwar': { body: cocWar() } });
+    await syncWars(BATTLE_DAY);
+    mockCocApi({ '/currentwar': { status: 503, body: { reason: 'inMaintenance' } } });
+
+    const report = await syncWars(AFTER_END);
+
+    expect(report).toMatchObject({ finalized: [WAR_KEY], warLogMatched: [], error: { status: 503, reason: 'inMaintenance' } });
+    expect(await WarModel.findOne({ warKey: WAR_KEY })).toMatchObject({ state: 'warEnded', finalizedFrom: 'lastSnapshot' });
+
+    // Back online: the ended war shown by `currentwar` replaces the last snapshot.
+    const ended = cocWar({ state: 'warEnded', clan: { ...cocWar().clan, stars: 6, destructionPercentage: 100 } });
+    mockCocApi({ '/currentwar': { body: ended }, '/warlog': { body: { items: [warLogEntry()] } } });
+    expect(await syncWars(AFTER_END)).toMatchObject({ outcome: 'updated', warLogMatched: [WAR_KEY], error: null });
+    expect(await WarModel.findOne({ warKey: WAR_KEY })).toMatchObject({ finalizedFrom: 'currentWar', clan: { expEarned: 310 } });
+  });
+
   it('matches the war log entry of a war that ended before its scheduled time', async () => {
     mockCocApi({ '/currentwar': { body: cocWar() } });
     await syncWars(BATTLE_DAY);

@@ -6,6 +6,7 @@ import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { DonationSeasonRecord, endedSeasons, ongoingSeason, recordDonations } from '@/modules/donations/donation.service';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { getPeriod, listMonths, monthOf } from '@/modules/wars/history.service';
+import { WarModel } from '@/modules/wars/war.model';
 import { CommendationAwardModel, CommendationPeriodModel } from './commendation-award.model';
 import {
   awardCwlCommendations,
@@ -55,6 +56,12 @@ const memberSchema = z
   })
   .passthrough();
 const clanSchema = z.object({ memberList: z.array(memberSchema).default([]) }).passthrough();
+
+/**
+ * A month is closed this long after its end: the war sync runs every few minutes, so a war
+ * ending right before midnight is saved as ended by then.
+ */
+export const MONTH_CLOSE_GRACE_MS = 3 * 3_600_000;
 
 /** Last completed month in the Italian time zone (`YYYY-MM`). */
 export function previousMonth(now: Date): string {
@@ -236,13 +243,17 @@ async function closedPeriodsOf(clanTag: string, now: Date, processed: Set<string
   const periods: ClosedPeriod[] = [];
   const suffix = periodSuffix(clanTag);
 
-  // Completed months of the war history.
-  const lastMonth = previousMonth(now);
+  // Completed months of the war history, a few hours after their end, once every war ending in
+  // them is saved as ended (the API may have been unreachable when they ended).
+  const lastMonth = previousMonth(new Date(now.getTime() - MONTH_CLOSE_GRACE_MS));
   const months = await listMonths(clanTag);
   const firstTracked = suffix ? months.at(-1)?.month : undefined;
+  const open = new Set(
+    (await WarModel.find({ clanTag, state: { $ne: 'warEnded' } }).select('endTime').lean()).map((w) => monthOf(w.endTime)),
+  );
   for (const { month } of months) {
     const key = `month:${month}${suffix}`;
-    if (month > lastMonth || month === firstTracked || processed.has(key)) continue;
+    if (month > lastMonth || month === firstTracked || open.has(month) || processed.has(key)) continue;
     const period = await getPeriod(month, clanTag);
     periods.push({ key, awards: awardMonthCommendations(period), names: new Map(period.players.map((p) => [p.tag, p.name])) });
   }

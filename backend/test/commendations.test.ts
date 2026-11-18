@@ -171,6 +171,31 @@ describe('commendation sync', () => {
     expect(alice!.commendations.map((c) => c.name)).toEqual(expect.arrayContaining(['champion-gold', 'present-gold']));
   });
 
+  it('closes a month a few hours after its end, once every war ending in it is saved as ended', async () => {
+    const octoberWar = (state: string, day: string, opponent: string) =>
+      cocWar({
+        state,
+        preparationStartTime: `202610${day}T100000.000Z`, startTime: `202610${day}T120000.000Z`, endTime: `202610${day}T200000.000Z`,
+        opponent: { ...cocWar().opponent, tag: opponent },
+      });
+    mockCocApi({ '/currentwar': { body: octoberWar('warEnded', '04', '#OPP1') }, '/warlog': { status: 403, body: { reason: 'accessDenied' } } });
+    await syncWars(new Date('2026-10-05T00:00:00Z'));
+    // Last read of the second war during its battle day: the API was down when it ended.
+    mockCocApi({ '/currentwar': { body: octoberWar('inWar', '30', '#OPP2') } });
+    await syncWars(new Date('2026-10-30T15:00:00Z'));
+    mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
+
+    // A war ending in October is still open.
+    expect((await syncCommendations(NOW)).periodsProcessed).toEqual([]);
+
+    mockCocApi({ '/currentwar': { status: 503, body: { reason: 'inMaintenance' } } });
+    expect((await syncWars(new Date('2026-10-31T23:00:00Z'))).finalized).toEqual(['20261030T100000-OPP2']);
+    mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
+    // Just after midnight in Italy (23:30 UTC): too early.
+    expect((await syncCommendations(new Date('2026-10-31T23:30:00Z'))).periodsProcessed).toEqual([]);
+    expect((await syncCommendations(NOW)).periodsProcessed).toEqual(['month:2026-10']);
+  });
+
   it('exposes a saved player with the commendations to signed-in users', async () => {
     mockCocApi({ [`/clans/%232J8JVVCLC`]: clanResponse });
     await savedRaid({ '#AAA111': 31_000 });
