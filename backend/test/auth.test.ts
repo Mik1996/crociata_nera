@@ -180,17 +180,30 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect((await call(refresh, { body: {}, cookie: recovered.refreshCookie })).status).toBe(200);
   });
 
-  it('does not recover a successor unused for longer than the access token lifetime', async () => {
+  it('recovers a lost refresh hours later (a phone suspended during the refresh)', async () => {
     const first = await call(signUp, { body: account });
-    const second = await call(refresh, { body: {}, cookie: first.refreshCookie });
-    await ageRotation(first.refreshCookie!, 20 * 60);
-    await ageCreation(second.refreshCookie!, 20 * 60);
+    const lost = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await ageRotation(first.refreshCookie!, 8 * 3600);
+    await ageCreation(lost.refreshCookie!, 8 * 3600);
 
-    const late = await call(refresh, { body: {}, cookie: first.refreshCookie });
-    expect(late.status).toBe(401);
-    expect(late.body.messages).toEqual([{ key: 'ERROR.INVALID_REFRESH_TOKEN' }]);
-    // Refused without revoking anything: the successor may be in its owner's hands.
-    expect((await call(refresh, { body: {}, cookie: second.refreshCookie })).status).toBe(200);
+    const recovered = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(recovered.status).toBe(200);
+    expect((await call(refresh, { body: {}, cookie: recovered.refreshCookie })).status).toBe(200);
+  });
+
+  it('detects an old token replayed while the owner was away once the owner comes back', async () => {
+    const first = await call(signUp, { body: account });
+    // The owner holds the successor, unused for hours; a thief replays the old token.
+    const owner = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await ageRotation(first.refreshCookie!, 8 * 3600);
+    await ageCreation(owner.refreshCookie!, 8 * 3600);
+    const thief = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(thief.status).toBe(200);
+
+    // The owner's retired token comes back: reuse, every session (the thief's too) is revoked.
+    await ageRotation(owner.refreshCookie!, 60);
+    expect((await call(refresh, { body: {}, cookie: owner.refreshCookie })).status).toBe(401);
+    expect((await call(refresh, { body: {}, cookie: thief.refreshCookie })).status).toBe(401);
   });
 
   it('recovers only once: the retired successor coming back is theft', async () => {

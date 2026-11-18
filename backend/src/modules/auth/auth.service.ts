@@ -91,8 +91,8 @@ export async function signIn(input: SignInInput, client: ClientInfo): Promise<Au
 /**
  * Rotates a refresh token: the presented session is revoked and replaced by a new one.
  * A token that was already rotated is accepted again only right after its rotation
- * ({@link REFRESH_REUSE_GRACE_MS}) or when its successor was never used and is recent (the browser
- * never got it, see {@link recoverLostRotation}). Otherwise two clients are using the same chain:
+ * ({@link REFRESH_REUSE_GRACE_MS}) or, once, when its successor was never used (the browser never got
+ * it, see {@link recoverLostRotation}). Otherwise two clients are using the same chain:
  * the token leaked, every session of that user is revoked and they must sign in again.
  */
 export async function refresh(refreshToken: string | null, client: ClientInfo): Promise<AuthSession> {
@@ -113,12 +113,6 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
     if (await isRecentRotation(session)) return startSession(user, client);
     // The response with the new cookie never reached the browser: its successor is retired.
     const lost = await recoverLostRotation(session);
-    if (lost === 'tooLate') {
-      // Ambiguous (a response lost long ago, or an old stolen token while the owner is away):
-      // refused, but the successor may be in legitimate hands, so nothing else is revoked.
-      console.warn(`[auth] refresh of user ${session.userId.toString()} refused: rotation not recovered in time`);
-      throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
-    }
     if (lost) {
       const next = await startSession(user, client);
       if (lost.retired) await SessionModel.updateOne({ _id: lost.retired }, { $set: { replacedBy: next.sessionId } });
@@ -155,17 +149,6 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
 export const REFRESH_REUSE_GRACE_MS = 30_000;
 
 /**
- * How old an unused successor can be and still be retired by {@link recoverLostRotation}: the
- * access token lifetime. A browser whose refresh response was lost has no access token, so it
- * refreshes again at its next request or page load; an open tab refreshes at least once per access
- * token lifetime, so an older successor that was never used means its owner is away, and recovering
- * it could hand the chain to whoever holds the old token.
- */
-export function refreshRecoveryWindowMs(): number {
-  return env().ACCESS_TOKEN_EXPIRES_IN * 1000;
-}
-
-/**
  * The session was closed for `reason` (by default a rotation) less than
  * {@link REFRESH_REUSE_GRACE_MS} ago and its successor is still alive (or rotated in turn):
  * signing out or revoking the successor ends the tolerance at once.
@@ -187,18 +170,20 @@ async function isRecentRotation(session: SessionDocument, reason: 'rotated' | 'r
  * Only once per token: a successor already retired by a recovery means the old token is being
  * replayed (`null`, theft), except moments after the recovery (its own response lost again,
  * tolerated as in {@link isRecentRotation}). A successor that was itself rotated means someone
- * else is using the chain: `null`, theft. An unused successor older than
- * {@link refreshRecoveryWindowMs} is not retired: `tooLate`.
+ * else is using the chain: `null`, theft.
+ * No age limit: a phone or an installed app suspended during a refresh may come back hours later
+ * with the old token, and is its legitimate owner. A thief replaying an old token while the owner
+ * is away does get a session, but only once: when the owner comes back with the retired successor,
+ * the reuse is detected and every session is revoked.
  */
 async function recoverLostRotation(
   session: SessionDocument,
-): Promise<{ retired: Types.ObjectId | null } | 'tooLate' | null> {
+): Promise<{ retired: Types.ObjectId | null } | null> {
   if (session.revokedReason !== 'rotated' || !session.revokedAt) return null;
-  const since = new Date(Date.now() - refreshRecoveryWindowMs());
   // Rotated but the successor was never recorded (backend stopped half-way): nothing to retire.
-  if (!session.replacedBy) return session.revokedAt > since ? { retired: null } : 'tooLate';
+  if (!session.replacedBy) return { retired: null };
   const claimed = await SessionModel.updateOne(
-    { _id: session.replacedBy, revokedAt: null, createdAt: { $gt: since } },
+    { _id: session.replacedBy, revokedAt: null },
     { $set: { revokedAt: new Date(), revokedReason: 'retired' } },
   );
   if (claimed.modifiedCount === 1) {
@@ -208,8 +193,7 @@ async function recoverLostRotation(
     return { retired: session.replacedBy };
   }
   const successor = await SessionModel.findById(session.replacedBy);
-  if (!successor) return null;
-  if (!successor.revokedAt) return 'tooLate';
+  if (!successor?.revokedAt) return null;
   return (await isRecentRotation(successor, 'retired')) ? { retired: null } : null;
 }
 
