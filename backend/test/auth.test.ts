@@ -148,21 +148,31 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect((await call(refresh, { body: {}, cookie: third.refreshCookie })).status).toBe(401);
   });
 
+  /** Moves the creation of a session into the past (`createdAt` is immutable for Mongoose). */
+  async function ageCreation(cookie: string, seconds: number) {
+    const token = decodeURIComponent(cookie);
+    await SessionModel.collection.updateOne(
+      { tokenHash: hashRefreshToken(token) },
+      { $set: { createdAt: new Date(Date.now() - seconds * 1000) } },
+    );
+  }
+
   it('recovers a refresh whose response never reached the browser (the successor was never used)', async () => {
     const first = await call(signUp, { body: account });
     // Rotated, but the tab was closed before the new cookie arrived.
     const lost = await call(refresh, { body: {}, cookie: first.refreshCookie });
     expect(lost.status).toBe(200);
 
-    // Hours later the browser sends the token it still has.
-    await ageRotation(first.refreshCookie!, 3600);
+    // Minutes later the browser sends the token it still has.
+    await ageRotation(first.refreshCookie!, 600);
+    await ageCreation(lost.refreshCookie!, 600);
     const recovered = await call(refresh, { body: {}, cookie: first.refreshCookie });
     expect(recovered.status).toBe(200);
     expect(recovered.refreshCookie).not.toBe(lost.refreshCookie);
 
     // The never-delivered successor is retired and points to the session that replaced it.
     const retired = await SessionModel.findOne({ tokenHash: hashRefreshToken(decodeURIComponent(lost.refreshCookie!)) });
-    expect(retired?.revokedReason).toBe('rotated');
+    expect(retired?.revokedReason).toBe('retired');
     const current = await SessionModel.findOne({ tokenHash: hashRefreshToken(decodeURIComponent(recovered.refreshCookie!)) });
     expect(retired?.replacedBy?.toString()).toBe(current?._id.toString());
 
@@ -170,10 +180,53 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect((await call(refresh, { body: {}, cookie: recovered.refreshCookie })).status).toBe(200);
   });
 
+  it('does not recover a successor unused for longer than the access token lifetime', async () => {
+    const first = await call(signUp, { body: account });
+    const second = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await ageRotation(first.refreshCookie!, 20 * 60);
+    await ageCreation(second.refreshCookie!, 20 * 60);
+
+    const late = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(late.status).toBe(401);
+    expect(late.body.messages).toEqual([{ key: 'ERROR.INVALID_REFRESH_TOKEN' }]);
+    // Refused without revoking anything: the successor may be in its owner's hands.
+    expect((await call(refresh, { body: {}, cookie: second.refreshCookie })).status).toBe(200);
+  });
+
+  it('recovers only once: the retired successor coming back is theft', async () => {
+    const first = await call(signUp, { body: account });
+    // The owner holds the successor and has not used it yet; someone else holds the old token.
+    const owner = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await ageRotation(first.refreshCookie!, 60);
+
+    const thief = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(thief.status).toBe(200);
+
+    // The owner's token was retired by that recovery: no second hop, every session is revoked.
+    await ageRotation(owner.refreshCookie!, 60);
+    const reused = await call(refresh, { body: {}, cookie: owner.refreshCookie });
+    expect(reused.status).toBe(401);
+    expect((await call(refresh, { body: {}, cookie: thief.refreshCookie })).status).toBe(401);
+  });
+
+  it('recovers only once: the old token coming back after its recovery is theft', async () => {
+    const first = await call(signUp, { body: account });
+    const lost = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    await ageRotation(first.refreshCookie!, 60);
+    const recovered = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(recovered.status).toBe(200);
+
+    // Past the grace period, the same old token again: someone else is replaying it.
+    await ageRotation(lost.refreshCookie!, 60);
+    const replayed = await call(refresh, { body: {}, cookie: first.refreshCookie });
+    expect(replayed.status).toBe(401);
+    expect((await call(refresh, { body: {}, cookie: recovered.refreshCookie })).status).toBe(401);
+  });
+
   it('tolerates the recovery itself being sent twice right away', async () => {
     const first = await call(signUp, { body: account });
     await call(refresh, { body: {}, cookie: first.refreshCookie });
-    await ageRotation(first.refreshCookie!, 3600);
+    await ageRotation(first.refreshCookie!, 60);
 
     const recovered = await call(refresh, { body: {}, cookie: first.refreshCookie });
     // Its response was lost too: the retry a second later is still fine.

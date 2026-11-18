@@ -132,7 +132,10 @@ is **deployed automatically** to the VPS (`deploy/deploy.sh`), which restarts th
 - Sessions: 15 min access token + 30 day rotating refresh cookie (`cn_refresh`). Reuse of a rotated
   token revokes all sessions (logged as `[auth] every session … revoked`), except within
   `REFRESH_REUSE_GRACE_MS` (30 s) of a rotation whose successor is still alive, or when the successor
-  was never used (refresh response lost: the successor is retired, a new session is issued). The
+  was never used and is younger than the access token lifetime (refresh response lost: the successor
+  is `retired`, a new session is issued, logged as `[auth] lost refresh … recovered`). Only once: a
+  retired token, or the old token again after its recovery, counts as reuse; an unused successor too
+  old to recover just answers 401 (nothing revoked). The
   frontend signs out only on a 401 from refresh; the startup restore keeps retrying while the backend
   is unreachable (guards wait), then retries in the background.
 - Scheduler (`backend/src/lib/scheduler/war-sync-scheduler.ts`) syncs wars, CWL, raids and

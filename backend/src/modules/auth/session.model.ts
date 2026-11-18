@@ -13,11 +13,12 @@ const sessionSchema = new Schema(
     expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
     revokedAt: { type: Date, default: null },
     /**
-     * Why the session was closed: `rotated` (replaced by a refresh), `signedOut`, `revoked`
+     * Why the session was closed: `rotated` (replaced by a refresh), `retired` (never used, replaced
+     * when its predecessor came back because the refresh response was lost), `signedOut`, `revoked`
      * (password change, role change, token theft). Only a recent rotation is tolerated when its
-     * token comes back (see `REFRESH_REUSE_GRACE_MS`).
+     * token comes back (see `REFRESH_REUSE_GRACE_MS`); a retired token coming back is always theft.
      */
-    revokedReason: { type: String, enum: ['rotated', 'signedOut', 'revoked'], default: null },
+    revokedReason: { type: String, enum: ['rotated', 'retired', 'signedOut', 'revoked'], default: null },
     replacedBy: { type: Schema.Types.ObjectId, ref: 'Session', default: null },
     userAgent: { type: String, default: null },
     ip: { type: String, default: null },
