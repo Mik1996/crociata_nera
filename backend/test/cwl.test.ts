@@ -97,6 +97,36 @@ describe('Clan War League sync', () => {
     expect((await CwlSeasonModel.findOne({ season: '2026-11' }))!.state).toBe('inWar');
   });
 
+  it('closes a saved season with the wars saved so far when a war is no longer in the API', async () => {
+    mockCocApi({
+      '/currentwar/leaguegroup': { body: group([['#W1'], ['#W2']]) },
+      '/wars/%23W1': { body: leagueWar('warEnded') },
+      '/wars/%23W2': { body: leagueWar('inWar') },
+    });
+    await syncCwl(NOW);
+    // Group gone, and the war still open answers 404.
+    mockCocApi({});
+    expect(await syncCwl(NOW)).toMatchObject({ closed: ['2026-11'], closedIncomplete: ['2026-11'], error: null });
+    const saved = await CwlSeasonModel.findOne({ season: '2026-11' });
+    expect(saved!.state).toBe('ended');
+    expect(saved!.wars.map((w) => w.state)).toEqual(['warEnded', 'inWar']);
+  });
+
+  it('closes a season long over without reading the API, even with rounds never scheduled', async () => {
+    mockCocApi({
+      '/currentwar/leaguegroup': { body: group([['#W1'], ['#0']]) },
+      '/wars/%23W1': { body: leagueWar('inWar') },
+    });
+    await syncCwl(NOW);
+    const fetchMock = mockCocApi({ '/wars/%23W1': { body: leagueWar('inWar') } });
+
+    // Still open a week after the end of November.
+    expect((await syncCwl(new Date('2026-12-07T12:00:00Z'))).closed).toEqual([]);
+    expect(await syncCwl(new Date('2026-12-08T00:00:00Z'))).toMatchObject({ closed: ['2026-11'], closedIncomplete: ['2026-11'] });
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/clanwarleagues/wars/'))).toHaveLength(1);
+    expect((await CwlSeasonModel.findOne({ season: '2026-11' }))!.state).toBe('ended');
+  });
+
   it('exposes the saved seasons to signed-in users', async () => {
     mockCocApi({
       '/currentwar/leaguegroup': { body: group([['#W1']]) },
