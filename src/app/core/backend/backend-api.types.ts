@@ -274,3 +274,43 @@ export interface CwlSelection {
   warWindow: { from: string; days: number; wars: number };
   players: CwlSelectionPlayer[];
 }
+
+/** A Telegram channel or group the bot was seen in (`GET /admin/telegram`). */
+export interface TelegramChat {
+  /** Telegram id (channels and supergroups are negative). */
+  chatId: number;
+  title: string;
+  /** Public `@username` without `@`; `null` for private chats. */
+  username: string | null;
+  /** `channel`, `supergroup` or `group`. */
+  type: string;
+  /** `administrator`, `member`, `left`, `kicked`… */
+  botStatus: string;
+  /** The bot may publish there. */
+  canPost: boolean;
+  /** Town hall level whose bases are posted there; `null`: none. */
+  townHallLevel: number | null;
+  updatedAt: string;
+}
+
+/** How the Telegram posts of the published bases stand. */
+export interface TelegramBasePosts {
+  sent: number;
+  /** Bases waiting for a channel, by town hall (highest first). */
+  waiting: { townHallLevel: number; bases: number }[];
+  /** Posts Telegram refused or could not receive (error in English, as Telegram writes it). */
+  failed: { baseId: string; townHallLevel: number; error: string; retryAt: string | null }[];
+  /** Published bases not handled yet (they go out within seconds). */
+  pending: number;
+}
+
+/** The Telegram bot of the site (administrators). */
+export interface TelegramStatus {
+  /** A bot token is configured on the server. */
+  configured: boolean;
+  botUsername: string | null;
+  /** `webhook` in production, `polling` in development; `null` while off. */
+  updates: 'webhook' | 'polling' | null;
+  chats: TelegramChat[];
+  basePosts: TelegramBasePosts;
+}

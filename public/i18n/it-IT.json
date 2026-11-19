@@ -79,7 +79,8 @@
     "admin": "Amministrazione",
     "settings": "Impostazioni",
     "bases": "Arsenale basi",
-    "baseModeration": "Moderazione basi"
+    "baseModeration": "Moderazione basi",
+    "telegramAdmin": "Telegram"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -455,7 +456,11 @@
     "BASE_PROPOSAL_UPDATED": "Proposta aggiornata: resta in attesa di approvazione.",
     "BASE_PROPOSAL_WITHDRAWN": "Proposta ritirata",
     "BASE_APPROVED": "Base approvata e pubblicata nell'arsenale",
-    "BASE_REJECTED": "Proposta rifiutata"
+    "BASE_REJECTED": "Proposta rifiutata",
+    "TELEGRAM_CHAT_ADDED": "Canale {{name}} aggiunto.",
+    "TELEGRAM_CHAT_UPDATED": "Canale {{name}} aggiornato.",
+    "TELEGRAM_CHAT_REMOVED": "Canale dimenticato.",
+    "TELEGRAM_SYNC_STARTED": "Invii avviati: le basi partono a pochi secondi l'una dall'altra."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -529,7 +534,11 @@
     "BASE_PROPOSAL_NOT_EDITABLE": "Questa proposta è già stata approvata e non si può più modificare.",
     "BASE_PROPOSAL_NOT_PENDING": "Questa proposta è già stata approvata o rifiutata.",
     "REJECTION_REASON_SHOULD_NOT_BE_EMPTY": "Scrivi il motivo del rifiuto.",
-    "REJECTION_REASON_IS_TOO_LONG": "Il motivo è troppo lungo (massimo 500 caratteri)."
+    "REJECTION_REASON_IS_TOO_LONG": "Il motivo è troppo lungo (massimo 500 caratteri).",
+    "TELEGRAM_NOT_CONFIGURED": "Il bot Telegram non è configurato sul server.",
+    "TELEGRAM_CHAT_NOT_FOUND": "Canale non trovato: controlla l'@username e che il bot ne sia amministratore.",
+    "TELEGRAM_TOWN_HALL_TAKEN": "Il TH{{level}} è già collegato a un altro canale.",
+    "TELEGRAM_API_UNAVAILABLE": "Telegram non risponde: riprova tra poco."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -1213,6 +1222,50 @@
       "intro": "La base proposta da {{author}} non verrà pubblicata. L'autore vedrà il motivo e potrà correggerla e reinviarla.",
       "reason": "Motivo del rifiuto",
       "reasonHint": "Spiega all'autore cosa correggere"
+    }
+  },
+  "telegramAdmin": {
+    "title": "Telegram",
+    "subtitle": "Le basi dell'arsenale pubblicate nei canali Telegram del clan",
+    "notConfigured": "Il bot non è configurato sul server (TELEGRAM_BOT_TOKEN): nessuna base viene pubblicata su Telegram.",
+    "refresh": "Aggiorna",
+    "bot": {
+      "title": "Bot",
+      "name": "Bot",
+      "updates": "Aggiornamenti",
+      "mode": {
+        "webhook": "Webhook (produzione)",
+        "polling": "getUpdates (sviluppo)"
+      }
+    },
+    "posts": {
+      "title": "Post delle basi",
+      "sent": "pubblicate",
+      "pending": "in partenza",
+      "waiting": "Basi TH{{level}} in attesa: {{n}}. Nessun canale è collegato al TH{{level}}.",
+      "failedTitle": "Invii non riusciti",
+      "retryAt": "Nuovo tentativo: {{date}}",
+      "retry": "Riprova ora"
+    },
+    "chats": {
+      "title": "Canali",
+      "intro": "Scegli per ogni canale il municipio delle basi che riceve: le basi in attesa partono subito, e quelle già pubblicate in un altro canale si spostano lì. Un canale compare qui quando aggiungi il bot come amministratore; se lo è già, pubblica un messaggio nel canale oppure aggiungilo qui sotto.",
+      "noTownHall": "Nessuno",
+      "townHall": "Municipio",
+      "canPost": "Può pubblicare",
+      "cannotPost": "Non può pubblicare",
+      "cannotPostHint": "Rendi il bot amministratore del canale, con il permesso di pubblicare messaggi.",
+      "remove": "Dimentica",
+      "removeOf": "Dimentica {{name}}",
+      "empty": "Nessun canale, per ora.",
+      "addLabel": "@username o id del canale",
+      "addHint": "Il bot deve già essere amministratore del canale",
+      "add": "Aggiungi",
+      "type": {
+        "channel": "Canale",
+        "supergroup": "Supergruppo",
+        "group": "Gruppo"
+      }
     }
   }
 }
