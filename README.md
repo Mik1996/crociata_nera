@@ -493,7 +493,8 @@ cartella `deploy/` contiene tutto quello che serve:
 | `backup.sh` | backup notturno del database (controllato, con copia cifrata fuori sede e allarme facoltativi) |
 
 **Architettura:**
-- da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy; il backend resta sulla rete interna di Docker;
+- da internet sono raggiungibili solo le porte 80 e 443, cioè Caddy, e la 22 (SSH); il backend resta sulla rete
+  interna di Docker;
 - il database è MongoDB Atlas (M0), con l'IP della VPS autorizzato;
 - il backend usa la chiave dell'API di Clash of Clans creata per l'IP della VPS.
 
@@ -505,6 +506,25 @@ cd ~/crociata_nera/deploy
 cp .env.example .env && nano .env      # compila COC_API_TOKEN, DATABASE_URL e JWT_SECRET (openssl rand -base64 48)
 ./deploy.sh
 ```
+
+**SSH:** il server accetta solo MAC sicuri (niente `hmac-sha1`), impostati a mano sulla VPS e non nel repository: su
+un server nuovo vanno rifatti. Tenendo aperta la sessione corrente:
+
+```bash
+echo 'MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com' > /etc/ssh/sshd_config.d/10-macs.conf
+sshd -t && systemctl reload ssh        # nessun output = configurazione valida; "not active" è normale (socket activation)
+sshd -T | grep -i '^macs'              # devono comparire solo i tre MAC
+```
+
+Poi, dal proprio computer, una nuova connessione deve entrare, e questa deve fallire con `no matching MAC found`
+(il cifrario va forzato: con quelli AEAD, `chacha20-poly1305` e `aes-gcm`, il MAC non si negozia):
+
+```bash
+ssh -i ~/.ssh/crociata_vps -o Ciphers=aes128-ctr -o MACs=hmac-sha1 root@<IP>
+```
+
+Se la nuova connessione non entra, nella sessione ancora aperta: `rm /etc/ssh/sshd_config.d/10-macs.conf && systemctl
+reload ssh` (chiusi fuori: console web del pannello Aruba).
 
 **Aggiornamenti automatici:** il workflow `.github/workflows/deploy.yml` lancia i test a ogni push e pull request, in
 due job paralleli: `Frontend` (lint, test, build di produzione, con la cache di build di Angular conservata tra
@@ -620,6 +640,14 @@ immagini che giravano prima restano come `previous`, e si conservano le ultime 3
 dell'API di Clash of Clans dal backend (`/api/v1/welcome`). Se
 qualcosa non risponde, GitHub manda un'email di "workflow fallito".
 
+**File per motori di ricerca e ricercatori di sicurezza** (in `public/`, copiati nella radice del sito):
+- `robots.txt`: tutto indicizzabile tranne `/api/`, con il link alla sitemap;
+- `sitemap.xml`: le pagine pubbliche (benvenuto e "Unisciti"); una nuova pagina pubblica va aggiunta qui. Per
+  seguirne l'indicizzazione, il sito va registrato in [Google Search Console](https://search.google.com/search-console);
+- `.well-known/security.txt` (RFC 9116): contatto per segnalare vulnerabilità e lingue. **`Expires` va spostato
+  avanti ogni anno** (al massimo di un anno): scaduto, il file non vale più. Il workflow di uptime fallisce da 30
+  giorni prima della scadenza.
+
 **Service worker (cache offline) e interruttore d'emergenza:**
 il sito installa nei browser un service worker che conserva una copia del sito e degli ultimi dati, per l'uso offline.
 Chi ha già visitato il sito riceve una nuova versione solo dopo l'avviso "Aggiorna" o alla visita successiva. Se una
@@ -643,7 +671,9 @@ worker si spegne nei browser di tutti.
 #### Content Security Policy
 
 Oltre agli header di sicurezza classici, Caddy (`deploy/Caddyfile`) manda `Permissions-Policy` (niente fotocamera,
-microfono e posizione), `Cross-Origin-Opener-Policy: same-origin` e una **Content Security Policy in modalità
+microfono e posizione), `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`
+(le pagine di altri siti non possono caricare i file del sito; niente `Cross-Origin-Embedder-Policy`, che
+bloccherebbe Google Fonts e le immagini di Clash of Clans), `X-Permitted-Cross-Domain-Policies: none` e una **Content Security Policy in modalità
 `Report-Only`**: i browser segnalano nella console (DevTools) quello che bloccherebbero, ma non bloccano niente. Le
 politiche sono due: una per il sito e una per Swagger UI (`/api/v1/docs`, che carica i suoi file da `cdn.jsdelivr.net`).
 
@@ -683,7 +713,9 @@ Per provare la build di produzione in locale: `npm run start:prod` (http://local
 **Comandi utili:**
 - `docker compose logs -f backend` (oppure `web`): mostra i log;
 - `docker compose ps`: mostra lo stato dei servizi;
-- `curl -s https://crociatanera.it/api/v1/health`: stato del database e della sincronizzazione delle guerre.
+- `curl -s https://crociatanera.it/api/v1/health`: solo `ok`/`degraded` per chi non è autenticato; il dettaglio
+  (database, sincronizzazione, job) solo agli amministratori: `curl -s -u <utente> https://crociatanera.it/api/v1/health`
+  (chiede la password del sito) oppure dal browser dopo l'accesso a `/api/v1/docs`.
 
 **Dati:**
 - l'archivio del vecchio proxy è nel volume `proxy_data` (non più usato), i certificati in `caddy_data`;

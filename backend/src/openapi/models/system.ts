@@ -10,15 +10,16 @@ const JOB = z
 
 export const Health = model(
   'Health',
-  'Status of the service, its database and the war synchronisation.',
+  'Status of the service, its database and the war synchronisation. In production anonymous callers get `status` only; the other fields are for administrators (as for the API documentation).',
   z.strictObject({
     status: z.enum(['ok', 'degraded']).describe('`degraded` when `issues` is not empty.'),
     issues: z
       .array(z.enum(['databaseDown', 'warSyncStale', 'cocAccessDenied']))
       .describe(
         'What is wrong: MongoDB unreachable; war sync without success for twice its interval (built-in scheduler only); Clash of Clans API key refused (`accessDenied*`).',
-      ),
-    database: z.enum(['up', 'down']).describe('MongoDB connection.'),
+      )
+      .optional(),
+    database: z.enum(['up', 'down']).describe('MongoDB connection.').optional(),
     warSync: z
       .strictObject({
         scheduler: z.enum(['running', 'stopped']).describe('Built-in scheduler (stopped when disabled or not configured).'),
@@ -37,7 +38,8 @@ export const Health = model(
           .nullable()
           .describe('Error of the last run; `null` when it succeeded.'),
       })
-      .describe('War synchronisation.'),
+      .describe('War synchronisation.')
+      .optional(),
     jobs: z
       .strictObject({
         warSync: JOB.describe('Regular war of the main clan.'),
@@ -47,8 +49,9 @@ export const Health = model(
         commendations: JOB.describe('Commendations of the closed periods.'),
         profiles: JOB.describe('Heroes and equipment of the members.'),
       })
-      .describe('Last success and failure of each step of the synchronisation, since the server started.'),
-    time: dateTime('Server time.'),
+      .describe('Last success and failure of each step of the synchronisation, since the server started.')
+      .optional(),
+    time: dateTime('Server time.').optional(),
   }),
 );
 

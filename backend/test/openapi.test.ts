@@ -184,6 +184,18 @@ describe('response contract', () => {
     expect([200, 503]).toContain(status);
     expect(body.result).toMatchObject({ warSync: { scheduler: expect.any(String) } });
   });
+
+  it('shows the details of the health check to administrators only in production', async () => {
+    production();
+    const anonymous = await call(getHealth);
+    expect([200, 503]).toContain(anonymous.status);
+    expect(anonymous.body.result).toEqual({ status: expect.stringMatching(/^(ok|degraded)$/) });
+    expect(anonymous.headers.get('www-authenticate')).toBeNull();
+    expect(Object.keys((await call(getHealth, { token: await memberToken() })).body.result)).toEqual(['status']);
+
+    const admin = await call(getHealth, { token: await adminToken() });
+    expect(admin.body.result).toMatchObject({ database: 'up', warSync: { scheduler: expect.any(String) } });
+  });
 });
 
 describe('GET /openapi.json', () => {

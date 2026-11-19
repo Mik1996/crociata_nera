@@ -1,0 +1,4 @@
+Contact: mailto:michelemessina96@gmail.com
+Expires: 2027-11-18T23:00:00.000Z
+Preferred-Languages: it, en
+Canonical: https://crociatanera.it/.well-known/security.txt
