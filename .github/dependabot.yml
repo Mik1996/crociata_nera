@@ -1,6 +1,7 @@
-# Weekly dependency updates, grouped to keep the pull requests few: one per ecosystem and folder
-# for minor and patch versions (a major version gets its own PR). Every PR runs the CI tests;
-# merging it into master deploys it like any other push.
+# Weekly dependency updates, grouped to keep the pull requests few: one per ecosystem and folder,
+# minor and patch versions only (major versions are ignored: they are upgraded by hand, with the
+# code changes they need). Every PR runs the CI tests; merging it into master deploys it like any
+# other push.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -9,6 +10,9 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       frontend:
         update-types: [minor, patch]
@@ -19,6 +23,9 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       backend:
         update-types: [minor, patch]
@@ -29,6 +36,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       docker-images:
         update-types: [minor, patch]
@@ -39,6 +49,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       compose-images:
         update-types: [minor, patch]
@@ -48,6 +61,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       github-actions:
         patterns: ['*']
