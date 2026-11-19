@@ -24,11 +24,13 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     title: 'nav.welcome',
+    data: { seo: 'seo.home' },
     loadComponent: () => import('./features/welcome/welcome-page').then((m) => m.WelcomePage),
   },
   {
     path: 'join',
     title: 'nav.join',
+    data: { seo: 'seo.join' },
     loadComponent: () => import('./features/recruitment/join-page').then((m) => m.JoinPage),
   },
   {

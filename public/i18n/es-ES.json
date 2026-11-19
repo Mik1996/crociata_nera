@@ -1,4 +1,14 @@
 {
+  "seo": {
+    "home": {
+      "title": "Crociata Nera · Clan italiano de Clash of Clans",
+      "description": "Crociata Nera es un clan italiano de Clash of Clans: guerras, Liga de Guerra de Clanes (CWL) y Capital cada semana. Descubre las reglas y únete a nosotros."
+    },
+    "join": {
+      "title": "Únete a Crociata Nera · Clan italiano de Clash of Clans",
+      "description": "Buscamos jugadores leales para guerras, CWL y Fines de semana de asalto. Requisitos, reglas y cómo entrar en el clan Crociata Nera (#2J8JVVCLC)."
+    }
+  },
   "formats": {
     "date": "dd/MM/yyyy",
     "dateTime": "d MMM y, HH:mm"

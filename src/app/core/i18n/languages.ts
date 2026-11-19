@@ -24,11 +24,23 @@ export function isLanguageCode(value: unknown): value is LanguageCode {
 }
 
 /**
- * Picks the initial language: the saved one, otherwise the first supported browser language
- * (prefix match too: `en-GB` → `en-US`), otherwise Italian.
+ * Search engine crawlers (Googlebot presents itself as an English browser). They get Italian, the
+ * clan's language, so the search results show the Italian titles and texts.
  */
-export function initialLanguage(saved: string | null, browserPreferences: readonly string[]): LanguageCode {
+const CRAWLER =
+  /googlebot|google-inspectiontool|bingbot|duckduckbot|yandexbot|applebot|baiduspider|slurp|crawler|spider/i;
+
+/**
+ * Picks the initial language: the saved one, otherwise Italian for search engine crawlers, otherwise
+ * the first supported browser language (prefix match too: `en-GB` → `en-US`), otherwise Italian.
+ */
+export function initialLanguage(
+  saved: string | null,
+  browserPreferences: readonly string[],
+  userAgent = '',
+): LanguageCode {
   if (isLanguageCode(saved)) return saved;
+  if (CRAWLER.test(userAgent)) return DEFAULT_LANGUAGE;
   for (const preference of browserPreferences) {
     const exact = LANGUAGES.find((l) => l.code.toLowerCase() === preference.toLowerCase());
     if (exact) return exact.code;
