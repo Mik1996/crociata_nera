@@ -16,6 +16,7 @@ import {
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { TelegramAdminService } from '../../../core/backend/telegram-admin.service';
 import { CLAN_CASTLE_CAPACITY } from '../../../core/game/clan-castle';
+import { TOWN_HALL_IMAGES } from '../../../core/game/game-assets';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalDatePipe } from '../../../core/i18n/locale-pipes';
 import { Alert } from '../../../shared/components/alert/alert';
@@ -92,7 +93,7 @@ export class TelegramAdminPage {
       { value: NO_TOWN_HALL, label: this.language.t('telegramAdmin.chats.noTownHall') },
       ...this.levels
         .filter((level) => !taken.has(level))
-        .map((level) => ({ value: level, label: `TH${level}` })),
+        .map((level) => ({ value: level, label: `TH${level}`, image: TOWN_HALL_IMAGES[level] })),
     ];
   }
 

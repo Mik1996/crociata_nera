@@ -107,13 +107,16 @@ describe('TelegramAdminPage', () => {
   it('offers only the town halls not taken by another channel', async () => {
     const { fixture } = await render();
     const page = fixture.componentInstance as unknown as {
-      townHallOptions(chat: TelegramChat): { value: number; label: string }[];
+      townHallOptions(chat: TelegramChat): { value: number; label: string; image?: string }[];
     };
     const values = page.townHallOptions(th19).map((o) => o.value);
     expect(values[0]).toBe(0);
     expect(values).not.toContain(18);
     expect(values).toContain(19);
     expect(page.townHallOptions(th18).map((o) => o.value)).toContain(18);
+    const options = page.townHallOptions(th19);
+    expect(options.find((o) => o.value === 19)?.image).toBe('game/town-halls/th-19.webp');
+    expect(options[0].image).toBeUndefined();
   });
 
   it('adds a channel by @username, showing the backend error when it is not found', async () => {

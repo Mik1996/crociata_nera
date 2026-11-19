@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { Icon } from '../icon/icon';
@@ -8,12 +8,14 @@ import { IconName } from '../icon/icon-names';
 export interface SelectOption<T> {
   value: T;
   label: string;
+  /** Picture before the label (e.g. a town hall), also shown in place of the icon when chosen. */
+  image?: string;
 }
 
 /**
  * Drop-down choice in an outlined field (season, weekend, period, minimum wars…), with an optional
- * icon before the value. Bind `[value]` and `(valueChange)`, or `[(value)]`; give it a width (e.g.
- * `min-width`) from the page.
+ * icon before the value (the picture of the chosen option, when it has one). Bind `[value]` and
+ * `(valueChange)`, or `[(value)]`; give it a width (e.g. `min-width`) from the page.
  */
 @Component({
   selector: 'crn-select',
@@ -27,4 +29,8 @@ export class Select<T> {
   readonly options = input.required<readonly SelectOption<T>[]>();
   readonly icon = input<IconName>();
   readonly value = model<T>();
+
+  protected readonly selected = computed(() =>
+    this.options().find((option) => option.value === this.value()),
+  );
 }
