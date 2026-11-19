@@ -16,10 +16,14 @@ export async function register(): Promise<void> {
   const { connectToDatabase } = await import('./lib/db/mongoose');
   const { migrateLinkedPlayers } = await import('./modules/auth/user.model');
   const { migrateCwlSeasonIndex } = await import('./modules/cwl/cwl.model');
+  const { migrateBaseStatus } = await import('./modules/bases/defense-base.model');
   connectToDatabase()
     .then(migrateLinkedPlayers)
     .catch((error: unknown) => console.error('[migrations] linked players:', (error as Error).message));
   connectToDatabase()
     .then(migrateCwlSeasonIndex)
     .catch((error: unknown) => console.error('[migrations] CWL season index:', (error as Error).message));
+  connectToDatabase()
+    .then(migrateBaseStatus)
+    .catch((error: unknown) => console.error('[migrations] defense base status:', (error as Error).message));
 }

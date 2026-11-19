@@ -6,7 +6,7 @@ import { MessageKey } from '@/lib/http/message-key';
 import { toMessages } from '@/lib/validation/parse';
 import { MAX_IMAGE_BYTES } from './base-image';
 import { MAX_CLAN_CASTLE_CAPACITY, mergeTroops, TROOP_NAMES } from './clan-castle';
-import { MAX_DESCRIPTION_LENGTH } from './defense-base.model';
+import { BASE_STATUSES, BaseStatus, MAX_DESCRIPTION_LENGTH } from './defense-base.model';
 import { LayoutLink, MAX_TOWN_HALL_LEVEL, parseLayoutLink } from './layout-link';
 
 /** Bases per page of `GET /bases` when `limit` is not given, and the most a page can hold. */
@@ -31,7 +31,11 @@ export function encodeBaseCursor({ townHallLevel, updatedAt, id }: BaseCursor): 
 export function decodeBaseCursor(text: string): BaseCursor | null {
   const match = /^(\d{1,2})\.(\d{1,15})\.([0-9a-f]{24})$/.exec(Buffer.from(text, 'base64url').toString());
   if (!match) return null;
-  return { townHallLevel: Number(match[1]), updatedAt: new Date(Number(match[2])), id: new Types.ObjectId(match[3]) };
+  return {
+    townHallLevel: Number(match[1]),
+    updatedAt: new Date(Number(match[2])),
+    id: new Types.ObjectId(match[3]),
+  };
 }
 
 /** `GET /bases?th=18&limit=24&cursor=…`: a page of bases, optionally of one town hall level. */
@@ -94,7 +98,11 @@ const clanCastleTroops = z
       .array(
         z.object({
           name: z.enum(TROOP_NAMES, invalidTroops),
-          count: z.number(invalidTroops).int(invalidTroops).min(1, invalidTroops).max(MAX_CLAN_CASTLE_CAPACITY, invalidTroops),
+          count: z
+            .number(invalidTroops)
+            .int(invalidTroops)
+            .min(1, invalidTroops)
+            .max(MAX_CLAN_CASTLE_CAPACITY, invalidTroops),
         }),
         invalidTroops,
       )
@@ -116,6 +124,24 @@ export const updateBaseSchema = z.object({
 
 export type CreateBaseInput = z.output<typeof createBaseSchema> & { image: Buffer };
 export type UpdateBaseInput = z.output<typeof updateBaseSchema> & { image: Buffer | null };
+
+/** Longest reason of a rejection. */
+export const MAX_REJECTION_REASON_LENGTH = 500;
+
+/** `POST /base-proposals/{id}/reject`: why the proposal is refused (required, shown to its author). */
+export const rejectProposalSchema = z.object({
+  reason: z
+    .string({ error: MessageKey.REJECTION_REASON_SHOULD_NOT_BE_EMPTY })
+    .trim()
+    .min(1, { error: MessageKey.REJECTION_REASON_SHOULD_NOT_BE_EMPTY })
+    .max(MAX_REJECTION_REASON_LENGTH, { error: MessageKey.REJECTION_REASON_IS_TOO_LONG }),
+});
+
+/** `GET /base-proposals?status=PENDING`: the proposals in one state of the moderation. */
+export const listProposalsQuerySchema = z.object({
+  status: z.enum(BASE_STATUSES, { error: MessageKey.INVALID_FIELD }).default(BaseStatus.PENDING),
+});
+export type ListProposalsQuery = z.output<typeof listProposalsQuerySchema>;
 
 /** Room for the text fields and the multipart boundaries on top of the image. */
 const FORM_OVERHEAD_BYTES = 64 * 1024;
@@ -157,13 +183,20 @@ export async function parseBaseForm<S extends typeof createBaseSchema | typeof u
   if (!hasImage && imageRequired) messages.push({ key: MessageKey.IMAGE_SHOULD_NOT_BE_EMPTY, field: 'image' });
 
   if (messages.length || !parsed.success) throw new ApiError(400, messages);
-  return { ...parsed.data, image: hasImage ? Buffer.from(await file.arrayBuffer()) : null } as z.output<S> & {
+  return {
+    ...parsed.data,
+    image: hasImage ? Buffer.from(await file.arrayBuffer()) : null,
+  } as z.output<S> & {
     image: Buffer | null;
   };
 }
 
 function imageTooLarge(): never {
   return throwException(413, [
-    { key: MessageKey.IMAGE_IS_TOO_LARGE, params: { max: MAX_IMAGE_BYTES / 1024 / 1024 }, field: 'image' },
+    {
+      key: MessageKey.IMAGE_IS_TOO_LARGE,
+      params: { max: MAX_IMAGE_BYTES / 1024 / 1024 },
+      field: 'image',
+    },
   ]);
 }

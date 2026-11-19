@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { QueryFilter, Types } from 'mongoose';
+import mongoose, { QueryFilter, Types } from 'mongoose';
 import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { ImageVariant, processBaseImage } from './base-image';
@@ -7,10 +7,12 @@ import { imageStore, StoredImage } from './base-image.store';
 import { CreateBaseInput, encodeBaseCursor, ListBasesQuery, UpdateBaseInput } from './bases.schemas';
 import { ClanCastleTroop, clanCastleCapacity, housingSpaceUsed } from './clan-castle';
 import {
+  BaseStatus,
   DefenseBase,
   DefenseBaseDocument,
   DefenseBaseModel,
   MAX_DEFENSE_BASES,
+  PUBLISHED_BASES,
   PublicDefenseBase,
   toPublicDefenseBase,
 } from './defense-base.model';
@@ -28,13 +30,16 @@ export interface DefenseBasePage {
 export const IMAGE_KEY_PATTERN = /^[A-Za-z0-9_-]{24}$/;
 
 /**
- * A page of the arsenal, sorted by town hall, last change and id (all descending). Keyset
+ * A page of the arsenal (approved bases only), sorted by town hall, last change and id (all descending). Keyset
  * pagination: the next page starts after the sort key of the last base sent, so bases added or
  * removed meanwhile neither repeat nor shift other bases between pages. One extra base is read to
  * know whether another page follows, so the last page says so and no empty page is ever asked for.
  */
 export async function listBases({ th, limit, cursor }: ListBasesQuery): Promise<DefenseBasePage> {
-  const filter: QueryFilter<DefenseBase> = th ? { townHallLevel: th } : {};
+  const filter: QueryFilter<DefenseBase> = {
+    ...PUBLISHED_BASES,
+    ...(th ? { townHallLevel: th } : {}),
+  };
   if (cursor) {
     const { townHallLevel, updatedAt, id } = cursor;
     filter.$or = [
@@ -47,7 +52,7 @@ export async function listBases({ th, limit, cursor }: ListBasesQuery): Promise<
     DefenseBaseModel.find(filter)
       .sort({ townHallLevel: -1, updatedAt: -1, _id: -1 })
       .limit(limit + 1),
-    DefenseBaseModel.distinct('townHallLevel'),
+    DefenseBaseModel.distinct('townHallLevel', PUBLISHED_BASES),
   ]);
   const page = bases.slice(0, limit);
   const last = page.at(-1);
@@ -55,21 +60,40 @@ export async function listBases({ th, limit, cursor }: ListBasesQuery): Promise<
     items: page.map(toPublicDefenseBase),
     nextCursor:
       bases.length > limit && last
-        ? encodeBaseCursor({ townHallLevel: last.townHallLevel, updatedAt: last.updatedAt, id: last._id })
+        ? encodeBaseCursor({
+            townHallLevel: last.townHallLevel,
+            updatedAt: last.updatedAt,
+            id: last._id,
+          })
         : null,
     townHallLevels: (levels as number[]).sort((a, b) => b - a),
   };
 }
 
+/** A base of the arsenal; proposals not approved (yet) are not found. */
 export async function getBase(id: string): Promise<PublicDefenseBase> {
-  return toPublicDefenseBase(await findBase(id));
+  const base = Types.ObjectId.isValid(id) ? await DefenseBaseModel.findOne({ _id: id, ...PUBLISHED_BASES }) : null;
+  if (!base) throwException(404, MessageKey.BASE_NOT_FOUND);
+  return toPublicDefenseBase(base);
 }
 
-/**
- * Adds a base. The image is re-encoded and stored first; if saving the base then fails, the image
- * is removed again, so no orphan images are left behind.
- */
+/** Adds a base to the arsenal (administrators): published at once, without moderation. */
 export async function createBase(actorId: string, input: CreateBaseInput): Promise<PublicDefenseBase> {
+  return toPublicDefenseBase(await saveNewBase(actorId, input, { status: BaseStatus.APPROVED }));
+}
+
+/** Moderation fields of a new base: approved (administrators) or a proposal waiting for review. */
+type NewBaseState = Pick<DefenseBase, 'status'> & Partial<Pick<DefenseBase, 'submittedAt'>>;
+
+/**
+ * Saves a new base (any state). The image is re-encoded and stored first; if saving the base then
+ * fails, the image is removed again, so no orphan images are left behind.
+ */
+export async function saveNewBase(
+  actorId: string,
+  input: CreateBaseInput,
+  state: NewBaseState,
+): Promise<DefenseBaseDocument> {
   if ((await DefenseBaseModel.estimatedDocumentCount()) >= MAX_DEFENSE_BASES) {
     throwException(409, [{ key: MessageKey.BASE_LIMIT_REACHED, params: { max: MAX_DEFENSE_BASES } }]);
   }
@@ -80,7 +104,8 @@ export async function createBase(actorId: string, input: CreateBaseInput): Promi
   const imageKey = newImageKey();
   await imageStore.save(imageKey, images);
   try {
-    const base = await DefenseBaseModel.create({
+    return await DefenseBaseModel.create({
+      ...state,
       townHallLevel: input.layoutUrl.townHallLevel,
       layoutId: input.layoutUrl.layoutId,
       layoutUrl: input.layoutUrl.url,
@@ -92,19 +117,29 @@ export async function createBase(actorId: string, input: CreateBaseInput): Promi
       createdBy: actorId,
       updatedBy: actorId,
     });
-    return toPublicDefenseBase(base);
   } catch (error) {
     await imageStore.remove(imageKey);
     throw duplicateLayoutOr(error);
   }
 }
 
+/** Changes a base of any state (administrators); see {@link changeBase}. */
+export async function updateBase(actorId: string, id: string, input: UpdateBaseInput): Promise<PublicDefenseBase> {
+  return toPublicDefenseBase(await changeBase(actorId, await findBase(id), input));
+}
+
 /**
  * Changes a base: only the fields sent. A new link also changes the town hall level; a new image
- * replaces the old one, which is deleted once the base points to the new one.
+ * replaces the old one, which is deleted once the base points to the new one. `onlyIf` adds
+ * conditions the saved base must still meet (e.g. a proposal still waiting for review): when it no
+ * longer does, nothing is saved and `onlyIfFailed` is thrown.
  */
-export async function updateBase(actorId: string, id: string, input: UpdateBaseInput): Promise<PublicDefenseBase> {
-  const base = await findBase(id);
+export async function changeBase(
+  actorId: string,
+  base: DefenseBaseDocument,
+  input: UpdateBaseInput,
+  guard?: { onlyIf: QueryFilter<DefenseBase>; onlyIfFailed: () => never },
+): Promise<DefenseBaseDocument> {
   if (input.layoutUrl) {
     if (input.layoutUrl.layoutId !== base.layoutId) await assertLayoutIsNew(input.layoutUrl.layoutId);
     base.set({
@@ -127,17 +162,21 @@ export async function updateBase(actorId: string, id: string, input: UpdateBaseI
     base.set({ imageKey: newKey, imageWidth: images.full.width, imageHeight: images.full.height });
   }
   base.set('updatedBy', actorId);
+  // Extra filter of the update sent by `save()`: no document matches once the condition fails.
+  if (guard) base.$where = guard.onlyIf;
 
   try {
     await base.save();
   } catch (error) {
     if (newKey) await imageStore.remove(newKey);
+    if (guard && error instanceof mongoose.Error.DocumentNotFoundError) guard.onlyIfFailed();
     throw duplicateLayoutOr(error);
   }
   if (newKey) await imageStore.remove(oldImageKey);
-  return toPublicDefenseBase(base);
+  return base;
 }
 
+/** Deletes a base of any state (administrators), with its image. */
 export async function deleteBase(id: string): Promise<void> {
   const base = await findBase(id);
   await DefenseBaseModel.deleteOne({ _id: base._id });
@@ -149,7 +188,8 @@ export async function readBaseImage(key: string, variant: ImageVariant): Promise
   return IMAGE_KEY_PATTERN.test(key) ? imageStore.read(key, variant) : null;
 }
 
-async function findBase(id: string): Promise<DefenseBaseDocument> {
+/** A base of any state; 404 when the id does not exist. */
+export async function findBase(id: string): Promise<DefenseBaseDocument> {
   const base = Types.ObjectId.isValid(id) ? await DefenseBaseModel.findById(id) : null;
   if (!base) throwException(404, MessageKey.BASE_NOT_FOUND);
   return base;
@@ -161,7 +201,11 @@ function assertFitsClanCastle(troops: readonly ClanCastleTroop[], townHallLevel:
   const max = clanCastleCapacity(townHallLevel);
   if (used > max) {
     throwException(400, [
-      { key: MessageKey.CLAN_CASTLE_OVER_CAPACITY, params: { used, max }, field: 'clanCastleTroops' },
+      {
+        key: MessageKey.CLAN_CASTLE_OVER_CAPACITY,
+        params: { used, max },
+        field: 'clanCastleTroops',
+      },
     ]);
   }
 }

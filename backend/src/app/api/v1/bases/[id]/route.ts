@@ -6,7 +6,10 @@ import { MessageKey } from '@/lib/http/message-key';
 import { parseBaseForm, updateBaseSchema } from '@/modules/bases/bases.schemas';
 import { deleteBase, getBase, updateBase } from '@/modules/bases/bases.service';
 
-/** `GET /api/v1/bases/{id}`: one defense base (administrators and members of the clans). */
+/**
+ * `GET /api/v1/bases/{id}`: one defense base of the arsenal (administrators and members of the
+ * clans); proposals not approved are not found.
+ */
 export const GET = apiHandler<{ id: string }>(
   { apiName: ApiName.BASES_READ, clanAccess: true },
   async ({ params }) => ({ result: await getBase(params.id) }),

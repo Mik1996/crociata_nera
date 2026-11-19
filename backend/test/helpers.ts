@@ -1,6 +1,6 @@
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import type { BaseResult } from '@/lib/http/base-result';
-import { crusadeClanTags } from '@/modules/access/clan-access.service';
+import { crusadeClanTags, resetClanAccessCache } from '@/modules/access/clan-access.service';
 import { ClanRosterModel } from '@/modules/access/clan-roster.model';
 import { UserModel } from '@/modules/auth/user.model';
 import { assertContract } from './contract';
@@ -140,5 +140,7 @@ export async function memberToken(username = 'member', ip?: string): Promise<str
   await UserModel.updateOne({ email: `${username}@x.io` }, { $set: { playerTags: [playerTag] } });
   const saved = await ClanRosterModel.findOne({ clanTag: crusadeClanTags()[0] }).lean();
   await seedCrusadeRosters([...(saved?.memberTags ?? []), playerTag], saved?.leaderTags ?? []);
+  // Members already read are kept in memory: read them again, with the new one.
+  resetClanAccessCache();
   return body.result.accessToken;
 }

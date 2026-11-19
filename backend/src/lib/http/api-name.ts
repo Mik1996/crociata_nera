@@ -20,6 +20,7 @@ export enum ApiName {
   ADMIN = 'admin',
   BASES_READ = 'bases-read',
   BASES_WRITE = 'bases-write',
+  BASE_PROPOSALS = 'base-proposals',
   BASE_IMAGES = 'base-images',
   API_DOCS = 'api-docs',
   HEALTH = 'health',
@@ -64,6 +65,9 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   // Administrators only; each request may carry an image of up to 10 MB (shrunk in the browser
   // first). Generous: filling the arsenal means adding many bases in one sitting.
   [ApiName.BASES_WRITE]: { limit: 300, windowMs: 15 * MINUTE },
+  // Members proposing bases (or correcting a rejected one): each request may carry an image of up
+  // to 10 MB, so far fewer than the administrators.
+  [ApiName.BASE_PROPOSALS]: { limit: 30, windowMs: 15 * MINUTE },
   // A page of the arsenal loads one thumbnail per base (cached by the browser afterwards).
   [ApiName.BASE_IMAGES]: { limit: 600, windowMs: MINUTE },
   // The OpenAPI document and its viewer (Swagger UI). In production a password is checked:
