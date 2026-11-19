@@ -57,20 +57,24 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     path: '/admin/telegram/chats/{chatId}',
     operationId: 'updateTelegramChat',
     tag: 'Admin',
-    summary: 'Bind a Telegram chat to a town hall, or lock it',
+    summary: 'Bind a Telegram chat to a town hall, make it the announcements chat, or lock it',
     description:
-      'Binds the chat to a town hall level: the published bases of that level are posted there (those waiting at once, a few seconds apart); posts of the level in another chat move (deleted there, sent here). `null` unbinds it: its posts are deleted and wait for another channel. A base lives in one chat only. A level goes to one chat only. `locked` locks the chat: its town hall cannot change (409) and it cannot be removed, until it is unlocked (the same request may unlock it and change its town hall).',
+      'Binds the chat to a town hall level: the published bases of that level are posted there (those waiting at once, a few seconds apart); posts of the level in another chat move (deleted there, sent here). `null` unbinds it: its posts are deleted and wait for another channel. A base lives in one chat only. A level goes to one chat only. `purpose: announcements` makes it the announcements chat (one only): it never gets a town hall nor bases (`townHallLevel` must be `null`). `locked` locks the chat: its town hall and purpose cannot change (409) and it cannot be removed, until it is unlocked (the same request may unlock it and change its town hall).',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: chatIdPath,
     body: requestPart(updateChatSchema, {
       townHallLevel: { description: 'Town hall level, or `null` for none. Optional.', example: 18 },
-      locked: { description: 'Locks (`true`) or unlocks (`false`) the chat. Optional; at least one of the two fields.', example: true },
+      purpose: { description: '`bases` or `announcements`. Optional.', example: 'bases' },
+      locked: { description: 'Locks (`true`) or unlocks (`false`) the chat. Optional; at least one field.', example: true },
     }),
     responses: {
       200: { description: 'The chat. The message has its name in `params.name`.', result: TelegramChat, messages: [K.TELEGRAM_CHAT_UPDATED] },
     },
-    errors: { 404: [K.TELEGRAM_CHAT_NOT_FOUND], 409: [K.TELEGRAM_TOWN_HALL_TAKEN, K.TELEGRAM_CHAT_LOCKED] },
+    errors: {
+      404: [K.TELEGRAM_CHAT_NOT_FOUND],
+      409: [K.TELEGRAM_TOWN_HALL_TAKEN, K.TELEGRAM_CHAT_LOCKED, K.TELEGRAM_CHAT_NOT_FOR_BASES, K.TELEGRAM_ANNOUNCEMENTS_TAKEN],
+    },
   },
   {
     method: 'DELETE',

@@ -16,6 +16,7 @@ const th18: TelegramChat = {
   type: 'channel',
   botStatus: 'administrator',
   canPost: true,
+  purpose: 'bases',
   townHallLevel: 18,
   locked: false,
   updatedAt: '2026-11-19T10:00:00Z',
@@ -88,21 +89,44 @@ describe('TelegramAdminPage', () => {
   it('binds a channel to a town hall and shows the answer', async () => {
     const { fixture, el } = await render();
     const page = fixture.componentInstance as unknown as {
-      setTownHall(chat: TelegramChat, value: number): void;
+      setContent(chat: TelegramChat, value: number | 'announcements'): void;
     };
-    page.setTownHall(th19, 19);
+    page.setContent(th19, 19);
     const req = httpMock.expectOne(`${STATUS_URL}/chats/-1001900`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ townHallLevel: 19 });
+    expect(req.request.body).toEqual({ purpose: 'bases', townHallLevel: 19 });
     req.flush(ok({ ...th19, townHallLevel: 19 }));
     await fixture.whenStable();
     expect(el.textContent).toContain('Canale Arsenale basi TH19 aggiornato.');
 
     // "None" unbinds it.
-    page.setTownHall({ ...th19, townHallLevel: 19 }, 0);
+    page.setContent({ ...th19, townHallLevel: 19 }, 0);
     expect(httpMock.expectOne(`${STATUS_URL}/chats/-1001900`).request.body).toEqual({
+      purpose: 'bases',
       townHallLevel: null,
     });
+  });
+
+  it('makes a channel the announcements one, which is offered no town hall', async () => {
+    const { fixture } = await render();
+    const page = fixture.componentInstance as unknown as {
+      setContent(chat: TelegramChat, value: number | 'announcements'): void;
+      contentOptions(chat: TelegramChat): { value: number | string; icon?: string }[];
+    };
+    expect(page.contentOptions(th19).map((o) => o.value)).toContain('announcements');
+    page.setContent(th19, 'announcements');
+    const req = httpMock.expectOne(`${STATUS_URL}/chats/-1001900`);
+    expect(req.request.body).toEqual({ purpose: 'announcements', townHallLevel: null });
+    const announcements: TelegramChat = { ...th19, purpose: 'announcements' };
+    req.flush(ok(announcements));
+    await fixture.whenStable();
+
+    expect(page.contentOptions(announcements)).toEqual([
+      { value: 0, label: 'Nessuno' },
+      { value: 'announcements', label: 'Annunci', icon: 'campaign' },
+    ]);
+    // Another channel cannot be the announcements one too.
+    expect(page.contentOptions(th18).map((o) => o.value)).not.toContain('announcements');
   });
 
   it('locks a channel: its town hall and its removal are disabled until it is unlocked', async () => {
@@ -128,14 +152,14 @@ describe('TelegramAdminPage', () => {
   it('offers only the town halls not taken by another channel', async () => {
     const { fixture } = await render();
     const page = fixture.componentInstance as unknown as {
-      townHallOptions(chat: TelegramChat): { value: number; label: string; image?: string }[];
+      contentOptions(chat: TelegramChat): { value: number; label: string; image?: string }[];
     };
-    const values = page.townHallOptions(th19).map((o) => o.value);
+    const values = page.contentOptions(th19).map((o) => o.value);
     expect(values[0]).toBe(0);
     expect(values).not.toContain(18);
     expect(values).toContain(19);
-    expect(page.townHallOptions(th18).map((o) => o.value)).toContain(18);
-    const options = page.townHallOptions(th19);
+    expect(page.contentOptions(th18).map((o) => o.value)).toContain(18);
+    const options = page.contentOptions(th19);
     expect(options.find((o) => o.value === 19)?.image).toBe('game/town-halls/th-19.webp');
     expect(options[0].image).toBeUndefined();
   });

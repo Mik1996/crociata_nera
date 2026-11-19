@@ -12,6 +12,7 @@ class Host {
   options: SelectOption<number>[] = [
     { value: 1, label: 'Gennaio' },
     { value: 2, label: 'Febbraio', image: 'game/town-halls/th-2.webp' },
+    { value: 3, label: 'Marzo', icon: 'campaign' },
   ];
   value = signal(1);
 }
@@ -36,7 +37,11 @@ describe('Select', () => {
     (f.nativeElement.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
     await f.whenStable();
     const options = document.querySelectorAll<HTMLElement>('mat-option');
-    expect([...options].map((o) => o.textContent!.trim())).toEqual(['Gennaio', 'Febbraio']);
+    expect([...options].map((o) => o.textContent!.trim())).toEqual([
+      'Gennaio',
+      'Febbraio',
+      'Marzo',
+    ]);
     options[1].click();
     await f.whenStable();
     expect(f.componentInstance.value()).toBe(2);
@@ -57,5 +62,18 @@ describe('Select', () => {
       'game/town-halls/th-2.webp',
     );
     expect(el.querySelector('crn-icon[matprefix]')).toBeNull();
+  });
+
+  it('shows the icon of an option, also in place of its own when chosen', async () => {
+    const f = await create();
+    const el = f.nativeElement as HTMLElement;
+    f.componentInstance.value.set(3);
+    await f.whenStable();
+    expect(el.querySelector('crn-icon[matprefix] use')!.getAttribute('href')).toContain('campaign');
+    (el.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    await f.whenStable();
+    const options = document.querySelectorAll<HTMLElement>('mat-option');
+    expect(options[2].querySelector('crn-icon')).not.toBeNull();
+    expect(options[0].querySelector('crn-icon')).toBeNull();
   });
 });

@@ -2,7 +2,7 @@
   <mat-label>{{ label() }}</mat-label>
   @if (selected()?.image; as src) {
     <img matPrefix class="select__image select__image--prefix" [src]="src" alt="" />
-  } @else if (icon(); as name) {
+  } @else if (selected()?.icon ?? icon(); as name) {
     <crn-icon matPrefix [name]="name" />
   }
   <mat-select [value]="value()" [disabled]="disabled()" (valueChange)="value.set($event)">
@@ -10,6 +10,8 @@
       <mat-option [value]="option.value">
         @if (option.image; as src) {
           <img class="select__image" [src]="src" alt="" />
+        } @else if (option.icon; as name) {
+          <crn-icon class="select__icon" [name]="name" />
         }
         {{ option.label }}
       </mat-option>

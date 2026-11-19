@@ -165,12 +165,12 @@
                   <crn-select
                     class="chat__level"
                     icon="castle"
-                    [label]="'telegramAdmin.chats.townHall' | translate"
-                    [options]="townHallOptions(c)"
-                    [value]="townHallOf(c)"
+                    [label]="'telegramAdmin.chats.content' | translate"
+                    [options]="contentOptions(c)"
+                    [value]="contentOf(c)"
                     [disabled]="c.locked"
                     [matTooltip]="c.locked ? ('telegramAdmin.chats.lockedHint' | translate) : ''"
-                    (valueChange)="setTownHall(c, $event)"
+                    (valueChange)="setContent(c, $event)"
                   />
                   <mat-slide-toggle
                     class="chat__lock"

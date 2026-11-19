@@ -22,6 +22,7 @@ const NAMES = [
   'block',
   'bolt',
   'calendar_month',
+  'campaign',
   'cancel',
   'castle',
   'check',

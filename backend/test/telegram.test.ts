@@ -553,6 +553,41 @@ describe('administration of the chats', () => {
     expect((await patch({})).status).toBe(400);
   });
 
+  it('keeps the announcements chat, one only, out of the bases', async () => {
+    const telegram = mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    await channel(TH17_CHANNEL, null, { title: 'Annunci' });
+    const patch = (chatId: number, body: Record<string, unknown>) =>
+      call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(chatId) }, body });
+
+    const made = await patch(TH17_CHANNEL, { purpose: 'announcements' });
+    expect(made.status).toBe(200);
+    expect(made.body.result).toMatchObject({ purpose: 'announcements', townHallLevel: null });
+
+    const bound = await patch(TH17_CHANNEL, { townHallLevel: 17 });
+    expect(bound.status).toBe(409);
+    expect(bound.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_CHAT_NOT_FOR_BASES', params: { name: 'Annunci' } });
+    // A chat of bases must give up its town hall first (or in the same request).
+    expect((await patch(TH18_CHANNEL, { purpose: 'announcements' })).body.messages[0]).toMatchObject({
+      key: 'ERROR.TELEGRAM_CHAT_NOT_FOR_BASES',
+    });
+    const second = await patch(TH18_CHANNEL, { purpose: 'announcements', townHallLevel: null });
+    expect(second.status).toBe(409);
+    expect(second.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_ANNOUNCEMENTS_TAKEN' });
+
+    // Even written straight in the database, a town hall on the announcements chat gets no bases.
+    await TelegramChatModel.updateOne({ chatId: TH17_CHANNEL }, { $set: { townHallLevel: 17 } });
+    await create(admin, 17);
+    expect(telegram.of('sendPhoto')).toEqual([]);
+
+    await TelegramChatModel.updateOne({ chatId: TH17_CHANNEL }, { $set: { townHallLevel: null } });
+    const back = await patch(TH17_CHANNEL, { purpose: 'bases', townHallLevel: 17 });
+    expect(back.status).toBe(200);
+    await requestBasePostSync();
+    expect(telegram.of('sendPhoto').map((c) => c.params.chat_id)).toEqual([String(TH17_CHANNEL)]);
+  });
+
   it('is for administrators only', async () => {
     mockTelegramApi();
     const member = await memberToken();

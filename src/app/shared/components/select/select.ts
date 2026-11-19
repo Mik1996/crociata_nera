@@ -10,12 +10,14 @@ export interface SelectOption<T> {
   label: string;
   /** Picture before the label (e.g. a town hall), also shown in place of the icon when chosen. */
   image?: string;
+  /** Icon before the label (when there is no picture), also shown in place of the icon when chosen. */
+  icon?: IconName;
 }
 
 /**
  * Drop-down choice in an outlined field (season, weekend, period, minimum wars…), with an optional
- * icon before the value (the picture of the chosen option, when it has one). Bind `[value]` and
- * `(valueChange)`, or `[(value)]`; give it a width (e.g. `min-width`) from the page.
+ * icon before the value (the picture or icon of the chosen option, when it has one). Bind `[value]`
+ * and `(valueChange)`, or `[(value)]`; give it a width (e.g. `min-width`) from the page.
  */
 @Component({
   selector: 'crn-select',

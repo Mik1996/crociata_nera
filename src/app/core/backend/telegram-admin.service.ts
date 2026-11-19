@@ -28,10 +28,16 @@ export class TelegramAdminService {
       .pipe(map((response) => response.result!));
   }
 
-  /** Binds a chat to a town hall level (`null` unbinds it). */
-  setTownHall(chatId: number, townHallLevel: number | null): Observable<TelegramChat> {
+  /**
+   * Sets what a chat receives: the bases of a town hall level (`null`: none), or the announcements
+   * (`purpose: 'announcements'`, always without a town hall).
+   */
+  setContent(
+    chatId: number,
+    content: Pick<TelegramChat, 'purpose' | 'townHallLevel'>,
+  ): Observable<TelegramChat> {
     return this.http
-      .patch<BaseResult<TelegramChat>>(`${this.url}/chats/${chatId}`, { townHallLevel })
+      .patch<BaseResult<TelegramChat>>(`${this.url}/chats/${chatId}`, content)
       .pipe(map((response) => response.result!));
   }
 

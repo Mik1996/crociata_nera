@@ -28,8 +28,12 @@ import { Select, SelectOption } from '../../../shared/components/select/select';
 import { Tag } from '../../../shared/components/tag/tag';
 import { ScrollFade } from '../../../shared/directives/scroll-fade';
 
-/** Value of the town hall choice meaning "no town hall". */
-const NO_TOWN_HALL = 0;
+/** Value of the content choice meaning "nothing": no town hall, not the announcements. */
+const NO_CONTENT = 0;
+/** Value of the content choice for the announcements chat. */
+const ANNOUNCEMENTS = 'announcements';
+/** What a chat receives: nothing, the announcements, or the bases of a town hall level. */
+type ChatContent = typeof NO_CONTENT | typeof ANNOUNCEMENTS | number;
 /** Lowest town hall offered: below it there are no war bases worth sharing. */
 const LOWEST_TOWN_HALL = 3;
 
@@ -84,29 +88,45 @@ export class TelegramAdminPage {
     return Array.from({ length: highest - LOWEST_TOWN_HALL + 1 }, (_, i) => highest - i);
   })();
 
-  /** Choices of a chat: the town halls not taken by another chat. */
-  protected townHallOptions(chat: TelegramChat): SelectOption<number>[] {
-    const taken = new Set(
-      (this.data()?.chats ?? [])
-        .filter((c) => c.chatId !== chat.chatId && c.townHallLevel !== null)
-        .map((c) => c.townHallLevel),
-    );
+  /**
+   * Choices of a chat: nothing, the announcements (when no other chat has them) and the town halls
+   * not taken by another chat. The announcements chat is offered no town hall: it must go back to
+   * "nothing" first, so that bases never reach it by mistake.
+   */
+  protected contentOptions(chat: TelegramChat): SelectOption<ChatContent>[] {
+    const others = (this.data()?.chats ?? []).filter((c) => c.chatId !== chat.chatId);
+    const taken = new Set(others.map((c) => c.townHallLevel).filter((level) => level !== null));
+    const options: SelectOption<ChatContent>[] = [
+      { value: NO_CONTENT, label: this.language.t('telegramAdmin.chats.noTownHall') },
+    ];
+    if (!others.some((c) => c.purpose === ANNOUNCEMENTS)) {
+      options.push({
+        value: ANNOUNCEMENTS,
+        label: this.language.t('telegramAdmin.chats.announcements'),
+        icon: 'campaign',
+      });
+    }
+    if (chat.purpose === ANNOUNCEMENTS) return options;
     return [
-      { value: NO_TOWN_HALL, label: this.language.t('telegramAdmin.chats.noTownHall') },
+      ...options,
       ...this.levels
         .filter((level) => !taken.has(level))
         .map((level) => ({ value: level, label: `TH${level}`, image: TOWN_HALL_IMAGES[level] })),
     ];
   }
 
-  protected townHallOf(chat: TelegramChat): number {
-    return chat.townHallLevel ?? NO_TOWN_HALL;
+  protected contentOf(chat: TelegramChat): ChatContent {
+    if (chat.purpose === ANNOUNCEMENTS) return ANNOUNCEMENTS;
+    return chat.townHallLevel ?? NO_CONTENT;
   }
 
-  protected setTownHall(chat: TelegramChat, value: number | undefined): void {
-    const townHallLevel = value ? value : null;
-    if (townHallLevel === chat.townHallLevel) return;
-    this.run(chat.chatId, this.service.setTownHall(chat.chatId, townHallLevel), (updated) => {
+  protected setContent(chat: TelegramChat, value: ChatContent | undefined): void {
+    if (value === undefined || value === this.contentOf(chat)) return;
+    const content: Pick<TelegramChat, 'purpose' | 'townHallLevel'> =
+      value === ANNOUNCEMENTS
+        ? { purpose: ANNOUNCEMENTS, townHallLevel: null }
+        : { purpose: 'bases', townHallLevel: value || null };
+    this.run(chat.chatId, this.service.setContent(chat.chatId, content), (updated) => {
       this.replaceChat(updated);
       return [{ key: 'SUCCESS.TELEGRAM_CHAT_UPDATED', params: { name: updated.title } }];
     });

@@ -4,7 +4,7 @@ import { imageStore } from '@/modules/bases/base-image.store';
 import { DefenseBaseModel, PUBLISHED_BASES } from '@/modules/bases/defense-base.model';
 import { authorNameOf, basePostCaption, COPY_BASE_BUTTON } from './base-post-caption';
 import { BasePostStatus, TelegramBasePostDocument, TelegramBasePostModel } from './telegram-base-post.model';
-import { TelegramChatModel } from './telegram-chat.model';
+import { TelegramChatModel, TelegramChatPurpose } from './telegram-chat.model';
 
 /**
  * Keeps the Telegram channels of the arsenal in step with the site: every published base has a
@@ -69,8 +69,12 @@ export function setTelegramSendInterval(ms: number): void {
 }
 
 async function syncBasePosts(now = new Date()): Promise<void> {
-  // Every bound chat, even one the bot cannot write in: the posts already there stay.
-  const chats = await TelegramChatModel.find({ townHallLevel: { $ne: null } }).lean();
+  // Every bound chat, even one the bot cannot write in: the posts already there stay. Never the
+  // announcements chat (it has no town hall anyway).
+  const chats = await TelegramChatModel.find({
+    townHallLevel: { $ne: null },
+    purpose: { $ne: TelegramChatPurpose.ANNOUNCEMENTS },
+  }).lean();
   const channelOf = new Map<number, Channel>(
     chats.map((chat) => [chat.townHallLevel!, { chatId: chat.chatId, canPost: chat.canPost }]),
   );
