@@ -166,8 +166,10 @@ h3 {
   margin-top: $space-xs !important;
 }
 
+/* Same width on every row: without `min-width: 0` the field grows to its content (picture or icon). */
 .chat__level {
-  flex: 0 0 11rem;
+  flex: 0 0 14rem;
+  min-width: 0;
 }
 
 .chat__lock {
