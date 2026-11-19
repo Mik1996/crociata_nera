@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "jose": "^6.2.15",
-    "mongoose": "^9.12.0",
-    "next": "^16.4.5",
+    "jose": "^6.2.17",
+    "mongoose": "^9.12.1",
+    "next": "^16.4.6",
     "nodemailer": "^10.6.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -22,7 +22,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@seriousme/openapi-schema-validator": "^2.11.0",
+    "@seriousme/openapi-schema-validator": "^2.12.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "mongodb-memory-server": "^11.3.0",
