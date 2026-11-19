@@ -460,11 +460,18 @@ mat-sidenav-content > .content:has(> .page--immersive) {
     --mat-form-field-container-text-size: max(16px, var(--cn-fs-base));
   }
 
+  // `!important`: Material gives its inputs `font: inherit` through class selectors (stronger than
+  // these), and pages shrink their fields (e.g. the table filters), which would bring the zoom back.
+  // The date range input sizes itself on a hidden mirror of the text: it must grow with it.
+  // Material selects do not zoom (no native field), but keep the size of the fields beside them.
   input,
   textarea,
-  select {
+  select,
+  [contenteditable]:not([contenteditable='false']),
+  .mat-date-range-input,
+  .mat-mdc-select {
     // units-lint: allow (iOS zoom threshold, defined in px)
-    font-size: max(16px, 1em);
+    font-size: max(16px, 1em) !important;
   }
 }
 
