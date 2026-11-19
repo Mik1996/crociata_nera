@@ -50,6 +50,15 @@ describe('internationalisation', () => {
     it('falls back to Italian', () => {
       expect(initialLanguage(null, ['de-DE', 'fr'])).toBe('it-IT');
     });
+
+    it('gives Italian to search engine crawlers, unless a language is saved', () => {
+      const googlebot =
+        'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
+      expect(initialLanguage(null, ['en-US'], googlebot)).toBe('it-IT');
+      expect(initialLanguage(null, ['en-US'], 'Mozilla/5.0 (compatible; Google-InspectionTool/1.0)')).toBe('it-IT');
+      expect(initialLanguage('es-ES', ['en-US'], googlebot)).toBe('es-ES');
+      expect(initialLanguage(null, ['en-US'], 'Mozilla/5.0 (iPhone) Safari/604.1')).toBe('en-US');
+    });
   });
 
   describe('LanguageService', () => {

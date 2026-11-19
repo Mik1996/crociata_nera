@@ -1,4 +1,14 @@
 {
+  "seo": {
+    "home": {
+      "title": "Crociata Nera · Italian Clash of Clans clan",
+      "description": "Crociata Nera is an Italian Clash of Clans clan: wars, Clan War League (CWL) and Clan Capital every week. Read the rules and join us."
+    },
+    "join": {
+      "title": "Join Crociata Nera · Italian Clash of Clans clan",
+      "description": "We are looking for loyal players for wars, CWL and Raid Weekends. Requirements, rules and how to join the Crociata Nera clan (#2J8JVVCLC)."
+    }
+  },
   "formats": {
     "date": "MM/dd/yyyy",
     "dateTime": "MMM d, y, h:mm a"

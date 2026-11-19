@@ -31,10 +31,10 @@ export class LanguageService {
 
   readonly currentLanguage = computed(() => LANGUAGES.find((l) => l.code === this.current()) ?? LANGUAGES[0]);
 
-  /** Language to use at startup (saved, browser or default). */
+  /** Language to use at startup (saved, Italian for crawlers, browser or default). */
   initial(): LanguageCode {
-    const preferences = this.document.defaultView?.navigator.languages ?? [];
-    return initialLanguage(readSaved(), preferences);
+    const navigator = this.document.defaultView?.navigator;
+    return initialLanguage(readSaved(), navigator?.languages ?? [], navigator?.userAgent);
   }
 
   /** Activates a language: loads the translations, remembers it and updates `<html lang>`. */
