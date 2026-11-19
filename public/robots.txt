@@ -1,4 +1,7 @@
 User-agent: *
+# The public pages read these while Google renders them: blocked, they look empty (soft 404).
+Allow: /api/v1/welcome
+Allow: /api/v1/auth/refresh
 Disallow: /api/
 
 Sitemap: https://crociatanera.it/sitemap.xml
