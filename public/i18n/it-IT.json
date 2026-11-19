@@ -1096,7 +1096,7 @@
     "empty": "Nessun giocatore del clan salvato: la classifica apparirà alla prossima sincronizzazione.",
     "summary": "Riepilogo",
     "legend": {
-      "starter": "Schierati: {{n}}/{{max}}",
+      "starter": "Titolari: {{n}}/{{max}}",
       "reserve": "Riserve: {{n}}/{{max}}",
       "excluded": "Esclusi: {{n}}"
     },
@@ -1113,7 +1113,7 @@
       "eligibility": "Idonei: i giocatori di Crociata Nera, Crociata Rossa e Crociata d'Oro con il municipio più alto tra i tre clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
       "cwl": "Ultima CWL, giocata in Crociata Nera, Rossa o d'Oro (fino a 25 punti): encomi fino a 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) e stelle per attacco e distruzione fino a 13; con meno di 3 attacchi il rendimento si riduce in proporzione.",
       "war": "Guerre normali degli ultimi 90 giorni, in tutti i clan della Crociata (fino a 40 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
-      "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono schierati (blu), i 3 successivi sono le riserve (verde).",
+      "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono i titolari (blu), i 3 successivi sono le riserve (verde).",
       "heroes": "Eroi (fino a 20 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
       "townHall": "Municipio: 10 punti a chi ha il municipio più alto tra i tre clan.",
       "league": "Lega (fino a 5 punti): 1 punto in Lega Electro 31, 2 in Electro 32, 3 in Electro 33, 4 in Leggenda III, 5 in Leggenda II e I; nessun punto nelle leghe più basse.",
@@ -1125,7 +1125,7 @@
     "ranking": "Classifica ({{n}})",
     "status": "Ruolo in Lega",
     "statuses": {
-      "starter": "Schierato",
+      "starter": "Titolare",
       "reserve": "Riserva",
       "bench": "Fuori",
       "ineligible": "Non idoneo",
@@ -1165,7 +1165,7 @@
     "readmit": "Riammetti",
     "exclude": {
       "title": "Escludi {{name}}",
-      "intro": "Il giocatore resta in classifica, segnato come escluso, e non occupa un posto tra gli schierati e le riserve.",
+      "intro": "Il giocatore resta in classifica, segnato come escluso, e non occupa un posto tra i titolari e le riserve.",
       "reason": "Motivo (facoltativo)",
       "reasonHint": "Ad esempio: assente per tutta la stagione",
       "confirm": "Escludi"
@@ -1177,9 +1177,12 @@
     "pdf": {
       "league": "Lega",
       "title": "Formazione CWL",
+      "startersTitle": "Formazione CWL - Titolari",
+      "reservesTitle": "Formazione CWL - Riserve",
+      "rankingTitle": "Formazione CWL - Classifica",
       "subtitle": "I {{starters}} giocatori da schierare in Lega e le {{reserves}} riserve, dalla classifica dei tre clan della Crociata.",
       "lineup": "Formazione",
-      "lineupValue": "{{starters}} schierati + {{reserves}} riserve",
+      "lineupValue": "{{starters}} titolari + {{reserves}} riserve",
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} attacchi in {{wars}} guerre",
       "war": "Media guerre"

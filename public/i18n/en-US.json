@@ -1096,7 +1096,7 @@
     "empty": "No clan player saved yet: the ranking will appear after the next synchronisation.",
     "summary": "Summary",
     "legend": {
-      "starter": "In the line-up: {{n}}/{{max}}",
+      "starter": "Starters: {{n}}/{{max}}",
       "reserve": "Reserves: {{n}}/{{max}}",
       "excluded": "Excluded: {{n}}"
     },
@@ -1113,7 +1113,7 @@
       "eligibility": "Eligible: the players of Crociata Nera, Crociata Rossa and Crociata d'Oro with the highest town hall of the three clans and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
       "cwl": "Last CWL, fought in Crociata Nera, Rossa or d'Oro (up to 25 points): commendations up to 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) and stars per attack and destruction up to 13; with fewer than 3 attacks the performance is reduced in proportion.",
       "war": "Regular wars of the last 90 days, in every clan of the Crusade (up to 40 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
-      "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are in the line-up (blue), the next 3 are the reserves (green).",
+      "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are the starters (blue), the next 3 are the reserves (green).",
       "heroes": "Heroes (up to 20 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
       "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
       "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
@@ -1125,7 +1125,7 @@
     "ranking": "Ranking ({{n}})",
     "status": "League role",
     "statuses": {
-      "starter": "In line-up",
+      "starter": "Starter",
       "reserve": "Reserve",
       "bench": "Out",
       "ineligible": "Not eligible",
@@ -1165,7 +1165,7 @@
     "readmit": "Take back",
     "exclude": {
       "title": "Exclude {{name}}",
-      "intro": "The player stays in the ranking, marked as excluded, and takes no slot among the line-up and the reserves.",
+      "intro": "The player stays in the ranking, marked as excluded, and takes no slot among the starters and the reserves.",
       "reason": "Reason (optional)",
       "reasonHint": "For example: away for the whole season",
       "confirm": "Exclude"
@@ -1177,6 +1177,9 @@
     "pdf": {
       "league": "League",
       "title": "CWL line-up",
+      "startersTitle": "CWL line-up - Starters",
+      "reservesTitle": "CWL line-up - Reserves",
+      "rankingTitle": "CWL line-up - Ranking",
       "subtitle": "The {{starters}} players to field in the League and the {{reserves}} reserves, from the ranking of the three clans of the Crusade.",
       "lineup": "Line-up",
       "lineupValue": "{{starters}} starters + {{reserves}} reserves",

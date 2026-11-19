@@ -10,6 +10,7 @@ import { cssColor } from '../styles/css-color';
 export interface TablePdf<T> {
   /** File name without extension, e.g. `crociata-nera-raid-2026-11-14`. */
   fileName: string;
+  /** Title of the document and of the page headers (unless a group or the notes have a `pageTitle`). */
   title: string;
   subtitle?: string;
   /** Label/value pairs shown in a row under the header (season, totals...). */
@@ -32,6 +33,8 @@ export interface PdfNotes {
   items: readonly string[];
   /** Starts a new page. */
   pageBreakBefore?: boolean;
+  /** Title in the header of the page of the notes (with `pageBreakBefore`); `title` of the PDF otherwise. */
+  pageTitle?: string;
 }
 
 export interface PdfFact {
@@ -84,6 +87,11 @@ export interface PdfRowGroup<T> {
   rows: readonly T[];
   /** Starts a new page, with the header row of the table again. */
   pageBreakBefore?: boolean;
+  /**
+   * Title in the header of the pages of this group and the next ones, when it starts a page (first
+   * group or `pageBreakBefore`); the previous one (or the `title` of the PDF) otherwise.
+   */
+  pageTitle?: string;
 }
 
 /**

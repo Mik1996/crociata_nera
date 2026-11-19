@@ -4,7 +4,7 @@ import { GET as listDonationSeasons } from '@/app/api/v1/donations/seasons/route
 import { GET as listRaids } from '@/app/api/v1/raids/seasons/route';
 import { CommendationAwardModel } from '@/modules/commendations/commendation-award.model';
 import { syncCommendations, syncMembers } from '@/modules/commendations/commendation-sync.service';
-import { PlayerModel } from '@/modules/commendations/player.model';
+import { migrateSecondaryClanJoins, PlayerModel } from '@/modules/commendations/player.model';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { DonationSeasonModel, DonationTotalModel } from '@/modules/donations/donation.model';
@@ -28,23 +28,48 @@ const roster = (...members: { tag: string; name: string; donations?: number }[])
 describe('members of the clans of the Crusade', () => {
   it('are saved with their clan; moving between the clans is not joining', async () => {
     const day1 = new Date('2026-11-01T00:00:00Z');
+    const day2 = new Date('2026-11-03T00:00:00Z');
     let rossa = [{ tag: '#RED1', name: 'Red' }];
     let nera = [{ tag: '#BLACK1', name: 'Black' }];
+    let oroReadable = false;
     mockCocApi({
       [path(NERA)]: () => roster(...nera),
       [path(ROSSA)]: () => roster(...rossa),
-      [path(ORO)]: roster({ tag: '#GOLD1', name: 'Gold' }),
+      [path(ORO)]: () => (oroReadable ? roster({ tag: '#GOLD1', name: 'Gold' }) : { status: 503, body: { reason: 'inMaintenance' } }),
       '/goldpass/seasons/current': { status: 404, body: {} },
     });
     const first = await syncMembers(day1);
-    expect(first.created.map((p) => p.tag).sort()).toEqual(['#BLACK1', '#GOLD1', '#RED1']);
-    expect(await PlayerModel.findOne({ tag: '#RED1' }).lean()).toMatchObject({ clanTag: ROSSA, inClan: true, joinedAt: day1 });
+    expect(first.created.map((p) => p.tag).sort()).toEqual(['#BLACK1', '#RED1']);
+    // First read of the clans: their members were already in them, since an unknown date.
+    expect(await PlayerModel.findOne({ tag: '#RED1' }).lean()).toMatchObject({ clanTag: ROSSA, inClan: true, joinedAt: null });
 
-    // Red moves from Rossa to Nera: same join date, new clan.
-    rossa = [];
-    nera = [...nera, { tag: '#RED1', name: 'Red' }];
+    // Pink joins Rossa; Oro is read for the first time (Gold was already in it).
+    rossa = [...rossa, { tag: '#PINK1', name: 'Pink' }];
+    oroReadable = true;
+    await syncMembers(day2);
+    expect(await PlayerModel.findOne({ tag: '#PINK1' }).lean()).toMatchObject({ clanTag: ROSSA, joinedAt: day2 });
+    expect(await PlayerModel.findOne({ tag: '#GOLD1' }).lean()).toMatchObject({ clanTag: ORO, joinedAt: null });
+
+    // Pink moves from Rossa to Nera: same join date, new clan.
+    rossa = [{ tag: '#RED1', name: 'Red' }];
+    nera = [...nera, { tag: '#PINK1', name: 'Pink' }];
     await syncMembers(new Date('2026-11-05T00:00:00Z'));
-    expect(await PlayerModel.findOne({ tag: '#RED1' }).lean()).toMatchObject({ clanTag: NERA, inClan: true, joinedAt: day1 });
+    expect(await PlayerModel.findOne({ tag: '#PINK1' }).lean()).toMatchObject({ clanTag: NERA, inClan: true, joinedAt: day2 });
+  });
+
+  it('forget the join date given by the first read of Rossa and Oro', async () => {
+    const firstRead = new Date('2026-11-14T20:00:00Z');
+    const joined = new Date('2026-11-17T10:00:00Z');
+    await PlayerModel.create([
+      { tag: '#RED1', name: 'Red', clanTag: ROSSA, inClan: true, joinedAt: firstRead },
+      { tag: '#GOLD1', name: 'Gold', clanTag: ORO, inClan: true, joinedAt: new Date('2026-11-15T09:00:00Z') },
+      { tag: '#RED2', name: 'New red', clanTag: ROSSA, inClan: true, joinedAt: joined },
+      { tag: '#BLACK1', name: 'Black', clanTag: NERA, inClan: true, joinedAt: firstRead },
+    ]);
+    await migrateSecondaryClanJoins();
+    await migrateSecondaryClanJoins();
+    const joins = Object.fromEntries((await PlayerModel.find().lean()).map((p) => [p.tag, p.joinedAt]));
+    expect(joins).toEqual({ '#RED1': null, '#GOLD1': null, '#RED2': joined, '#BLACK1': firstRead });
   });
 
   it('skip a secondary clan that cannot be read, without marking its players as gone', async () => {

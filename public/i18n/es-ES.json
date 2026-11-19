@@ -1096,7 +1096,7 @@
     "empty": "Aún no hay jugadores del clan guardados: la clasificación aparecerá tras la próxima sincronización.",
     "summary": "Resumen",
     "legend": {
-      "starter": "Alineados: {{n}}/{{max}}",
+      "starter": "Titulares: {{n}}/{{max}}",
       "reserve": "Reservas: {{n}}/{{max}}",
       "excluded": "Excluidos: {{n}}"
     },
@@ -1113,7 +1113,7 @@
       "eligibility": "Elegibles: los jugadores de Crociata Nera, Crociata Rossa y Crociata d'Oro con el ayuntamiento más alto de los tres clanes y los de un nivel por debajo, no excluidos por un administrador. Los demás quedan al final de la clasificación.",
       "cwl": "Última CWL, jugada en Crociata Nera, Rossa o d'Oro (hasta 25 puntos): encomios hasta 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) y estrellas por ataque y destrucción hasta 13; con menos de 3 ataques el rendimiento se reduce en proporción.",
       "war": "Guerras normales de los últimos 90 días, en todos los clanes de la Cruzada (hasta 40 puntos): estrellas por ataque y destrucción (75%) y ataques usados (25%); con menos de 8 ataques la puntuación se reduce en proporción.",
-      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles están alineados (azul), los 3 siguientes son las reservas (verde).",
+      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles son los titulares (azul), los 3 siguientes son las reservas (verde).",
       "heroes": "Héroes (hasta 20 puntos): niveles de los héroes (dos tercios) y del equipamiento que llevan (un tercio) respecto a los niveles máximos del juego; un héroe aún no desbloqueado cuenta cero. El perfil de cada jugador se vuelve a leer cada 6 horas aproximadamente.",
       "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto de los tres clanes.",
       "league": "Liga (hasta 5 puntos): 1 punto en Liga Electro 31, 2 en Electro 32, 3 en Electro 33, 4 en Leyenda III, 5 en Leyenda II y I; ningún punto en las ligas más bajas.",
@@ -1125,7 +1125,7 @@
     "ranking": "Clasificación ({{n}})",
     "status": "Papel en Liga",
     "statuses": {
-      "starter": "Alineado",
+      "starter": "Titular",
       "reserve": "Reserva",
       "bench": "Fuera",
       "ineligible": "No elegible",
@@ -1165,7 +1165,7 @@
     "readmit": "Readmitir",
     "exclude": {
       "title": "Excluir a {{name}}",
-      "intro": "El jugador sigue en la clasificación, marcado como excluido, y no ocupa plaza entre los alineados y las reservas.",
+      "intro": "El jugador sigue en la clasificación, marcado como excluido, y no ocupa plaza entre los titulares y las reservas.",
       "reason": "Motivo (opcional)",
       "reasonHint": "Por ejemplo: ausente toda la temporada",
       "confirm": "Excluir"
@@ -1177,6 +1177,9 @@
     "pdf": {
       "league": "Liga",
       "title": "Alineación de la CWL",
+      "startersTitle": "Alineación de la CWL - Titulares",
+      "reservesTitle": "Alineación de la CWL - Reservas",
+      "rankingTitle": "Alineación de la CWL - Clasificación",
       "subtitle": "Los {{starters}} jugadores para la Liga y los {{reserves}} reservas, según la clasificación de los tres clanes de la Cruzada.",
       "lineup": "Alineación",
       "lineupValue": "{{starters}} titulares + {{reserves}} reservas",

@@ -1,4 +1,4 @@
-import type { Content, ContentTable, TableCell } from 'pdfmake/interfaces';
+import type { Content, ContentSection, ContentTable, TableCell } from 'pdfmake/interfaces';
 import { PdfTheme, TablePdf } from './table-pdf';
 import { buildTablePdf, needsTextImage, PdfFrame, pdfImageUrls } from './table-pdf-document';
 
@@ -78,8 +78,21 @@ function pdf(override: Partial<TablePdf<Row>> = {}): TablePdf<Row> {
   };
 }
 
+/** The sections of the document, each starting a page with its own header. */
+function sections(doc: ReturnType<typeof buildTablePdf>): ContentSection[] {
+  return doc.content as ContentSection[];
+}
+
+/** The blocks of every section, in order. */
 function content(doc: ReturnType<typeof buildTablePdf>): Content[] {
-  return doc.content as Content[];
+  return sections(doc).flatMap((part) => part.section as Content[]);
+}
+
+type Background = (page: number, size: { width: number; height: number }) => Content;
+
+/** The header of a section's pages (or of the document's, when `background` is the doc's). */
+function header(background: unknown): string {
+  return JSON.stringify((background as Background)(1, { width: 595, height: 842 }));
 }
 
 /** The main table: the last block of the content. */
@@ -213,18 +226,46 @@ describe('buildTablePdf', () => {
       }),
       FRAME,
     );
+    // Every new page is a section: facts and first table, the reserves, the notes.
+    expect(sections(doc).map((part) => (part.section as Content[]).length)).toEqual([2, 1, 1]);
     const [, first, second, notes] = content(doc) as [Content, ContentTable, ContentTable, Content];
-    expect(first.pageBreak).toBeUndefined();
     expect(texts(first.table.body[1])).toContain('Schierati');
     expect(first.table.body).toHaveLength(3);
-    expect(second.pageBreak).toBe('before');
     expect(texts(second.table.body[0])).toEqual(['', 'GIOCATORE', 'ORO']);
     expect(texts(second.table.body[1])).toContain('Riserve');
     // The totals close the last table only.
     expect(texts(second.table.body.at(-1)!)).toContain('Totale');
-    expect(notes).toMatchObject({ pageBreak: 'before' });
     expect(JSON.stringify(notes)).toContain('"ul":["Uno","Due"]');
     expect(JSON.stringify(notes)).toContain('Regole');
+  });
+
+  it('gives every page the title of its group or notes, the title of the PDF otherwise', () => {
+    const groups = (pageTitles: (string | undefined)[]) =>
+      pageTitles.map((pageTitle, i) => ({
+        title: `G${i}`,
+        rows: [{ name: 'A', gold: 1 }],
+        pageBreakBefore: i > 0,
+        pageTitle,
+      }));
+    const doc = buildTablePdf(
+      pdf({
+        groups: groups(['Titolari', 'Riserve', undefined]),
+        notes: { title: 'Regole', items: ['Uno'], pageBreakBefore: true, pageTitle: 'Classifica' },
+      }),
+      FRAME,
+    );
+    const titles = sections(doc).map((part) => header(part.background));
+    expect(titles[0]).toContain('"text":"Titolari"');
+    expect(titles[1]).toContain('"text":"Riserve"');
+    // A page without its own title keeps the one before.
+    expect(titles[2]).toContain('"text":"Riserve"');
+    expect(titles[3]).toContain('"text":"Classifica"');
+    expect(doc.info).toMatchObject({ title: 'Raid Weekend' });
+
+    const plain = buildTablePdf(pdf(), FRAME);
+    expect(sections(plain)).toHaveLength(1);
+    expect(header(sections(plain)[0].background)).toContain('"text":"Raid Weekend"');
+    expect(header(plain.background)).toContain('"text":"Raid Weekend"');
   });
 
   it('puts the loaded pictures in their cells, the fallback text when missing', () => {
