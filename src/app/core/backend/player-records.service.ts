@@ -14,10 +14,14 @@ export class PlayerRecordsService {
   /** `null` when the player was never saved (no commendation yet and never seen in the clan). */
   getPlayer(tag: string): Observable<PlayerRecord | null> {
     return this.http
-      .get<BaseResult<PlayerRecord>>(`${this.url}/${encodeURIComponent(tag)}`, { context: cacheFor({ minutes: 5 }) })
+      .get<BaseResult<PlayerRecord>>(`${this.url}/${encodeURIComponent(tag)}`, {
+        context: cacheFor({ minutes: 5 }),
+      })
       .pipe(
         map((response) => response.result),
-        catchError((err: HttpErrorResponse) => (err.status === 404 ? of(null) : throwError(() => err))),
+        catchError((err: HttpErrorResponse) =>
+          err.status === 404 ? of(null) : throwError(() => err),
+        ),
       );
   }
 }

@@ -11,9 +11,17 @@ export const BACKEND_OFFLINE = 'auth.errors.offline';
  * Messages of a failed backend call, split into field messages (shown under the inputs)
  * and general ones. Keys are translation keys (`ERROR.*`).
  */
-export function backendErrors(error: unknown): { fields: BackendMessage[]; general: BackendMessage[] } {
-  const body = error instanceof HttpErrorResponse ? (error.error as Partial<BaseResult<unknown>> | null) : null;
-  const messages = Array.isArray(body?.messages) ? body.messages.filter((m) => typeof m?.key === 'string') : [];
+export function backendErrors(error: unknown): {
+  fields: BackendMessage[];
+  general: BackendMessage[];
+} {
+  const body =
+    error instanceof HttpErrorResponse
+      ? (error.error as Partial<BaseResult<unknown>> | null)
+      : null;
+  const messages = Array.isArray(body?.messages)
+    ? body.messages.filter((m) => typeof m?.key === 'string')
+    : [];
   if (!messages.length) {
     return { fields: [], general: [{ key: isOffline() ? BACKEND_OFFLINE : BACKEND_UNREACHABLE }] };
   }

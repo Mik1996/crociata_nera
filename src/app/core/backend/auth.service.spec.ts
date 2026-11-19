@@ -14,11 +14,25 @@ import {
 } from './auth.service';
 import { AuthResult, BaseResult } from './backend-api.types';
 
-const ok = <T>(result: T): BaseResult<T> => ({ result, messages: [], status: { code: 200, name: 'HTTP_STATUS.OK' } });
+const ok = <T>(result: T): BaseResult<T> => ({
+  result,
+  messages: [],
+  status: { code: 200, name: 'HTTP_STATUS.OK' },
+});
 const session = (token: string): AuthResult => ({
   accessToken: token,
   accessTokenExpiresAt: '2026-11-06T12:00:00.000Z',
-  user: { id: '1', email: 'a@b.io', username: 'alice', roles: ['USER'], players: [], emailVerified: false, clanAccess: false, leaderAccess: false, createdAt: '' },
+  user: {
+    id: '1',
+    email: 'a@b.io',
+    username: 'alice',
+    roles: ['USER'],
+    players: [],
+    emailVerified: false,
+    clanAccess: false,
+    leaderAccess: false,
+    createdAt: '',
+  },
 });
 
 describe('AuthService and authInterceptor', () => {
@@ -58,7 +72,9 @@ describe('AuthService and authInterceptor', () => {
 
   it('restores the session from the refresh cookie, or stays signed out', () => {
     auth.restoreSession();
-    httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/v1/auth/refresh')
+      .flush(null, { status: 401, statusText: 'Unauthorized' });
     expect(auth.isAuthenticated()).toBe(false);
 
     auth.restoreSession();
@@ -71,9 +87,13 @@ describe('AuthService and authInterceptor', () => {
     try {
       let token: string | null | undefined;
       auth.refresh().subscribe((t) => (token = t));
-      httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 502, statusText: 'Bad Gateway' });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 502, statusText: 'Bad Gateway' });
       await vi.advanceTimersByTimeAsync(REFRESH_RETRY_DELAY_MS);
-      httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 0, statusText: 'Unknown Error' });
       await vi.advanceTimersByTimeAsync(2 * REFRESH_RETRY_DELAY_MS);
       httpMock.expectOne('/api/v1/auth/refresh').flush(ok(session('t6')));
       expect(token).toBe('t6');
@@ -92,7 +112,9 @@ describe('AuthService and authInterceptor', () => {
       let token: string | null | undefined;
       auth.refresh().subscribe((t) => (token = t));
       for (let attempt = 0; attempt <= 2; attempt++) {
-        httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 503, statusText: 'Unavailable' });
+        httpMock
+          .expectOne('/api/v1/auth/refresh')
+          .flush(null, { status: 503, statusText: 'Unavailable' });
         await vi.advanceTimersByTimeAsync((attempt + 1) * REFRESH_RETRY_DELAY_MS);
       }
       expect(token).toBeNull();
@@ -103,7 +125,9 @@ describe('AuthService and authInterceptor', () => {
 
     // The backend rejects the cookie: now the session is over (no retry).
     auth.refresh().subscribe();
-    httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/v1/auth/refresh')
+      .flush(null, { status: 401, statusText: 'Unauthorized' });
     expect(auth.isAuthenticated()).toBe(false);
   });
 
@@ -114,7 +138,9 @@ describe('AuthService and authInterceptor', () => {
       auth.restoreSession();
       auth.whenReady().subscribe(() => (ready = true));
       for (let attempt = 1; attempt <= 3; attempt++) {
-        httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 502, statusText: 'Bad Gateway' });
+        httpMock
+          .expectOne('/api/v1/auth/refresh')
+          .flush(null, { status: 502, statusText: 'Bad Gateway' });
         await vi.advanceTimersByTimeAsync(attempt * REFRESH_RETRY_DELAY_MS);
       }
       expect(ready).toBe(false);
@@ -131,7 +157,9 @@ describe('AuthService and authInterceptor', () => {
     try {
       auth.restoreSession();
       for (let attempt = 1; attempt <= STARTUP_REFRESH_RETRIES + 1; attempt++) {
-        httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+        httpMock
+          .expectOne('/api/v1/auth/refresh')
+          .flush(null, { status: 0, statusText: 'Unknown Error' });
         await vi.advanceTimersByTimeAsync(attempt * REFRESH_RETRY_DELAY_MS);
       }
       expect(auth.isAuthenticated()).toBe(false);
@@ -154,11 +182,15 @@ describe('AuthService and authInterceptor', () => {
     try {
       auth.restoreSession();
       for (let attempt = 1; attempt <= STARTUP_REFRESH_RETRIES + 1; attempt++) {
-        httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 503, statusText: 'Unavailable' });
+        httpMock
+          .expectOne('/api/v1/auth/refresh')
+          .flush(null, { status: 503, statusText: 'Unavailable' });
         await vi.advanceTimersByTimeAsync(attempt * REFRESH_RETRY_DELAY_MS);
       }
       await vi.advanceTimersByTimeAsync(RESTORE_RETRY_MS);
-      httpMock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 401, statusText: 'Unauthorized' });
       expect(auth.isAuthenticated()).toBe(false);
 
       await vi.advanceTimersByTimeAsync(RESTORE_RETRY_MS);
@@ -181,7 +213,9 @@ describe('AuthService and authInterceptor', () => {
 
     http.get('/api/v1/wars').subscribe();
     http.get('/api/coc/clans/x').subscribe();
-    expect(httpMock.expectOne('/api/v1/wars').request.headers.get('Authorization')).toBe('Bearer t4');
+    expect(httpMock.expectOne('/api/v1/wars').request.headers.get('Authorization')).toBe(
+      'Bearer t4',
+    );
     expect(httpMock.expectOne('/api/coc/clans/x').request.headers.has('Authorization')).toBe(false);
   });
 
@@ -275,7 +309,11 @@ describe('AuthService and authInterceptor', () => {
       const result = session(token);
       return {
         ...result,
-        user: { ...result.user, clanAccess: true, players: [{ tag: '#AAA', verified: true }] as never },
+        user: {
+          ...result.user,
+          clanAccess: true,
+          players: [{ tag: '#AAA', verified: true }] as never,
+        },
       };
     };
     const storedProfile = () => JSON.parse(localStorage.getItem(OFFLINE_PROFILE_KEY) ?? 'null');
@@ -333,7 +371,9 @@ describe('AuthService and authInterceptor', () => {
       let ready = false;
       fresh.restoreSession();
       fresh.whenReady().subscribe(() => (ready = true));
-      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      mock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 0, statusText: 'Unknown Error' });
 
       expect(ready).toBe(true);
       expect(fresh.isAuthenticated()).toBe(true);
@@ -356,7 +396,9 @@ describe('AuthService and authInterceptor', () => {
       const { fresh, mock, client } = reopenSite();
       goOffline();
       fresh.restoreSession();
-      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      mock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 0, statusText: 'Unknown Error' });
       expect(fresh.isUnconfirmed()).toBe(true);
 
       // Back online, a page reads clan data without a token: 401, refresh, rejected.
@@ -364,7 +406,9 @@ describe('AuthService and authInterceptor', () => {
       const read = mock.expectOne('/api/v1/wars');
       expect(read.request.headers.has('Authorization')).toBe(false);
       read.flush(null, { status: 401, statusText: 'Unauthorized' });
-      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+      mock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 401, statusText: 'Unauthorized' });
       await failed;
 
       expect(fresh.isAuthenticated()).toBe(false);
@@ -377,7 +421,9 @@ describe('AuthService and authInterceptor', () => {
       const { fresh, mock, client } = reopenSite();
       goOffline();
       fresh.restoreSession();
-      mock.expectOne('/api/v1/auth/refresh').flush(null, { status: 0, statusText: 'Unknown Error' });
+      mock
+        .expectOne('/api/v1/auth/refresh')
+        .flush(null, { status: 0, statusText: 'Unknown Error' });
 
       const body = firstValueFrom(client.get('/api/v1/wars'));
       mock.expectOne('/api/v1/wars').flush(null, { status: 401, statusText: 'Unauthorized' });

@@ -115,12 +115,10 @@ describe('auth guards', () => {
 
     TestBed.inject(AuthService).restoreSession();
     const admin = run(adminGuard);
-    httpMock
-      .expectOne('/api/v1/auth/refresh')
-      .flush({
-        ...signedIn,
-        result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } },
-      });
+    httpMock.expectOne('/api/v1/auth/refresh').flush({
+      ...signedIn,
+      result: { ...signedIn.result, user: { username: 'a', roles: ['USER', 'ADMIN'] } },
+    });
     expect(await admin).toBe(true);
   });
 
