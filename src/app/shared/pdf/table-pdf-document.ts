@@ -1,6 +1,7 @@
 import type {
   Content,
   ContentImage,
+  ContentSection,
   ContentTable,
   ContentText,
   CustomTableLayout,
@@ -34,8 +35,8 @@ import {
  * Every page is dark iron inside a double gold frame, as the site's "iron" theme (`iron-pdf.ts`),
  * and opens with the same header (crest, clan, title, subtitle, date). The facts are iron tiles, the
  * table rows iron plates under a black header row with gold titles. A group of rows can start a new
- * page, with the header row of the table again; the header row also repeats when a table runs over
- * a page. The footer carries the site, the page number and the Supercell fan content notice.
+ * page, with the header row of the table again and its own title in the header (a pdfmake `section`
+ * per run of pages); the header row also repeats when a table runs over a page. The footer carries the site, the page number and the Supercell fan content notice.
  */
 
 /** Everything around the table that does not come from the page: identity, texts, colours. */
@@ -132,9 +133,16 @@ export function buildTablePdf<T>(
   const { theme } = frame;
   const images = new PictureRegistry(frame);
   const plateKey = plate ? images.add('plate', plate) : null;
-  const heading = { title: pdf.title, subtitle: pdf.subtitle, date: frame.generatedAt };
-  const content: Content[] = [...facts(pdf.facts ?? [], theme), ...tables(pdf, frame, images)];
-  if (pdf.notes) content.push(notes(pdf.notes, theme));
+  const background =
+    (title: string) =>
+    (_page: number, size: { width: number; height: number }): Content => [
+      ...ironPage(plateKey, theme, size.width, size.height),
+      ...ironHeader({ title, subtitle: pdf.subtitle, date: frame.generatedAt }, frame, size.width),
+    ];
+  const content: ContentSection[] = sections(pdf, frame, images).map((part) => ({
+    section: part.content,
+    background: background(part.title),
+  }));
   return {
     pageSize: 'A4',
     pageOrientation: pdf.orientation ?? 'portrait',
@@ -147,10 +155,7 @@ export function buildTablePdf<T>(
     info: { title: pdf.title, author: frame.brand, creator: frame.brand, subject: pdf.subtitle },
     defaultStyle: { font: 'Inter', fontSize: TEXT_SIZE, color: theme.text, lineHeight: 1.1 },
     images: images.dictionary(),
-    background: (_page, size) => [
-      ...ironPage(plateKey, theme, size.width, size.height),
-      ...ironHeader(heading, frame, size.width),
-    ],
+    background: background(pdf.title),
     footer: (currentPage, pageCount, size) => ironFooter(frame, currentPage, pageCount, size.width),
     content,
   };
@@ -242,11 +247,49 @@ function facts(list: readonly PdfFact[], theme: PdfTheme): Content[] {
   ];
 }
 
+/** Pages of the document starting together, with the title of their header. */
+interface PdfSection {
+  title: string;
+  content: Content[];
+}
+
+/**
+ * The content in sections, each starting a new page with its own title in the header: the facts and
+ * the first table, then a section for every following table and for the notes on their own page.
+ */
+function sections<T>(pdf: TablePdf<T>, frame: PdfFrame, images: PictureRegistry): PdfSection[] {
+  const list: PdfSection[] = [{ title: pdf.title, content: facts(pdf.facts ?? [], frame.theme) }];
+  tables(pdf, frame, images).forEach((run, i) => {
+    const previous = list.at(-1)!;
+    if (i === 0) {
+      previous.title = run.title ?? previous.title;
+      previous.content.push(run.table);
+    } else {
+      list.push({ title: run.title ?? previous.title, content: [run.table] });
+    }
+  });
+  if (pdf.notes) {
+    const previous = list.at(-1)!;
+    const block = notes(pdf.notes, frame.theme);
+    if (pdf.notes.pageBreakBefore) {
+      list.push({ title: pdf.notes.pageTitle ?? previous.title, content: [block] });
+    } else {
+      previous.content.push(block);
+    }
+  }
+  return list;
+}
+
 /**
  * The table: one per run of groups, a group with `pageBreakBefore` starting a new page (and table,
- * so its header row comes back). The totals close the last one.
+ * so its header row comes back), with the `pageTitle` of its first group. The totals close the last
+ * one.
  */
-function tables<T>(pdf: TablePdf<T>, frame: PdfFrame, images: PictureRegistry): ContentTable[] {
+function tables<T>(
+  pdf: TablePdf<T>,
+  frame: PdfFrame,
+  images: PictureRegistry,
+): { table: ContentTable; title: string | undefined }[] {
   const runs: PdfRowGroup<T>[][] = [];
   for (const group of pdf.groups) {
     if (runs.length === 0 || group.pageBreakBefore) runs.push([]);
@@ -260,7 +303,7 @@ function tables<T>(pdf: TablePdf<T>, frame: PdfFrame, images: PictureRegistry): 
       empty: empty && last,
       footer: last ? pdf.footer : undefined,
     });
-    return i > 0 ? { ...content, pageBreak: 'before' } : content;
+    return { table: content, title: groups[0]?.pageTitle };
   });
 }
 
@@ -355,7 +398,7 @@ function table<T>(
   };
 }
 
-/** The notes as a titled list, on a page of their own if asked. */
+/** The notes as a titled list; their own page is a section (see {@link sections}). */
 function notes(list: PdfNotes, theme: PdfTheme): Content {
   return {
     stack: [
@@ -377,7 +420,6 @@ function notes(list: PdfNotes, theme: PdfTheme): Content {
         markerColor: theme.gold,
       },
     ],
-    pageBreak: list.pageBreakBefore ? 'before' : undefined,
     margin: [0, list.pageBreakBefore ? 0 : 18, 0, 0],
   };
 }

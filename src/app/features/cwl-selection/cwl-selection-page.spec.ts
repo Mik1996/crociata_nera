@@ -135,7 +135,7 @@ describe('CwlSelectionPage', () => {
     const rows = el.querySelectorAll('tr.mat-mdc-row');
     expect(rows[0].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Escluso');
     expect(rows[0].querySelector('.reason')!.textContent).toContain('Away all month');
-    expect(rows[1].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Schierato');
+    expect(rows[1].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Titolare');
     expect(rows[16].querySelector('.mat-column-status crn-tag')!.textContent).toContain('Riserva');
     expect(rows[0].querySelectorAll('crn-commendation-medal')).toHaveLength(2);
     expect(rows[0].textContent).toContain('Co-capo');
@@ -225,18 +225,24 @@ describe('CwlSelectionPage', () => {
     expect(pdf.fileName).toBe('selezioni-cwl-crociata-nera-novembre');
     expect(pdf.title).toBe('Formazione CWL');
     const [starters, reserves] = pdf.groups;
-    expect(starters).toMatchObject({ title: 'Schierati: 15/15', accent: 'starter' });
+    expect(starters).toMatchObject({
+      title: 'Titolari: 15/15',
+      accent: 'starter',
+      pageTitle: 'Formazione CWL - Titolari',
+    });
     expect(starters.pageBreakBefore).toBeFalsy();
     expect(starters.rows.map((p) => p.rank)).toEqual(Array.from({ length: 15 }, (_, i) => i + 2));
     expect(reserves).toMatchObject({
       title: 'Riserve: 3/3',
       accent: 'reserve',
       pageBreakBefore: true,
+      pageTitle: 'Formazione CWL - Riserve',
     });
     expect(reserves.rows.map((p) => p.rank)).toEqual([17, 18, 19]);
     expect(pdf.notes).toMatchObject({
       title: 'Come si calcola la classifica',
       pageBreakBefore: true,
+      pageTitle: 'Formazione CWL - Classifica',
     });
     expect(pdf.notes!.items).toHaveLength(10);
     // Position, league and town hall first; excluded, bench and ineligible players are left out.

@@ -55,7 +55,7 @@ export function lineupFileName(selection: CwlSelection): string {
 /**
  * The CWL line-up as a PDF: the 15 starters on page 1 and the 3 reserves on page 2 (numbered in
  * line-up order, with league and town hall pictures, clan, score, wars and heroes), the rules of
- * the ranking on page 3. Excluded, bench and ineligible players are left out.
+ * the ranking on page 3, each page with its own title. Excluded, bench and ineligible players are left out.
  */
 export function cwlLineupPdf(
   selection: CwlSelection,
@@ -192,6 +192,7 @@ export function cwlLineupPdf(
         }),
         accent: 'starter',
         rows: starters,
+        pageTitle: ctx.t('cwlSelection.pdf.startersTitle'),
       },
       {
         title: ctx.t('cwlSelection.legend.reserve', {
@@ -201,6 +202,7 @@ export function cwlLineupPdf(
         accent: 'reserve',
         rows: reserves,
         pageBreakBefore: true,
+        pageTitle: ctx.t('cwlSelection.pdf.reservesTitle'),
       },
     ],
     emptyText: ctx.t('cwlSelection.empty'),
@@ -208,6 +210,7 @@ export function cwlLineupPdf(
       title: ctx.t('cwlSelection.rules.title'),
       items: RULES.map((rule) => ctx.t(`cwlSelection.rules.${rule}`)),
       pageBreakBefore: true,
+      pageTitle: ctx.t('cwlSelection.pdf.rankingTitle'),
     },
   };
 }
