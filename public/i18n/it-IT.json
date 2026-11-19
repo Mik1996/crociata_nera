@@ -518,7 +518,7 @@
     "BASE_LIMIT_REACHED": "L'arsenale è pieno (massimo {{max}} basi): elimina le basi superate.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Inserisci il link della base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Link non valido: usa il link «Copia base» del gioco di una base del villaggio principale.",
-    "DESCRIPTION_IS_TOO_LONG": "Descrizione troppo lunga (massimo 1000 caratteri).",
+    "DESCRIPTION_IS_TOO_LONG": "Descrizione troppo lunga (massimo 300 caratteri).",
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Aggiungi un'immagine della base.",
     "IMAGE_IS_TOO_LARGE": "Immagine troppo grande (massimo {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Immagine non valida: usa un file PNG, JPEG o WebP.",

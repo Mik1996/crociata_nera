@@ -518,7 +518,7 @@
     "BASE_LIMIT_REACHED": "The arsenal is full (at most {{max}} bases): delete outdated bases.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Enter the link of the base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Invalid link: use the game's “Copy base” link of a home village base.",
-    "DESCRIPTION_IS_TOO_LONG": "Description too long (at most 1000 characters).",
+    "DESCRIPTION_IS_TOO_LONG": "Description too long (at most 300 characters).",
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Add an image of the base.",
     "IMAGE_IS_TOO_LARGE": "Image too large (at most {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Invalid image: use a PNG, JPEG or WebP file.",

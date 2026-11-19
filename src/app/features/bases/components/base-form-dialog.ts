@@ -62,7 +62,7 @@ export interface BaseFormDialogData {
 }
 
 /** Longest description accepted by the backend. */
-export const MAX_DESCRIPTION_LENGTH = 1000;
+export const MAX_DESCRIPTION_LENGTH = 300;
 
 /** The in-game "copy base" link of a home village base (an empty field is left to `required`). */
 /**

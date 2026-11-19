@@ -518,7 +518,7 @@
     "BASE_LIMIT_REACHED": "El arsenal está lleno (máximo {{max}} bases): elimina las bases superadas.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Introduce el enlace de la base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Enlace no válido: usa el enlace «Copiar base» del juego de una base de la aldea principal.",
-    "DESCRIPTION_IS_TOO_LONG": "Descripción demasiado larga (máximo 1000 caracteres).",
+    "DESCRIPTION_IS_TOO_LONG": "Descripción demasiado larga (máximo 300 caracteres).",
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Añade una imagen de la base.",
     "IMAGE_IS_TOO_LARGE": "Imagen demasiado grande (máximo {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Imagen no válida: usa un archivo PNG, JPEG o WebP.",
