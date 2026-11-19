@@ -47,6 +47,14 @@ only through a pull request whose `Frontend` and `Backend` checks pass on a bran
 `gh pr update-branch` if `master` moved, and `gh pr merge --merge` **only when the user asks** (the merge
 deploys to production).
 
+Dependabot (`.github/dependabot.yml`) opens PRs against `master` every Monday: **minor and patch only**,
+one grouped PR per ecosystem and folder (npm `/` and `/backend`, Docker images of `deploy/`, compose images,
+GitHub Actions). Major versions are ignored: upgrade them by hand on `develop`, with the code changes they
+need. Security updates are on too (PRs as soon as an advisory is published, outside the schedule). Same
+rules as any PR: merge only when the user asks, after the checks pass. A Dependabot PR behind `master`:
+comment `@dependabot rebase` (not `gh pr update-branch`, which stops its automatic rebases). Its base
+cannot be moved to `develop`: a rebase resets it to `master`.
+
 ## Conventions
 
 - Every Angular component has separate `.ts` / `.html` / `.scss` files (no inline template/styles).
