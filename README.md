@@ -641,7 +641,9 @@ dell'API di Clash of Clans dal backend (`/api/v1/welcome`). Se
 qualcosa non risponde, GitHub manda un'email di "workflow fallito".
 
 **File per motori di ricerca e ricercatori di sicurezza** (in `public/`, copiati nella radice del sito):
-- `robots.txt`: tutto indicizzabile tranne `/api/`, con il link alla sitemap;
+- `robots.txt`: tutto indicizzabile tranne `/api/`, con il link alla sitemap. Le rotte che le pagine pubbliche
+  chiamano (`/api/v1/welcome`, `/api/v1/auth/refresh`) restano permesse: Google esegue l'app e, senza i dati, vede
+  una pagina vuota ("soft 404"). Una nuova pagina pubblica che legge un'altra rotta la aggiunge qui;
 - `sitemap.xml`: le pagine pubbliche (benvenuto e "Unisciti"); una nuova pagina pubblica va aggiunta qui. Per
   seguirne l'indicizzazione, il sito va registrato in [Google Search Console](https://search.google.com/search-console);
 - `.well-known/security.txt` (RFC 9116): contatto per segnalare vulnerabilità e lingue. **`Expires` va spostato
