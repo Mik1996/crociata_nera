@@ -1,7 +1,28 @@
+@use 'variables' as *;
+
 :host {
   display: inline-flex;
 }
 
 .mat-mdc-form-field {
   width: 100%;
+}
+
+/* Options are drawn in an overlay, but they come from this template: these rules still reach them. */
+.select__image {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-inline-end: $space-s;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.select__image--prefix {
+  display: block;
+  margin-inline: $space-s 0;
+}
+
+.select__icon {
+  margin-inline-end: $space-s;
+  vertical-align: middle;
 }

@@ -4,14 +4,16 @@ import { imageStore } from '@/modules/bases/base-image.store';
 import { DefenseBaseModel, PUBLISHED_BASES } from '@/modules/bases/defense-base.model';
 import { authorNameOf, basePostCaption, COPY_BASE_BUTTON } from './base-post-caption';
 import { BasePostStatus, TelegramBasePostDocument, TelegramBasePostModel } from './telegram-base-post.model';
-import { TelegramChatModel } from './telegram-chat.model';
+import { TelegramChatModel, TelegramChatPurpose } from './telegram-chat.model';
 
 /**
  * Keeps the Telegram channels of the arsenal in step with the site: every published base has a
  * post in the channel bound to its town hall, with its picture, clan castle, description, author
- * and a button to copy it. A base changed on the site changes its post; a base deleted (or moved
- * to a town hall with another channel) loses it. Nothing here ever blocks the site: failures are
- * saved on the post and tried again later.
+ * and a button to copy it. A base lives in one channel only, the one of its town hall: a base
+ * changed on the site changes its post; a base deleted loses it; a post in a channel that is no
+ * longer the one of its town hall (the base or the channel changed town hall, the channel was
+ * removed) is deleted there and sent in the new channel, or waits while the town hall has none.
+ * Nothing here ever blocks the site: failures are saved on the post and tried again later.
  */
 
 /** Pause between two posts sent or changed: channels accept about 20 messages a minute. */
@@ -67,8 +69,15 @@ export function setTelegramSendInterval(ms: number): void {
 }
 
 async function syncBasePosts(now = new Date()): Promise<void> {
-  const chats = await TelegramChatModel.find({ townHallLevel: { $ne: null }, canPost: true }).lean();
-  const channelOf = new Map(chats.map((chat) => [chat.townHallLevel!, chat.chatId]));
+  // Every bound chat, even one the bot cannot write in: the posts already there stay. Never the
+  // announcements chat (it has no town hall anyway).
+  const chats = await TelegramChatModel.find({
+    townHallLevel: { $ne: null },
+    purpose: { $ne: TelegramChatPurpose.ANNOUNCEMENTS },
+  }).lean();
+  const channelOf = new Map<number, Channel>(
+    chats.map((chat) => [chat.townHallLevel!, { chatId: chat.chatId, canPost: chat.canPost }]),
+  );
   const saved = await DefenseBaseModel.find(PUBLISHED_BASES)
     .select('townHallLevel layoutUrl description clanCastleTroops imageKey createdBy createdAt')
     .sort({ createdAt: 1, _id: 1 })
@@ -93,7 +102,7 @@ async function syncBasePosts(now = new Date()): Promise<void> {
         continue;
       }
       if (!due(post, now)) continue;
-      await attempt(post, now, post.chatId ?? null, async () => {
+      await attempt(post, now, async () => {
         await deleteMessage(post, pacer);
         await post.deleteOne();
       });
@@ -102,7 +111,7 @@ async function syncBasePosts(now = new Date()): Promise<void> {
       const post = posts.get(base._id.toString()) ?? (await newPost(base));
       if (!due(post, now)) continue;
       const channel = channelOf.get(base.townHallLevel) ?? null;
-      await attempt(post, now, channel ?? post.chatId ?? null, () => syncPost(base, post, channel, pacer));
+      await attempt(post, now, () => syncPost(base, post, channel, pacer));
     }
   } catch (error) {
     if (!(error instanceof SlowDown)) throw error;
@@ -125,16 +134,8 @@ async function newPost(base: PublishedBase): Promise<TelegramBasePostDocument> {
   });
 }
 
-/**
- * Runs a step for a post, saving the failure on it (and when to try again). `chatId` is the channel
- * the step writes in: refused there (403), the channel is marked as closed to the bot.
- */
-async function attempt(
-  post: TelegramBasePostDocument,
-  now: Date,
-  chatId: number | null,
-  step: () => Promise<void>,
-): Promise<void> {
+/** Runs a step for a post, saving the failure on it (and when to try again). */
+async function attempt(post: TelegramBasePostDocument, now: Date, step: () => Promise<void>): Promise<void> {
   try {
     await step();
   } catch (error) {
@@ -152,51 +153,51 @@ async function attempt(
     });
     await post.save();
     console.warn(`[telegram] base ${post.baseId.toString()}: ${message}`);
-    if (error instanceof TelegramApiError && error.status === 403 && chatId !== null) {
-      // The bot was removed from the channel or lost the right to post.
-      await TelegramChatModel.updateOne({ chatId }, { $set: { canPost: false } });
-    }
     if (error instanceof TelegramApiError && error.status === 429) throw new SlowDown();
   }
+}
+
+/** The chat bound to a town hall. */
+interface Channel {
+  chatId: number;
+  /** The bot may write there; otherwise the posts already there stay, and the others wait. */
+  canPost: boolean;
 }
 
 /** Sends, changes, moves or leaves alone the post of a base. */
 async function syncPost(
   base: PublishedBase,
   post: TelegramBasePostDocument,
-  channel: number | null,
+  channel: Channel | null,
   pacer: Pacer,
 ): Promise<void> {
   const caption = basePostCaption({ ...base, authorName: post.authorName ?? null });
+
+  // A base lives in one channel only: out of the channel of its town hall, its post goes away.
+  if (post.messageId !== null && post.chatId !== channel?.chatId) await deleteMessage(post, pacer);
   const posted = post.chatId !== null && post.messageId !== null;
 
-  if (posted && channel === null) {
-    // No channel for the town hall now: the post stays, unless the base moved to another town hall.
-    if (post.townHallLevel !== base.townHallLevel) {
-      await deleteMessage(post, pacer);
-      return markWaiting(post, base);
-    }
-    if (post.status !== BasePostStatus.SENT) return markSent(post, base, caption, post.chatId!, post.messageId!);
+  if (!channel?.canPost) {
+    if (!posted) return markWaiting(post, base);
+    // In its channel, which the bot can no longer write in: it stays as it is.
+    if (post.status !== BasePostStatus.SENT) return markSent(post, base, post.caption ?? caption, post.chatId!, post.messageId!);
     return;
   }
-  if (channel === null) return markWaiting(post, base);
 
-  if (posted && post.chatId !== channel) {
-    await deleteMessage(post, pacer);
-  } else if (posted) {
+  if (posted) {
     const sameImage = post.imageKey === base.imageKey;
     if (sameImage && post.caption === caption && post.layoutUrl === base.layoutUrl) {
-      if (post.status !== BasePostStatus.SENT) return markSent(post, base, caption, channel, post.messageId!);
+      if (post.status !== BasePostStatus.SENT) return markSent(post, base, caption, channel.chatId, post.messageId!);
       return;
     }
     const edited = sameImage
-      ? await editCaption(channel, post.messageId!, caption, base.layoutUrl, pacer)
-      : await editPhoto(channel, post.messageId!, base, caption, pacer);
-    if (edited) return markSent(post, base, caption, channel, post.messageId!);
+      ? await editCaption(channel.chatId, post.messageId!, caption, base.layoutUrl, pacer)
+      : await editPhoto(channel.chatId, post.messageId!, base, caption, pacer);
+    if (edited) return markSent(post, base, caption, channel.chatId, post.messageId!);
     // The post was deleted by hand in the channel: sent again below.
   }
-  const messageId = await sendPhoto(channel, base, caption, pacer);
-  return markSent(post, base, caption, channel, messageId);
+  const messageId = await sendPhoto(channel.chatId, base, caption, pacer);
+  return markSent(post, base, caption, channel.chatId, messageId);
 }
 
 async function markSent(
@@ -259,7 +260,7 @@ async function sendPhoto(chatId: number, base: PublishedBase, caption: string, p
   form.append('parse_mode', 'HTML');
   form.append('reply_markup', copyButton(base.layoutUrl));
   await pacer.wait();
-  const message = await telegramApi<{ message_id: number }>('sendPhoto', form);
+  const message = await inChat(chatId, () => telegramApi<{ message_id: number }>('sendPhoto', form));
   return message.message_id;
 }
 
@@ -272,19 +273,21 @@ async function editPhoto(chatId: number, messageId: number, base: PublishedBase,
   form.append('photo', await photoOf(base), 'base.jpg');
   form.append('reply_markup', copyButton(base.layoutUrl));
   await pacer.wait();
-  return edited(() => telegramApi('editMessageMedia', form));
+  return edited(() => inChat(chatId, () => telegramApi('editMessageMedia', form)));
 }
 
 async function editCaption(chatId: number, messageId: number, caption: string, layoutUrl: string, pacer: Pacer): Promise<boolean> {
   await pacer.wait();
   return edited(() =>
-    telegramApi('editMessageCaption', {
-      chat_id: chatId,
-      message_id: messageId,
-      caption,
-      parse_mode: 'HTML',
-      reply_markup: JSON.parse(copyButton(layoutUrl)),
-    }),
+    inChat(chatId, () =>
+      telegramApi('editMessageCaption', {
+        chat_id: chatId,
+        message_id: messageId,
+        caption,
+        parse_mode: 'HTML',
+        reply_markup: JSON.parse(copyButton(layoutUrl)),
+      }),
+    ),
   );
 }
 
@@ -300,16 +303,37 @@ async function edited(edit: () => Promise<unknown>): Promise<boolean> {
   }
 }
 
-/** Deletes the post of a base; one already gone (deleted by hand) counts as deleted. */
+/**
+ * Deletes the post of a base; one already gone (deleted by hand) counts as deleted. In a channel the
+ * bot was removed from (403) the post cannot be deleted: it is left there and forgotten, so that the
+ * base can still move to its new channel.
+ */
 async function deleteMessage(post: TelegramBasePostDocument, pacer: Pacer): Promise<void> {
-  if (post.chatId === null || post.messageId === null) return;
+  const { chatId, messageId } = post;
+  if (chatId == null || messageId == null) return;
   await pacer.wait();
   try {
-    await telegramApi('deleteMessage', { chat_id: post.chatId, message_id: post.messageId });
+    await inChat(chatId, () => telegramApi('deleteMessage', { chat_id: chatId, message_id: messageId }));
   } catch (error) {
-    if (!(error instanceof TelegramApiError) || error.status !== 400) throw error;
+    if (!(error instanceof TelegramApiError) || (error.status !== 400 && error.status !== 403)) throw error;
+    if (error.status === 403) {
+      console.warn(`[telegram] post of base ${post.baseId.toString()} left in chat ${chatId}: ${error.message}`);
+    }
   }
   post.set({ chatId: null, messageId: null });
+}
+
+/** A call that writes in a chat: refused there (403), the chat is marked as closed to the bot. */
+async function inChat<T>(chatId: number, call: () => Promise<T>): Promise<T> {
+  try {
+    return await call();
+  } catch (error) {
+    if (error instanceof TelegramApiError && error.status === 403) {
+      // The bot was removed from the channel or lost the right to post.
+      await TelegramChatModel.updateOne({ chatId }, { $set: { canPost: false } });
+    }
+    throw error;
+  }
 }
 
 /** Spaces out the calls that write in the channels, within one run. */

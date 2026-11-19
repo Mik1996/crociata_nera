@@ -1,7 +1,7 @@
 import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { isTelegramConfigured, TelegramApiError, telegramApi, telegramBot } from '@/lib/telegram/telegram-client';
-import { PublicTelegramChat, TelegramChatModel, toPublicTelegramChat } from './telegram-chat.model';
+import { PublicTelegramChat, TelegramChatModel, TelegramChatPurpose, toPublicTelegramChat } from './telegram-chat.model';
 
 /** Chat types the bot can publish in (private chats with users are not kept). */
 const KEPT_TYPES = new Set(['channel', 'supergroup', 'group']);
@@ -117,21 +117,50 @@ export async function addChat(reference: string): Promise<PublicTelegramChat> {
 }
 
 /**
- * Binds a chat to a town hall level (or unbinds it with `null`). A level goes to one chat only: if
- * another chat has it, 409.
+ * Changes a chat (administrators): binds it to a town hall level (or unbinds it with `null`), makes
+ * it the announcements chat (or a chat of bases again), and/or locks or unlocks it. A level goes to
+ * one chat only, the announcements too; the announcements chat never has a town hall (409). A locked
+ * chat keeps its town hall and purpose (409), unless the same request unlocks it.
  */
-export async function setChatTownHall(chatId: number, townHallLevel: number | null): Promise<PublicTelegramChat> {
+export async function updateChat(
+  chatId: number,
+  changes: { townHallLevel?: number | null; purpose?: TelegramChatPurpose; locked?: boolean },
+): Promise<PublicTelegramChat> {
   const chat = await TelegramChatModel.findOne({ chatId });
   if (!chat) throwException(404, MessageKey.TELEGRAM_CHAT_NOT_FOUND);
-  if (townHallLevel !== null && (await TelegramChatModel.exists({ townHallLevel, chatId: { $ne: chatId } }))) {
+  const { townHallLevel, purpose, locked } = changes;
+  const currentPurpose = chat.purpose ?? TelegramChatPurpose.BASES;
+  const moves = townHallLevel !== undefined && townHallLevel !== (chat.townHallLevel ?? null);
+  const repurposes = purpose !== undefined && purpose !== currentPurpose;
+  if ((moves || repurposes) && chat.locked && locked !== false) {
+    throwException(409, [{ key: MessageKey.TELEGRAM_CHAT_LOCKED, params: { name: chat.title } }]);
+  }
+  const level = townHallLevel !== undefined ? townHallLevel : (chat.townHallLevel ?? null);
+  if ((purpose ?? currentPurpose) === TelegramChatPurpose.ANNOUNCEMENTS && level !== null) {
+    throwException(409, [{ key: MessageKey.TELEGRAM_CHAT_NOT_FOR_BASES, params: { name: chat.title }, field: 'townHallLevel' }]);
+  }
+  if (moves && townHallLevel !== null && (await TelegramChatModel.exists({ townHallLevel, chatId: { $ne: chatId } }))) {
     throwException(409, [{ key: MessageKey.TELEGRAM_TOWN_HALL_TAKEN, params: { level: townHallLevel }, field: 'townHallLevel' }]);
   }
-  chat.townHallLevel = townHallLevel;
+  const announcementsTaken = () =>
+    throwException(409, [{ key: MessageKey.TELEGRAM_ANNOUNCEMENTS_TAKEN, field: 'purpose' }]);
+  if (
+    repurposes &&
+    purpose === TelegramChatPurpose.ANNOUNCEMENTS &&
+    (await TelegramChatModel.exists({ purpose, chatId: { $ne: chatId } }))
+  ) {
+    announcementsTaken();
+  }
+  if (townHallLevel !== undefined) chat.townHallLevel = townHallLevel;
+  if (purpose !== undefined) chat.purpose = purpose;
+  if (locked !== undefined) chat.locked = locked;
   try {
     await chat.save();
   } catch (error) {
-    // The same level given to two chats at the same time (unique index).
-    if ((error as { code?: number }).code === 11000) {
+    // The same level, or the announcements, given to two chats at the same time (unique indexes).
+    const duplicate = error as { code?: number; keyPattern?: Record<string, unknown> };
+    if (duplicate.code === 11000) {
+      if (duplicate.keyPattern && 'purpose' in duplicate.keyPattern) announcementsTaken();
       throwException(409, [{ key: MessageKey.TELEGRAM_TOWN_HALL_TAKEN, params: { level: townHallLevel! }, field: 'townHallLevel' }]);
     }
     throw error;
@@ -139,9 +168,15 @@ export async function setChatTownHall(chatId: number, townHallLevel: number | nu
   return toPublicTelegramChat(chat);
 }
 
-/** Forgets a chat (administrators): its town hall, if any, waits for another channel. */
+/**
+ * Forgets a chat (administrators): its posts are deleted from it and wait for another channel of
+ * their town hall. A locked chat cannot be removed (409).
+ */
 export async function removeChat(chatId: number): Promise<void> {
-  const { deletedCount } = await TelegramChatModel.deleteOne({ chatId });
+  const chat = await TelegramChatModel.findOne({ chatId }).select('title locked').lean();
+  if (!chat) throwException(404, MessageKey.TELEGRAM_CHAT_NOT_FOUND);
+  if (chat.locked) throwException(409, [{ key: MessageKey.TELEGRAM_CHAT_LOCKED, params: { name: chat.title } }]);
+  const { deletedCount } = await TelegramChatModel.deleteOne({ chatId, locked: { $ne: true } });
   if (!deletedCount) throwException(404, MessageKey.TELEGRAM_CHAT_NOT_FOUND);
 }
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MessageKey } from '@/lib/http/message-key';
+import { TELEGRAM_CHAT_PURPOSES } from './telegram-chat.model';
 
 /** Path parameter `{chatId}`: the numeric id of a Telegram chat (channels are negative). */
 export const chatIdParamsSchema = z.object({
@@ -17,7 +18,16 @@ export const addChatSchema = z.object({
     .regex(/^(@?[A-Za-z][A-Za-z0-9_]{3,31}|-?\d{1,20})$/, { error: MessageKey.INVALID_FIELD }),
 });
 
-export const updateChatSchema = z.object({
-  /** Town hall level whose bases go to the chat; `null` unbinds it. */
-  townHallLevel: z.number({ error: MessageKey.INVALID_FIELD }).int().min(1).max(30).nullable(),
-});
+/** What changes in a chat: at least one field. */
+export const updateChatSchema = z
+  .object({
+    /** Town hall level whose bases go to the chat; `null` unbinds it. */
+    townHallLevel: z.number({ error: MessageKey.INVALID_FIELD }).int().min(1).max(30).nullable().optional(),
+    /** `bases` or `announcements` (one chat only, without a town hall). */
+    purpose: z.enum(TELEGRAM_CHAT_PURPOSES, { error: MessageKey.INVALID_FIELD }).optional(),
+    /** Locks the chat (its town hall cannot change, it cannot be removed) or unlocks it. */
+    locked: z.boolean({ error: MessageKey.INVALID_FIELD }).optional(),
+  })
+  .refine((body) => body.townHallLevel !== undefined || body.purpose !== undefined || body.locked !== undefined, {
+    error: MessageKey.INVALID_FIELD,
+  });

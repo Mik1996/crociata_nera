@@ -293,15 +293,80 @@ describe('posts of the bases', () => {
     expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, messageId: 101 });
   });
 
-  it('leaves the posts in place when a channel is unbound', async () => {
+  it('deletes the posts of a channel that is unbound or removed: they wait for a new channel', async () => {
     const telegram = mockTelegramApi();
     const admin = await adminToken();
     await channel(TH18_CHANNEL, 18);
     const id = await create(admin);
+    telegram.reset();
     await call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(TH18_CHANNEL) }, body: { townHallLevel: null } });
     await requestBasePostSync();
-    expect(telegram.calls.map((c) => c.method)).toEqual(['sendPhoto']);
-    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, chatId: TH18_CHANNEL });
+    expect(telegram.calls.map((c) => [c.method, c.params.chat_id, c.params.message_id])).toEqual([['deleteMessage', TH18_CHANNEL, 100]]);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.NO_CHANNEL, chatId: null, messageId: null });
+
+    await call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(TH18_CHANNEL) }, body: { townHallLevel: 18 } });
+    await requestBasePostSync();
+    telegram.reset();
+    expect((await call(removeChat, { token: admin, method: 'DELETE', params: { chatId: String(TH18_CHANNEL) } })).status).toBe(200);
+    await requestBasePostSync();
+    expect(telegram.calls.map((c) => [c.method, c.params.chat_id])).toEqual([['deleteMessage', TH18_CHANNEL]]);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.NO_CHANNEL, chatId: null });
+  });
+
+  it('moves the posts when two channels swap town halls: every base stays in one channel only', async () => {
+    const telegram = mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    await channel(TH17_CHANNEL, 17);
+    const th18 = await create(admin, 18, {}, 'AAAA18xx');
+    const th17 = await create(admin, 17, {}, 'AAAA17xx');
+    const patch = (chatId: number, townHallLevel: number | null) =>
+      call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(chatId) }, body: { townHallLevel } });
+
+    expect((await patch(TH17_CHANNEL, null)).status).toBe(200);
+    expect((await patch(TH18_CHANNEL, 17)).status).toBe(200);
+    expect((await patch(TH17_CHANNEL, 18)).status).toBe(200);
+    await requestBasePostSync();
+
+    expect(await postOf(th18)).toMatchObject({ status: BasePostStatus.SENT, chatId: TH17_CHANNEL });
+    expect(await postOf(th17)).toMatchObject({ status: BasePostStatus.SENT, chatId: TH18_CHANNEL });
+    // Every message sent is deleted, except the last one of each base.
+    const sent = telegram.of('sendPhoto').length;
+    expect(telegram.of('deleteMessage')).toHaveLength(sent - 2);
+  });
+
+  it('moves a base out of a channel the bot was removed from, without deleting the post it cannot reach', async () => {
+    const telegram = mockTelegramApi({
+      deleteMessage: (params) =>
+        params.chat_id === TH18_CHANNEL ? { error: 403, description: 'Forbidden: bot is not a member of the channel chat' } : undefined,
+    });
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    await channel(TH17_CHANNEL, null);
+    const id = await create(admin);
+    await TelegramChatModel.updateOne({ chatId: TH18_CHANNEL }, { $set: { townHallLevel: null } });
+    await TelegramChatModel.updateOne({ chatId: TH17_CHANNEL }, { $set: { townHallLevel: 18 } });
+    telegram.reset();
+    await requestBasePostSync();
+    expect(telegram.calls.map((c) => [c.method, c.params.chat_id])).toEqual([
+      ['deleteMessage', TH18_CHANNEL],
+      ['sendPhoto', String(TH17_CHANNEL)],
+    ]);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, chatId: TH17_CHANNEL });
+    expect(await TelegramChatModel.findOne({ chatId: TH18_CHANNEL }).lean()).toMatchObject({ canPost: false });
+  });
+
+  it('leaves the posts in a bound channel the bot can no longer write in, and keeps the new ones waiting', async () => {
+    const telegram = mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    const first = await create(admin, 18, {}, 'AAAA0001');
+    await TelegramChatModel.updateOne({ chatId: TH18_CHANNEL }, { $set: { canPost: false } });
+    telegram.reset();
+    const second = await create(admin, 18, {}, 'AAAA0002');
+    expect(telegram.calls).toEqual([]);
+    expect(await postOf(first)).toMatchObject({ status: BasePostStatus.SENT, chatId: TH18_CHANNEL });
+    expect(await postOf(second)).toMatchObject({ status: BasePostStatus.NO_CHANNEL });
   });
 
   it('posts an approved proposal with its author, chosen once', async () => {
@@ -458,6 +523,69 @@ describe('administration of the chats', () => {
     expect((await call(removeChat, { token: admin, method: 'DELETE', params: { chatId: String(TH18_CHANNEL) } })).status).toBe(404);
     const status = await call(getStatus, { token: admin });
     expect(status.body.result).toMatchObject({ configured: true, botUsername: 'CrociataNeraTestBot', chats: [{ chatId: TH17_CHANNEL }] });
+  });
+
+  it('keeps a locked chat on its town hall and in the list until it is unlocked', async () => {
+    mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    const patch = (body: Record<string, unknown>) =>
+      call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(TH18_CHANNEL) }, body });
+
+    const locked = await patch({ locked: true });
+    expect(locked.status).toBe(200);
+    expect(locked.body.result).toMatchObject({ townHallLevel: 18, locked: true });
+
+    const moved = await patch({ townHallLevel: 17 });
+    expect(moved.status).toBe(409);
+    expect(moved.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_CHAT_LOCKED', params: { name: 'Arsenale basi TH18' } });
+    expect((await patch({ townHallLevel: null })).status).toBe(409);
+    // The same town hall again is no change.
+    expect((await patch({ townHallLevel: 18 })).status).toBe(200);
+    const removed = await call(removeChat, { token: admin, method: 'DELETE', params: { chatId: String(TH18_CHANNEL) } });
+    expect(removed.status).toBe(409);
+    expect(removed.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_CHAT_LOCKED' });
+    expect(await TelegramChatModel.findOne({ chatId: TH18_CHANNEL }).lean()).toMatchObject({ townHallLevel: 18, locked: true });
+
+    const unlocked = await patch({ locked: false, townHallLevel: 17 });
+    expect(unlocked.status).toBe(200);
+    expect(unlocked.body.result).toMatchObject({ townHallLevel: 17, locked: false });
+    expect((await patch({})).status).toBe(400);
+  });
+
+  it('keeps the announcements chat, one only, out of the bases', async () => {
+    const telegram = mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    await channel(TH17_CHANNEL, null, { title: 'Annunci' });
+    const patch = (chatId: number, body: Record<string, unknown>) =>
+      call(updateChat, { token: admin, method: 'PATCH', params: { chatId: String(chatId) }, body });
+
+    const made = await patch(TH17_CHANNEL, { purpose: 'announcements' });
+    expect(made.status).toBe(200);
+    expect(made.body.result).toMatchObject({ purpose: 'announcements', townHallLevel: null });
+
+    const bound = await patch(TH17_CHANNEL, { townHallLevel: 17 });
+    expect(bound.status).toBe(409);
+    expect(bound.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_CHAT_NOT_FOR_BASES', params: { name: 'Annunci' } });
+    // A chat of bases must give up its town hall first (or in the same request).
+    expect((await patch(TH18_CHANNEL, { purpose: 'announcements' })).body.messages[0]).toMatchObject({
+      key: 'ERROR.TELEGRAM_CHAT_NOT_FOR_BASES',
+    });
+    const second = await patch(TH18_CHANNEL, { purpose: 'announcements', townHallLevel: null });
+    expect(second.status).toBe(409);
+    expect(second.body.messages[0]).toMatchObject({ key: 'ERROR.TELEGRAM_ANNOUNCEMENTS_TAKEN' });
+
+    // Even written straight in the database, a town hall on the announcements chat gets no bases.
+    await TelegramChatModel.updateOne({ chatId: TH17_CHANNEL }, { $set: { townHallLevel: 17 } });
+    await create(admin, 17);
+    expect(telegram.of('sendPhoto')).toEqual([]);
+
+    await TelegramChatModel.updateOne({ chatId: TH17_CHANNEL }, { $set: { townHallLevel: null } });
+    const back = await patch(TH17_CHANNEL, { purpose: 'bases', townHallLevel: 17 });
+    expect(back.status).toBe(200);
+    await requestBasePostSync();
+    expect(telegram.of('sendPhoto').map((c) => c.params.chat_id)).toEqual([String(TH17_CHANNEL)]);
   });
 
   it('is for administrators only', async () => {

@@ -11,7 +11,8 @@ import { Select, SelectOption } from './select';
 class Host {
   options: SelectOption<number>[] = [
     { value: 1, label: 'Gennaio' },
-    { value: 2, label: 'Febbraio' },
+    { value: 2, label: 'Febbraio', image: 'game/town-halls/th-2.webp' },
+    { value: 3, label: 'Marzo', icon: 'campaign' },
   ];
   value = signal(1);
 }
@@ -36,9 +37,43 @@ describe('Select', () => {
     (f.nativeElement.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
     await f.whenStable();
     const options = document.querySelectorAll<HTMLElement>('mat-option');
-    expect([...options].map((o) => o.textContent!.trim())).toEqual(['Gennaio', 'Febbraio']);
+    expect([...options].map((o) => o.textContent!.trim())).toEqual([
+      'Gennaio',
+      'Febbraio',
+      'Marzo',
+    ]);
     options[1].click();
     await f.whenStable();
     expect(f.componentInstance.value()).toBe(2);
+  });
+
+  it('shows the pictures of the options, and the chosen one in place of the icon', async () => {
+    const f = await create();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.querySelector('img[matprefix]')).toBeNull();
+    (el.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    await f.whenStable();
+    const options = document.querySelectorAll<HTMLElement>('mat-option');
+    expect(options[0].querySelector('img')).toBeNull();
+    expect(options[1].querySelector('img')!.getAttribute('src')).toBe('game/town-halls/th-2.webp');
+    f.componentInstance.value.set(2);
+    await f.whenStable();
+    expect(el.querySelector('img[matprefix]')!.getAttribute('src')).toBe(
+      'game/town-halls/th-2.webp',
+    );
+    expect(el.querySelector('crn-icon[matprefix]')).toBeNull();
+  });
+
+  it('shows the icon of an option, also in place of its own when chosen', async () => {
+    const f = await create();
+    const el = f.nativeElement as HTMLElement;
+    f.componentInstance.value.set(3);
+    await f.whenStable();
+    expect(el.querySelector('crn-icon[matprefix] use')!.getAttribute('href')).toContain('campaign');
+    (el.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    await f.whenStable();
+    const options = document.querySelectorAll<HTMLElement>('mat-option');
+    expect(options[2].querySelector('crn-icon')).not.toBeNull();
+    expect(options[0].querySelector('crn-icon')).toBeNull();
   });
 });

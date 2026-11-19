@@ -14,6 +14,7 @@ export const ICON_NAMES = [
   'block',
   'bolt',
   'calendar_month',
+  'campaign',
   'cancel',
   'castle',
   'check',

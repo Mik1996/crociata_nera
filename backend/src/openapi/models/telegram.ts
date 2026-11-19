@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TELEGRAM_CHAT_PURPOSES } from '@/modules/telegram/telegram-chat.model';
 import { dateTime, model, nullableDateTime } from './common';
 
 export const TelegramChat = model(
@@ -11,7 +12,11 @@ export const TelegramChat = model(
     type: z.string().describe('`channel`, `supergroup` or `group`.'),
     botStatus: z.string().describe('Status of the bot in the chat: `administrator`, `member`, `left`, `kicked`…'),
     canPost: z.boolean().describe('The bot may publish there (channels: administrator with the right to post).'),
-    townHallLevel: z.number().int().nullable().describe('Town hall level whose bases are posted in the chat; `null`: none.'),
+    purpose: z
+      .enum(TELEGRAM_CHAT_PURPOSES)
+      .describe('`bases`: receives the bases of its town hall. `announcements`: the chat of the clan announcements, never bases.'),
+    townHallLevel: z.number().int().nullable().describe('Town hall level whose bases are posted in the chat; `null`: none (always for the announcements).'),
+    locked: z.boolean().describe('Locked by an administrator: its town hall cannot change and it cannot be removed.'),
     updatedAt: dateTime('Last time the chat was read from Telegram or changed.'),
   }),
 );
