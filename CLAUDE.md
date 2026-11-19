@@ -36,9 +36,16 @@ npm run lint:units                                 # sizes in rem, no hard-coded
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
 ```
 
-CI (`.github/workflows/deploy.yml`) runs all of the above on every push; a push to `master` that passes
-is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which restarts the backend and rolls
-back to the previous images if the containers do not become healthy (manual: `deploy/rollback.sh`).
+CI (`.github/workflows/deploy.yml`) runs all of the above on every pull request and every push to `master`;
+a push to `master` that passes is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which
+restarts the backend and rolls back to the previous images if the containers do not become healthy (manual:
+`deploy/rollback.sh`).
+
+`master` is protected (GitHub ruleset "Protect master", no bypass): no direct or force push, changes arrive
+only through a pull request whose `Frontend` and `Backend` checks pass on a branch up to date with `master`
+(no approvals needed). Work on `develop`, then `gh pr create --base master`, `gh pr checks --watch`,
+`gh pr update-branch` if `master` moved, and `gh pr merge --merge` **only when the user asks** (the merge
+deploys to production).
 
 ## Conventions
 
