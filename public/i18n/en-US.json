@@ -79,7 +79,8 @@
     "admin": "Administration",
     "settings": "Settings",
     "bases": "Base arsenal",
-    "baseModeration": "Base moderation"
+    "baseModeration": "Base moderation",
+    "telegramAdmin": "Telegram"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -455,7 +456,11 @@
     "BASE_PROPOSAL_UPDATED": "Proposal updated: it is still waiting for approval.",
     "BASE_PROPOSAL_WITHDRAWN": "Proposal withdrawn",
     "BASE_APPROVED": "Base approved and published in the arsenal",
-    "BASE_REJECTED": "Proposal rejected"
+    "BASE_REJECTED": "Proposal rejected",
+    "TELEGRAM_CHAT_ADDED": "Channel {{name}} added.",
+    "TELEGRAM_CHAT_UPDATED": "Channel {{name}} updated.",
+    "TELEGRAM_CHAT_REMOVED": "Channel forgotten.",
+    "TELEGRAM_SYNC_STARTED": "Posting started: the bases go out a few seconds apart."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -518,7 +523,7 @@
     "BASE_LIMIT_REACHED": "The arsenal is full (at most {{max}} bases): delete outdated bases.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Enter the link of the base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Invalid link: use the game's “Copy base” link of a home village base.",
-    "DESCRIPTION_IS_TOO_LONG": "Description too long (at most 1000 characters).",
+    "DESCRIPTION_IS_TOO_LONG": "Description too long (at most 300 characters).",
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Add an image of the base.",
     "IMAGE_IS_TOO_LARGE": "Image too large (at most {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Invalid image: use a PNG, JPEG or WebP file.",
@@ -529,7 +534,11 @@
     "BASE_PROPOSAL_NOT_EDITABLE": "This proposal has already been approved and can no longer be changed.",
     "BASE_PROPOSAL_NOT_PENDING": "This proposal has already been approved or rejected.",
     "REJECTION_REASON_SHOULD_NOT_BE_EMPTY": "Write the reason for the rejection.",
-    "REJECTION_REASON_IS_TOO_LONG": "The reason is too long (at most 500 characters)."
+    "REJECTION_REASON_IS_TOO_LONG": "The reason is too long (at most 500 characters).",
+    "TELEGRAM_NOT_CONFIGURED": "The Telegram bot is not configured on the server.",
+    "TELEGRAM_CHAT_NOT_FOUND": "Channel not found: check the @username and that the bot is one of its administrators.",
+    "TELEGRAM_TOWN_HALL_TAKEN": "TH{{level}} is already bound to another channel.",
+    "TELEGRAM_API_UNAVAILABLE": "Telegram is not answering: try again shortly."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -1213,6 +1222,50 @@
       "intro": "The base proposed by {{author}} will not be published. The author will see the reason and can correct and resend it.",
       "reason": "Reason for rejection",
       "reasonHint": "Tell the author what to fix"
+    }
+  },
+  "telegramAdmin": {
+    "title": "Telegram",
+    "subtitle": "The arsenal's bases posted in the clan's Telegram channels",
+    "notConfigured": "The bot is not configured on the server (TELEGRAM_BOT_TOKEN): no base is posted on Telegram.",
+    "refresh": "Refresh",
+    "bot": {
+      "title": "Bot",
+      "name": "Bot",
+      "updates": "Updates",
+      "mode": {
+        "webhook": "Webhook (production)",
+        "polling": "getUpdates (development)"
+      }
+    },
+    "posts": {
+      "title": "Base posts",
+      "sent": "posted",
+      "pending": "on their way",
+      "waiting": "TH{{level}} bases waiting: {{n}}. No channel is bound to TH{{level}}.",
+      "failedTitle": "Failed posts",
+      "retryAt": "Next attempt: {{date}}",
+      "retry": "Try again now"
+    },
+    "chats": {
+      "title": "Channels",
+      "intro": "Choose for each channel the town hall whose bases it receives: waiting bases go out at once, and those already posted in another channel move there. A channel shows up here when you make the bot one of its administrators; if it already is, post a message in the channel or add it below.",
+      "noTownHall": "None",
+      "townHall": "Town hall",
+      "canPost": "Can post",
+      "cannotPost": "Cannot post",
+      "cannotPostHint": "Make the bot an administrator of the channel, allowed to post messages.",
+      "remove": "Forget",
+      "removeOf": "Forget {{name}}",
+      "empty": "No channels yet.",
+      "addLabel": "@username or id of the channel",
+      "addHint": "The bot must already be an administrator of the channel",
+      "add": "Add",
+      "type": {
+        "channel": "Channel",
+        "supergroup": "Supergroup",
+        "group": "Group"
+      }
     }
   }
 }

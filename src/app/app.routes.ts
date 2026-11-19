@@ -163,6 +163,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/telegram',
+        title: 'nav.telegramAdmin',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/telegram/telegram-admin-page').then((m) => m.TelegramAdminPage),
+      },
+      {
         path: '**',
         title: 'nav.notFound',
         loadComponent: () =>

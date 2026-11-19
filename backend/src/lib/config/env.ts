@@ -74,6 +74,25 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value?.trim() || undefined),
+  /** Token of the Telegram bot (from @BotFather); unset = Telegram disabled. */
+  TELEGRAM_BOT_TOKEN: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  /**
+   * Secret Telegram sends with every update (`X-Telegram-Bot-Api-Secret-Token`). Set: the bot's
+   * updates come to `POST /api/v1/telegram/webhook` (production, public HTTPS). Unset: the backend
+   * asks Telegram for them (`getUpdates`, local development).
+   */
+  TELEGRAM_WEBHOOK_SECRET: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined)
+    .refine(
+      (value) => value === undefined || /^[A-Za-z0-9_-]{32,256}$/.test(value),
+      'TELEGRAM_WEBHOOK_SECRET must be 32–256 letters, digits, "_" or "-"',
+    ),
+  TELEGRAM_API_BASE_URL: z.url().default('https://api.telegram.org'),
 });
 
 export type Env = z.infer<typeof envSchema>;

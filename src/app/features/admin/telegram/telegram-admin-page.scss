@@ -1,0 +1,190 @@
+@use 'variables' as *;
+
+/*
+ * Bot and posts on the left, the channels (wider) on the right; one column when the content area
+ * is narrow. The container is the page body: a container query never applies to the container.
+ */
+.page__body {
+  container-type: inline-size;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-l;
+  align-items: start;
+
+  .cn-section {
+    margin-bottom: 0;
+  }
+}
+
+@container (min-width: 60rem) {
+  .grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+.feedback {
+  margin-bottom: $space-m;
+
+  p {
+    margin: 0.1rem 0;
+  }
+}
+
+h2 {
+  margin: 0 0 $space-s;
+}
+
+h3 {
+  margin: $space-l 0 $space-s;
+  font-size: var(--cn-fs-md);
+}
+
+.facts {
+  display: grid;
+  gap: $space-s;
+  margin: 0;
+
+  div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs $space-m;
+    justify-content: space-between;
+  }
+
+  dt {
+    color: var(--cn-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-l;
+  margin: 0 0 $space-s;
+  padding: 0;
+  list-style: none;
+}
+
+.counts__value {
+  margin-inline-end: $space-xs;
+  color: var(--cn-gold);
+  font-size: var(--cn-fs-lg);
+  font-weight: 700;
+}
+
+.notice {
+  margin-bottom: $space-s;
+
+  p {
+    margin: 0;
+  }
+}
+
+.failures {
+  display: grid;
+  gap: $space-s;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs $space-s;
+    align-items: baseline;
+  }
+}
+
+.failures__error {
+  overflow-wrap: anywhere;
+}
+
+.failures__retry {
+  font-size: var(--cn-fs-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  margin-top: $space-l;
+}
+
+.intro {
+  margin: 0 0 $space-m;
+}
+
+.chats {
+  display: grid;
+  gap: $space-s;
+  margin: 0 0 $space-l;
+  padding: 0;
+  list-style: none;
+}
+
+.chat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-m;
+  align-items: center;
+  padding: $space-s 0;
+  border-bottom: 1px solid var(--cn-border);
+  transition: opacity 0.2s ease;
+}
+
+.chat--busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.chat__info {
+  flex: 1 1 14rem;
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.chat__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.chat__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+  margin-top: $space-xs !important;
+}
+
+.chat__level {
+  flex: 0 0 11rem;
+}
+
+.chat__remove:not(:disabled) {
+  color: var(--cn-red-text);
+}
+
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-m;
+  align-items: flex-start;
+
+  button {
+    margin-top: $space-xs;
+  }
+}
+
+.add__field {
+  flex: 1 1 16rem;
+}

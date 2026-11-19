@@ -3,7 +3,7 @@ import { HydratedDocument, InferSchemaType, model, models, Model, QueryFilter, S
 /** Most bases the arsenal can hold: keeps the images well within the free MongoDB cluster. */
 export const MAX_DEFENSE_BASES = 400;
 /** Longest description (e.g. the clan castle troops recommended for the base). */
-export const MAX_DESCRIPTION_LENGTH = 1000;
+export const MAX_DESCRIPTION_LENGTH = 300;
 
 /**
  * Moderation state of a base. Bases added by administrators are `APPROVED` at once; bases proposed

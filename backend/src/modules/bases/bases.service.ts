@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import mongoose, { QueryFilter, Types } from 'mongoose';
 import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
+import { requestBasePostSync } from '@/modules/telegram/base-posts.service';
 import { ImageVariant, processBaseImage } from './base-image';
 import { imageStore, StoredImage } from './base-image.store';
 import { CreateBaseInput, encodeBaseCursor, ListBasesQuery, UpdateBaseInput } from './bases.schemas';
@@ -77,9 +78,14 @@ export async function getBase(id: string): Promise<PublicDefenseBase> {
   return toPublicDefenseBase(base);
 }
 
-/** Adds a base to the arsenal (administrators): published at once, without moderation. */
+/**
+ * Adds a base to the arsenal (administrators): published at once, without moderation. Its Telegram
+ * post goes out in the background, as for every change of the arsenal below.
+ */
 export async function createBase(actorId: string, input: CreateBaseInput): Promise<PublicDefenseBase> {
-  return toPublicDefenseBase(await saveNewBase(actorId, input, { status: BaseStatus.APPROVED }));
+  const base = await saveNewBase(actorId, input, { status: BaseStatus.APPROVED });
+  void requestBasePostSync();
+  return toPublicDefenseBase(base);
 }
 
 /** Moderation fields of a new base: approved (administrators) or a proposal waiting for review. */
@@ -125,7 +131,10 @@ export async function saveNewBase(
 
 /** Changes a base of any state (administrators); see {@link changeBase}. */
 export async function updateBase(actorId: string, id: string, input: UpdateBaseInput): Promise<PublicDefenseBase> {
-  return toPublicDefenseBase(await changeBase(actorId, await findBase(id), input));
+  const base = await changeBase(actorId, await findBase(id), input);
+  // A published base changed: its Telegram post follows.
+  void requestBasePostSync();
+  return toPublicDefenseBase(base);
 }
 
 /**
@@ -181,6 +190,7 @@ export async function deleteBase(id: string): Promise<void> {
   const base = await findBase(id);
   await DefenseBaseModel.deleteOne({ _id: base._id });
   await imageStore.remove(base.imageKey);
+  void requestBasePostSync();
 }
 
 /** An image of a base; `null` when the key or variant does not exist. */

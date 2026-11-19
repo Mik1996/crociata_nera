@@ -18,6 +18,8 @@ export interface CallOptions {
   ip?: string;
   params?: Record<string, string>;
   path?: string;
+  /** Extra request headers. */
+  headers?: Record<string, string>;
 }
 
 export interface CallResult<T> {
@@ -37,6 +39,7 @@ export async function call<T = any>(handler: Handler, options: CallOptions = {})
   if (options.origin !== null) headers.set('origin', options.origin ?? ORIGIN);
   if (options.token) headers.set('authorization', `Bearer ${options.token}`);
   if (options.cookie) headers.set('cookie', `cn_refresh=${options.cookie}`);
+  for (const [name, value] of Object.entries(options.headers ?? {})) headers.set(name, value);
 
   const request = new Request(`http://localhost:3001${options.path ?? '/api/v1/test'}`, {
     method: options.method ?? (options.body === undefined ? 'GET' : 'POST'),

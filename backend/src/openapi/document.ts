@@ -34,6 +34,7 @@ const ACCESS: Record<Access, string> = {
     'administrators, and leaders and co-leaders of the clans of the Crusade with a verified linked account (`leaderAccess` of the user).',
   admin: 'administrators (role `ADMIN`).',
   cron: 'the external scheduler, with `Authorization: Bearer <CRON_SECRET>`.',
+  telegram: 'Telegram\'s servers, with `X-Telegram-Bot-Api-Secret-Token: <TELEGRAM_WEBHOOK_SECRET>`.',
   adminInProduction:
     'public in development; in production administrators, signed in with the browser login dialog (username or email and password of their account) or with an access token.',
 };
@@ -133,6 +134,12 @@ function buildDocument(): JsonSchema {
           scheme: 'bearer',
           description: 'The `CRON_SECRET` of the server, for `POST /cron/war-sync`.',
         },
+        telegramSecret: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-Telegram-Bot-Api-Secret-Token',
+          description: 'The `TELEGRAM_WEBHOOK_SECRET` of the server, sent by Telegram with every update.',
+        },
       },
     },
   };
@@ -227,6 +234,7 @@ function fullDescription(op: ApiOperation): string {
 function security(op: ApiOperation): JsonSchema[] {
   const bearer = op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'admin';
   if (op.access === 'cron') return [{ cronSecret: [] }];
+  if (op.access === 'telegram') return [{ telegramSecret: [] }];
   if (op.access === 'adminInProduction') return [{ adminLogin: [] }, { bearerAuth: [] }, {}];
   if (bearer && op.refreshCookie === 'optional') return [{ bearerAuth: [], refreshCookie: [] }, { bearerAuth: [] }];
   if (bearer) return [{ bearerAuth: [] }];

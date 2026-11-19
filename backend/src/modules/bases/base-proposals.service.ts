@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { UserModel } from '@/modules/auth/user.model';
+import { requestBasePostSync } from '@/modules/telegram/base-posts.service';
 import { imageStore } from './base-image.store';
 import { CreateBaseInput, ListProposalsQuery, UpdateBaseInput } from './bases.schemas';
 import { changeBase, saveNewBase } from './bases.service';
@@ -149,9 +150,12 @@ export async function countPendingProposals(): Promise<{ pending: number }> {
   };
 }
 
-/** Publishes a waiting proposal in the arsenal, recording who approved it and when. */
+/** Publishes a waiting proposal in the arsenal (and on Telegram), recording who approved it and when. */
 export async function approveProposal(reviewerId: string, id: string): Promise<BaseProposal> {
-  return review(id, { status: BaseStatus.APPROVED, reviewedBy: reviewerId, rejectionReason: null });
+  const proposal = await review(id, { status: BaseStatus.APPROVED, reviewedBy: reviewerId, rejectionReason: null });
+  // Now in the arsenal: posted in the Telegram channel of its town hall.
+  void requestBasePostSync();
+  return proposal;
 }
 
 /** Refuses a waiting proposal with a reason for its author; it stays out of the arsenal. */

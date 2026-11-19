@@ -47,6 +47,14 @@ only through a pull request whose `Frontend` and `Backend` checks pass on a bran
 `gh pr update-branch` if `master` moved, and `gh pr merge --merge` **only when the user asks** (the merge
 deploys to production).
 
+Dependabot (`.github/dependabot.yml`) opens PRs against `master` every Monday: **minor and patch only**,
+one grouped PR per ecosystem and folder (npm `/` and `/backend`, Docker images of `deploy/`, compose images,
+GitHub Actions). Major versions are ignored: upgrade them by hand on `develop`, with the code changes they
+need. Security updates are on too (PRs as soon as an advisory is published, outside the schedule). Same
+rules as any PR: merge only when the user asks, after the checks pass. A Dependabot PR behind `master`:
+comment `@dependabot rebase` (not `gh pr update-branch`, which stops its automatic rebases). Its base
+cannot be moved to `develop`: a rebase resets it to `master`.
+
 ## Conventions
 
 - Every Angular component has separate `.ts` / `.html` / `.scss` files (no inline template/styles).
@@ -174,6 +182,15 @@ deploys to production).
   as WebP (`thumb` 640 px, `full` 1400 px) and kept in MongoDB (`BaseImages`, behind the
   `ImageStore` interface; max 400 bases for the free cluster). `GET /base-images/{key}/{variant}` is
   public: the key is random and changes with the image, so responses are cached as immutable.
+- Telegram (`backend/src/modules/telegram/`, off without `TELEGRAM_BOT_TOKEN`): every published base is
+  posted in the channel bound to its town hall (`TelegramChats`, set in `/admin/telegram`), picture as JPEG,
+  Italian caption (troops in English, author = linked account with the highest role, then town hall,
+  chosen once) and a "copy base" button. `requestBasePostSync()` (called after every change of the
+  arsenal and every 5 min) compares each base with its `TelegramBasePosts` record and sends, edits,
+  moves or deletes the post; failures wait and are retried, never blocking the site. Direction is
+  always site → Telegram. Updates of the bot: webhook `POST /telegram/webhook` with
+  `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
+  webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the

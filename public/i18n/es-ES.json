@@ -79,7 +79,8 @@
     "admin": "Administración",
     "settings": "Ajustes",
     "bases": "Arsenal de bases",
-    "baseModeration": "Moderación de bases"
+    "baseModeration": "Moderación de bases",
+    "telegramAdmin": "Telegram"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -455,7 +456,11 @@
     "BASE_PROPOSAL_UPDATED": "Propuesta actualizada: sigue pendiente de aprobación.",
     "BASE_PROPOSAL_WITHDRAWN": "Propuesta retirada",
     "BASE_APPROVED": "Base aprobada y publicada en el arsenal",
-    "BASE_REJECTED": "Propuesta rechazada"
+    "BASE_REJECTED": "Propuesta rechazada",
+    "TELEGRAM_CHAT_ADDED": "Canal {{name}} añadido.",
+    "TELEGRAM_CHAT_UPDATED": "Canal {{name}} actualizado.",
+    "TELEGRAM_CHAT_REMOVED": "Canal olvidado.",
+    "TELEGRAM_SYNC_STARTED": "Envíos iniciados: las bases salen con unos segundos de diferencia."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -518,7 +523,7 @@
     "BASE_LIMIT_REACHED": "El arsenal está lleno (máximo {{max}} bases): elimina las bases superadas.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Introduce el enlace de la base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Enlace no válido: usa el enlace «Copiar base» del juego de una base de la aldea principal.",
-    "DESCRIPTION_IS_TOO_LONG": "Descripción demasiado larga (máximo 1000 caracteres).",
+    "DESCRIPTION_IS_TOO_LONG": "Descripción demasiado larga (máximo 300 caracteres).",
     "IMAGE_SHOULD_NOT_BE_EMPTY": "Añade una imagen de la base.",
     "IMAGE_IS_TOO_LARGE": "Imagen demasiado grande (máximo {{max}} MB).",
     "IMAGE_IS_NOT_VALID": "Imagen no válida: usa un archivo PNG, JPEG o WebP.",
@@ -529,7 +534,11 @@
     "BASE_PROPOSAL_NOT_EDITABLE": "Esta propuesta ya fue aprobada y no se puede modificar.",
     "BASE_PROPOSAL_NOT_PENDING": "Esta propuesta ya fue aprobada o rechazada.",
     "REJECTION_REASON_SHOULD_NOT_BE_EMPTY": "Escribe el motivo del rechazo.",
-    "REJECTION_REASON_IS_TOO_LONG": "El motivo es demasiado largo (máximo 500 caracteres)."
+    "REJECTION_REASON_IS_TOO_LONG": "El motivo es demasiado largo (máximo 500 caracteres).",
+    "TELEGRAM_NOT_CONFIGURED": "El bot de Telegram no está configurado en el servidor.",
+    "TELEGRAM_CHAT_NOT_FOUND": "Canal no encontrado: comprueba el @username y que el bot sea administrador.",
+    "TELEGRAM_TOWN_HALL_TAKEN": "El TH{{level}} ya está vinculado a otro canal.",
+    "TELEGRAM_API_UNAVAILABLE": "Telegram no responde: inténtalo de nuevo en breve."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -1213,6 +1222,50 @@
       "intro": "La base propuesta por {{author}} no se publicará. El autor verá el motivo y podrá corregirla y reenviarla.",
       "reason": "Motivo del rechazo",
       "reasonHint": "Explica al autor qué debe corregir"
+    }
+  },
+  "telegramAdmin": {
+    "title": "Telegram",
+    "subtitle": "Las bases del arsenal publicadas en los canales de Telegram del clan",
+    "notConfigured": "El bot no está configurado en el servidor (TELEGRAM_BOT_TOKEN): no se publica ninguna base en Telegram.",
+    "refresh": "Actualizar",
+    "bot": {
+      "title": "Bot",
+      "name": "Bot",
+      "updates": "Actualizaciones",
+      "mode": {
+        "webhook": "Webhook (producción)",
+        "polling": "getUpdates (desarrollo)"
+      }
+    },
+    "posts": {
+      "title": "Publicaciones de bases",
+      "sent": "publicadas",
+      "pending": "en camino",
+      "waiting": "Bases TH{{level}} en espera: {{n}}. Ningún canal está vinculado al TH{{level}}.",
+      "failedTitle": "Envíos fallidos",
+      "retryAt": "Próximo intento: {{date}}",
+      "retry": "Reintentar ahora"
+    },
+    "chats": {
+      "title": "Canales",
+      "intro": "Elige para cada canal el ayuntamiento de las bases que recibe: las bases en espera salen enseguida, y las ya publicadas en otro canal se mueven allí. Un canal aparece aquí cuando haces al bot administrador; si ya lo es, publica un mensaje en el canal o añádelo abajo.",
+      "noTownHall": "Ninguno",
+      "townHall": "Ayuntamiento",
+      "canPost": "Puede publicar",
+      "cannotPost": "No puede publicar",
+      "cannotPostHint": "Haz al bot administrador del canal, con permiso para publicar mensajes.",
+      "remove": "Olvidar",
+      "removeOf": "Olvidar {{name}}",
+      "empty": "Todavía no hay canales.",
+      "addLabel": "@username o id del canal",
+      "addHint": "El bot ya debe ser administrador del canal",
+      "add": "Añadir",
+      "type": {
+        "channel": "Canal",
+        "supergroup": "Supergrupo",
+        "group": "Grupo"
+      }
     }
   }
 }

@@ -113,8 +113,8 @@ describe('OpenAPI document', () => {
           : options.auth
             ? 'user'
             : 'public';
-      // `cron` and `adminInProduction` are checked by the route itself.
-      const expected = op.access === 'cron' || op.access === 'adminInProduction' ? 'public' : op.access;
+      // `cron`, `telegram` and `adminInProduction` are checked by the route itself.
+      const expected = op.access === 'cron' || op.access === 'telegram' || op.access === 'adminInProduction' ? 'public' : op.access;
       const label = `${op.method} ${op.path}`;
       expect(access, label).toBe(expected);
       expect(options.apiName, label).toBe(op.rateLimit);
