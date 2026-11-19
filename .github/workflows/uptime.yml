@@ -1,4 +1,6 @@
 # Free uptime check: every 15 minutes GitHub calls the health endpoint of the site.
+# It also fails from 30 days before the `Expires` of /.well-known/security.txt (public/.well-known/): an expired
+# file is invalid (RFC 9116), so the date must be moved forward (at most a year) before then.
 # If the site, the database or the Clash of Clans API (read by the backend) does not answer, the run fails and
 # GitHub sends an email (Settings → Notifications → Actions: "Send notifications for failed workflows").
 # Note: GitHub may delay scheduled runs by a few minutes, and pauses them after 60 days
@@ -26,3 +28,11 @@ jobs:
           echo
       - name: Clash of Clans API through the backend
         run: curl -fsS --retry 3 --retry-delay 20 --retry-all-errors -o /dev/null https://crociatanera.it/api/v1/welcome
+      - name: security.txt not about to expire
+        run: |
+          expires=$(curl -fsS --retry 3 --retry-delay 20 --retry-all-errors https://crociatanera.it/.well-known/security.txt | sed -n 's/^Expires: *//p' | tr -d '\r')
+          echo "Expires: $expires"
+          if [ -z "$expires" ] || [ "$(date -d "$expires" +%s)" -lt "$(date -d '+30 days' +%s)" ]; then
+            echo "::error::security.txt expires within 30 days: move Expires in public/.well-known/security.txt forward (at most a year)."
+            exit 1
+          fi

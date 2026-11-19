@@ -23,6 +23,11 @@ www.{$DOMAIN} {
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 		Cross-Origin-Opener-Policy "same-origin"
+		# Other sites' pages cannot load the site's files (images of the bases, scripts). Telegram and link
+		# previews download them from their servers, which this header does not concern. No
+		# Cross-Origin-Embedder-Policy: Google Fonts and the Clash of Clans images do not opt in to it.
+		Cross-Origin-Resource-Policy "same-origin"
+		X-Permitted-Cross-Domain-Policies "none"
 		-Server
 	}
 
