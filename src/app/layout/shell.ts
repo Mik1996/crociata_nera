@@ -1,14 +1,14 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { NgTemplateOutlet } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    effect,
-    inject,
-    signal,
-    untracked,
-    viewChild,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, needsSignIn, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
+import { PendingBaseProposals } from '../core/backend/pending-base-proposals';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
@@ -97,6 +98,12 @@ export class Shell {
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
+  /** Proposals waiting for review: the badge next to "Base moderation" (administrators). */
+  protected readonly pendingProposals = inject(PendingBaseProposals);
+  /** A confirmed session of an administrator (not the profile remembered offline). */
+  private readonly confirmedAdmin = computed(
+    () => !this.useMock && this.auth.isAdmin() && !this.auth.isUnconfirmed(),
+  );
   protected readonly connectivity = inject(Connectivity);
   private readonly api = inject(CocApiService);
 
@@ -155,12 +162,23 @@ export class Shell {
     return this.accountTags().map((tag) => ({ tag, name: names?.get(tag) ?? tag }));
   });
 
+  /** The account menu opens: the count of the badge is read again (others may have reviewed). */
+  protected onAccountMenuOpened(): void {
+    if (this.confirmedAdmin()) this.pendingProposals.refresh();
+  }
+
   protected readonly signInParams = computed(() => {
     const url = this.currentUrl();
     return returnUrlParams(this.router.parseUrl(url).queryParams['returnUrl'] ?? url.split('#')[0]);
   });
 
   constructor() {
+    // The count of the badges is read as soon as an administrator's session is confirmed (sign-in
+    // or page load) and kept current; forgotten at sign-out.
+    effect(() => {
+      const admin = this.confirmedAdmin();
+      untracked(() => (admin ? this.pendingProposals.start() : this.pendingProposals.stop()));
+    });
     // Signed out (button, expired or revoked session): leave a protected page for the welcome
     // page, remembering where the user was. Public pages (settings, join) stay open.
     let wasSignedIn = false;

@@ -78,7 +78,8 @@
     "profile": "My profile",
     "admin": "Administration",
     "settings": "Settings",
-    "bases": "Base arsenal"
+    "bases": "Base arsenal",
+    "baseModeration": "Base moderation"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -398,7 +399,9 @@
       "signedInAs": "Signed in as",
       "signOut": "Sign out",
       "profile": "My profile",
-      "admin": "Administration"
+      "admin": "Administration",
+      "baseModeration": "Base moderation",
+      "pendingProposals": "{{n}} proposals to review"
     },
     "errors": {
       "backendUnreachable": "Unable to reach the server. Please try again shortly.",
@@ -446,7 +449,13 @@
     "BASE_UPDATED": "Base updated",
     "BASE_DELETED": "Base deleted",
     "PLAYER_EXCLUDED": "Player excluded from the CWL line-up.",
-    "PLAYER_READMITTED": "Player taken back into the CWL line-up."
+    "PLAYER_READMITTED": "Player taken back into the CWL line-up.",
+    "BASE_PROPOSED": "Base sent! It is waiting for an administrator's approval: you'll find it in “My proposals”.",
+    "BASE_PROPOSAL_RESUBMITTED": "Proposal corrected and sent again: it is waiting for approval again.",
+    "BASE_PROPOSAL_UPDATED": "Proposal updated: it is still waiting for approval.",
+    "BASE_PROPOSAL_WITHDRAWN": "Proposal withdrawn",
+    "BASE_APPROVED": "Base approved and published in the arsenal",
+    "BASE_REJECTED": "Proposal rejected"
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -505,7 +514,7 @@
     "PLAYER_NOT_FOUND_TAG": "Player {{tag}} not found in Clash of Clans.",
     "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} is already linked to another user.",
     "BASE_NOT_FOUND": "Base not found: it may have been deleted.",
-    "BASE_ALREADY_EXISTS": "This base is already in the arsenal.",
+    "BASE_ALREADY_EXISTS": "This base is already in the arsenal or among the proposals.",
     "BASE_LIMIT_REACHED": "The arsenal is full (at most {{max}} bases): delete outdated bases.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Enter the link of the base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Invalid link: use the game's “Copy base” link of a home village base.",
@@ -515,7 +524,12 @@
     "IMAGE_IS_NOT_VALID": "Invalid image: use a PNG, JPEG or WebP file.",
     "INVALID_FORM_DATA": "Invalid request.",
     "CLAN_CASTLE_TROOPS_NOT_VALID": "Invalid clan castle reinforcements.",
-    "CLAN_CASTLE_OVER_CAPACITY": "The reinforcements take {{used}} spaces but the castle has {{max}}: remove some troops."
+    "CLAN_CASTLE_OVER_CAPACITY": "The reinforcements take {{used}} spaces but the castle has {{max}}: remove some troops.",
+    "BASE_PROPOSAL_LIMIT_REACHED": "You already have {{max}} waiting or rejected proposals: correct or withdraw some before sending more.",
+    "BASE_PROPOSAL_NOT_EDITABLE": "This proposal has already been approved and can no longer be changed.",
+    "BASE_PROPOSAL_NOT_PENDING": "This proposal has already been approved or rejected.",
+    "REJECTION_REASON_SHOULD_NOT_BE_EMPTY": "Write the reason for the rejection.",
+    "REJECTION_REASON_IS_TOO_LONG": "The reason is too long (at most 500 characters)."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -783,7 +797,13 @@
       "description": "Description",
       "descriptionHint": "Optional: e.g. how to defend or when to use the base",
       "create": "Add",
-      "save": "Save"
+      "save": "Save",
+      "proposeTitle": "Propose a base",
+      "editProposalTitle": "Edit the proposal",
+      "resubmitTitle": "Correct and resend the proposal",
+      "propose": "Send proposal",
+      "resubmit": "Resend",
+      "moderationNote": "The base will appear in the arsenal once an administrator approves it."
     },
     "deleteDialog": {
       "title": "Delete base",
@@ -845,6 +865,40 @@
       "link": "Base link",
       "editTroops": "Clan castle reinforcements: {{used}}/{{max}} spaces. Tap to change them",
       "troopsDone": "Done"
+    },
+    "propose": "Add a base",
+    "withdrawDialog": {
+      "title": "Withdraw proposal",
+      "intro": "The proposal of the town hall {{n}} base will be deleted together with its image. This cannot be undone."
+    },
+    "layoutType": {
+      "HV": "Home village",
+      "WB": "War base",
+      "other": "Layout {{code}}"
+    },
+    "proposals": {
+      "title": "My proposals",
+      "intro": "The bases you proposed that are not approved yet. Once an administrator approves one, you will find it in the arsenal.",
+      "empty": "You have no open proposals: use “Add a base” to propose one.",
+      "count": "{{n}} in total",
+      "rejectedCount": "Rejected: {{n}}",
+      "status": {
+        "PENDING": "Waiting for approval",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "rejectionReason": "Reason for rejection",
+      "layoutType": "Type",
+      "author": "Author",
+      "deletedUser": "Deleted user",
+      "submittedAt": "Sent on",
+      "approvedBy": "Approved by",
+      "rejectedBy": "Rejected by",
+      "openInGame": "Open in game",
+      "openInGameOf": "Open the town hall {{n}} base in the game",
+      "resubmit": "Correct and resend",
+      "withdraw": "Withdraw",
+      "withdrawOf": "Withdraw the proposal of the town hall {{n}} base"
     }
   },
   "commendations": {
@@ -1129,6 +1183,33 @@
       "cwl": "CWL average",
       "cwlAttacks": "{{attacks}} attacks in {{wars}} wars",
       "war": "War average"
+    }
+  },
+  "baseModeration": {
+    "title": "Base moderation",
+    "subtitle": "Bases proposed by the members: approve them to publish them in the arsenal",
+    "backToAdmin": "Administration",
+    "tabs": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "empty": {
+      "PENDING": "No proposals to review",
+      "APPROVED": "No approved proposals",
+      "REJECTED": "No rejected proposals"
+    },
+    "approve": "Approve and publish",
+    "reject": "Reject",
+    "approveDialog": {
+      "title": "Approve the town hall {{n}} base",
+      "intro": "The base proposed by {{author}} will be published in the arsenal at once, visible to every member."
+    },
+    "rejectDialog": {
+      "title": "Reject the town hall {{n}} base",
+      "intro": "The base proposed by {{author}} will not be published. The author will see the reason and can correct and resend it.",
+      "reason": "Reason for rejection",
+      "reasonHint": "Tell the author what to fix"
     }
   }
 }

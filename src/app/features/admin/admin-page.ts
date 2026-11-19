@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { map, Observable } from 'rxjs';
 import { AdminService, AdminUserQuery } from '../../core/backend/admin.service';
@@ -76,7 +77,10 @@ const DIALOG_CONFIG = {
   autoFocus: 'first-tabbable',
 } as const;
 
-/** Administration: registered users, ADMIN role, linked player tags and deletion of users. */
+/**
+ * Administration: registered users, ADMIN role, linked player tags and deletion of users. Links to
+ * the moderation of the bases proposed by the members (`/admin/bases`).
+ */
 @Component({
   selector: 'crn-admin-page',
   imports: [
@@ -90,6 +94,7 @@ const DIALOG_CONFIG = {
     TranslatePipe,
     LocalDatePipe,
     PageHeader,
+    RouterLink,
     ScrollFade,
     Tag,
   ],

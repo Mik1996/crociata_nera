@@ -10,9 +10,14 @@ export interface BaseDeleteDialogData {
   base: DefenseBase;
   /** Thumbnail of the base, as a reminder of which one is being deleted. */
   imageUrl: string;
+  /** The author withdraws a proposal of theirs instead (not an administrator deleting a base). */
+  withdraw?: boolean;
 }
 
-/** Asks for confirmation, then deletes the base. Closes with `true` once deleted. */
+/**
+ * Asks for confirmation, then deletes the base (or withdraws the proposal). Closes with `true` once
+ * deleted.
+ */
 @Component({
   selector: 'crn-base-delete-dialog',
   imports: [TranslatePipe, ConfirmDialog],
@@ -32,7 +37,11 @@ export class BaseDeleteDialog {
     if (this.busy()) return;
     this.busy.set(true);
     this.errors.set([]);
-    this.service.remove(this.data.base.id).subscribe({
+    const id = this.data.base.id;
+    const request = this.data.withdraw
+      ? this.service.withdrawProposal(id)
+      : this.service.remove(id);
+    request.subscribe({
       next: () => this.ref.close(true),
       error: (error: unknown) => {
         const { fields, general } = backendErrors(error);

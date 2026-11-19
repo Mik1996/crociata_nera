@@ -1,9 +1,16 @@
-<h2 mat-dialog-title>
-  {{ (editing ? 'bases.form.editTitle' : 'bases.form.createTitle') | translate }}
-</h2>
+<h2 mat-dialog-title>{{ title | translate }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="submit()" (paste)="onPaste($event)">
   <mat-dialog-content>
+    @if (proposal) {
+      <p class="moderation-note" role="note">
+        <crn-icon name="info" />
+        {{ 'bases.form.moderationNote' | translate }}
+      </p>
+    }
+    @if (rejected?.rejectionReason; as reason) {
+      <crn-rejection-reason class="rejection" [reason]="reason" />
+    }
     <mat-form-field appearance="outline" class="field">
       <mat-label>{{ 'bases.form.layoutUrl' | translate }}</mat-label>
       <input
@@ -115,7 +122,7 @@
   <mat-dialog-actions align="end">
     <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
     <button mat-flat-button type="submit" [disabled]="busy() || preparing()">
-      {{ (editing ? 'bases.form.save' : 'bases.form.create') | translate }}
+      {{ submitLabel | translate }}
     </button>
   </mat-dialog-actions>
 </form>

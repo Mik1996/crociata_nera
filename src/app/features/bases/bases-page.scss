@@ -9,8 +9,13 @@
 }
 
 .add crn-icon,
+.propose crn-icon,
 .make-pdf crn-icon {
   margin-inline-end: $space-xs;
+}
+
+.my-proposals {
+  margin-bottom: $space-xl;
 }
 
 .filter {

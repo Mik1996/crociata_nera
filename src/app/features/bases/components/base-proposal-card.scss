@@ -1,0 +1,97 @@
+@use 'variables' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--cn-border);
+  background: var(--cn-surface-3);
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: -2px;
+  }
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: $space-m;
+  padding: $space-m $space-l;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-s;
+}
+
+.th {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  color: var(--cn-text);
+  font-weight: 700;
+
+  img {
+    width: 1.75rem;
+    height: 1.75rem;
+    object-fit: contain;
+  }
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: $space-s $space-m;
+  margin: 0;
+
+  dt {
+    color: var(--cn-text-muted);
+    font-size: var(--cn-fs-xs);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-size: var(--cn-fs-sm);
+  }
+}
+
+.description {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-size: var(--cn-fs-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-s;
+  margin-top: auto;
+}
+
+.open {
+  flex: 1 1 auto;
+}

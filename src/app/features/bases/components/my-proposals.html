@@ -1,0 +1,58 @@
+<details class="cn-card section" [open]="open()" (toggle)="onToggle($event)">
+  <summary class="summary">
+    <crn-icon class="chevron" name="expand_more" />
+    <span class="title">{{ 'bases.proposals.title' | translate }}</span>
+    @if (items().length) {
+      <crn-tag tone="gold" appearance="soft">
+        {{ 'bases.proposals.count' | translate: { n: items().length } }}
+      </crn-tag>
+    }
+    @if (rejected()) {
+      <crn-tag tone="danger" appearance="soft">
+        {{ 'bases.proposals.rejectedCount' | translate: { n: rejected() } }}
+      </crn-tag>
+    }
+  </summary>
+
+  <div class="content">
+    <p class="cn-muted intro">{{ 'bases.proposals.intro' | translate }}</p>
+    <crn-load-state
+      [loading]="proposals.isLoading() && !items().length"
+      [error]="proposals.error()"
+      [empty]="!items().length"
+      emptyIcon="send"
+      [emptyMessage]="'bases.proposals.empty' | translate"
+      (retry)="reload()"
+    >
+      <ul class="grid">
+        @for (p of items(); track p.id) {
+          <li>
+            <crn-base-proposal-card
+              class="card"
+              [proposal]="p"
+              [imageUrl]="imageUrl(p)"
+              (enlarge)="enlarge.emit(p)"
+            >
+              <button mat-flat-button type="button" (click)="edit.emit(p)">
+                <crn-icon matButtonIcon [name]="p.status === 'REJECTED' ? 'send' : 'edit'" />
+                {{
+                  (p.status === 'REJECTED' ? 'bases.proposals.resubmit' : 'bases.edit') | translate
+                }}
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="withdraw"
+                (click)="withdraw.emit(p)"
+                [attr.aria-label]="'bases.proposals.withdrawOf' | translate: { n: p.townHallLevel }"
+                [title]="'bases.proposals.withdraw' | translate"
+              >
+                <crn-icon name="delete" />
+              </button>
+            </crn-base-proposal-card>
+          </li>
+        }
+      </ul>
+    </crn-load-state>
+  </div>
+</details>

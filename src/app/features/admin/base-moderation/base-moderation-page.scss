@@ -1,0 +1,56 @@
+@use 'variables' as *;
+
+.tabs {
+  margin-bottom: $space-l;
+}
+
+.count {
+  display: inline-block;
+  min-width: 1.5rem;
+  margin-inline-start: $space-s;
+  padding: 0 $space-xs;
+  border-radius: $radius-pill;
+  background: var(--cn-surface-3);
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-xs);
+  text-align: center;
+}
+
+.count--alert {
+  background: var(--cn-gold);
+  color: var(--cn-surface);
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: $space-l;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity 0.2s ease;
+}
+
+.grid--stale {
+  opacity: 0.5;
+}
+
+.card {
+  height: 100%;
+}
+
+.decisions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  width: 100%;
+
+  button {
+    flex: 1 1 auto;
+  }
+}
+
+.reject {
+  color: var(--cn-red-text);
+}

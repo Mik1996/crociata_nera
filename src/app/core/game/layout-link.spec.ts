@@ -1,4 +1,4 @@
-import { layoutLinkTownHall } from './layout-link';
+import { layoutLinkTownHall, layoutLinkType } from './layout-link';
 
 const link = (id: string, lang = 'en') =>
   `https://link.clashofclans.com/${lang}?action=OpenLayout&id=${id}`;
@@ -16,7 +16,9 @@ describe('layoutLinkTownHall', () => {
     // War base layout.
     expect(layoutLinkTownHall(link('TH18%3AWB%3AAAAAFAAAAALLzhLmlzF4S8AYmJtI0bdX', 'it'))).toBe(18);
     expect(
-      layoutLinkTownHall('https://link.clashofclans.com/?id=TH12%3AHV%3AAbcdefgh&action=OpenLayout'),
+      layoutLinkTownHall(
+        'https://link.clashofclans.com/?id=TH12%3AHV%3AAbcdefgh&action=OpenLayout',
+      ),
     ).toBe(12);
   });
 
@@ -34,5 +36,19 @@ describe('layoutLinkTownHall', () => {
     ]) {
       expect(layoutLinkTownHall(text), text).toBeNull();
     }
+  });
+});
+
+describe('layoutLinkType', () => {
+  it('reads the layout type of home village links only', () => {
+    expect(
+      layoutLinkType(
+        'https://link.clashofclans.com/en?action=OpenLayout&id=TH18%3AWB%3AAAAAFAAAAALLzhLm',
+      ),
+    ).toBe('WB');
+    expect(
+      layoutLinkType('https://link.clashofclans.com/it?action=OpenLayout&id=TH9%3AHV%3AAbc_12-xyz'),
+    ).toBe('HV');
+    expect(layoutLinkType('https://example.com')).toBeNull();
   });
 });

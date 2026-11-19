@@ -5,6 +5,26 @@
   width: 100%;
 }
 
+.moderation-note {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-s;
+  margin: 0 0 $space-m;
+  color: var(--cn-text-muted);
+  font-size: var(--cn-fs-sm);
+
+  crn-icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--cn-gold-light);
+  }
+}
+
+.rejection {
+  margin-bottom: $space-l;
+}
+
 .th-icon {
   width: 2rem;
   height: 2rem;

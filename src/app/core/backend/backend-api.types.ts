@@ -144,6 +144,37 @@ export interface DefenseBasePage {
   townHallLevels: number[];
 }
 
+/**
+ * Moderation state of a base: bases proposed by members wait (`PENDING`) until an administrator
+ * approves (`APPROVED`, in the arsenal) or rejects them.
+ */
+export type BaseStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+/** A user named in a proposal; `null` once the account is deleted. */
+export interface ProposalUser {
+  id: string;
+  username: string;
+}
+
+/** A base proposed by a member (`/base-proposals`), with its moderation state. */
+export interface BaseProposal extends DefenseBase {
+  status: BaseStatus;
+  /** When it was sent (again, after a rejection). */
+  submittedAt: string;
+  author: ProposalUser | null;
+  /** Administrator who approved or rejected it; `null` while waiting. */
+  reviewedBy: ProposalUser | null;
+  reviewedAt: string | null;
+  /** Only for rejected proposals. */
+  rejectionReason: string | null;
+}
+
+/** The proposals in one state of the moderation, with how many there are in each state. */
+export interface BaseProposalList {
+  items: BaseProposal[];
+  counts: Record<BaseStatus, number>;
+}
+
 /** Fields sent to create (all but `description` required) or change (only the changed ones) a base. */
 export interface DefenseBaseChanges {
   layoutUrl?: string;

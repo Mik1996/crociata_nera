@@ -6,7 +6,7 @@ export const MAX_TOWN_HALL_LEVEL = 30;
  * `WB` (war base) and so on, e.g. `TH18:WB:AAAAFAAAAALLzhLmlzF4S8AYmJtI0bdX`. Builder base layouts
  * start with `BH` instead and are refused.
  */
-const LAYOUT_ID = /^TH(\d{1,2}):[A-Z]{2}:[A-Za-z0-9_\-+/=]{8,200}$/;
+const LAYOUT_ID = /^TH(\d{1,2}):([A-Z]{2}):[A-Za-z0-9_\-+/=]{8,200}$/;
 /** `/en`, `/en/`, `/it`, `/pt-br`… or no language at all. */
 const LANGUAGE_PATH = /^\/(?:[a-z]{2}(?:-[a-z]{2})?\/?)?$/i;
 
@@ -16,6 +16,18 @@ const LANGUAGE_PATH = /^\/(?:[a-z]{2}(?:-[a-z]{2})?\/?)?$/i;
  * not a link to a home village layout. Same rules as the backend (`backend/src/modules/bases/layout-link.ts`).
  */
 export function layoutLinkTownHall(text: string): number | null {
+  return readLayoutLink(text)?.townHallLevel ?? null;
+}
+
+/**
+ * Layout type of an in-game "copy base" link: `HV` (home village), `WB` (war base) and so on;
+ * `null` when the text is not a link to a home village layout.
+ */
+export function layoutLinkType(text: string): string | null {
+  return readLayoutLink(text)?.type ?? null;
+}
+
+function readLayoutLink(text: string): { townHallLevel: number; type: string } | null {
   let url: URL;
   try {
     url = new URL(text.trim());
@@ -33,6 +45,9 @@ export function layoutLinkTownHall(text: string): number | null {
   } catch {
     return null;
   }
-  const level = Number(layoutId.match(LAYOUT_ID)?.[1]);
-  return level >= 1 && level <= MAX_TOWN_HALL_LEVEL ? level : null;
+  const match = layoutId.match(LAYOUT_ID);
+  const level = Number(match?.[1]);
+  return match && level >= 1 && level <= MAX_TOWN_HALL_LEVEL
+    ? { townHallLevel: level, type: match[2]! }
+    : null;
 }

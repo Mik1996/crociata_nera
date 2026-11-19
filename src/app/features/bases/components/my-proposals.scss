@@ -1,0 +1,74 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+}
+
+.section {
+  padding: 0;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-s;
+  padding: $space-m $space-l;
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: -2px;
+    border-radius: $radius-m;
+  }
+}
+
+.chevron {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--cn-gold-light);
+  transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+
+  details[open] & {
+    transform: none;
+  }
+}
+
+.title {
+  color: var(--cn-gold-light);
+  font-family: var(--cn-font-heading);
+  font-size: var(--cn-fs-lg);
+  font-weight: 700;
+}
+
+.content {
+  padding: 0 $space-l $space-l;
+}
+
+.intro {
+  margin: 0 0 $space-m;
+  font-size: var(--cn-fs-sm);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: $space-l;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  height: 100%;
+}
+
+.withdraw {
+  color: var(--cn-red-text);
+}

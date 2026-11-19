@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
 import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { DefenseBase } from '../../../core/backend/backend-api.types';
+import { BaseProposal, DefenseBase } from '../../../core/backend/backend-api.types';
 import { provideCocApiTest } from '../../../testing/fixtures';
 import { BaseFormDialog, BaseFormDialogData, layoutLinkValidator } from './base-form-dialog';
 
@@ -198,7 +198,7 @@ describe('BaseFormDialog', () => {
       { status: 409, statusText: 'Conflict' },
     );
     await settle();
-    expect(dialog().textContent).toContain("Questa base è già nell'arsenale.");
+    expect(dialog().textContent).toContain("Questa base è già nell'arsenale o tra le proposte.");
   });
 
   it('asks for the link before the reinforcements and blocks a castle that became too small', async () => {
@@ -228,5 +228,78 @@ describe('BaseFormDialog', () => {
     );
     query<HTMLButtonElement>('button[type="submit"]').click();
     expect(await closed).toBeUndefined();
+  });
+
+  describe('as a proposal of a member', () => {
+    const proposal = (
+      status: BaseProposal['status'],
+      rejectionReason: string | null = null,
+    ): BaseProposal => ({
+      ...saved,
+      status,
+      submittedAt: '2026-11-12T10:00:00Z',
+      author: { id: 'u', username: 'Knight' },
+      reviewedBy: status === 'PENDING' ? null : { id: 'a', username: 'Boss' },
+      reviewedAt: status === 'PENDING' ? null : '2026-11-13T10:00:00Z',
+      rejectionReason,
+    });
+
+    it('sends a new base for review, saying it waits for approval', async () => {
+      fakeImageApis();
+      await open({ proposal: true });
+      expect(dialog().textContent).toContain('Proponi una base');
+      expect(dialog().textContent).toContain("dopo l'approvazione di un amministratore");
+      type(query('input[formcontrolname="layoutUrl"]'), LINK);
+      await ref.componentInstance.pick(new File(['png'], 'base.png', { type: 'image/png' }));
+      await settle();
+      expect(query('button[type="submit"]').textContent).toContain('Invia proposta');
+      query<HTMLButtonElement>('button[type="submit"]').click();
+      await settle();
+
+      httpMock.expectNone('/api/v1/bases');
+      const request = httpMock.expectOne('/api/v1/base-proposals');
+      expect(request.request.method).toBe('POST');
+      const body = request.request.body as FormData;
+      expect(body.get('layoutUrl')).toBe(LINK);
+      expect(body.get('image')).toBeInstanceOf(Blob);
+      const closed = new Promise<DefenseBase | undefined>((resolve) =>
+        ref.afterClosed().subscribe(resolve),
+      );
+      request.flush(ok(proposal('PENDING')));
+      expect(await closed).toMatchObject({ status: 'PENDING' });
+    });
+
+    it('shows why a proposal was rejected and sends it again, even unchanged', async () => {
+      await open({
+        base: proposal('REJECTED', 'Screenshot tagliato'),
+        imageUrl: '/img',
+        proposal: true,
+      });
+      expect(dialog().textContent).toContain('Correggi e reinvia la proposta');
+      expect(query('crn-rejection-reason').textContent).toContain('Screenshot tagliato');
+      expect(query<HTMLInputElement>('input[formcontrolname="layoutUrl"]').value).toBe(LINK);
+      query<HTMLButtonElement>('button[type="submit"]').click();
+      await settle();
+
+      const request = httpMock.expectOne('/api/v1/base-proposals/b1');
+      expect(request.request.method).toBe('PATCH');
+      expect([...(request.request.body as FormData).keys()]).toEqual([]);
+      request.flush(ok(proposal('PENDING')));
+    });
+
+    it('changes only the edited fields of a waiting proposal', async () => {
+      await open({ base: proposal('PENDING'), imageUrl: '/img', proposal: true });
+      expect(dialog().textContent).toContain('Modifica la proposta');
+      expect(dialog().querySelector('crn-rejection-reason')).toBeNull();
+      type(query('textarea[formcontrolname="description"]'), 'Nuova nota');
+      query<HTMLButtonElement>('button[type="submit"]').click();
+      await settle();
+
+      const request = httpMock.expectOne('/api/v1/base-proposals/b1');
+      expect([...(request.request.body as FormData).entries()]).toEqual([
+        ['description', 'Nuova nota'],
+      ]);
+      request.flush(ok(proposal('PENDING')));
+    });
   });
 });

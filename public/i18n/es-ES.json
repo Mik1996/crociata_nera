@@ -78,7 +78,8 @@
     "profile": "Mi perfil",
     "admin": "Administración",
     "settings": "Ajustes",
-    "bases": "Arsenal de bases"
+    "bases": "Arsenal de bases",
+    "baseModeration": "Moderación de bases"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -398,7 +399,9 @@
       "signedInAs": "Sesión iniciada como",
       "signOut": "Cerrar sesión",
       "profile": "Mi perfil",
-      "admin": "Administración"
+      "admin": "Administración",
+      "baseModeration": "Moderación de bases",
+      "pendingProposals": "{{n}} propuestas por revisar"
     },
     "errors": {
       "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve.",
@@ -446,7 +449,13 @@
     "BASE_UPDATED": "Base actualizada",
     "BASE_DELETED": "Base eliminada",
     "PLAYER_EXCLUDED": "Jugador excluido de la alineación CWL.",
-    "PLAYER_READMITTED": "Jugador readmitido en la alineación CWL."
+    "PLAYER_READMITTED": "Jugador readmitido en la alineación CWL.",
+    "BASE_PROPOSED": "¡Base enviada! Está pendiente de la aprobación de un administrador: la encontrarás en «Mis propuestas».",
+    "BASE_PROPOSAL_RESUBMITTED": "Propuesta corregida y reenviada: vuelve a estar pendiente de aprobación.",
+    "BASE_PROPOSAL_UPDATED": "Propuesta actualizada: sigue pendiente de aprobación.",
+    "BASE_PROPOSAL_WITHDRAWN": "Propuesta retirada",
+    "BASE_APPROVED": "Base aprobada y publicada en el arsenal",
+    "BASE_REJECTED": "Propuesta rechazada"
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -505,7 +514,7 @@
     "PLAYER_NOT_FOUND_TAG": "Jugador {{tag}} no encontrado en Clash of Clans.",
     "PLAYER_TAG_LINKED_TO_OTHER_USER": "{{tag}} ya está vinculado a otro usuario.",
     "BASE_NOT_FOUND": "Base no encontrada: quizá se ha eliminado.",
-    "BASE_ALREADY_EXISTS": "Esta base ya está en el arsenal.",
+    "BASE_ALREADY_EXISTS": "Esta base ya está en el arsenal o entre las propuestas.",
     "BASE_LIMIT_REACHED": "El arsenal está lleno (máximo {{max}} bases): elimina las bases superadas.",
     "LAYOUT_LINK_SHOULD_NOT_BE_EMPTY": "Introduce el enlace de la base.",
     "LAYOUT_LINK_IS_NOT_VALID": "Enlace no válido: usa el enlace «Copiar base» del juego de una base de la aldea principal.",
@@ -515,7 +524,12 @@
     "IMAGE_IS_NOT_VALID": "Imagen no válida: usa un archivo PNG, JPEG o WebP.",
     "INVALID_FORM_DATA": "Solicitud no válida.",
     "CLAN_CASTLE_TROOPS_NOT_VALID": "Refuerzos del castillo no válidos.",
-    "CLAN_CASTLE_OVER_CAPACITY": "Los refuerzos ocupan {{used}} espacios, pero el castillo tiene {{max}}: quita alguna tropa."
+    "CLAN_CASTLE_OVER_CAPACITY": "Los refuerzos ocupan {{used}} espacios, pero el castillo tiene {{max}}: quita alguna tropa.",
+    "BASE_PROPOSAL_LIMIT_REACHED": "Ya tienes {{max}} propuestas pendientes o rechazadas: corrige o retira alguna antes de enviar más.",
+    "BASE_PROPOSAL_NOT_EDITABLE": "Esta propuesta ya fue aprobada y no se puede modificar.",
+    "BASE_PROPOSAL_NOT_PENDING": "Esta propuesta ya fue aprobada o rechazada.",
+    "REJECTION_REASON_SHOULD_NOT_BE_EMPTY": "Escribe el motivo del rechazo.",
+    "REJECTION_REASON_IS_TOO_LONG": "El motivo es demasiado largo (máximo 500 caracteres)."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -783,7 +797,13 @@
       "description": "Descripción",
       "descriptionHint": "Opcional: por ejemplo cómo defender o cuándo usar la base",
       "create": "Añadir",
-      "save": "Guardar"
+      "save": "Guardar",
+      "proposeTitle": "Proponer una base",
+      "editProposalTitle": "Editar la propuesta",
+      "resubmitTitle": "Corregir y reenviar la propuesta",
+      "propose": "Enviar propuesta",
+      "resubmit": "Reenviar",
+      "moderationNote": "La base aparecerá en el arsenal cuando un administrador la apruebe."
     },
     "deleteDialog": {
       "title": "Eliminar base",
@@ -845,6 +865,40 @@
       "link": "Enlace de la base",
       "editTroops": "Refuerzos del castillo: {{used}}/{{max}} espacios. Toca para cambiarlos",
       "troopsDone": "Hecho"
+    },
+    "propose": "Añadir una base",
+    "withdrawDialog": {
+      "title": "Retirar propuesta",
+      "intro": "La propuesta de la base del ayuntamiento {{n}} se eliminará junto con su imagen. No se puede deshacer."
+    },
+    "layoutType": {
+      "HV": "Aldea",
+      "WB": "Base de guerra",
+      "other": "Diseño {{code}}"
+    },
+    "proposals": {
+      "title": "Mis propuestas",
+      "intro": "Las bases que propusiste y que aún no se han aprobado. Cuando un administrador apruebe una, la encontrarás en el arsenal.",
+      "empty": "No tienes propuestas abiertas: usa «Añadir una base» para proponer una.",
+      "count": "{{n}} en total",
+      "rejectedCount": "Rechazadas: {{n}}",
+      "status": {
+        "PENDING": "Pendiente de aprobación",
+        "APPROVED": "Aprobada",
+        "REJECTED": "Rechazada"
+      },
+      "rejectionReason": "Motivo del rechazo",
+      "layoutType": "Tipo",
+      "author": "Autor",
+      "deletedUser": "Usuario eliminado",
+      "submittedAt": "Enviada el",
+      "approvedBy": "Aprobada por",
+      "rejectedBy": "Rechazada por",
+      "openInGame": "Abrir en el juego",
+      "openInGameOf": "Abrir en el juego la base del ayuntamiento {{n}}",
+      "resubmit": "Corregir y reenviar",
+      "withdraw": "Retirar",
+      "withdrawOf": "Retirar la propuesta de la base del ayuntamiento {{n}}"
     }
   },
   "commendations": {
@@ -1129,6 +1183,33 @@
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} ataques en {{wars}} guerras",
       "war": "Media de guerras"
+    }
+  },
+  "baseModeration": {
+    "title": "Moderación de bases",
+    "subtitle": "Bases propuestas por los miembros: apruébalas para publicarlas en el arsenal",
+    "backToAdmin": "Administración",
+    "tabs": {
+      "pending": "Pendientes",
+      "approved": "Aprobadas",
+      "rejected": "Rechazadas"
+    },
+    "empty": {
+      "PENDING": "No hay propuestas que revisar",
+      "APPROVED": "No hay propuestas aprobadas",
+      "REJECTED": "No hay propuestas rechazadas"
+    },
+    "approve": "Aprobar y publicar",
+    "reject": "Rechazar",
+    "approveDialog": {
+      "title": "Aprobar la base del ayuntamiento {{n}}",
+      "intro": "La base propuesta por {{author}} se publicará de inmediato en el arsenal, visible para todos los miembros."
+    },
+    "rejectDialog": {
+      "title": "Rechazar la base del ayuntamiento {{n}}",
+      "intro": "La base propuesta por {{author}} no se publicará. El autor verá el motivo y podrá corregirla y reenviarla.",
+      "reason": "Motivo del rechazo",
+      "reasonHint": "Explica al autor qué debe corregir"
     }
   }
 }

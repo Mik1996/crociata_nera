@@ -5,7 +5,12 @@
     [kicker]="'kicker.admin' | translate"
     [title]="'admin.title' | translate"
     [subtitle]="'admin.subtitle' | translate: { n: total() }"
-  />
+  >
+    <a mat-flat-button routerLink="/admin/bases">
+      <crn-icon matButtonIcon name="shield" />
+      {{ 'baseModeration.title' | translate }}
+    </a>
+  </crn-page-header>
 
   <div class="page__body">
     @if (feedback(); as f) {

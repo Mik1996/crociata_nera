@@ -1,0 +1,90 @@
+@let p = proposal();
+<button
+  type="button"
+  class="media"
+  (click)="enlarge.emit()"
+  [attr.aria-label]="'bases.enlarge' | translate: { n: p.townHallLevel }"
+>
+  <img
+    [src]="imageUrl()"
+    [width]="p.image.width"
+    [height]="p.image.height"
+    loading="lazy"
+    decoding="async"
+    alt=""
+  />
+</button>
+
+<div class="body">
+  <div class="head">
+    <span class="th">
+      @if (townHallImage(); as src) {
+        <img [src]="src" alt="" />
+      }
+      {{ 'common.townHallN' | translate: { n: p.townHallLevel } }}
+    </span>
+    <crn-tag [tone]="statusTone()" appearance="soft">
+      {{ 'bases.proposals.status.' + p.status | translate }}
+    </crn-tag>
+  </div>
+
+  <dl class="facts">
+    @if (layoutType(); as type) {
+      <div>
+        <dt>{{ 'bases.proposals.layoutType' | translate }}</dt>
+        <dd>{{ type.key | translate: { code: type.code } }}</dd>
+      </div>
+    }
+    @if (showAuthor()) {
+      <div>
+        <dt>{{ 'bases.proposals.author' | translate }}</dt>
+        <dd>{{ p.author?.username ?? ('bases.proposals.deletedUser' | translate) }}</dd>
+      </div>
+    }
+    <div>
+      <dt>{{ 'bases.proposals.submittedAt' | translate }}</dt>
+      <dd>{{ p.submittedAt | localDate: 'dateTime' }}</dd>
+    </div>
+    @if (p.reviewedAt) {
+      <div>
+        <dt>
+          {{
+            (p.status === 'APPROVED' ? 'bases.proposals.approvedBy' : 'bases.proposals.rejectedBy')
+              | translate
+          }}
+        </dt>
+        <dd>
+          {{ p.reviewedBy?.username ?? ('bases.proposals.deletedUser' | translate) }} ·
+          {{ p.reviewedAt | localDate: 'dateTime' }}
+        </dd>
+      </div>
+    }
+  </dl>
+
+  @if (p.status === 'REJECTED' && p.rejectionReason) {
+    <crn-rejection-reason [reason]="p.rejectionReason" />
+  }
+
+  @if (p.clanCastleTroops.length) {
+    <crn-clan-castle-troops [troops]="p.clanCastleTroops" [townHallLevel]="p.townHallLevel" />
+  }
+
+  @if (p.description) {
+    <p class="description">{{ p.description }}</p>
+  }
+
+  <div class="actions">
+    <a
+      mat-stroked-button
+      class="open"
+      [href]="p.layoutUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      [attr.aria-label]="'bases.proposals.openInGameOf' | translate: { n: p.townHallLevel }"
+    >
+      <crn-icon matButtonIcon name="download" />
+      {{ 'bases.proposals.openInGame' | translate }}
+    </a>
+    <ng-content />
+  </div>
+</div>

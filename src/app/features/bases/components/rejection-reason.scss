@@ -1,0 +1,31 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+  padding: $space-s $space-m;
+  border-inline-start: 3px solid var(--cn-red-text);
+  border-radius: $radius-s;
+  background: var(--cn-tint-loss);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  crn-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.text {
+  margin: $space-xs 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

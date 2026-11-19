@@ -958,6 +958,23 @@ img.cn-img-missing {
     align-items: center;
     gap: $space-m;
   }
+
+  // Count next to an entry (proposals waiting for review), pushed to the end of the row.
+  .menu-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-start: auto;
+    padding: 0 $space-xs;
+    border-radius: $radius-pill;
+    background: var(--cn-red-text);
+    color: var(--cn-surface);
+    font-size: var(--cn-fs-xs);
+    font-weight: 700;
+    line-height: 1;
+  }
 }
 
 .language-menu,

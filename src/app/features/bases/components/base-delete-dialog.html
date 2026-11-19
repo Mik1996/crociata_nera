@@ -1,13 +1,16 @@
 <crn-confirm-dialog
   danger
-  [title]="'bases.deleteDialog.title' | translate"
-  [confirmLabel]="'bases.delete' | translate"
+  [title]="(data.withdraw ? 'bases.withdrawDialog.title' : 'bases.deleteDialog.title') | translate"
+  [confirmLabel]="(data.withdraw ? 'bases.proposals.withdraw' : 'bases.delete') | translate"
   [busy]="busy()"
   [errors]="errors()"
   (confirm)="confirm()"
 >
   <img class="thumb" [src]="data.imageUrl" alt="" />
   <p class="intro">
-    {{ 'bases.deleteDialog.intro' | translate: { n: data.base.townHallLevel } }}
+    {{
+      (data.withdraw ? 'bases.withdrawDialog.intro' : 'bases.deleteDialog.intro')
+        | translate: { n: data.base.townHallLevel }
+    }}
   </p>
 </crn-confirm-dialog>

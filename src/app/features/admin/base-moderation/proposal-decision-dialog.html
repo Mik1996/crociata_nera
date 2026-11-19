@@ -1,0 +1,40 @@
+<crn-confirm-dialog
+  [danger]="rejecting"
+  [title]="
+    (rejecting ? 'baseModeration.rejectDialog.title' : 'baseModeration.approveDialog.title')
+      | translate: { n: data.proposal.townHallLevel }
+  "
+  [confirmLabel]="(rejecting ? 'baseModeration.reject' : 'baseModeration.approve') | translate"
+  [busy]="busy()"
+  [disabled]="reasonMissing()"
+  [errors]="errors()"
+  (confirm)="confirm()"
+>
+  <img class="thumb" [src]="data.imageUrl" alt="" />
+  <p class="intro">
+    {{
+      (rejecting ? 'baseModeration.rejectDialog.intro' : 'baseModeration.approveDialog.intro')
+        | translate: { author: data.proposal.author?.username ?? '—' }
+    }}
+  </p>
+  @if (rejecting) {
+    <mat-form-field appearance="outline" class="reason" subscriptSizing="dynamic">
+      <mat-label>{{ 'baseModeration.rejectDialog.reason' | translate }}</mat-label>
+      <textarea
+        matInput
+        [formControl]="reason"
+        rows="4"
+        required
+        cdkFocusInitial
+        [attr.maxlength]="maxReason"
+      ></textarea>
+      <mat-hint>{{ 'baseModeration.rejectDialog.reasonHint' | translate }}</mat-hint>
+      <mat-hint align="end" class="cn-num">{{ reasonText().length }}/{{ maxReason }}</mat-hint>
+      @if (reason.errors?.['maxlength']) {
+        <mat-error>{{ 'ERROR.REJECTION_REASON_IS_TOO_LONG' | translate }}</mat-error>
+      } @else {
+        <mat-error>{{ 'ERROR.REJECTION_REASON_SHOULD_NOT_BE_EMPTY' | translate }}</mat-error>
+      }
+    </mat-form-field>
+  }
+</crn-confirm-dialog>

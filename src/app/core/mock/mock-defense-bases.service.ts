@@ -1,8 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DefenseBase, DefenseBaseChanges, DefenseBasePage } from '../backend/backend-api.types';
-import { DefenseBasesService } from '../backend/defense-bases.service';
+import {
+  BaseProposal,
+  BaseProposalList,
+  BaseStatus,
+  DefenseBase,
+  DefenseBaseChanges,
+  DefenseBasePage,
+} from '../backend/backend-api.types';
+import { DefenseBasesService, NewDefenseBase } from '../backend/defense-bases.service';
 import { APP_CONFIG } from '../config/app-config';
 import { ClanCastleTroop, clanCastleCapacity, housingSpaceUsed } from '../game/clan-castle';
 import { layoutLinkTownHall } from '../game/layout-link';
@@ -54,6 +61,10 @@ const SEED: [th: number, id: string, description: string, troops: ClanCastleTroo
   ),
 ];
 
+/** Author of the proposals of the demo (there is no sign-in). */
+const DEMO_USER = { id: 'mock-user', username: 'Demo' };
+const DEMO_ADMIN = { id: 'mock-admin', username: 'Admin' };
+
 /** Smaller pages than the backend's, so the demo shows the endless list with few bases. */
 const MOCK_PAGE_SIZE = 8;
 
@@ -79,6 +90,16 @@ export class MockDefenseBasesService extends DefenseBasesService {
     };
   });
   private nextId = SEED.length;
+  /** Proposals of the demo: one waiting, one rejected (with its reason). */
+  private proposalList: BaseProposal[] = [
+    this.proposal(16, 'MOCKPEND', 'PENDING', 'Proposta in attesa di approvazione.'),
+    {
+      ...this.proposal(14, 'MOCKREJE', 'REJECTED', ''),
+      reviewedBy: DEMO_ADMIN,
+      reviewedAt: new Date(Date.UTC(2026, 10, 12)).toISOString(),
+      rejectionReason: 'Lo screenshot è tagliato: mostra tutto il villaggio.',
+    },
+  ];
 
   /** The cursor is the id of the last base of the previous page. */
   list(townHallLevel: number | null, cursor?: string | null): Observable<DefenseBasePage> {
@@ -98,21 +119,8 @@ export class MockDefenseBasesService extends DefenseBasesService {
     });
   }
 
-  create(
-    changes: Required<Pick<DefenseBaseChanges, 'layoutUrl' | 'image'>> & DefenseBaseChanges,
-  ): Observable<DefenseBase> {
-    const now = new Date().toISOString();
-    const base: DefenseBase = {
-      id: `mock-${this.nextId++}`,
-      townHallLevel: 0,
-      layoutUrl: '',
-      description: '',
-      clanCastleTroops: [],
-      image: { key: '', width: 1, height: 1 },
-      createdAt: now,
-      updatedAt: now,
-    };
-    const result = this.apply(base, changes);
+  create(changes: NewDefenseBase): Observable<DefenseBase> {
+    const result = this.apply(this.emptyBase(), changes);
     if (result instanceof HttpErrorResponse) return throwError(() => result);
     this.bases = [result, ...this.bases];
     return this.reply(result);
@@ -135,6 +143,127 @@ export class MockDefenseBasesService extends DefenseBasesService {
   /** Same picture for both variants. */
   imageUrl(base: DefenseBase): string {
     return base.image.key;
+  }
+
+  propose(changes: NewDefenseBase): Observable<BaseProposal> {
+    const result = this.apply(this.emptyBase(), changes);
+    if (result instanceof HttpErrorResponse) return throwError(() => result);
+    const proposal: BaseProposal = {
+      ...result,
+      status: 'PENDING',
+      submittedAt: result.createdAt,
+      author: DEMO_USER,
+      reviewedBy: null,
+      reviewedAt: null,
+      rejectionReason: null,
+    };
+    this.proposalList = [proposal, ...this.proposalList];
+    return this.reply(proposal);
+  }
+
+  myProposals(): Observable<BaseProposal[]> {
+    return this.reply(this.proposalList.filter((p) => p.status !== 'APPROVED'));
+  }
+
+  updateProposal(id: string, changes: DefenseBaseChanges): Observable<BaseProposal> {
+    const proposal = this.proposalList.find((p) => p.id === id);
+    if (!proposal) return throwError(() => error(404, 'ERROR.BASE_NOT_FOUND'));
+    if (proposal.status === 'APPROVED') {
+      return throwError(() => error(409, 'ERROR.BASE_PROPOSAL_NOT_EDITABLE'));
+    }
+    const now = new Date().toISOString();
+    const result = this.apply({ ...proposal, updatedAt: now }, changes);
+    if (result instanceof HttpErrorResponse) return throwError(() => result);
+    const updated: BaseProposal = {
+      ...proposal,
+      ...result,
+      status: 'PENDING',
+      ...(proposal.status === 'REJECTED'
+        ? { submittedAt: now, reviewedBy: null, reviewedAt: null, rejectionReason: null }
+        : {}),
+    };
+    this.proposalList = this.proposalList.map((p) => (p.id === id ? updated : p));
+    return this.reply(updated);
+  }
+
+  withdrawProposal(id: string): Observable<void> {
+    this.proposalList = this.proposalList.filter((p) => p.id !== id || p.status === 'APPROVED');
+    return this.reply(undefined);
+  }
+
+  proposals(status: BaseStatus): Observable<BaseProposalList> {
+    const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+    for (const p of this.proposalList) counts[p.status]++;
+    return this.reply({ items: this.proposalList.filter((p) => p.status === status), counts });
+  }
+
+  pendingCount(): Observable<number> {
+    return this.reply(this.proposalList.filter((p) => p.status === 'PENDING').length);
+  }
+
+  approve(id: string): Observable<BaseProposal> {
+    const result = this.review(id, { status: 'APPROVED', rejectionReason: null });
+    if (result instanceof HttpErrorResponse) return throwError(() => result);
+    this.bases = [result, ...this.bases];
+    return this.reply(result);
+  }
+
+  reject(id: string, reason: string): Observable<BaseProposal> {
+    const result = this.review(id, { status: 'REJECTED', rejectionReason: reason.trim() });
+    return result instanceof HttpErrorResponse ? throwError(() => result) : this.reply(result);
+  }
+
+  private review(
+    id: string,
+    decision: Pick<BaseProposal, 'status' | 'rejectionReason'>,
+  ): BaseProposal | HttpErrorResponse {
+    const proposal = this.proposalList.find((p) => p.id === id);
+    if (!proposal) return error(404, 'ERROR.BASE_NOT_FOUND');
+    if (proposal.status !== 'PENDING') return error(409, 'ERROR.BASE_PROPOSAL_NOT_PENDING');
+    const now = new Date().toISOString();
+    const reviewed: BaseProposal = {
+      ...proposal,
+      ...decision,
+      reviewedBy: DEMO_ADMIN,
+      reviewedAt: now,
+      updatedAt: now,
+    };
+    this.proposalList = this.proposalList.map((p) => (p.id === id ? reviewed : p));
+    return reviewed;
+  }
+
+  private emptyBase(): DefenseBase {
+    const now = new Date().toISOString();
+    return {
+      id: `mock-${this.nextId++}`,
+      townHallLevel: 0,
+      layoutUrl: '',
+      description: '',
+      clanCastleTroops: [],
+      image: { key: '', width: 1, height: 1 },
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  private proposal(th: number, id: string, status: BaseStatus, description: string): BaseProposal {
+    const date = new Date(Date.UTC(2026, 10, 11)).toISOString();
+    return {
+      id: `mock-proposal-${id}`,
+      townHallLevel: th,
+      layoutUrl: layoutLink(th, id),
+      description,
+      clanCastleTroops: [],
+      image: { key: townHallImage(th)!, width: 1, height: 1 },
+      createdAt: date,
+      updatedAt: date,
+      status,
+      submittedAt: date,
+      author: DEMO_USER,
+      reviewedBy: null,
+      reviewedAt: null,
+      rejectionReason: null,
+    };
   }
 
   private apply(base: DefenseBase, changes: DefenseBaseChanges): DefenseBase | HttpErrorResponse {

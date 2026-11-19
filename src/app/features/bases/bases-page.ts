@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -17,7 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
-import { DefenseBase } from '../../core/backend/backend-api.types';
+import { BaseProposal, DefenseBase } from '../../core/backend/backend-api.types';
 import { BaseImageVariant, DefenseBasesService } from '../../core/backend/defense-bases.service';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { townHallImage } from '../../core/game/units';
@@ -33,6 +34,7 @@ import { BaseFormDialog, BaseFormDialogData } from './components/base-form-dialo
 import { BaseImageDialog, BaseImageDialogData } from './components/base-image-dialog';
 import { BasesPdfEditor } from './components/bases-pdf-editor';
 import { ClanCastleTroops } from './components/clan-castle-troops';
+import { MyProposals } from './components/my-proposals';
 
 const FORM_DIALOG = {
   width: '36rem',
@@ -50,7 +52,8 @@ export interface TownHallGroup {
  * Arsenal of defense bases: screenshot, in-game "copy base" link and notes, filtered by town hall
  * (`?th=18`) and grouped by town hall when not filtered. Endless list: the next page is asked for
  * when the end of the list comes near; pages already read stay in {@link BaseArsenal}. Members of
- * the clans read it; administrators add, edit and delete bases.
+ * the clans read it and propose bases, which wait for an administrator's approval ("My proposals",
+ * above the arsenal); administrators add (published at once), edit and delete bases.
  */
 @Component({
   selector: 'crn-bases-page',
@@ -66,6 +69,7 @@ export interface TownHallGroup {
     ScrollFade,
     NearEnd,
     ClanCastleTroops,
+    MyProposals,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -87,6 +91,17 @@ export class BasesPage {
    * mock data, which has no sign-in).
    */
   protected readonly canEdit = computed(() => this.useMock || this.auth.isAdmin());
+  /**
+   * Proposing bases and "My proposals": signed-in members who are not administrators (whose bases
+   * need no approval). The page is only reached with access to the clans' data. Shown in the demo
+   * with mock data too.
+   */
+  protected readonly canPropose = computed(
+    () => this.useMock || (!!this.auth.user() && !this.auth.isAdmin()),
+  );
+  /** "My proposals" is expanded (collapsed at first). */
+  protected readonly proposalsOpen = signal(false);
+  private readonly myProposals = viewChild(MyProposals);
 
   /** `?th=18`, bound by the router. */
   readonly th = input<string>();
@@ -158,6 +173,36 @@ export class BasesPage {
   }
 
   /** The editor of the bases PDF, as large as the screen: it lists the whole arsenal. */
+  /** A member proposes a new base (sent for review). */
+  protected openPropose(): void {
+    this.openProposalForm({ proposal: true }, 'SUCCESS.BASE_PROPOSED');
+  }
+
+  /** The author changes a proposal; a rejected one is sent again for review. */
+  protected openEditProposal(proposal: BaseProposal): void {
+    this.openProposalForm(
+      { base: proposal, imageUrl: this.imageUrl(proposal, 'full'), proposal: true },
+      proposal.status === 'REJECTED'
+        ? 'SUCCESS.BASE_PROPOSAL_RESUBMITTED'
+        : 'SUCCESS.BASE_PROPOSAL_UPDATED',
+    );
+  }
+
+  protected openWithdraw(proposal: BaseProposal): void {
+    this.dialog
+      .open<BaseDeleteDialog, BaseDeleteDialogData, boolean>(BaseDeleteDialog, {
+        ...FORM_DIALOG,
+        width: '28rem',
+        data: { base: proposal, imageUrl: this.imageUrl(proposal, 'thumb'), withdraw: true },
+      })
+      .afterClosed()
+      .subscribe((withdrawn) => {
+        if (!withdrawn) return;
+        this.myProposals()?.reload();
+        this.notify('SUCCESS.BASE_PROPOSAL_WITHDRAWN');
+      });
+  }
+
   protected openPdfEditor(): void {
     this.dialog.open(BasesPdfEditor, {
       width: '80rem',
@@ -210,7 +255,26 @@ export class BasesPage {
       });
   }
 
-  private notify(messageKey: string): void {
-    this.snackBar.open(this.language.t(messageKey), undefined, { duration: 3000 });
+  /**
+   * The form of a proposal: once sent, "My proposals" is read again and expanded, so the member
+   * sees it waiting for approval. The arsenal does not change.
+   */
+  private openProposalForm(data: BaseFormDialogData, messageKey: string): void {
+    this.dialog
+      .open<BaseFormDialog, BaseFormDialogData, DefenseBase>(BaseFormDialog, {
+        ...FORM_DIALOG,
+        data,
+      })
+      .afterClosed()
+      .subscribe((saved) => {
+        if (!saved) return;
+        this.myProposals()?.reload();
+        this.proposalsOpen.set(true);
+        this.notify(messageKey, 6000);
+      });
+  }
+
+  private notify(messageKey: string, duration = 3000): void {
+    this.snackBar.open(this.language.t(messageKey), undefined, { duration });
   }
 }

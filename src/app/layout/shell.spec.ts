@@ -7,6 +7,7 @@ import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import { authGuard } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
+import { PendingBaseProposals } from '../core/backend/pending-base-proposals';
 import { provideCocApiTest } from '../testing/fixtures';
 import { Shell } from './shell';
 
@@ -201,6 +202,77 @@ describe('Shell', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(httpMock.match((r) => r.url.includes('/profile'))).toEqual([]);
+  });
+
+  it('shows administrators how many base proposals wait for review, read again at every opening', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideCocApiTest({ useMockApi: false }),
+      ],
+    });
+    const httpMock = TestBed.inject(HttpTestingController);
+    // As on a page load: the shell is shown first, the session is confirmed afterwards.
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    TestBed.inject(AuthService).restoreSession();
+    httpMock.expectOne('/api/v1/auth/refresh').flush({
+      result: {
+        accessToken: 'tok',
+        accessTokenExpiresAt: '',
+        user: {
+          id: '1',
+          email: 'k@c.it',
+          username: 'Boss',
+          roles: ['USER', 'ADMIN'],
+          players: [],
+          emailVerified: true,
+          clanAccess: true,
+          createdAt: '',
+        },
+      },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
+    fixture.detectChanges();
+    httpMock.match('/api/v1/welcome');
+    const ok = (pending: number) => ({
+      result: { pending },
+      messages: [],
+      status: { code: 200, name: 'HTTP_STATUS.OK' },
+    });
+    // Read as soon as the session is confirmed, before opening anything.
+    httpMock.expectOne('/api/v1/base-proposals/pending-count').flush(ok(3));
+    fixture.detectChanges();
+    // Shown on the account button at once, before the menu is opened.
+    const button = fixture.nativeElement.querySelector('button.account') as HTMLElement;
+    expect(button.querySelector('.account__badge')!.textContent!.trim()).toBe('3');
+    expect(button.getAttribute('aria-label')).toContain('3 proposte da revisionare');
+
+    fixture.nativeElement.querySelector('button.account').click();
+    fixture.detectChanges();
+    // Read again when the menu opens.
+    httpMock.expectOne('/api/v1/base-proposals/pending-count').flush(ok(4));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const entry = document.querySelector<HTMLAnchorElement>('a[href="/admin/bases"]')!;
+    const badge = entry.querySelector('.menu-badge')!;
+    expect(badge.textContent!.trim()).toBe('4');
+    expect(badge.getAttribute('aria-label')).toBe('4 proposte da revisionare');
+
+    // Nothing left to review: no badge.
+    document.querySelector<HTMLElement>('.cdk-overlay-backdrop')?.click();
+    fixture.nativeElement.querySelector('button.account').click();
+    fixture.detectChanges();
+    httpMock.expectOne('/api/v1/base-proposals/pending-count').flush(ok(0));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.querySelector('a[href="/admin/bases"] .menu-badge')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.account__badge')).toBeNull();
+    httpMock.verify();
+    TestBed.inject(PendingBaseProposals).stop();
   });
 
   it('signed out, leaves a protected page for the welcome page but stays on a public one', async () => {

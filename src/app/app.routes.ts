@@ -154,6 +154,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/admin-page').then((m) => m.AdminPage),
       },
       {
+        path: 'admin/bases',
+        title: 'nav.baseModeration',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/base-moderation/base-moderation-page').then(
+            (m) => m.BaseModerationPage,
+          ),
+      },
+      {
         path: '**',
         title: 'nav.notFound',
         loadComponent: () =>

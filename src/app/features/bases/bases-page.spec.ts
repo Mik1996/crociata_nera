@@ -5,7 +5,8 @@ import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { provideRouter, Router } from '@angular/router';
 import { authInterceptor } from '../../core/backend/auth.interceptor';
 import { AuthService } from '../../core/backend/auth.service';
-import { DefenseBase } from '../../core/backend/backend-api.types';
+import { MatDialog } from '@angular/material/dialog';
+import { BaseProposal, DefenseBase } from '../../core/backend/backend-api.types';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { BasesPage } from './bases-page';
 
@@ -25,6 +26,20 @@ const base = (id: string, townHallLevel: number, description = ''): DefenseBase 
   image: { key: `key-${id}`, width: 1400, height: 900 },
   createdAt: '2026-11-12T10:00:00Z',
   updatedAt: '2026-11-12T10:00:00Z',
+});
+
+const proposal = (
+  id: string,
+  status: BaseProposal['status'],
+  rejectionReason: string | null = null,
+): BaseProposal => ({
+  ...base(id, 16, 'Proposta'),
+  status,
+  submittedAt: '2026-11-14T10:00:00Z',
+  author: { id: 'u', username: 'Knight' },
+  reviewedBy: status === 'PENDING' ? null : { id: 'a', username: 'Boss' },
+  reviewedAt: status === 'PENDING' ? null : '2026-11-15T10:00:00Z',
+  rejectionReason,
 });
 
 const page = (items: DefenseBase[], nextCursor: string | null = null, townHallLevels = [18, 17]) =>
@@ -60,6 +75,7 @@ describe('BasesPage', () => {
       roles: string[],
       firstPage = page([base('a', 18, 'Castello: Drago'), base('b', 17)]),
       leaderAccess = false,
+      proposals: BaseProposal[] = [],
     ) {
       TestBed.configureTestingModule({
         providers: [
@@ -82,6 +98,10 @@ describe('BasesPage', () => {
       const fixture = TestBed.createComponent(BasesPage);
       fixture.detectChanges();
       httpMock.expectOne('/api/v1/bases').flush(firstPage);
+      // Members who are not administrators also get their proposals ("My proposals").
+      if (!roles.includes('ADMIN')) {
+        httpMock.expectOne('/api/v1/base-proposals/mine').flush(ok(proposals));
+      }
       await fixture.whenStable();
       return { fixture, el: fixture.nativeElement as HTMLElement };
     }
@@ -119,6 +139,73 @@ describe('BasesPage', () => {
       const { el } = await render(['USER']);
       expect(el.querySelector('.add')).toBeNull();
       expect(el.querySelector('.base__delete')).toBeNull();
+    });
+
+    it('lets members propose a base, and shows their proposals collapsed above the arsenal', async () => {
+      const { el, fixture } = await render(['USER'], undefined, false, [
+        proposal('p1', 'PENDING'),
+        proposal('p2', 'REJECTED', 'Manca il castello'),
+      ]);
+      expect(el.querySelector('.add')).toBeNull();
+      expect(el.querySelector('.propose')!.textContent).toContain('Aggiungi una base');
+
+      const section = el.querySelector<HTMLDetailsElement>('crn-my-proposals details')!;
+      // First on the page, before the arsenal, and collapsed.
+      expect(el.querySelector('.page__body')!.firstElementChild!.tagName).toBe('CRN-MY-PROPOSALS');
+      expect(section.open).toBe(false);
+      expect(section.querySelector('summary')!.textContent).toContain('Le mie proposte');
+      expect(section.querySelector('summary')!.textContent).toContain('Rifiutate: 1');
+      const cards = section.querySelectorAll('crn-base-proposal-card');
+      expect(cards).toHaveLength(2);
+      expect(cards[0].textContent).toContain('In attesa di approvazione');
+      expect(cards[1].textContent).toContain('Rifiutata');
+      expect(cards[1].querySelector('crn-rejection-reason')!.textContent).toContain(
+        'Manca il castello',
+      );
+      expect(cards[1].textContent).toContain('Correggi e reinvia');
+      // Proposals are not in the arsenal.
+      expect(el.querySelectorAll('.base')).toHaveLength(2);
+
+      // A new proposal: once sent, "My proposals" is read again and expanded.
+      el.querySelector<HTMLButtonElement>('.propose')!.click();
+      await fixture.whenStable();
+      expect(dialog()!.textContent).toContain('Proponi una base');
+      TestBed.inject(MatDialog).openDialogs[0].close(proposal('p3', 'PENDING'));
+      await new Promise((resolve) => setTimeout(resolve));
+      TestBed.tick();
+      httpMock
+        .expectOne('/api/v1/base-proposals/mine')
+        .flush(ok([proposal('p3', 'PENDING'), proposal('p1', 'PENDING')]));
+      await fixture.whenStable();
+      expect(section.open).toBe(true);
+      expect(document.body.textContent).toContain('in attesa di approvazione');
+      // The arsenal is not read again: the proposal is not in it.
+      httpMock.expectNone('/api/v1/bases');
+    });
+
+    it('lets members withdraw a proposal of theirs after confirming', async () => {
+      const { el, fixture } = await render(['USER'], undefined, false, [proposal('p1', 'PENDING')]);
+      el.querySelector<HTMLButtonElement>('crn-my-proposals .withdraw')!.click();
+      await fixture.whenStable();
+      expect(dialog()!.textContent).toContain('Ritira proposta');
+      dialog()!.querySelector<HTMLButtonElement>('.cn-button--danger')!.click();
+      const del = httpMock.expectOne('/api/v1/base-proposals/p1');
+      expect(del.request.method).toBe('DELETE');
+      del.flush(ok(null));
+      await new Promise((resolve) => setTimeout(resolve));
+      TestBed.tick();
+      httpMock.expectOne('/api/v1/base-proposals/mine').flush(ok([]));
+      await fixture.whenStable();
+      expect(el.querySelector('crn-my-proposals')!.textContent).toContain(
+        'Non hai proposte in attesa',
+      );
+    });
+
+    it('does not show "My proposals" to administrators, whose bases need no approval', async () => {
+      // No request for the proposals either (checked in afterEach).
+      const { el } = await render(['USER', 'ADMIN']);
+      expect(el.querySelector('crn-my-proposals')).toBeNull();
+      expect(el.querySelector('.propose')).toBeNull();
     });
 
     it('offers the bases PDF to administrators only, not to leaders or other members', async () => {

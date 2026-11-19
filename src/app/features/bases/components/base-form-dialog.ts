@@ -25,6 +25,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import {
   BackendMessage,
+  BaseProposal,
   DefenseBase,
   DefenseBaseChanges,
 } from '../../../core/backend/backend-api.types';
@@ -46,12 +47,18 @@ import {
 import { FormErrors } from '../../../shared/components/form-errors/form-errors';
 import { Icon } from '../../../shared/components/icon/icon';
 import { ClanCastlePicker } from './clan-castle-picker';
+import { RejectionReason } from './rejection-reason';
 
 export interface BaseFormDialogData {
-  /** The base to edit; absent to create a new one. */
-  base?: DefenseBase;
+  /** The base (or proposal) to edit; absent to create a new one. */
+  base?: DefenseBase | BaseProposal;
   /** Current image of the base being edited. */
   imageUrl?: string;
+  /**
+   * A member's proposal, sent for review instead of reaching the arsenal at once: a new one is
+   * proposed, a rejected one is corrected and sent again.
+   */
+  proposal?: boolean;
 }
 
 /** Longest description accepted by the backend. */
@@ -79,7 +86,7 @@ export function layoutLinkValidator(
 }
 
 /**
- * Creates or edits a defense base: in-game link (the town hall level is read from it), screenshot
+ * Creates or edits a defense base (or a member's proposal, see {@link BaseFormDialogData.proposal}): in-game link (the town hall level is read from it), screenshot
  * (dropped, pasted or chosen; shrunk in the browser before the upload) and optional description.
  * Prefilled when editing, where only the changed fields are sent. Closes with the saved base.
  */
@@ -96,6 +103,7 @@ export function layoutLinkValidator(
     TranslatePipe,
     ClanCastlePicker,
     FormErrors,
+    RejectionReason,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './base-form-dialog.html',
@@ -109,6 +117,30 @@ export class BaseFormDialog {
   private readonly language = inject(LanguageService);
 
   protected readonly editing = !!this.data.base;
+  protected readonly proposal = !!this.data.proposal;
+  /** A rejected proposal being corrected: saving sends it again for review, even unchanged. */
+  protected readonly rejected =
+    this.proposal && (this.data.base as BaseProposal | undefined)?.status === 'REJECTED'
+      ? (this.data.base as BaseProposal)
+      : null;
+  protected readonly title = !this.proposal
+    ? this.editing
+      ? 'bases.form.editTitle'
+      : 'bases.form.createTitle'
+    : this.rejected
+      ? 'bases.form.resubmitTitle'
+      : this.editing
+        ? 'bases.form.editProposalTitle'
+        : 'bases.form.proposeTitle';
+  protected readonly submitLabel = !this.proposal
+    ? this.editing
+      ? 'bases.form.save'
+      : 'bases.form.create'
+    : this.rejected
+      ? 'bases.form.resubmit'
+      : this.editing
+        ? 'bases.form.save'
+        : 'bases.form.propose';
   protected readonly accept = ACCEPTED_IMAGE_TYPES.join(',');
   protected readonly maxDescription = MAX_DESCRIPTION_LENGTH;
 
@@ -246,14 +278,19 @@ export class BaseFormDialog {
     });
   }
 
-  /** Create, or update with the changed fields only; `null` when nothing changed. */
+  /**
+   * Create, or update with the changed fields only; `null` when nothing changed (a rejected
+   * proposal is sent again anyway).
+   */
   private request(image: Blob | null): Observable<DefenseBase> | null {
     const layoutUrl = this.form.controls.layoutUrl.value.trim();
     const description = this.form.controls.description.value.trim();
     const clanCastleTroops = this.form.controls.clanCastleTroops.value;
     const base = this.data.base;
-    if (!base)
-      return this.service.create({ layoutUrl, description, clanCastleTroops, image: image! });
+    if (!base) {
+      const fields = { layoutUrl, description, clanCastleTroops, image: image! };
+      return this.proposal ? this.service.propose(fields) : this.service.create(fields);
+    }
 
     const changes: DefenseBaseChanges = {};
     if (layoutUrl !== base.layoutUrl) changes.layoutUrl = layoutUrl;
@@ -262,6 +299,11 @@ export class BaseFormDialog {
       changes.clanCastleTroops = clanCastleTroops;
     }
     if (image) changes.image = image;
+    if (this.proposal) {
+      return Object.keys(changes).length || this.rejected
+        ? this.service.updateProposal(base.id, changes)
+        : null;
+    }
     return Object.keys(changes).length ? this.service.update(base.id, changes) : null;
   }
 
