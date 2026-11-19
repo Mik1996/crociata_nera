@@ -38,6 +38,20 @@ export async function assertDocsAccess(request: Request, user: AuthUser | null):
   if (!account.roles.includes(UserRole.ADMIN)) throwException(403, MessageKey.FORBIDDEN);
 }
 
+/**
+ * Same rules as {@link assertDocsAccess}, answering `false` instead of failing: for routes that are
+ * public but show more to administrators (the health check). No login dialog is asked for, an
+ * anonymous call never touches the database, and any failure (MongoDB down too) means `false`.
+ */
+export async function hasDocsAccess(request: Request, user: AuthUser | null): Promise<boolean> {
+  if (env().NODE_ENV !== 'production') return true;
+  if (!user && !basicCredentials(request)) return false;
+  return assertDocsAccess(request, user).then(
+    () => true,
+    () => false,
+  );
+}
+
 /** `Authorization: Basic base64(identifier:password)`; `null` when missing or malformed. */
 function basicCredentials(request: Request): { identifier: string; password: string } | null {
   const encoded = request.headers.get('authorization')?.match(/^Basic\s+([A-Za-z0-9+/=]+)$/i)?.[1];

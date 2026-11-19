@@ -683,7 +683,9 @@ Per provare la build di produzione in locale: `npm run start:prod` (http://local
 **Comandi utili:**
 - `docker compose logs -f backend` (oppure `web`): mostra i log;
 - `docker compose ps`: mostra lo stato dei servizi;
-- `curl -s https://crociatanera.it/api/v1/health`: stato del database e della sincronizzazione delle guerre.
+- `curl -s https://crociatanera.it/api/v1/health`: solo `ok`/`degraded` per chi non è autenticato; il dettaglio
+  (database, sincronizzazione, job) solo agli amministratori: `curl -s -u <utente> https://crociatanera.it/api/v1/health`
+  (chiede la password del sito) oppure dal browser dopo l'accesso a `/api/v1/docs`.
 
 **Dati:**
 - l'archivio del vecchio proxy è nel volume `proxy_data` (non più usato), i certificati in `caddy_data`;

@@ -11,7 +11,7 @@ export const SYSTEM_OPERATIONS: ApiOperation[] = [
     tag: 'System',
     summary: 'Check the service',
     description:
-      'Status of the service, MongoDB and the synchronisation, for monitoring. Answers 503 (with the same body, `status: degraded`) when MongoDB is unreachable, the war sync of the built-in scheduler has not succeeded for twice its interval, or the Clash of Clans API refuses the key (`accessDenied*`); `issues` tells which.',
+      'Status of the service, MongoDB and the synchronisation, for monitoring. Answers 503 (with the same body, `status: degraded`) when MongoDB is unreachable, the war sync of the built-in scheduler has not succeeded for twice its interval, or the Clash of Clans API refuses the key (`accessDenied*`); `issues` tells which. In production anonymous callers get `status` only (same status codes); administrators get the details with an access token or the credentials of their account (HTTP Basic, as for `/docs`).',
     access: 'public',
     rateLimit: ApiName.HEALTH,
     database: false,
