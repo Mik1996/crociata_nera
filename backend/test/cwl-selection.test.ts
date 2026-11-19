@@ -539,7 +539,8 @@ describe('data for the line-up', () => {
   });
 
   it('remembers when a player joined (or came back to) the clan', async () => {
-    let members = [{ tag: '#AAA111', name: 'Alice' }];
+    const bob = { tag: '#AAA222', name: 'Bob' };
+    let members = [{ tag: '#AAA111', name: 'Alice' }, bob];
     mockCocApi({
       '/clans/%232J8JVVCLC': () => ({ body: { memberList: members } }),
       '/goldpass/seasons/current': { status: 404, body: {} },
@@ -550,9 +551,9 @@ describe('data for the line-up', () => {
     // Already in the clan before joins were tracked: unknown.
     expect((await PlayerModel.findOne({ tag: '#AAA111' }).lean())!.joinedAt).toBeNull();
 
-    members = [];
+    members = [bob];
     await syncMembers(new Date('2026-11-05T00:00:00Z'));
-    members = [{ tag: '#AAA111', name: 'Alice' }];
+    members = [{ tag: '#AAA111', name: 'Alice' }, bob];
     const back = new Date('2026-11-10T00:00:00Z');
     await syncMembers(back);
     expect((await PlayerModel.findOne({ tag: '#AAA111' }).lean())!.joinedAt).toEqual(back);

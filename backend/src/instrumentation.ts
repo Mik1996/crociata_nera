@@ -17,6 +17,7 @@ export async function register(): Promise<void> {
   const { migrateLinkedPlayers } = await import('./modules/auth/user.model');
   const { migrateCwlSeasonIndex } = await import('./modules/cwl/cwl.model');
   const { migrateBaseStatus } = await import('./modules/bases/defense-base.model');
+  const { migrateSecondaryClanJoins } = await import('./modules/commendations/player.model');
   connectToDatabase()
     .then(migrateLinkedPlayers)
     .catch((error: unknown) => console.error('[migrations] linked players:', (error as Error).message));
@@ -26,4 +27,7 @@ export async function register(): Promise<void> {
   connectToDatabase()
     .then(migrateBaseStatus)
     .catch((error: unknown) => console.error('[migrations] defense base status:', (error as Error).message));
+  connectToDatabase()
+    .then(migrateSecondaryClanJoins)
+    .catch((error: unknown) => console.error('[migrations] secondary clan joins:', (error as Error).message));
 }

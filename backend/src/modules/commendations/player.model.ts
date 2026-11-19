@@ -65,3 +65,19 @@ export type Player = InferSchemaType<typeof playerSchema>;
 export type PlayerDocument = HydratedDocument<Player>;
 
 export const PlayerModel: Model<Player> = (models.Player as Model<Player>) ?? model<Player>('Player', playerSchema);
+
+/** Crociata Rossa and Crociata d'Oro, tracked since 14 November 2026. */
+const SECONDARY_CLANS_FIRST_READ = { clanTags: ['#2JU8RPR2G', '#2RRYUGQYJ'], until: new Date('2026-11-16T00:00:00Z') };
+
+/**
+ * Members of Crociata Rossa and Crociata d'Oro got their first read (14 November 2026, read again on
+ * the 15th) as join date, so they showed up as newcomers: the date is unknown, cleared.
+ */
+export async function migrateSecondaryClanJoins(): Promise<void> {
+  const { clanTags, until } = SECONDARY_CLANS_FIRST_READ;
+  const { modifiedCount } = await PlayerModel.collection.updateMany(
+    { clanTag: { $in: clanTags }, joinedAt: { $ne: null, $lt: until } },
+    { $set: { joinedAt: null } },
+  );
+  if (modifiedCount) console.log(`[migrations] ${modifiedCount} join dates of the secondary clans cleared`);
+}

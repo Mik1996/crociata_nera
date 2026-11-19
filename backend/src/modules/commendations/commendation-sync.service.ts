@@ -184,9 +184,13 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
 
   const result: MembersSyncResult = { created: [], updated: 0, left: 0, nextCheckAt: null };
   // Players not in the Crusade at the last read have just joined (or come back); moving between
-  // the clans of the Crusade is not joining.
-  const known = new Set((await PlayerModel.find({ inClan: true }).select('tag').lean()).map((p) => p.tag));
+  // the clans of the Crusade is not joining. A clan with no member saved yet is read for the first
+  // time (just tracked): its members were already in it, since an unknown date.
+  const current = await PlayerModel.find({ inClan: true }).select('tag clanTag').lean();
+  const known = new Set(current.map((p) => p.tag));
+  const tracked = new Set(current.map((p) => p.clanTag ?? primary));
   for (const { clanTag, members } of rosters) {
+    const joining = tracked.has(clanTag);
     for (const m of members) {
       const write = await PlayerModel.updateOne(
         { tag: m.tag },
@@ -203,7 +207,7 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
               : null,
             inClan: true,
             lastSeenAt: now,
-            ...(known.has(m.tag) ? {} : { joinedAt: now }),
+            ...(joining && !known.has(m.tag) ? { joinedAt: now } : {}),
           },
         },
         { upsert: true },
