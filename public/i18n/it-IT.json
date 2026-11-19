@@ -538,6 +538,7 @@
     "TELEGRAM_NOT_CONFIGURED": "Il bot Telegram non è configurato sul server.",
     "TELEGRAM_CHAT_NOT_FOUND": "Canale non trovato: controlla l'@username e che il bot ne sia amministratore.",
     "TELEGRAM_TOWN_HALL_TAKEN": "Il TH{{level}} è già collegato a un altro canale.",
+    "TELEGRAM_CHAT_LOCKED": "Il canale {{name}} è bloccato: sbloccalo prima di cambiarlo.",
     "TELEGRAM_API_UNAVAILABLE": "Telegram non risponde: riprova tra poco."
   },
   "welcome": {
@@ -1249,12 +1250,16 @@
     },
     "chats": {
       "title": "Canali",
-      "intro": "Scegli per ogni canale il municipio delle basi che riceve: le basi in attesa partono subito, e quelle già pubblicate in un altro canale si spostano lì. Un canale compare qui quando aggiungi il bot come amministratore; se lo è già, pubblica un messaggio nel canale oppure aggiungilo qui sotto.",
+      "intro": "Scegli per ogni canale il municipio delle basi che riceve. Ogni base sta in un solo canale, quello del suo municipio: se cambi il municipio di un canale le sue basi si spostano nel canale che ha il loro municipio (o restano in attesa finché non ce n'è uno) e arrivano quelle del nuovo municipio. Blocca i canali per non cambiarli per sbaglio. Un canale compare qui quando aggiungi il bot come amministratore; se lo è già, pubblica un messaggio nel canale oppure aggiungilo qui sotto.",
       "noTownHall": "Nessuno",
       "townHall": "Municipio",
       "canPost": "Può pubblicare",
       "cannotPost": "Non può pubblicare",
       "cannotPostHint": "Rendi il bot amministratore del canale, con il permesso di pubblicare messaggi.",
+      "lock": "Bloccato",
+      "lockOf": "Blocca {{name}}",
+      "lockHint": "Un canale bloccato non può cambiare municipio né essere dimenticato.",
+      "lockedHint": "Canale bloccato: sbloccalo per cambiare municipio.",
       "remove": "Dimentica",
       "removeOf": "Dimentica {{name}}",
       "empty": "Nessun canale, per ora.",

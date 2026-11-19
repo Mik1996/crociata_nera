@@ -28,6 +28,7 @@ export class Select<T> {
   readonly label = input.required<string>();
   readonly options = input.required<readonly SelectOption<T>[]>();
   readonly icon = input<IconName>();
+  readonly disabled = input(false);
   readonly value = model<T>();
 
   protected readonly selected = computed(() =>

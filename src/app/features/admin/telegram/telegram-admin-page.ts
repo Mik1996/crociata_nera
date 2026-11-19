@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -44,6 +45,7 @@ const LOWEST_TOWN_HALL = 3;
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
     MatTooltipModule,
     RouterLink,
     TranslatePipe,
@@ -105,6 +107,13 @@ export class TelegramAdminPage {
     const townHallLevel = value ? value : null;
     if (townHallLevel === chat.townHallLevel) return;
     this.run(chat.chatId, this.service.setTownHall(chat.chatId, townHallLevel), (updated) => {
+      this.replaceChat(updated);
+      return [{ key: 'SUCCESS.TELEGRAM_CHAT_UPDATED', params: { name: updated.title } }];
+    });
+  }
+
+  protected setLocked(chat: TelegramChat, locked: boolean): void {
+    this.run(chat.chatId, this.service.setLocked(chat.chatId, locked), (updated) => {
       this.replaceChat(updated);
       return [{ key: 'SUCCESS.TELEGRAM_CHAT_UPDATED', params: { name: updated.title } }];
     });

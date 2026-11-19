@@ -538,6 +538,7 @@
     "TELEGRAM_NOT_CONFIGURED": "The Telegram bot is not configured on the server.",
     "TELEGRAM_CHAT_NOT_FOUND": "Channel not found: check the @username and that the bot is one of its administrators.",
     "TELEGRAM_TOWN_HALL_TAKEN": "TH{{level}} is already bound to another channel.",
+    "TELEGRAM_CHAT_LOCKED": "The channel {{name}} is locked: unlock it before changing it.",
     "TELEGRAM_API_UNAVAILABLE": "Telegram is not answering: try again shortly."
   },
   "welcome": {
@@ -1249,12 +1250,16 @@
     },
     "chats": {
       "title": "Channels",
-      "intro": "Choose for each channel the town hall whose bases it receives: waiting bases go out at once, and those already posted in another channel move there. A channel shows up here when you make the bot one of its administrators; if it already is, post a message in the channel or add it below.",
+      "intro": "Choose for each channel the town hall of the bases it receives. Every base lives in one channel only, the one of its town hall: if you change the town hall of a channel, its bases move to the channel of their town hall (or wait until there is one) and the bases of the new town hall arrive. Lock the channels so they are not changed by mistake. A channel appears here when you add the bot as an administrator; if it already is one, post a message in the channel or add it below.",
       "noTownHall": "None",
       "townHall": "Town hall",
       "canPost": "Can post",
       "cannotPost": "Cannot post",
       "cannotPostHint": "Make the bot an administrator of the channel, allowed to post messages.",
+      "lock": "Locked",
+      "lockOf": "Lock {{name}}",
+      "lockHint": "A locked channel cannot change town hall or be forgotten.",
+      "lockedHint": "Locked channel: unlock it to change the town hall.",
       "remove": "Forget",
       "removeOf": "Forget {{name}}",
       "empty": "No channels yet.",

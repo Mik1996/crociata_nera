@@ -288,6 +288,8 @@ export interface TelegramChat {
   botStatus: string;
   /** The bot may publish there. */
   canPost: boolean;
+  /** Locked: its town hall cannot change and it cannot be removed. */
+  locked: boolean;
   /** Town hall level whose bases are posted there; `null`: none. */
   townHallLevel: number | null;
   updatedAt: string;

@@ -19,6 +19,8 @@ const telegramChatSchema = new Schema(
     canPost: { type: Boolean, required: true },
     /** Town hall level whose bases go to this chat; `null`: none. Unique among the chats. */
     townHallLevel: { type: Number, default: null },
+    /** Locked by an administrator: its town hall cannot change and it cannot be removed. */
+    locked: { type: Boolean, default: false },
   },
   { collection: 'TelegramChats', timestamps: true, versionKey: false },
 );
@@ -41,6 +43,7 @@ export interface PublicTelegramChat {
   botStatus: string;
   canPost: boolean;
   townHallLevel: number | null;
+  locked: boolean;
   updatedAt: string;
 }
 
@@ -53,6 +56,7 @@ export function toPublicTelegramChat(chat: TelegramChat): PublicTelegramChat {
     botStatus: chat.botStatus,
     canPost: chat.canPost,
     townHallLevel: chat.townHallLevel ?? null,
+    locked: chat.locked ?? false,
     updatedAt: chat.updatedAt.toISOString(),
   };
 }

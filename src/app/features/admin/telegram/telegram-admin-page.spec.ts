@@ -17,6 +17,7 @@ const th18: TelegramChat = {
   botStatus: 'administrator',
   canPost: true,
   townHallLevel: 18,
+  locked: false,
   updatedAt: '2026-11-19T10:00:00Z',
 };
 const th19: TelegramChat = {
@@ -101,6 +102,26 @@ describe('TelegramAdminPage', () => {
     page.setTownHall({ ...th19, townHallLevel: 19 }, 0);
     expect(httpMock.expectOne(`${STATUS_URL}/chats/-1001900`).request.body).toEqual({
       townHallLevel: null,
+    });
+  });
+
+  it('locks a channel: its town hall and its removal are disabled until it is unlocked', async () => {
+    const { fixture, el } = await render();
+    const chat = () => el.querySelectorAll('.chat')[0];
+    expect(chat().querySelector('mat-select')!.getAttribute('aria-disabled')).toBe('false');
+    chat().querySelector<HTMLButtonElement>('mat-slide-toggle button')!.click();
+    const req = httpMock.expectOne(`${STATUS_URL}/chats/-1001800`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ locked: true });
+    req.flush(ok({ ...th18, locked: true }));
+    await fixture.whenStable();
+    expect(chat().querySelector('mat-select')!.getAttribute('aria-disabled')).toBe('true');
+    expect(chat().querySelector<HTMLButtonElement>('.chat__remove')!.disabled).toBe(true);
+    expect(el.textContent).toContain('Canale Arsenale basi TH18 aggiornato.');
+
+    chat().querySelector<HTMLButtonElement>('mat-slide-toggle button')!.click();
+    expect(httpMock.expectOne(`${STATUS_URL}/chats/-1001800`).request.body).toEqual({
+      locked: false,
     });
   });
 

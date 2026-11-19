@@ -57,19 +57,20 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     path: '/admin/telegram/chats/{chatId}',
     operationId: 'updateTelegramChat',
     tag: 'Admin',
-    summary: 'Bind a Telegram chat to a town hall',
+    summary: 'Bind a Telegram chat to a town hall, or lock it',
     description:
-      'Binds the chat to a town hall level: the published bases of that level are posted there (those waiting at once, a few seconds apart); posts of the level already in another chat move. `null` unbinds it: the posts already there stay. A level goes to one chat only.',
+      'Binds the chat to a town hall level: the published bases of that level are posted there (those waiting at once, a few seconds apart); posts of the level in another chat move (deleted there, sent here). `null` unbinds it: its posts are deleted and wait for another channel. A base lives in one chat only. A level goes to one chat only. `locked` locks the chat: its town hall cannot change (409) and it cannot be removed, until it is unlocked (the same request may unlock it and change its town hall).',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: chatIdPath,
     body: requestPart(updateChatSchema, {
-      townHallLevel: { description: 'Town hall level, or `null` for none.', example: 18 },
+      townHallLevel: { description: 'Town hall level, or `null` for none. Optional.', example: 18 },
+      locked: { description: 'Locks (`true`) or unlocks (`false`) the chat. Optional; at least one of the two fields.', example: true },
     }),
     responses: {
       200: { description: 'The chat. The message has its name in `params.name`.', result: TelegramChat, messages: [K.TELEGRAM_CHAT_UPDATED] },
     },
-    errors: { 404: [K.TELEGRAM_CHAT_NOT_FOUND], 409: [K.TELEGRAM_TOWN_HALL_TAKEN] },
+    errors: { 404: [K.TELEGRAM_CHAT_NOT_FOUND], 409: [K.TELEGRAM_TOWN_HALL_TAKEN, K.TELEGRAM_CHAT_LOCKED] },
   },
   {
     method: 'DELETE',
@@ -77,12 +78,13 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     operationId: 'removeTelegramChat',
     tag: 'Admin',
     summary: 'Forget a Telegram chat',
-    description: 'Removes a chat from the list (its posts stay in Telegram). It comes back if the bot sees it again.',
+    description:
+      'Removes a chat from the list: its posts are deleted from it and wait for another channel of their town hall. A locked chat cannot be removed (409). It comes back if the bot sees it again.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: chatIdPath,
     responses: { 200: { description: 'Chat forgotten.', result: null, messages: [K.TELEGRAM_CHAT_REMOVED] } },
-    errors: { 404: [K.TELEGRAM_CHAT_NOT_FOUND] },
+    errors: { 404: [K.TELEGRAM_CHAT_NOT_FOUND], 409: [K.TELEGRAM_CHAT_LOCKED] },
   },
   {
     method: 'POST',

@@ -35,7 +35,14 @@ export class TelegramAdminService {
       .pipe(map((response) => response.result!));
   }
 
-  /** Forgets a chat (its posts stay in Telegram). */
+  /** Locks a chat (its town hall cannot change, it cannot be removed) or unlocks it. */
+  setLocked(chatId: number, locked: boolean): Observable<TelegramChat> {
+    return this.http
+      .patch<BaseResult<TelegramChat>>(`${this.url}/chats/${chatId}`, { locked })
+      .pipe(map((response) => response.result!));
+  }
+
+  /** Forgets a chat: its posts are deleted from it and wait for another channel. */
   removeChat(chatId: number): Observable<void> {
     return this.http
       .delete<BaseResult<null>>(`${this.url}/chats/${chatId}`)

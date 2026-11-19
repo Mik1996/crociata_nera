@@ -187,7 +187,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   Italian caption (troops in English, author = linked account with the highest role, then town hall,
   chosen once) and a "copy base" button. `requestBasePostSync()` (called after every change of the
   arsenal and every 5 min) compares each base with its `TelegramBasePosts` record and sends, edits,
-  moves or deletes the post; failures wait and are retried, never blocking the site. Direction is
+  moves or deletes the post; failures wait and are retried, never blocking the site. A base lives in one
+  channel only, the one bound to its town hall: a channel unbound or removed loses its posts (they wait),
+  a rebound one gets them moved in. A `locked` chat cannot change town hall or be removed. Direction is
   always site → Telegram. Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.

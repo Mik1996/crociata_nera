@@ -168,13 +168,24 @@
                     [label]="'telegramAdmin.chats.townHall' | translate"
                     [options]="townHallOptions(c)"
                     [value]="townHallOf(c)"
+                    [disabled]="c.locked"
+                    [matTooltip]="c.locked ? ('telegramAdmin.chats.lockedHint' | translate) : ''"
                     (valueChange)="setTownHall(c, $event)"
                   />
+                  <mat-slide-toggle
+                    class="chat__lock"
+                    [checked]="c.locked"
+                    [disabled]="busy() !== null"
+                    [matTooltip]="'telegramAdmin.chats.lockHint' | translate"
+                    [attr.aria-label]="'telegramAdmin.chats.lockOf' | translate: { name: c.title }"
+                    (change)="setLocked(c, $event.checked)"
+                    >{{ 'telegramAdmin.chats.lock' | translate }}</mat-slide-toggle
+                  >
                   <button
                     mat-icon-button
                     type="button"
                     class="chat__remove"
-                    [disabled]="busy() !== null"
+                    [disabled]="busy() !== null || c.locked"
                     [matTooltip]="'telegramAdmin.chats.remove' | translate"
                     [attr.aria-label]="
                       'telegramAdmin.chats.removeOf' | translate: { name: c.title }
