@@ -449,6 +449,32 @@ minimo di guerre e nascondere gli ex membri.
 Il sito e il backend girano sulla VPS dietro Caddy, che serve l'app e inoltra `/api/v1` al backend: vedi
 [Pubblicazione](#pubblicazione-vps). La chiave API deve autorizzare l'IP pubblico della VPS.
 
+## Telegram
+
+Ogni base pubblicata nell'arsenale (caricata da un amministratore o proposta e approvata) viene pubblicata dal
+bot nel canale Telegram del suo municipio, con l'immagine, il castello del clan, la descrizione, l'autore (nome
+in gioco del suo villaggio di grado più alto) e il pulsante **Copia la base**. Modificare o eliminare la base
+sul sito modifica o elimina anche il post. La direzione è sempre sito → Telegram.
+
+- **Canali**: in **Amministrazione → Telegram** (`/admin/telegram`) si sceglie il municipio di ogni canale.
+  Un canale compare lì quando il bot ne diventa amministratore (con il permesso di pubblicare). Se il bot lo
+  era già prima, basta pubblicare un messaggio nel canale, oppure aggiungerlo con il suo `@username`.
+- **Municipio senza canale** (es. TH19): il bot non può creare canali. La base resta "in attesa" e parte
+  appena un canale viene collegato a quel municipio.
+- **Errori**: un invio non riuscito viene ritentato da solo (dopo 5 minuti, poi a intervalli crescenti) o
+  subito con **Riprova ora**.
+
+Configurazione:
+
+| Variabile | Dove | Cosa |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | `deploy/.env` (VPS), `backend/.env.local` (sviluppo) | Token del bot da @BotFather. Senza, Telegram è spento |
+| `TELEGRAM_WEBHOOK_SECRET` | solo `deploy/.env` | `openssl rand -hex 32`. Con questo Telegram invia gli aggiornamenti a `/api/v1/telegram/webhook` (registrato all'avvio del backend) |
+
+In sviluppo si usa **un altro bot** (es. *Crociata Nera Dev*) con canali di prova. Senza
+`TELEGRAM_WEBHOOK_SECRET` il backend legge gli aggiornamenti con `getUpdates`, e un bot ha un solo webhook:
+usare in locale il bot di produzione gli toglierebbe il webhook.
+
 ## Pubblicazione (VPS)
 
 Il sito gira su una VPS con IP fisso (Aruba Cloud, Ubuntu 24.04) e va online su **https://crociatanera.it**. La

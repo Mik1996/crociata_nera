@@ -69,6 +69,8 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
     # Liveness, not readiness: any HTTP answer counts. /api/v1/health answers 503 when MongoDB or
     # the war sync is degraded, which restarting or rolling back the backend would not fix. The
     # image has no curl: node's fetch.

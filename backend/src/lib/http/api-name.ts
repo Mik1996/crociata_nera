@@ -25,6 +25,7 @@ export enum ApiName {
   API_DOCS = 'api-docs',
   HEALTH = 'health',
   CRON_WAR_SYNC = 'cron-war-sync',
+  TELEGRAM_WEBHOOK = 'telegram-webhook',
 }
 
 export interface RateLimit {
@@ -78,4 +79,6 @@ export const RATE_LIMITS: Record<ApiName, RateLimit> = {
   // The external scheduler runs the sync every few minutes; a low limit also caps guesses of
   // CRON_SECRET and runs triggered by whoever learned it.
   [ApiName.CRON_WAR_SYNC]: { limit: 10, windowMs: 15 * MINUTE },
+  // Updates of the bot, sent by Telegram's servers (few IPs): rare, but bursts are possible.
+  [ApiName.TELEGRAM_WEBHOOK]: { limit: 600, windowMs: MINUTE },
 };

@@ -12,6 +12,13 @@ export async function register(): Promise<void> {
     console.error('[war-sync] not started:', (error as Error).message);
   }
 
+  const { startTelegram } = await import('./modules/telegram/telegram-updates');
+  try {
+    startTelegram();
+  } catch (error) {
+    console.error('[telegram] not started:', (error as Error).message);
+  }
+
   // Data migrations of the saved documents (no-op once done).
   const { connectToDatabase } = await import('./lib/db/mongoose');
   const { migrateLinkedPlayers } = await import('./modules/auth/user.model');

@@ -6,6 +6,7 @@ import { CLAN_OPERATIONS } from './clan';
 import { COC_OPERATIONS } from './coc';
 import { SYSTEM_OPERATIONS } from './system';
 import { TABLE_OPERATIONS } from './tables';
+import { TELEGRAM_OPERATIONS } from './telegram';
 import { WAR_OPERATIONS } from './wars';
 
 /**
@@ -21,4 +22,5 @@ export const API_OPERATIONS: readonly ApiOperation[] = [
   ...CLAN_OPERATIONS,
   ...BASE_OPERATIONS,
   ...SYSTEM_OPERATIONS,
+  ...TELEGRAM_OPERATIONS,
 ];

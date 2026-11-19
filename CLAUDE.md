@@ -182,6 +182,15 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   as WebP (`thumb` 640 px, `full` 1400 px) and kept in MongoDB (`BaseImages`, behind the
   `ImageStore` interface; max 400 bases for the free cluster). `GET /base-images/{key}/{variant}` is
   public: the key is random and changes with the image, so responses are cached as immutable.
+- Telegram (`backend/src/modules/telegram/`, off without `TELEGRAM_BOT_TOKEN`): every published base is
+  posted in the channel bound to its town hall (`TelegramChats`, set in `/admin/telegram`), picture as JPEG,
+  Italian caption (troops in English, author = linked account with the highest role, then town hall,
+  chosen once) and a "copy base" button. `requestBasePostSync()` (called after every change of the
+  arsenal and every 5 min) compares each base with its `TelegramBasePosts` record and sends, edits,
+  moves or deletes the post; failures wait and are retried, never blocking the site. Direction is
+  always site → Telegram. Updates of the bot: webhook `POST /telegram/webhook` with
+  `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
+  webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the
