@@ -208,8 +208,10 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
-- Legend League seasons (`backend/src/modules/legends/`): four weeks, ending on Monday at 05:00 UTC;
-  `GET /leagues/29000022/seasons` lists the ended ones (`v2-<end>`), `/seasons/{id}?limit=10000` gives
+- Legend League seasons (`backend/src/modules/legends/`): tournaments of four weeks, ending on Monday at
+  05:00 UTC, sometimes followed by a week of break. The one in progress starts at `currentLeagueSeasonId`
+  (seconds) of the profile of a player in Legend League I (for the other leagues it is the weekly
+  tournament). `GET /leagues/29000022/seasons` lists the ended ones (`v2-<end>`), `/seasons/{id}?limit=10000` gives
   the final world ranking (the first 10,000 stay in Legend League I). The country ranking
   (`/locations/{id}/rankings/players`, top 200) is reset at the end, so the scheduler reads it 3 minutes
   before (`legendCheckAt`) and the country position is worked out from the final world positions.

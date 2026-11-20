@@ -1,14 +1,29 @@
 import { z } from 'zod';
 import { primaryClanTag } from '@/lib/coc/crusade-clans';
-import { CocApiError, fetchClan, fetchLegendSeasonRankings, fetchLegendSeasons, fetchPlayerRankings } from '@/lib/coc/coc-client';
+import {
+  CocApiError,
+  fetchClan,
+  fetchLegendSeasonRankings,
+  fetchLegendSeasons,
+  fetchPlayer,
+  fetchPlayerRankings,
+} from '@/lib/coc/coc-client';
 import { PlayerModel } from '@/modules/commendations/player.model';
 import { LegendSeasonModel, LegendSeasonResult } from './legend-season.model';
 
 /**
  * End of the Legend League seasons and the results of the members in Legend League I.
  *
- * The API lists the ended seasons (`GET /leagues/29000022/seasons`, ids `v2-<end>`): seasons last four
- * weeks and end on Monday at 05:00 UTC, so the one in progress ends four weeks after the last listed.
+ * How the game works: every league from Skeleton 1 to Legend League II is a weekly tournament (Monday
+ * 05:00 UTC, seven days). Legend League I has its own tournament of four weeks (28 days: at most 224
+ * attacks won), ending on Monday at 05:00 UTC; every Monday in between the players outside the first
+ * 10,000 of the world go down to Legend League II and the best of Legend League II come up. A week
+ * outside the tournament may come between two of them (26 October – 2 November 2026).
+ *
+ * The API lists the ended tournaments (`GET /leagues/29000022/seasons`, ids `v2-<end>`); the one in
+ * progress is known from a member in Legend League I, whose profile gives its start
+ * (`currentLeagueSeasonId`, seconds, the same for every player in Legend League I; for the other leagues
+ * it is the weekly tournament): its end is four weeks later.
  * - A few minutes before that end the country ranking of the clan is read (top 200: the API resets it
  *   when the season ends) with the members in Legend League I at that moment.
  * - Once the season is listed, its final world ranking (`/seasons/{id}`, the first 10,000: those who
@@ -23,6 +38,11 @@ export const COUNTRY_READ_BEFORE_MS = 3 * 60_000;
 export const LEGEND_LEAGUE_ONE = 105000036;
 /** The first 10,000 of the world stay in Legend League I; the others go down to Legend League II. */
 export const LEGEND_ONE_PLACES = 10_000;
+/**
+ * A season the API still does not list a week after its end was guessed wrong: it is forgotten (the
+ * final ranking of a real season is listed within minutes).
+ */
+const UNLISTED_GIVE_UP_MS = 7 * 24 * 3_600_000;
 
 export interface LegendSeasonReport {
   /** Wake up then: the country reading before the end, or right after the end. */
@@ -39,6 +59,7 @@ const seasonsSchema = z.object({
 const rankingSchema = z.object({
   items: z.array(z.object({ tag: z.string(), name: z.string().optional(), rank: z.number().int(), trophies: z.number().int() })),
 });
+const profileSchema = z.object({ currentLeagueSeasonId: z.number().int().optional() });
 const clanSchema = z.object({
   location: z.object({ id: z.number().int(), isCountry: z.boolean().optional(), countryCode: z.string().optional() }).optional(),
 });
@@ -86,23 +107,54 @@ export async function syncLegendSeason(now = new Date()): Promise<LegendSeasonRe
       if (!last) return report;
     }
 
-    const end = new Date(last.endTime.getTime() + SEASON_LENGTH_MS);
-    const seasonId = legendSeasonId(end);
+    // The season in progress: known already, or learned from a member in Legend League I.
+    let season = await LegendSeasonModel.findOne({ processedAt: null, endTime: { $gt: last.endTime } }).sort({ endTime: 1 }).lean();
+    if (!season) {
+      const end = await seasonInProgressEnd();
+      // Nobody in Legend League I (no result possible), or the profile still points at the last season.
+      if (!end || end <= last.endTime) return report;
+      await LegendSeasonModel.updateOne(
+        { seasonId: legendSeasonId(end) },
+        { $setOnInsert: { seasonId: legendSeasonId(end), endTime: end, processedAt: null } },
+        { upsert: true },
+      );
+      season = await LegendSeasonModel.findOne({ seasonId: legendSeasonId(end) }).lean();
+      if (!season) return report;
+    }
+
+    const end = season.endTime;
     const readAt = new Date(end.getTime() - COUNTRY_READ_BEFORE_MS);
     if (now < end) {
-      if (now >= readAt) await readCountryRanking(seasonId, end, now);
+      if (now >= readAt) await readCountryRanking(season.seasonId, end, now);
       report.nextCheckAt = (now < readAt ? readAt : new Date(end.getTime() + 60_000)).toISOString();
       return report;
     }
     // Ended: its final ranking comes once the API lists it.
-    if (!(await listedSeasons()).includes(seasonId)) return report;
-    await processSeason(seasonId, end, now);
-    report.processed = seasonId;
+    if (!(await listedSeasons()).includes(season.seasonId)) {
+      if (now.getTime() - end.getTime() > UNLISTED_GIVE_UP_MS) {
+        console.warn(`[legends] season ${season.seasonId} never listed by the API: forgotten`);
+        await LegendSeasonModel.deleteOne({ seasonId: season.seasonId, processedAt: null });
+      }
+      return report;
+    }
+    await processSeason(season.seasonId, end, now);
+    report.processed = season.seasonId;
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;
     report.error = { status: error.status, reason: error.reason, message: error.message };
   }
   return report;
+}
+
+/**
+ * End of the Legend League season in progress: start of the tournament of a member in Legend League I
+ * (`currentLeagueSeasonId` of the profile) plus four weeks; `null` when no member is in Legend League I.
+ */
+async function seasonInProgressEnd(): Promise<Date | null> {
+  const member = await PlayerModel.findOne({ inClan: true, 'league.id': LEGEND_LEAGUE_ONE }).select('tag').lean();
+  if (!member) return null;
+  const start = profileSchema.parse(await fetchPlayer(member.tag)).currentLeagueSeasonId;
+  return start ? new Date(start * 1000 + SEASON_LENGTH_MS) : null;
 }
 
 /** The country's top 200 and the members in Legend League I, just before the end (once). */
