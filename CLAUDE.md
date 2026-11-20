@@ -211,7 +211,8 @@ cannot be moved to `develop`: a rebase resets it to `master`.
 
 - MongoDB Atlas cluster `crociata-nera-prod`: database **`Prod`** (VPS) and **`dev`** (local,
   `backend/.env.local`). Always keep the database name in `DATABASE_URL`, otherwise MongoDB silently
-  uses `test`.
+  uses `test`. To bring `dev` back to the state of `Prod` (all but the arsenal, Telegram, users and
+  sessions): `backend/scripts/copy-prod-to-dev.mjs` (skill `copy-prod-to-dev`, plan first, `--apply`).
 - Production VPS: `ssh -i ~/.ssh/crociata_vps root@217.61.63.44`, app in `~/crociata_nera/deploy`.
   Claude cannot SSH into it: give the user the commands to run there.
 
