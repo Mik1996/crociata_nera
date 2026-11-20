@@ -1,6 +1,7 @@
 import { crusadeClanTags, periodSuffix, primaryClanTag } from '@/lib/coc/crusade-clans';
 import { CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
 import { PlayerModel } from '@/modules/commendations/player.model';
+import { LegendSeasonModel } from '@/modules/legends/legend-season.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { monthBounds } from '@/modules/wars/history.service';
@@ -10,6 +11,7 @@ import {
   buildDonationsData,
   buildMonthData,
   clanName,
+  LegendSeasonData,
   PromotionData,
   RECORD_NAMES,
   RecordData,
@@ -30,7 +32,9 @@ import {
  * - an ended game season (`donations:`), per clan;
  * - a record better than the last one announced (one draft per record, following it while open);
  * - a player in a league higher than any reached before, from Electro League 31 up to Legend League I
- *   (one draft per player, following the player while open).
+ *   (one draft per player, following the player while open);
+ * - a member who ended a Legend League season in Legend League I, among the first 10,000 of the world
+ *   (one draft per player and season).
  *
  * Reads the saved state rather than reacting to events, so nothing is missed while the server is down.
  * Only periods closed after the clan was first seen get a draft (no drafts for the past). Idempotent.
@@ -74,6 +78,7 @@ export async function syncAnnouncementDrafts(now = new Date()): Promise<DraftSyn
     await recordDrafts(clanTag, (baseline.records as RecordValues | null) ?? null, report);
   }
   await promotionDrafts(now, report);
+  await legendSeasonDrafts(report);
   await refreshDrafts(report);
   return report;
 }
@@ -225,6 +230,36 @@ async function promotionDrafts(now: Date, report: DraftSyncReport): Promise<void
       report.updated.push(key);
     } else if (await createDraft(key, AnnouncementKind.PROMOTION, clanTag, player.tag, data)) {
       report.created.push(key);
+    }
+  }
+}
+
+// --- Legend League seasons ---------------------------------------------------
+
+/** The members of the Legend League seasons processed since their clan was first seen. */
+async function legendSeasonDrafts(report: DraftSyncReport): Promise<void> {
+  const baselines = new Map((await AnnouncementBaselineModel.find().lean()).map((b) => [b.clanTag, b.since]));
+  const seasons = await LegendSeasonModel.find({ processedAt: { $ne: null }, 'results.0': { $exists: true } }).lean();
+  for (const season of seasons) {
+    for (const result of season.results) {
+      const since = baselines.get(result.clanTag);
+      if (!since || !season.processedAt || season.processedAt < since) continue;
+      const key = `legend:${season.seasonId}:${result.tag}`;
+      if (await AnnouncementModel.exists({ key })) continue;
+      const data: LegendSeasonData = {
+        kind: 'legendSeason',
+        clanTag: result.clanTag,
+        clanName: clanName(result.clanTag),
+        playerTag: result.tag,
+        playerName: result.name,
+        seasonId: season.seasonId,
+        seasonEnd: season.endTime.toISOString(),
+        trophies: result.trophies,
+        worldRank: result.rank,
+        countryRank: result.countryRank ?? null,
+        countryCode: season.countryCode ?? null,
+      };
+      if (await createDraft(key, AnnouncementKind.LEGEND_SEASON, result.clanTag, result.tag, data)) report.created.push(key);
     }
   }
 }

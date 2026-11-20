@@ -29,11 +29,11 @@ export interface AnnouncementView {
   clanName: string;
   /** Period (`2026-11`) or record name (`warWinStreak`). */
   subject: string;
-  /** Records: the new value (league id for `cwlLeague`); promotions: the league id; otherwise `null`. */
+  /** Records: the new value (league id for `cwlLeague`); promotions: the league id; Legend seasons: the trophies. */
   value: number | null;
   /** League reached (English, as the API writes it): records `cwlLeague` and promotions. */
   leagueName: string | null;
-  /** Promotions: the player promoted. */
+  /** Promotions and Legend seasons: the player. */
   playerName: string | null;
   /**
    * Caption that goes with the pictures (`**text**` is bold): the one written by an administrator,
@@ -88,10 +88,17 @@ async function toView(doc: AnnouncementDocument, usernames: Map<number, string>,
     clanTag: doc.clanTag,
     clanName: data.clanName,
     subject: doc.subject,
-    value: data.kind === 'record' ? data.value : data.kind === 'promotion' ? data.league.id : null,
+    value:
+      data.kind === 'record'
+        ? data.value
+        : data.kind === 'promotion'
+          ? data.league.id
+          : data.kind === 'legendSeason'
+            ? data.trophies
+            : null,
     leagueName:
       data.kind === 'record' ? (data.leagueName ?? null) : data.kind === 'promotion' ? data.league.name : null,
-    playerName: data.kind === 'promotion' ? data.playerName : null,
+    playerName: data.kind === 'promotion' || data.kind === 'legendSeason' ? data.playerName : null,
     caption: captionOf(doc, language),
     captionEdited: doc.caption !== null,
     pages: doc.messageIds.length || (await announcementSvgs(data, language)).length,

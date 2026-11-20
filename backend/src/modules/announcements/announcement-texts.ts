@@ -31,6 +31,10 @@ export interface AnnouncementTexts {
   league(name: string): string;
   /** `n` of something, singular or plural. */
   count(n: number, one: string, many: string): string;
+  /** `IT` -> `Italia` (name of a country in the language). */
+  country(code: string): string;
+  /** A day: `23 novembre 2026`. */
+  day(iso: string): string;
 
   caption: {
     month: {
@@ -68,6 +72,13 @@ export interface AnnouncementTexts {
       legend: string;
       electro: string;
       congratulations(clan: string): string;
+    };
+    legendSeason: {
+      title(player: string, league: string): string;
+      trophies(value: string): string;
+      country(place: string, country: string): string;
+      world(place: string): string;
+      closing: string;
     };
     honours: string;
     andOthers(n: number): string;
@@ -114,6 +125,14 @@ export interface AnnouncementTexts {
       leagueHighest: string;
     };
     promotion: { title: string; reaches(league: string): string; top: string; legend: string; electro: string };
+    legendSeason: {
+      title: string;
+      ended(day: string): string;
+      trophies: string;
+      country(country: string): string;
+      world: string;
+      top: string;
+    };
   };
 }
 
@@ -146,6 +165,16 @@ function leagues(families: Readonly<Record<string, string>>, format: (family: st
 }
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+function countries(locale: string) {
+  const names = new Intl.DisplayNames([locale], { type: 'region' });
+  return (code: string) => names.of(code.toUpperCase()) ?? code;
+}
+
+function days(locale: string) {
+  const format = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' });
+  return (iso: string) => format.format(new Date(iso));
+}
 
 const ITALIAN: AnnouncementTexts = {
   language: 'it-IT',
@@ -192,6 +221,8 @@ const ITALIAN: AnnouncementTexts = {
     'Senza lega',
   ),
   count,
+  country: countries('it-IT'),
+  day: days('it-IT'),
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -229,6 +260,13 @@ const ITALIAN: AnnouncementTexts = {
       legend: 'Tra le Leggende: un traguardo per pochi.',
       electro: 'Un altro gradino verso le Leggende.',
       congratulations: (clan) => `Complimenti da tutta la ${clan}! ⚔️`,
+    },
+    legendSeason: {
+      title: (player, league) => `**${player}** chiude la stagione in **${league}**!`,
+      trophies: (value) => `🏆 **${value}** trofei`,
+      country: (place, country) => `**${place}** in ${country}`,
+      world: (place) => `🌍 **${place}** nel mondo`,
+      closing: 'Tra i migliori 10.000 giocatori del pianeta. Complimenti da tutti i clan della Crociata! ⚔️',
     },
     honours: 'Encomi',
     andOthers: (n) => ` e altri ${n}`,
@@ -291,6 +329,14 @@ const ITALIAN: AnnouncementTexts = {
       legend: 'Tra le Leggende',
       electro: 'Nuova lega raggiunta',
     },
+    legendSeason: {
+      title: 'Stagione Leggenda',
+      ended: (day) => `Conclusa il ${day}`,
+      trophies: 'trofei',
+      country: (country) => `in ${country}`,
+      world: 'nel mondo',
+      top: 'Tra i migliori 10.000 del mondo',
+    },
   },
 };
 
@@ -339,6 +385,8 @@ const ENGLISH: AnnouncementTexts = {
     'Unranked',
   ),
   count,
+  country: countries('en-US'),
+  day: days('en-US'),
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -375,6 +423,13 @@ const ENGLISH: AnnouncementTexts = {
       legend: 'Among the Legends: a goal for the few.',
       electro: 'One more step towards the Legends.',
       congratulations: (clan) => `Congratulations from all of ${clan}! ⚔️`,
+    },
+    legendSeason: {
+      title: (player, league) => `**${player}** ends the season in **${league}**!`,
+      trophies: (value) => `🏆 **${value}** trophies`,
+      country: (place, country) => `**${place}** in ${country}`,
+      world: (place) => `🌍 **${place}** in the world`,
+      closing: 'Among the best 10,000 players on the planet. Congratulations from all the clans of the Crusade! ⚔️',
     },
     honours: 'Commendations',
     andOthers: (n) => ` and ${n} more`,
@@ -437,6 +492,14 @@ const ENGLISH: AnnouncementTexts = {
       legend: 'Among the Legends',
       electro: 'New league reached',
     },
+    legendSeason: {
+      title: 'Legend Season',
+      ended: (day) => `Ended on ${day}`,
+      trophies: 'trophies',
+      country: (country) => `in ${country}`,
+      world: 'in the world',
+      top: 'Among the best 10,000 in the world',
+    },
   },
 };
 
@@ -485,6 +548,8 @@ const SPANISH: AnnouncementTexts = {
     'Sin liga',
   ),
   count,
+  country: countries('es-ES'),
+  day: days('es-ES'),
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -522,6 +587,13 @@ const SPANISH: AnnouncementTexts = {
       legend: 'Entre las Leyendas: una meta para pocos.',
       electro: 'Un peldaño más hacia las Leyendas.',
       congratulations: (clan) => `¡Enhorabuena de parte de toda la ${clan}! ⚔️`,
+    },
+    legendSeason: {
+      title: (player, league) => `¡**${player}** cierra la temporada en **${league}**!`,
+      trophies: (value) => `🏆 **${value}** trofeos`,
+      country: (place, country) => `**${place}** en ${country}`,
+      world: (place) => `🌍 **${place}** en el mundo`,
+      closing: 'Entre los 10.000 mejores jugadores del planeta. ¡Enhorabuena de parte de todos los clanes de la Cruzada! ⚔️',
     },
     honours: 'Encomios',
     andOthers: (n) => ` y ${n} más`,
@@ -583,6 +655,14 @@ const SPANISH: AnnouncementTexts = {
       top: 'Entre los campeones del mundo',
       legend: 'Entre las Leyendas',
       electro: 'Nueva liga alcanzada',
+    },
+    legendSeason: {
+      title: 'Temporada Leyenda',
+      ended: (day) => `Terminada el ${day}`,
+      trophies: 'trofeos',
+      country: (country) => `en ${country}`,
+      world: 'en el mundo',
+      top: 'Entre los 10.000 mejores del mundo',
     },
   },
 };

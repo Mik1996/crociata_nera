@@ -21,6 +21,7 @@ COPY --chown=node:node public/commendations ./site-assets/commendations
 COPY --chown=node:node public/images/clan-crest-black.webp public/images/clan-crest-red.webp public/images/clan-crest-gold.webp ./site-assets/images/
 COPY --chown=node:node public/game/war-leagues ./site-assets/game/war-leagues
 COPY --chown=node:node public/game/league-tiers/large ./site-assets/game/league-tiers/large
+COPY --chown=node:node public/flags ./site-assets/flags
 USER node
 EXPOSE 3001
 CMD ["node", "server.js"]

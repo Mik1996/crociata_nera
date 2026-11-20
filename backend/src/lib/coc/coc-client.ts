@@ -109,6 +109,27 @@ export function fetchCapitalRankings(locationId: number, limit = 200): Promise<u
   return cocGet(`/locations/${locationId}/rankings/capitals?limit=${limit}`);
 }
 
+/** `GET /locations/{id}/rankings/players`: player trophy rankings of a location (top 200, season in progress). */
+export function fetchPlayerRankings(locationId: number, limit = 200): Promise<unknown> {
+  return cocGet(`/locations/${locationId}/rankings/players?limit=${limit}`);
+}
+
+/** Legend League (`/leagues`), whose seasons have final rankings. */
+export const LEGEND_LEAGUE_ID = 29000022;
+
+/**
+ * `GET /leagues/29000022/seasons`: the ended Legend League seasons, oldest first, paged
+ * (`v2-2026-10-26T05:00:00Z`: seasons of four weeks, the id is their end).
+ */
+export function fetchLegendSeasons(after?: string): Promise<unknown> {
+  return cocGet(`/leagues/${LEGEND_LEAGUE_ID}/seasons?limit=200${after ? `&after=${encodeURIComponent(after)}` : ''}`);
+}
+
+/** `GET /leagues/29000022/seasons/{id}`: final rankings of an ended Legend League season (limit 100–25000). */
+export function fetchLegendSeasonRankings(seasonId: string, limit = 10000): Promise<unknown> {
+  return cocGet(`/leagues/${LEGEND_LEAGUE_ID}/seasons/${encodeURIComponent(seasonId)}?limit=${limit}`);
+}
+
 /**
  * `GET /goldpass/seasons/current`: start and end of the game season in progress. Donations of
  * the clan members count over the season.

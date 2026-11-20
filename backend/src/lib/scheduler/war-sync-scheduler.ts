@@ -6,6 +6,7 @@ import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
+import { syncLegendSeason } from '@/modules/legends/legend-season.service';
 import { syncClanRecords, syncOtherClanRecords } from '@/modules/records/clan-records.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 
@@ -34,6 +35,8 @@ interface SchedulerState {
   raidCheckAt: Date | null;
   /** Last read of the donations before the end of the game season. */
   seasonCheckAt: Date | null;
+  /** Reading of the country ranking before the end of the Legend League season, and right after it. */
+  legendCheckAt: Date | null;
 }
 
 // One scheduler per process, even if the module is evaluated again (dev hot reload).
@@ -51,6 +54,7 @@ const state: SchedulerState = (globalState.__warSync ??= {
   nextRunAt: null,
   raidCheckAt: null,
   seasonCheckAt: null,
+  legendCheckAt: null,
 });
 // A state created by an older version of this module (dev hot reload).
 state.jobs ??= emptyJobs();
@@ -113,6 +117,8 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     await runRecordSync();
     // Commendations of the periods closed by the syncs above.
     await runCommendationSync();
+    // End of the Legend League season: country ranking just before it, results of the members after.
+    await runLegendSeasonSync();
     // Drafts of the Telegram announcements: periods closed and records beaten above.
     await runAnnouncementDrafts();
     // Last: heroes of the members saved above (CWL line-up).
@@ -240,6 +246,18 @@ async function runRecordSync(): Promise<void> {
   }
 }
 
+/** Legend League season: reading before its end, results of the members in Legend League I after. */
+async function runLegendSeasonSync(): Promise<void> {
+  try {
+    const result = await syncLegendSeason();
+    state.legendCheckAt = result.nextCheckAt ? new Date(result.nextCheckAt) : null;
+    if (result.error) console.warn(`[legends] ${result.error.reason} (${result.error.status}): ${result.error.message}`);
+    if (result.processed) console.info(`[legends] season ${result.processed} processed`);
+  } catch (error) {
+    console.error('[legends] run failed:', error);
+  }
+}
+
 /** Drafts of the announcements (published by an administrator from the site). */
 async function runAnnouncementDrafts(): Promise<void> {
   try {
@@ -354,7 +372,8 @@ async function runAndReschedule(): Promise<void> {
   const untilEnd = report?.nextCheckAt ? new Date(report.nextCheckAt).getTime() - Date.now() : Infinity;
   const untilRaidEnd = state.raidCheckAt ? state.raidCheckAt.getTime() - Date.now() : Infinity;
   const untilSeasonEnd = state.seasonCheckAt ? state.seasonCheckAt.getTime() - Date.now() : Infinity;
-  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd, untilRaidEnd, untilSeasonEnd));
+  const untilLegendEnd = state.legendCheckAt ? state.legendCheckAt.getTime() - Date.now() : Infinity;
+  const delay = Math.max(MIN_DELAY_MS, Math.min(interval, untilEnd, untilRaidEnd, untilSeasonEnd, untilLegendEnd));
   state.nextRunAt = new Date(Date.now() + delay);
   state.timer = setTimeout(() => void runAndReschedule(), delay);
   state.timer.unref();

@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
-import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from '../announcement-data';
+import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, MonthData, PromotionData, RecordData } from '../announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../announcement-texts';
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
@@ -91,10 +91,12 @@ const IRON_LOOK: FrameLook = {
   emberOpacity: 0.38,
 };
 
-/** Extra layers of a page: `defs`, and a backdrop drawn under the frame and the texts. */
+/** Extra layers of a page: `defs`, a backdrop drawn under the frame and the texts, ornaments over the frame. */
 interface PageLayers {
   defs?: string;
   backdrop?: string;
+  ornaments?: string;
+  headerShift?: number;
 }
 
 interface Header {
@@ -138,6 +140,8 @@ export async function announcementSvgs(data: AnnouncementData, language?: Announ
       return [page({ kicker: data.clanName, title: t.image.record.title, subtitle: t.records[data.record] }, await recordBody(text, t, data))];
     case 'promotion':
       return [await promotionPage(text, t, crest, data)];
+    case 'legendSeason':
+      return [await legendSeasonPage(text, t, crest, data)];
   }
 }
 
@@ -169,6 +173,7 @@ function framePage(
   look: FrameLook = IRON_LOOK,
   layers: PageLayers = {},
 ): string {
+  const kickerY = layers.headerShift ? 268 + layers.headerShift : 268;
   const studs = [
     [36, 36], [W / 2, 36], [W - 36, 36],
     [36, H / 2], [W - 36, H / 2],
@@ -208,8 +213,9 @@ ${layers.backdrop ?? ''}
 <rect x="24" y="24" width="${W - 48}" height="${H - 48}" fill="none" stroke="${look.frame}" stroke-width="6"/>
 <rect x="44" y="44" width="${W - 88}" height="${H - 88}" fill="none" stroke="${look.frame}" stroke-width="2" stroke-opacity="0.8"/>
 ${studs}
+${layers.ornaments ?? ''}
 ${image(crest, W / 2 - 75, 68, 150)}
-${text.draw(header.kicker.toUpperCase(), { font: 'title', size: 34, x: W / 2, y: 268, fill: look.kicker, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 24 })}
+${text.draw(header.kicker.toUpperCase(), { font: 'title', size: 34, x: W / 2, y: kickerY, fill: look.kicker, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 24 })}
 ${text.draw(header.title, { font: 'display', size: 76, x: W / 2, y: 352, fill: look.title, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 44 })}
 ${text.draw(header.subtitle, { font: 'semibold', size: 30, x: W / 2, y: 398, fill: T.muted, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 22 })}
 <rect x="${LEFT}" y="420" width="${RIGHT - LEFT}" height="3" fill="url(#rule)"/>
@@ -580,4 +586,190 @@ function legendDivision(leagueName: string, x: number, y: number, size: number):
     `<rect x="${boxX.toFixed(1)}" y="${boxY.toFixed(1)}" width="${side.toFixed(1)}" height="${side.toFixed(1)}" rx="${(side * 0.18).toFixed(1)}" fill="${T.divisionBox}" stroke="${T.divisionEdge}" stroke-width="2"/>`,
     bars,
   ].join('');
+}
+
+// --- end of a Legend League season --------------------------------------------
+
+/** Centre of the Legend League I badge on the season page. */
+const CROWN_X = W / 2;
+const CROWN_Y = CONTENT_TOP + 168;
+
+/**
+ * The most epic of the pictures: a member who ended a Legend League season among the first 10,000 of
+ * the world. Gold and crimson: a triple gold frame with ornaments in the corners, a golden sunburst,
+ * the Legend League I badge in a laurel wreath, the name glowing, and three medallions (trophies,
+ * country position with its flag, world position with a globe).
+ */
+async function legendSeasonPage(text: SvgText, t: AnnouncementTexts, crest: string | null, data: LegendSeasonData): Promise<string> {
+  const random = seededRandom(data.trophies + data.worldRank);
+  const s = t.image.legendSeason;
+  const frame: FrameLook = {
+    frame: T.goldText,
+    frameLight: T.legendLight,
+    kicker: T.gold,
+    title: T.legendLight,
+    vignette: T.crimson,
+    vignetteOpacity: 0.95,
+    ember: T.legend,
+    emberOpacity: 0.7,
+  };
+
+  const defs = `
+  <radialGradient id="crownGlow" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="${T.legendLight}" stop-opacity="0.95"/>
+    <stop offset="0.35" stop-color="${T.gold}" stop-opacity="0.6"/>
+    <stop offset="1" stop-color="${T.legend}" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="goldLeaf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="${T.legendLight}"/><stop offset="0.5" stop-color="${T.goldText}"/><stop offset="1" stop-color="${T.edge}"/>
+  </linearGradient>
+  <linearGradient id="medal" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="${T.tile}"/><stop offset="1" stop-color="${T.background}"/>
+  </linearGradient>
+  <filter id="nameGlow" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+  <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  <clipPath id="content"><rect x="56" y="${CONTENT_TOP - 8}" width="${W - 112}" height="${1228 - CONTENT_TOP}"/></clipPath>
+  <clipPath id="inside"><rect x="56" y="56" width="${W - 112}" height="${H - 112}"/></clipPath>`;
+
+  const point = (a: number, r: number) => `${(CROWN_X + Math.cos(a) * r).toFixed(1)},${(CROWN_Y + Math.sin(a) * r).toFixed(1)}`;
+  const centred: string[] = [];
+  // Golden sunburst: 48 rays, alternately gold and fire.
+  for (let i = 0; i < 48; i++) {
+    const angle = (i / 48) * Math.PI * 2;
+    const spread = i % 2 ? 0.03 : 0.05;
+    centred.push(
+      `<polygon points="${point(angle - spread, 50)} ${point(angle, 900)} ${point(angle + spread, 50)}" fill="${i % 2 ? T.legend : T.legendLight}" fill-opacity="${i % 2 ? 0.1 : 0.16}"/>`,
+    );
+  }
+  centred.push(`<circle cx="${CROWN_X}" cy="${CROWN_Y}" r="330" fill="url(#crownGlow)"/>`);
+
+  const layers: string[] = [];
+  // Gold dust over the whole page.
+  for (let i = 0; i < 150; i++) {
+    const x = 70 + random() * (W - 140);
+    const y = 70 + random() * (H - 140);
+    const r = 0.8 + random() * 3;
+    layers.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${random() < 0.6 ? T.legendLight : T.legend}" fill-opacity="${(0.3 + random() * 0.6).toFixed(2)}"/>`);
+  }
+  const backdrop = `<g clip-path="url(#content)">${centred.join('')}</g><g clip-path="url(#inside)">${layers.join('')}</g>`;
+
+  // Laurel wreath around the badge: two branches of gold leaves, open at the top.
+  const wreath: string[] = [];
+  const wreathRadius = 188;
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 13; i++) {
+      // From the bottom (90°) up to the top (≈ -60°) on each side.
+      const angle = Math.PI / 2 + side * (0.18 + i * 0.2);
+      const x = CROWN_X + Math.cos(angle) * wreathRadius;
+      const y = CROWN_Y + Math.sin(angle) * wreathRadius;
+      const tangent = (angle * 180) / Math.PI + (side > 0 ? 90 : -90);
+      const size = 0.9 - i * 0.022;
+      for (const offset of [-28, 28]) {
+        wreath.push(
+          `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(30 * size).toFixed(1)}" ry="${(11 * size).toFixed(1)}" fill="url(#goldLeaf)" stroke="${T.edge}" stroke-width="1.2" transform="rotate(${(tangent + offset * side).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}) translate(${(side * 22 * size).toFixed(1)} 0)"/>`,
+        );
+      }
+    }
+  }
+  // The ribbon tying the two branches.
+  wreath.push(
+    `<path d="M${CROWN_X - 34},${CROWN_Y + wreathRadius} L${CROWN_X + 34},${CROWN_Y + wreathRadius} L${CROWN_X + 48},${CROWN_Y + wreathRadius + 28} L${CROWN_X + 20},${CROWN_Y + wreathRadius + 18} L${CROWN_X},${CROWN_Y + wreathRadius + 32} L${CROWN_X - 20},${CROWN_Y + wreathRadius + 18} L${CROWN_X - 48},${CROWN_Y + wreathRadius + 28} Z" fill="${T.crimson}" stroke="${T.goldText}" stroke-width="2.5"/>`,
+  );
+
+  const badge = await picture('game/league-tiers/large/105000036.png', 326);
+  const badgeSize = 268;
+  const badgeX = CROWN_X - badgeSize / 2;
+  const badgeY = CROWN_Y - badgeSize / 2;
+
+  // Name, glowing.
+  const nameY = CONTENT_TOP + 470;
+  const name = [
+    `<g filter="url(#nameGlow)" opacity="0.9">${text.draw(data.playerName, { font: 'bold', size: 84, x: W / 2, y: nameY, fill: T.legend, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 42 })}</g>`,
+    text.draw(data.playerName, { font: 'bold', size: 84, x: W / 2, y: nameY, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 42 }),
+    text.draw(s.top.toUpperCase(), { font: 'title', size: 30, x: W / 2, y: nameY + 50, fill: T.legendLight, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 22 }),
+  ].join('');
+
+  // Medallions.
+  const flag = data.countryRank !== null && data.countryCode ? await picture(`flags/${data.countryCode.toLowerCase()}.svg`, 160) : null;
+  const medals: { icon: string; value: string; label: string }[] = [
+    { icon: 'trophy', value: t.number(data.trophies), label: s.trophies },
+    ...(data.countryRank !== null && data.countryCode
+      ? [{ icon: 'flag', value: t.place(data.countryRank), label: s.country(t.country(data.countryCode)) }]
+      : []),
+    { icon: 'globe', value: t.place(data.worldRank), label: s.world },
+  ];
+  const medalTop = nameY + 74;
+  const medalHeight = 200;
+  const gap = 24;
+  const medalWidth = (RIGHT - LEFT - gap * (medals.length - 1)) / medals.length;
+  const medalSvg = medals
+    .map((medal, i) => {
+      const x = LEFT + i * (medalWidth + gap);
+      const cx = x + medalWidth / 2;
+      const iconY = medalTop + 56;
+      const icon =
+        medal.icon === 'trophy'
+          ? trophyIcon(cx, iconY)
+          : medal.icon === 'globe'
+            ? globeIcon(cx, iconY)
+            : flag
+              ? `<rect x="${cx - 39}" y="${iconY - 27}" width="78" height="54" rx="6" fill="${T.background}"/><image href="${flag}" x="${cx - 36}" y="${iconY - 24}" width="72" height="48" preserveAspectRatio="none"/>`
+              : '';
+      return [
+        `<rect x="${x}" y="${medalTop}" width="${medalWidth}" height="${medalHeight}" rx="22" fill="url(#medal)" stroke="${T.goldText}" stroke-width="3"/>`,
+        `<rect x="${x + 8}" y="${medalTop + 8}" width="${medalWidth - 16}" height="${medalHeight - 16}" rx="16" fill="none" stroke="${T.gold}" stroke-width="1.2" stroke-opacity="0.7"/>`,
+        icon,
+        text.draw(medal.value, { font: 'title', size: 52, x: cx, y: medalTop + 142, fill: T.legendLight, anchor: 'middle', maxWidth: medalWidth - 30, minSize: 30 }),
+        text.draw(medal.label.toUpperCase(), { font: 'semibold', size: 20, x: cx, y: medalTop + 178, fill: T.muted, anchor: 'middle', maxWidth: medalWidth - 30, minSize: 14 }),
+      ].join('');
+    })
+    .join('');
+
+  // Ornaments in the corners of the frame (over it): gold scrolls with a ruby.
+  const corner = (x: number, y: number, sx: number, sy: number) =>
+    `<g transform="translate(${x} ${y}) scale(${sx} ${sy})">
+      <path d="M0,0 L120,0 Q70,10 58,58 Q10,70 0,120 Z" fill="${T.gold}" fill-opacity="0.9" stroke="${T.legendLight}" stroke-width="2"/>
+      <path d="M18,18 L92,18 Q60,26 50,50 Q26,60 18,92 Z" fill="${T.background}" fill-opacity="0.65"/>
+      <circle cx="34" cy="34" r="12" fill="${T.crimson}" stroke="${T.legendLight}" stroke-width="3"/>
+    </g>`;
+  const ornaments = [
+    `<rect x="62" y="62" width="${W - 124}" height="${H - 124}" fill="none" stroke="${T.legend}" stroke-width="1.5" stroke-opacity="0.8"/>`,
+    corner(30, 30, 1, 1),
+    corner(W - 30, 30, -1, 1),
+    corner(30, H - 30, 1, -1),
+    corner(W - 30, H - 30, -1, -1),
+  ].join('');
+
+  const body = [
+    wreath.join(''),
+    image(badge, badgeX, badgeY, badgeSize),
+    legendDivision('Legend League I', badgeX, badgeY, badgeSize),
+    name,
+    medalSvg,
+  ].join('');
+  const ended = s.ended(t.day(data.seasonEnd));
+  return framePage(text, crest, { kicker: data.clanName, title: s.title, subtitle: ended }, body, frame, { defs, backdrop, ornaments });
+}
+
+/** A gold trophy cup centred on (`x`, `y`). */
+function trophyIcon(x: number, y: number): string {
+  return `<g transform="translate(${x - 30} ${y - 34})">
+    <path d="M10,4 H50 V22 Q50,44 30,48 Q10,44 10,22 Z" fill="url(#goldLeaf)" stroke="${T.edge}" stroke-width="2"/>
+    <path d="M10,10 H2 Q0,26 14,32 M50,10 H58 Q60,26 46,32" fill="none" stroke="${T.goldText}" stroke-width="4" stroke-linecap="round"/>
+    <rect x="25" y="47" width="10" height="10" fill="${T.gold}"/>
+    <rect x="15" y="56" width="30" height="10" rx="3" fill="url(#goldLeaf)" stroke="${T.edge}" stroke-width="1.5"/>
+    <path d="M20,12 Q22,30 30,38" fill="none" stroke="${T.legendLight}" stroke-width="3" stroke-opacity="0.8" stroke-linecap="round"/>
+  </g>`;
+}
+
+/** A globe of gold lines centred on (`x`, `y`). */
+function globeIcon(x: number, y: number): string {
+  const r = 32;
+  return `<g fill="none" stroke="${T.goldText}" stroke-width="3">
+    <circle cx="${x}" cy="${y}" r="${r}" fill="${T.electroDeep}"/>
+    <ellipse cx="${x}" cy="${y}" rx="${r * 0.45}" ry="${r}"/>
+    <line x1="${x}" y1="${y - r}" x2="${x}" y2="${y + r}"/>
+    <line x1="${x - r}" y1="${y}" x2="${x + r}" y2="${y}"/>
+    <path d="M${x - r * 0.88},${y - r * 0.45} Q${x},${y - r * 0.6} ${x + r * 0.88},${y - r * 0.45} M${x - r * 0.88},${y + r * 0.45} Q${x},${y + r * 0.6} ${x + r * 0.88},${y + r * 0.45}"/>
+  </g>`;
 }

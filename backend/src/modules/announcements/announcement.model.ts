@@ -3,7 +3,8 @@ import { HydratedDocument, InferSchemaType, model, models, Model, Schema } from 
 /**
  * What an announcement tells: the month of a clan (wars, Raid Weekends and the commendations of the
  * month), a Clan War League season, the donations of a game season, a new record of the clan, or a
- * player promoted to a league never reached before (Electro League 31 and up).
+ * player promoted to a league never reached before (Electro League 31 and up), or a player who ended
+ * a Legend League season in Legend League I (among the first 10,000 of the world).
  */
 export const AnnouncementKind = {
   MONTH: 'month',
@@ -11,6 +12,7 @@ export const AnnouncementKind = {
   DONATIONS: 'donations',
   RECORD: 'record',
   PROMOTION: 'promotion',
+  LEGEND_SEASON: 'legendSeason',
 } as const;
 export type AnnouncementKind = (typeof AnnouncementKind)[keyof typeof AnnouncementKind];
 export const ANNOUNCEMENT_KINDS = Object.values(AnnouncementKind);

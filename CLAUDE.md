@@ -195,7 +195,8 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   scheduler prepares drafts for each clan of the Crusade (closed month with its Raid Weekends, CWL
   season, donation season, beaten record; perfect wars every 25, main clan only; a member's league
   never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
-  `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`), published or
+  `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`; a member ending a Legend League
+  season in Legend League I among the first 10,000 of the world, from `modules/legends/`), published or
   discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
   a post goes out in it; a published one keeps its `language`. Pictures are
@@ -207,6 +208,11 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
+- Legend League seasons (`backend/src/modules/legends/`): four weeks, ending on Monday at 05:00 UTC;
+  `GET /leagues/29000022/seasons` lists the ended ones (`v2-<end>`), `/seasons/{id}?limit=10000` gives
+  the final world ranking (the first 10,000 stay in Legend League I). The country ranking
+  (`/locations/{id}/rankings/players`, top 200) is reset at the end, so the scheduler reads it 3 minutes
+  before (`legendCheckAt`) and the country position is worked out from the final world positions.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the
   backend); the official API is GET-only except `verifytoken`.

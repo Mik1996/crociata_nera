@@ -1,5 +1,14 @@
 import { escapeHtml } from '@/lib/telegram/telegram-client';
-import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from './announcement-data';
+import {
+  AnnouncementData,
+  CwlData,
+  DonationsData,
+  Honour,
+  LegendSeasonData,
+  MonthData,
+  PromotionData,
+  RecordData,
+} from './announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from './announcement-texts';
 
 /**
@@ -31,7 +40,24 @@ export function generatedCaption(data: AnnouncementData, language?: Announcement
       return recordCaption(t, data);
     case 'promotion':
       return promotionCaption(t, data);
+    case 'legendSeason':
+      return legendSeasonCaption(t, data);
   }
+}
+
+/** Flag emoji of a country (`IT` -> 🇮🇹). */
+export function flagEmoji(code: string): string {
+  return String.fromCodePoint(...[...code.toUpperCase()].map((char) => 0x1f1e6 + char.charCodeAt(0) - 65));
+}
+
+function legendSeasonCaption(t: AnnouncementTexts, data: LegendSeasonData): string {
+  const c = t.caption.legendSeason;
+  const lines = [`👑 ${c.title(data.playerName, t.league('Legend League I'))}`, '', c.trophies(t.number(data.trophies))];
+  if (data.countryRank !== null && data.countryCode) {
+    lines.push(`${flagEmoji(data.countryCode)} ${c.country(t.place(data.countryRank), t.country(data.countryCode))}`);
+  }
+  lines.push(c.world(t.place(data.worldRank)), '', c.closing);
+  return lines.join('\n');
 }
 
 function promotionCaption(t: AnnouncementTexts, data: PromotionData): string {

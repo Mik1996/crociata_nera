@@ -104,7 +104,24 @@ export interface PromotionData extends ClanPart {
   previousLeague: LeagueTier | null;
 }
 
-export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData;
+/** A member who ended a Legend League season in Legend League I (first 10,000 of the world). */
+export interface LegendSeasonData extends ClanPart {
+  kind: 'legendSeason';
+  playerTag: string;
+  playerName: string;
+  /** `v2-2026-11-23T05:00:00Z`. */
+  seasonId: string;
+  /** End of the season (ISO). */
+  seasonEnd: string;
+  trophies: number;
+  worldRank: number;
+  /** Position in the clan's country; `null` when unknown. */
+  countryRank: number | null;
+  /** ISO code of that country (`IT`). */
+  countryCode: string | null;
+}
+
+export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData | LegendSeasonData;
 
 export function clanName(clanTag: string): string {
   return CRUSADE_CLAN_NAMES[clanTag] ?? clanTag;
