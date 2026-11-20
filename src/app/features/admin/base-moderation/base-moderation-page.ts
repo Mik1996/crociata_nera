@@ -22,6 +22,7 @@ import { Icon } from '../../../shared/components/icon/icon';
 import { LoadState } from '../../../shared/components/load-state/load-state';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { ScrollFade } from '../../../shared/directives/scroll-fade';
+import { SwipeTabs } from '../../../shared/directives/swipe-tabs';
 import { BaseArsenal } from '../../bases/base-arsenal';
 import { BaseImageDialog, BaseImageDialogData } from '../../bases/components/base-image-dialog';
 import { BaseProposalCard } from '../../bases/components/base-proposal-card';
@@ -54,6 +55,7 @@ export const MODERATION_TABS: readonly { id: string; status: BaseStatus }[] = [
     LoadState,
     PageHeader,
     ScrollFade,
+    SwipeTabs,
     BaseProposalCard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
