@@ -14,7 +14,7 @@ import {
 } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { formatLocalDate, LocalDatePipe } from '../../../core/i18n/locale-pipes';
+import { formatLocalDate, formatLocalNumber, LocalDatePipe } from '../../../core/i18n/locale-pipes';
 import { Alert } from '../../../shared/components/alert/alert';
 import { Icon } from '../../../shared/components/icon/icon';
 import { IconName } from '../../../shared/components/icon/icon-names';
@@ -45,6 +45,7 @@ const KIND_ICONS: Record<AnnouncementKind, IconName> = {
   donations: 'volunteer_activism',
   record: 'local_fire_department',
   promotion: 'workspace_premium',
+  legendSeason: 'emoji_events',
 };
 
 const STATE_TONES: Record<Announcement['state'], TagTone> = {
@@ -122,6 +123,13 @@ export class AnnouncementsAdminPage {
 
   /** "Crociata Nera · Novembre 2026", "Crociata Rossa · Serie di vittorie: 57". */
   protected title(a: Announcement): string {
+    if (a.kind === 'legendSeason') {
+      const detail = this.language.t('announcementsAdmin.legendSeason', {
+        player: a.playerName,
+        trophies: formatLocalNumber(a.value ?? 0, this.language.current()),
+      });
+      return `${a.clanName} · ${detail}`;
+    }
     if (a.kind === 'promotion') {
       const detail = this.language.t('announcementsAdmin.promotion', {
         player: a.playerName,

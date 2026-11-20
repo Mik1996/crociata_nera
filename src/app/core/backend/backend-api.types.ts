@@ -321,7 +321,8 @@ export interface TelegramStatus {
 }
 
 /** What an announcement tells (`GET /admin/announcements`). */
-export type AnnouncementKind = 'month' | 'cwl' | 'donations' | 'record' | 'promotion';
+export type AnnouncementKind =
+  'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason';
 export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
 
 /** An announcement for the Telegram announcements channel, prepared by the backend. */

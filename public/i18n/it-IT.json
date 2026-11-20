@@ -1297,7 +1297,7 @@
   "announcementsAdmin": {
     "title": "Annunci",
     "subtitle": "Bozze per il canale annunci di Telegram, pronte da pubblicare",
-    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, quando un clan della Crociata batte un record e quando un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I). I numeri di una bozza si aggiornano finché non la pubblichi.",
+    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, quando un clan della Crociata batte un record, quando un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I) e quando un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo. I numeri di una bozza si aggiornano finché non la pubblichi.",
     "drafts": "Bozze",
     "noDrafts": "Nessuna bozza in attesa: la prossima arriverà alla chiusura del mese o con un nuovo record.",
     "history": "Pubblicati e scartati",
@@ -1318,7 +1318,8 @@
       "cwl": "CWL",
       "donations": "Donazioni",
       "record": "Record",
-      "promotion": "Promozione"
+      "promotion": "Promozione",
+      "legendSeason": "Stagione Leggenda"
     },
     "state": {
       "draft": "Bozza",
@@ -1353,6 +1354,7 @@
       "Electro": "Elettro",
       "Legend": "Leggende",
       "Dragon": "Drago"
-    }
+    },
+    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei"
   }
 }

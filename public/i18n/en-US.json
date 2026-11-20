@@ -1297,7 +1297,7 @@
   "announcementsAdmin": {
     "title": "Announcements",
     "subtitle": "Drafts for the Telegram announcements channel, ready to publish",
-    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, when a clan of the Crusade beats a record and when a player reaches a league never reached before (Electro 31 to Legend I). The figures of a draft stay up to date until you publish it.",
+    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, when a clan of the Crusade beats a record, when a player reaches a league never reached before (Electro 31 to Legend I) and when a player ends the Legend season among the first 10,000 in the world. The figures of a draft stay up to date until you publish it.",
     "drafts": "Drafts",
     "noDrafts": "No drafts waiting: the next one comes when the month closes or with a new record.",
     "history": "Published and discarded",
@@ -1318,7 +1318,8 @@
       "cwl": "CWL",
       "donations": "Donations",
       "record": "Record",
-      "promotion": "Promotion"
+      "promotion": "Promotion",
+      "legendSeason": "Legend season"
     },
     "state": {
       "draft": "Draft",
@@ -1353,6 +1354,7 @@
       "Electro": "Electro",
       "Legend": "Legend",
       "Dragon": "Dragon"
-    }
+    },
+    "legendSeason": "{{player}} ends the Legend season with {{trophies}} trophies"
   }
 }

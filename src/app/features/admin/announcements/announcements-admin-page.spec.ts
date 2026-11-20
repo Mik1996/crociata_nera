@@ -136,6 +136,22 @@ describe('AnnouncementsAdminPage', () => {
     );
   });
 
+  it('names the end of a Legend season with the player and the trophies', async () => {
+    const legend: Announcement = {
+      ...record,
+      id: 'a4',
+      kind: 'legendSeason',
+      subject: '#P',
+      value: 5091,
+      leagueName: null,
+      playerName: 'Mik',
+    };
+    const { el } = await render([legend]);
+    expect(el.querySelector('.decided__item')!.textContent).toContain(
+      'Crociata Rossa · Mik chiude la stagione Leggenda con 5.091 trofei',
+    );
+  });
+
   it('asks the drafts again in the new language when the language changes', async () => {
     await render([record]);
     TestBed.inject(LanguageService).use('en-US').subscribe();
