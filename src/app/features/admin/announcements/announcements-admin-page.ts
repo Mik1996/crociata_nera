@@ -44,6 +44,7 @@ const KIND_ICONS: Record<AnnouncementKind, IconName> = {
   cwl: 'emoji_events',
   donations: 'volunteer_activism',
   record: 'local_fire_department',
+  promotion: 'workspace_premium',
 };
 
 const STATE_TONES: Record<Announcement['state'], TagTone> = {
@@ -117,6 +118,13 @@ export class AnnouncementsAdminPage {
 
   /** "Crociata Nera · Novembre 2026", "Crociata Rossa · Serie di vittorie: 57". */
   protected title(a: Announcement): string {
+    if (a.kind === 'promotion') {
+      const detail = this.language.t('announcementsAdmin.promotion', {
+        player: a.playerName,
+        league: this.leagueLabel(a.leagueName ?? ''),
+      });
+      return `${a.clanName} · ${detail}`;
+    }
     const detail =
       a.kind === 'record'
         ? this.language.t(`announcementsAdmin.records.${a.subject}`, {
@@ -125,6 +133,16 @@ export class AnnouncementsAdminPage {
           })
         : this.monthLabel(a.subject);
     return `${a.clanName} · ${detail}`;
+  }
+
+  /** `Electro League 32` in the language of the page (`Lega Elettro 32`); unknown names as they are. */
+  private leagueLabel(name: string): string {
+    const match = /^(Electro|Legend|Dragon) League (\S+)$/.exec(name);
+    if (!match) return name;
+    return this.language.t('announcementsAdmin.league', {
+      family: this.language.t(`announcementsAdmin.leagueFamily.${match[1]}`),
+      division: match[2],
+    });
   }
 
   private monthLabel(month: string): string {

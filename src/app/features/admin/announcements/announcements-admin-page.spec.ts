@@ -19,6 +19,7 @@ const month: Announcement = {
   subject: '2026-11',
   value: null,
   leagueName: null,
+  playerName: null,
   caption: '⚔️ **Crociata Nera · Novembre 2026**',
   captionEdited: false,
   pages: 2,
@@ -107,6 +108,23 @@ describe('AnnouncementsAdminPage', () => {
     expect(published.textContent).toContain('Crociata Rossa · Serie di vittorie: 57');
     expect(published.textContent).toContain('Pubblicato');
     expect(published.querySelector('a')!.getAttribute('href')).toBe(record.postUrl);
+  });
+
+  it('names a promotion with the player and the league in the language of the page', async () => {
+    const promotion: Announcement = {
+      ...month,
+      id: 'a3',
+      kind: 'promotion',
+      state: 'published',
+      subject: '#P',
+      value: 105000035,
+      leagueName: 'Legend League II',
+      playerName: 'Dragone Nero',
+    };
+    const { el } = await render([promotion]);
+    expect(el.querySelector('.decided__item')!.textContent).toContain(
+      'Crociata Nera · Dragone Nero sale in Lega Leggende II',
+    );
   });
 
   it('saves a caption written by hand, and restores the automatic one', async () => {

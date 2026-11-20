@@ -320,7 +320,7 @@ export interface TelegramStatus {
 }
 
 /** What an announcement tells (`GET /admin/announcements`). */
-export type AnnouncementKind = 'month' | 'cwl' | 'donations' | 'record';
+export type AnnouncementKind = 'month' | 'cwl' | 'donations' | 'record' | 'promotion';
 export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
 
 /** An announcement for the Telegram announcements channel, prepared by the backend. */
@@ -334,8 +334,10 @@ export interface Announcement {
   subject: string;
   /** Records: the new value (league id for `cwlLeague`). */
   value: number | null;
-  /** Records `cwlLeague`: the league reached. */
+  /** League reached, as the API names it (records `cwlLeague`, promotions). */
   leagueName: string | null;
+  /** Promotions: the player promoted. */
+  playerName: string | null;
   /** Caption of the post, `**text**` in bold. */
   caption: string;
   captionEdited: boolean;

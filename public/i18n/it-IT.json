@@ -1297,7 +1297,7 @@
   "announcementsAdmin": {
     "title": "Annunci",
     "subtitle": "Bozze per il canale annunci di Telegram, pronte da pubblicare",
-    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, e quando un clan della Crociata batte un record. I numeri di una bozza si aggiornano finché non la pubblichi.",
+    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, quando un clan della Crociata batte un record e quando un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I). I numeri di una bozza si aggiornano finché non la pubblichi.",
     "drafts": "Bozze",
     "noDrafts": "Nessuna bozza in attesa: la prossima arriverà alla chiusura del mese o con un nuovo record.",
     "history": "Pubblicati e scartati",
@@ -1317,7 +1317,8 @@
       "month": "Mese",
       "cwl": "CWL",
       "donations": "Donazioni",
-      "record": "Record"
+      "record": "Record",
+      "promotion": "Promozione"
     },
     "state": {
       "draft": "Bozza",
@@ -1345,6 +1346,13 @@
         "confirm": "Scarta"
       }
     },
-    "interrupted": "Una pubblicazione di questo annuncio si è interrotta: potrebbe essere già nel canale. Controlla Telegram prima di pubblicarlo di nuovo."
+    "interrupted": "Una pubblicazione di questo annuncio si è interrotta: potrebbe essere già nel canale. Controlla Telegram prima di pubblicarlo di nuovo.",
+    "promotion": "{{player}} sale in {{league}}",
+    "league": "Lega {{family}} {{division}}",
+    "leagueFamily": {
+      "Electro": "Elettro",
+      "Legend": "Leggende",
+      "Dragon": "Drago"
+    }
   }
 }

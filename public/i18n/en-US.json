@@ -1297,7 +1297,7 @@
   "announcementsAdmin": {
     "title": "Announcements",
     "subtitle": "Drafts for the Telegram announcements channel, ready to publish",
-    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, and when a clan of the Crusade beats a record. The figures of a draft stay up to date until you publish it.",
+    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, when a clan of the Crusade beats a record and when a player reaches a league never reached before (Electro 31 to Legend I). The figures of a draft stay up to date until you publish it.",
     "drafts": "Drafts",
     "noDrafts": "No drafts waiting: the next one comes when the month closes or with a new record.",
     "history": "Published and discarded",
@@ -1317,7 +1317,8 @@
       "month": "Month",
       "cwl": "CWL",
       "donations": "Donations",
-      "record": "Record"
+      "record": "Record",
+      "promotion": "Promotion"
     },
     "state": {
       "draft": "Draft",
@@ -1345,6 +1346,13 @@
         "confirm": "Discard"
       }
     },
-    "interrupted": "A publication of this announcement was interrupted: it may already be in the channel. Check Telegram before publishing it again."
+    "interrupted": "A publication of this announcement was interrupted: it may already be in the channel. Check Telegram before publishing it again.",
+    "promotion": "{{player}} reaches {{league}}",
+    "league": "{{family}} League {{division}}",
+    "leagueFamily": {
+      "Electro": "Electro",
+      "Legend": "Legend",
+      "Dragon": "Dragon"
+    }
   }
 }
