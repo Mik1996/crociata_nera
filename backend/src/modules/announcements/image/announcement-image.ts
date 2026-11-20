@@ -1,7 +1,7 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
 import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from '../announcement-data';
-import { COMMENDATION_LABELS, formatNumber, leagueLabel, monthLabel, RECORD_LABELS, TIER_LABELS } from '../announcement-texts';
+import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../announcement-texts';
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
 import { SvgText } from './svg-text';
@@ -104,52 +104,54 @@ interface Header {
   subtitle: string;
 }
 
-/** Draws the pages of an announcement (SVG). */
-export async function announcementSvgs(data: AnnouncementData): Promise<string[]> {
+/** Draws the pages of an announcement (SVG), in a language (Italian, the channel's, by default). */
+export async function announcementSvgs(data: AnnouncementData, language?: AnnouncementLanguage): Promise<string[]> {
   const text = await SvgText.create();
+  const t = announcementTexts(language);
+  const h = t.image.honours;
   const crest = await picture(CREST_OF[data.clanTag] ?? DEFAULT_CREST, 300);
   const page = (header: Header, body: string) => framePage(text, crest, header, body);
 
   switch (data.kind) {
     case 'month':
       return [
-        page({ kicker: data.clanName, title: monthLabel(data.month), subtitle: 'Il mese della Crociata' }, monthBody(text, data)),
-        ...(await honourPages(text, data.honours, (n) =>
-          page({ kicker: data.clanName, title: "Albo d'onore", subtitle: pageSubtitle(monthLabel(data.month), n) }, ''),
+        page({ kicker: data.clanName, title: t.month(data.month), subtitle: t.image.month.subtitle }, monthBody(text, t, data)),
+        ...(await honourPages(text, t, data.honours, (n) =>
+          page({ kicker: data.clanName, title: h.title, subtitle: pageSubtitle(t.month(data.month), n) }, ''),
         )),
       ].slice(0, MAX_PAGES);
     case 'cwl':
       return [
-        page({ kicker: data.clanName, title: 'Lega fra Clan', subtitle: monthLabel(data.season) }, cwlBody(text, data)),
-        ...(await honourPages(text, data.honours, (n) =>
-          page({ kicker: data.clanName, title: "Albo d'onore", subtitle: pageSubtitle(`CWL di ${monthLabel(data.season)}`, n) }, ''),
+        page({ kicker: data.clanName, title: t.image.cwl.title, subtitle: t.month(data.season) }, cwlBody(text, t, data)),
+        ...(await honourPages(text, t, data.honours, (n) =>
+          page({ kicker: data.clanName, title: h.title, subtitle: pageSubtitle(h.cwl(t.month(data.season)), n) }, ''),
         )),
       ].slice(0, MAX_PAGES);
     case 'donations':
       return [
-        page({ kicker: data.clanName, title: 'Donazioni', subtitle: `Stagione di ${monthLabel(data.season)}` }, donationsBody(text, data)),
-        ...(await honourPages(text, data.honours, (n) =>
-          page({ kicker: data.clanName, title: "Albo d'onore", subtitle: pageSubtitle(`Donazioni di ${monthLabel(data.season)}`, n) }, ''),
+        page({ kicker: data.clanName, title: t.image.donations.title, subtitle: t.image.donations.season(t.month(data.season)) }, donationsBody(text, t, data)),
+        ...(await honourPages(text, t, data.honours, (n) =>
+          page({ kicker: data.clanName, title: h.title, subtitle: pageSubtitle(h.donations(t.month(data.season)), n) }, ''),
         )),
       ].slice(0, MAX_PAGES);
     case 'record':
-      return [page({ kicker: data.clanName, title: 'Nuovo record', subtitle: RECORD_LABELS[data.record] }, await recordBody(text, data))];
+      return [page({ kicker: data.clanName, title: t.image.record.title, subtitle: t.records[data.record] }, await recordBody(text, t, data))];
     case 'promotion':
-      return [await promotionPage(text, crest, data)];
+      return [await promotionPage(text, t, crest, data)];
   }
 }
 
 const pageSubtitle = (label: string, n: number) => (n > 1 ? `${label} · ${n}` : label);
 
 /** Draws the pages of an announcement as JPEG files. */
-export async function renderAnnouncementImages(data: AnnouncementData): Promise<Buffer[]> {
-  const svgs = await announcementSvgs(data);
+export async function renderAnnouncementImages(data: AnnouncementData, language?: AnnouncementLanguage): Promise<Buffer[]> {
+  const svgs = await announcementSvgs(data, language);
   return Promise.all(svgs.map(renderSvg));
 }
 
 /** Draws one page (0-based); `null` beyond the last. */
-export async function renderAnnouncementImage(data: AnnouncementData, page: number): Promise<Buffer | null> {
-  const svg = (await announcementSvgs(data))[page];
+export async function renderAnnouncementImage(data: AnnouncementData, page: number, language?: AnnouncementLanguage): Promise<Buffer | null> {
+  const svg = (await announcementSvgs(data, language))[page];
   return svg ? renderSvg(svg) : null;
 }
 
@@ -272,44 +274,47 @@ function emptyNote(text: SvgText, message: string): string {
 
 // --- pages -------------------------------------------------------------------
 
-function monthBody(text: SvgText, data: MonthData): string {
+function monthBody(text: SvgText, t: AnnouncementTexts, data: MonthData): string {
+  const m = t.image.month;
+  const formatNumber = t.number;
   const items: Tile[] = [];
   if (data.wars) {
     const w = data.wars;
     items.push(
-      { label: 'Guerre', value: String(w.total), note: `${w.victories} vinte · ${w.draws} pari · ${w.defeats} perse` },
-      { label: 'Stelle a guerra', value: formatNumber(w.averageStars, 2), note: `${formatNumber(w.stars)} stelle in tutto` },
-      { label: 'Distruzione media', value: `${formatNumber(w.averageDestruction, 1)}%` },
-      { label: 'Attacchi a tre stelle', value: `${formatNumber(w.threeStarRate, 1)}%`, note: `su ${formatNumber(w.attacksUsed)} attacchi` },
+      { label: m.wars, value: String(w.total), note: m.warsNote(w.victories, w.draws, w.defeats) },
+      { label: m.starsPerWar, value: formatNumber(w.averageStars, 2), note: m.starsNote(formatNumber(w.stars)) },
+      { label: m.destruction, value: `${formatNumber(w.averageDestruction, 1)}%` },
+      { label: m.threeStars, value: `${formatNumber(w.threeStarRate, 1)}%`, note: m.threeStarsNote(formatNumber(w.attacksUsed)) },
       {
-        label: 'Attacchi mancati',
+        label: m.missed,
         value: String(w.attacksMissed),
         accent: w.attacksMissed > 0 ? T.danger : T.good,
-        note: w.attacksMissed > 0 ? 'ogni attacco conta' : 'nessuno: tutti presenti!',
+        note: w.attacksMissed > 0 ? m.missedSome : m.missedNone,
       },
     );
   }
   if (data.raids) {
     items.push({
-      label: 'Oro della capitale',
+      label: m.capitalGold,
       value: formatNumber(data.raids.capitalGold),
-      note: `${data.raids.weekends} Raid Weekend · ${formatNumber(data.raids.attacks)} attacchi`,
+      note: m.capitalGoldNote(data.raids.weekends, formatNumber(data.raids.attacks)),
     });
   }
-  if (!items.length) return emptyNote(text, 'Nessuna guerra né Raid Weekend questo mese');
+  if (!items.length) return emptyNote(text, m.empty);
   const grid = tiles(text, items, CONTENT_TOP + 20);
   const mvp = data.mvp
-    ? champion(text, grid.bottom + 36, 'Migliore del mese', [data.mvp.name], `${formatNumber(data.mvp.averageStars, 2)} stelle a guerra in ${data.mvp.wars} guerre`)
+    ? champion(text, grid.bottom + 36, m.best, [data.mvp.name], m.bestNote(formatNumber(data.mvp.averageStars, 2), data.mvp.wars))
     : '';
   return grid.svg + mvp;
 }
 
-function cwlBody(text: SvgText, data: CwlData): string {
+function cwlBody(text: SvgText, t: AnnouncementTexts, data: CwlData): string {
+  const c = t.image.cwl;
   const items: Tile[] = [
-    { label: 'Posizione', value: data.rank !== null ? `${data.rank}°` : '–', note: `su ${data.clans} clan`, accent: data.rank === 1 ? T.good : undefined },
-    { label: 'Stelle', value: formatNumber(data.stars), note: 'con i bonus delle vittorie' },
-    { label: 'Vittorie', value: String(data.wins), accent: T.good },
-    { label: 'Pareggi e sconfitte', value: `${data.draws} · ${data.losses}` },
+    { label: c.place, value: data.rank !== null ? t.place(data.rank) : '–', note: c.placeNote(data.clans), accent: data.rank === 1 ? T.good : undefined },
+    { label: c.stars, value: t.number(data.stars), note: c.starsNote },
+    { label: c.wins, value: String(data.wins), accent: T.good },
+    { label: c.drawsAndLosses, value: `${data.draws} · ${data.losses}` },
   ];
   const grid = tiles(text, items, CONTENT_TOP + 20);
   const best = data.bestAttackers;
@@ -317,23 +322,24 @@ function cwlBody(text: SvgText, data: CwlData): string {
     ? champion(
         text,
         grid.bottom + 40,
-        best.names.length > 1 ? 'Migliori attaccanti' : 'Migliore attaccante',
+        c.best(best.names.length),
         best.names,
-        `${best.stars} stelle in ${best.attacks} attacchi${best.names.length > 1 ? ' ciascuno' : ''}`,
+        c.bestNote(best.stars, best.attacks, best.names.length > 1),
       )
     : '';
   return grid.svg + mvp;
 }
 
-function donationsBody(text: SvgText, data: DonationsData): string {
-  const grid = tiles(text, [{ label: 'Truppe donate', value: formatNumber(data.total), note: 'in tutta la stagione' }], CONTENT_TOP + 20);
+function donationsBody(text: SvgText, t: AnnouncementTexts, data: DonationsData): string {
+  const formatNumber = t.number;
+  const grid = tiles(text, [{ label: t.image.donations.troops, value: formatNumber(data.total), note: t.image.donations.troopsNote }], CONTENT_TOP + 20);
   let svg = grid.svg;
   let y = grid.bottom + 40;
   const medals = [T.goldText, T.text, T.gold];
   data.top.forEach((player, i) => {
     const rowHeight = 92;
     svg += `<rect x="${LEFT}" y="${y}" width="${RIGHT - LEFT}" height="${rowHeight - 14}" rx="12" fill="${i % 2 ? T.plate : T.tile}" fill-opacity="0.85" stroke="${T.edge}" stroke-width="2"/>`;
-    svg += text.draw(`${i + 1}°`, { font: 'title', size: 40, x: LEFT + 34, y: y + 54, fill: medals[i] ?? T.muted });
+    svg += text.draw(t.place(i + 1), { font: 'title', size: 40, x: LEFT + 34, y: y + 54, fill: medals[i] ?? T.muted });
     svg += text.draw(player.name, { font: 'semibold', size: 34, x: LEFT + 120, y: y + 52, fill: T.text, maxWidth: 520, minSize: 22 });
     svg += text.draw(formatNumber(player.donations), { font: 'title', size: 38, x: RIGHT - 34, y: y + 54, fill: T.goldText, anchor: 'end' });
     y += rowHeight;
@@ -341,39 +347,32 @@ function donationsBody(text: SvgText, data: DonationsData): string {
   return svg;
 }
 
-async function recordBody(text: SvgText, data: RecordData): Promise<string> {
+async function recordBody(text: SvgText, t: AnnouncementTexts, data: RecordData): Promise<string> {
   const middle = W / 2;
+  const r = t.image.record;
   if (data.record === 'cwlLeague') {
     const trophy = await picture(warLeagueFile(data.leagueName) ?? '', 360);
     const previous =
       data.previousLeagueName && data.previousLeagueName !== data.leagueName
-        ? `Prima: ${data.previousLeagueName}`
-        : 'La lega più alta mai raggiunta';
+        ? r.leagueBefore(t.league(data.previousLeagueName))
+        : r.leagueHighest;
     return [
       image(trophy, middle - 170, CONTENT_TOP + 30, 340),
-      text.draw(data.leagueName ?? '', { font: 'title', size: 66, x: middle, y: CONTENT_TOP + 470, fill: T.goldText, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 40 }),
+      text.draw(t.league(data.leagueName ?? ''), { font: 'title', size: 66, x: middle, y: CONTENT_TOP + 470, fill: T.goldText, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 40 }),
       text.draw(previous, { font: 'regular', size: 32, x: middle, y: CONTENT_TOP + 540, fill: T.muted, anchor: 'middle', maxWidth: RIGHT - LEFT }),
     ].join('');
   }
   const ranking = data.record === 'localRank' || data.record === 'localCapitalRank';
-  const value = ranking ? `${data.value}°` : formatNumber(data.value);
-  const unit: Record<RecordData['record'], string> = {
-    perfectWars: 'guerre vinte con tutte le stelle',
-    warWinStreak: 'guerre vinte di fila',
-    cwlLeague: '',
-    localRank: 'posto nella classifica dei clan in Italia',
-    localCapitalRank: 'posto nella classifica della capitale in Italia',
-    capitalPoints: 'trofei della capitale',
-  };
+  const value = ranking ? t.place(data.value) : t.number(data.value);
   const previous =
     data.previous === null || data.previous === 0
-      ? 'Mai così in alto'
-      : `Il record precedente: ${ranking ? `${data.previous}°` : formatNumber(data.previous)}`;
+      ? r.never
+      : r.previous(ranking ? t.place(data.previous) : t.number(data.previous));
   return [
     `<circle cx="${middle}" cy="${CONTENT_TOP + 270}" r="230" fill="${T.plate}" fill-opacity="0.85" stroke="${T.gold}" stroke-width="4"/>`,
     `<circle cx="${middle}" cy="${CONTENT_TOP + 270}" r="206" fill="none" stroke="${T.gold}" stroke-width="1.5" stroke-opacity="0.7"/>`,
     text.draw(value, { font: 'display', size: 200, x: middle, y: CONTENT_TOP + 270, fill: T.goldText, anchor: 'middle', maxWidth: 360, minSize: 90, centered: true }),
-    text.draw(unit[data.record], { font: 'title', size: 40, x: middle, y: CONTENT_TOP + 600, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 26 }),
+    text.draw(r.units[data.record], { font: 'title', size: 40, x: middle, y: CONTENT_TOP + 600, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 26 }),
     text.draw(previous, { font: 'regular', size: 30, x: middle, y: CONTENT_TOP + 660, fill: T.muted, anchor: 'middle', maxWidth: RIGHT - LEFT }),
   ].join('');
 }
@@ -382,7 +381,7 @@ async function recordBody(text: SvgText, data: RecordData): Promise<string> {
  * The commendations, one row each (medal, name, tier, players), on as many pages as needed.
  * `page(n)` draws the frame of the n-th page (1-based); the rows are added to it.
  */
-async function honourPages(text: SvgText, honours: Honour[], page: (n: number) => string): Promise<string[]> {
+async function honourPages(text: SvgText, t: AnnouncementTexts, honours: Honour[], page: (n: number) => string): Promise<string[]> {
   if (!honours.length) return [];
   const medalSize = 96;
   const namesLeft = LEFT + medalSize + 32;
@@ -403,7 +402,7 @@ async function honourPages(text: SvgText, honours: Honour[], page: (n: number) =
     rows.push(
       [
         image(medal, LEFT, y, medalSize),
-        text.draw(COMMENDATION_LABELS[honour.type][honour.tier] ?? honour.type, {
+        text.draw(t.commendations[honour.type][honour.tier] ?? honour.type, {
           font: 'title',
           size: 34,
           x: namesLeft,
@@ -412,7 +411,7 @@ async function honourPages(text: SvgText, honours: Honour[], page: (n: number) =
           maxWidth: namesWidth - 170,
           minSize: 24,
         }),
-        text.draw(TIER_LABELS[honour.tier].toUpperCase(), { font: 'semibold', size: 20, x: RIGHT - 16, y: y + 34, fill: T.muted, anchor: 'end' }),
+        text.draw(t.tiers[honour.tier].toUpperCase(), { font: 'semibold', size: 20, x: RIGHT - 16, y: y + 34, fill: T.muted, anchor: 'end' }),
         ...lines.map((line, i) =>
           text.draw(line, { font: 'regular', size: 28, x: namesLeft, y: y + 80 + i * lineHeight, fill: T.text }),
         ),
@@ -435,7 +434,7 @@ const BADGE_Y = CONTENT_TOP + 245;
  * middle of a glow, rays, rings and lightning (Electro) or embers and flames (Legend), more of them
  * at every league up to Legend League I.
  */
-async function promotionPage(text: SvgText, crest: string | null, data: PromotionData): Promise<string> {
+async function promotionPage(text: SvgText, t: AnnouncementTexts, crest: string | null, data: PromotionData): Promise<string> {
   const look = promotionLook(data.league.id);
   const { level, accent, light, deep } = look;
   const random = seededRandom(data.league.id);
@@ -546,11 +545,12 @@ async function promotionPage(text: SvgText, crest: string | null, data: Promotio
     image(badge, BADGE_X - badgeSize / 2, BADGE_Y - badgeSize / 2, badgeSize),
     legendDivision(data.league.name, BADGE_X - badgeSize / 2, BADGE_Y - badgeSize / 2, badgeSize),
     text.draw(data.playerName, { font: 'bold', size: 76, x: W / 2, y: CONTENT_TOP + 575, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 40 }),
-    text.draw(`sale in ${leagueLabel(data.league.name)}`.toUpperCase(), { font: 'title', size: 42, x: W / 2, y: CONTENT_TOP + 640, fill: light, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 28 }),
+    text.draw(t.image.promotion.reaches(t.league(data.league.name)).toUpperCase(), { font: 'title', size: 42, x: W / 2, y: CONTENT_TOP + 640, fill: light, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 28 }),
   ].join('');
 
-  const title = 'Promozione!';
-  const subtitle = top ? 'Tra i campioni del mondo' : look.family === 'legend' ? 'Tra le Leggende' : 'Nuova lega raggiunta';
+  const p = t.image.promotion;
+  const title = p.title;
+  const subtitle = top ? p.top : look.family === 'legend' ? p.legend : p.electro;
   return framePage(text, crest, { kicker: data.clanName, title, subtitle }, body, frame, { defs, backdrop });
 }
 

@@ -1,10 +1,18 @@
 import { z } from 'zod';
 import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
-import { updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
+import { languageQuerySchema, updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
 import { addChatSchema, updateChatSchema } from '@/modules/telegram/telegram.schemas';
 import { Announcement, TelegramChat, TelegramStatus } from '../models/telegram';
 import { ApiOperation, requestPart } from '../operation';
+
+const languageQuery = requestPart(languageQuerySchema, {
+  lang: {
+    description:
+      'Language of the generated captions and of the pictures: `it-IT` (default), `en-US` or `es-ES`. A published announcement keeps the language it went out in; a caption written by hand stays as written.',
+    example: 'it-IT',
+  },
+});
 
 const announcementPath = requestPart(z.object({ id: z.string() }), {
   id: { description: 'Announcement id.', example: '6740a1b2c3d4e5f6a7b8c9d0' },
@@ -118,6 +126,7 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
       'The drafts prepared by the backend for every clan of the Crusade (newest first), then the latest 30 announcements published or discarded. A draft is prepared when a month closes (wars, Raid Weekends and commendations of the month), a Clan War League season ends, a game season ends (donations), a record of the clan is beaten (perfect wars at every 25) or a member reaches a league higher than any before (Electro League 31 up to Legend League I, one draft per player); its figures follow the data until it is published.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
+    query: languageQuery,
     responses: { 200: { description: 'The announcements.', result: z.array(Announcement) } },
   },
   {
@@ -130,6 +139,7 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
       'Changes the caption of a draft: plain text where `**text**` is bold, at most 1024 visible characters (Telegram\'s limit). `null` goes back to the generated caption.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
+    query: languageQuery,
     params: announcementPath,
     body: requestPart(updateAnnouncementSchema, {
       caption: { description: 'New caption, or `null` for the generated one.', example: '🔥 **Nuovo record!**' },
@@ -144,9 +154,10 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     tag: 'Admin',
     summary: 'Publish an announcement',
     description:
-      'Posts a draft in the announcements channel: its pictures (an album when more than one) with the caption on the first. It is then frozen. On a Telegram failure it stays a draft, with the error (502).',
+      'Posts a draft in the announcements channel, in the language `lang`: its pictures (an album when more than one) with the caption on the first. It is then frozen. On a Telegram failure it stays a draft, with the error (502).',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
+    query: languageQuery,
     params: announcementPath,
     responses: { 200: { description: 'The announcement, published.', result: Announcement, messages: [K.ANNOUNCEMENT_PUBLISHED] } },
     errors: {
@@ -165,6 +176,7 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
       'Drops a draft without publishing it. A record announcement discarded waits for a better value of the record.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
+    query: languageQuery,
     params: announcementPath,
     responses: { 200: { description: 'The announcement, discarded.', result: Announcement, messages: [K.ANNOUNCEMENT_DISCARDED] } },
     errors: { 404: [K.ANNOUNCEMENT_NOT_FOUND], 409: [K.ANNOUNCEMENT_NOT_DRAFT] },
@@ -179,6 +191,7 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
       'Picture `page` of an announcement as JPEG (1080×1350), as it goes (or went) to Telegram: the iron frame of the site, the crest of the clan, the figures; the commendations on the following pages. Drawn at every request (`Cache-Control: no-store`).',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
+    query: languageQuery,
     params: requestPart(z.object({ id: z.string(), page: z.string() }), {
       id: { description: 'Announcement id.', example: '6740a1b2c3d4e5f6a7b8c9d0' },
       page: { description: 'Picture, from 1 (`Announcement.pages`).', example: '1' },

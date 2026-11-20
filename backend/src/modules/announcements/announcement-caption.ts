@@ -1,6 +1,6 @@
 import { escapeHtml } from '@/lib/telegram/telegram-client';
 import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from './announcement-data';
-import { COMMENDATION_LABELS, formatNumber, leagueLabel, monthLabel, RECORD_LABELS } from './announcement-texts';
+import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from './announcement-texts';
 
 /**
  * Captions of the announcements. They are plain text, where `**text**` is bold: what the
@@ -10,128 +10,108 @@ import { COMMENDATION_LABELS, formatNumber, leagueLabel, monthLabel, RECORD_LABE
 /** Telegram's limit for the caption of a picture (visible characters). */
 export const ANNOUNCEMENT_CAPTION_LIMIT = 1024;
 
-const SITE = 'crociatanera.it';
 /** Names listed in the caption under each commendation (the pictures list them all). */
 const MAX_NAMES = 6;
-
-export function generatedCaption(data: AnnouncementData): string {
-  switch (data.kind) {
-    case 'month':
-      return monthCaption(data);
-    case 'cwl':
-      return cwlCaption(data);
-    case 'donations':
-      return donationsCaption(data);
-    case 'record':
-      return recordCaption(data);
-    case 'promotion':
-      return promotionCaption(data);
-  }
-}
-
-/** Legend League I and up: the top of the game. */
+/** Legend League I: the top of the game. */
 const TOP_LEAGUE = 105000036;
 /** Legend League III and up. */
 const LEGEND_LEAGUES = 105000034;
 
-function promotionCaption(data: PromotionData): string {
+/** The caption of an announcement in a language (Italian, the channel's, by default). */
+export function generatedCaption(data: AnnouncementData, language?: AnnouncementLanguage): string {
+  const t = announcementTexts(language);
+  switch (data.kind) {
+    case 'month':
+      return monthCaption(t, data);
+    case 'cwl':
+      return cwlCaption(t, data);
+    case 'donations':
+      return donationsCaption(t, data);
+    case 'record':
+      return recordCaption(t, data);
+    case 'promotion':
+      return promotionCaption(t, data);
+  }
+}
+
+function promotionCaption(t: AnnouncementTexts, data: PromotionData): string {
+  const c = t.caption.promotion;
   const top = data.league.id >= TOP_LEAGUE;
   const legend = data.league.id >= LEGEND_LEAGUES;
   const icon = top ? '👑' : legend ? '🔥' : '⚡';
-  const lines = [
-    `${icon} **${data.playerName}** sale in **${leagueLabel(data.league.name)}**!`,
-    '',
-    top
-      ? 'Tra i campioni del mondo: la lega più alta che esista.'
-      : legend
-        ? 'Tra le Leggende: un traguardo per pochi.'
-        : 'Un altro gradino verso le Leggende.',
-    '',
-    `Complimenti da tutta la ${data.clanName}! ⚔️`,
-  ];
-  return lines.join('\n');
+  return [`${icon} ${c.title(data.playerName, t.league(data.league.name))}`, '', top ? c.top : legend ? c.legend : c.electro, '', c.congratulations(data.clanName)].join('\n');
 }
 
-function monthCaption(data: MonthData): string {
-  const lines = [`⚔️ **${data.clanName} · ${monthLabel(data.month)}**`, ''];
+function monthCaption(t: AnnouncementTexts, data: MonthData): string {
+  const c = t.caption.month;
+  const lines = [c.title(data.clanName, t.month(data.month)), ''];
   if (data.wars) {
     const w = data.wars;
-    lines.push(
-      `🛡️ ${w.total} ${w.total === 1 ? 'guerra' : 'guerre'}: ${w.victories} vinte, ${w.draws} pari, ${w.defeats} perse`,
-      `⭐ ${formatNumber(w.averageStars, 2)} stelle a guerra · ${formatNumber(w.threeStarRate, 1)}% di tre stelle`,
-    );
+    lines.push(c.wars(w.total, w.victories, w.draws, w.defeats), c.stars(t.number(w.averageStars, 2), t.number(w.threeStarRate, 1)));
   }
-  if (data.raids) {
-    lines.push(`🏰 ${formatNumber(data.raids.capitalGold)} di oro della capitale in ${data.raids.weekends} Raid Weekend`);
-  }
-  if (data.mvp) lines.push(`👑 Migliore del mese: **${data.mvp.name}** (${formatNumber(data.mvp.averageStars, 2)} stelle a guerra)`);
-  lines.push(...honourLines(data.honours));
-  lines.push('', `Tutte le statistiche su ${SITE}`);
+  if (data.raids) lines.push(c.raids(t.number(data.raids.capitalGold), data.raids.weekends));
+  if (data.mvp) lines.push(c.best(data.mvp.name, t.number(data.mvp.averageStars, 2)));
+  lines.push(...honourLines(t, data.honours), '', c.footer);
   return lines.join('\n');
 }
 
-function cwlCaption(data: CwlData): string {
-  const lines = [`🏆 **${data.clanName} · CWL di ${monthLabel(data.season)}**`, ''];
-  if (data.rank !== null) lines.push(`📊 ${data.rank}° posto su ${data.clans} con ${data.stars} stelle`);
-  lines.push(`⚔️ ${data.wins} ${data.wins === 1 ? 'vittoria' : 'vittorie'}, ${data.draws} pari, ${data.losses} ${data.losses === 1 ? 'sconfitta' : 'sconfitte'}`);
+function cwlCaption(t: AnnouncementTexts, data: CwlData): string {
+  const c = t.caption.cwl;
+  const lines = [c.title(data.clanName, t.month(data.season)), ''];
+  if (data.rank !== null) lines.push(c.rank(t.place(data.rank), data.clans, data.stars));
+  lines.push(c.results(data.wins, data.draws, data.losses));
   const best = data.bestAttackers;
   if (best?.names.length) {
-    const label = best.names.length > 1 ? 'Migliori attaccanti' : 'Migliore attaccante';
-    const names = best.names.map((name) => `**${name}**`).join(', ');
-    lines.push(`👑 ${label}: ${names} (${best.stars} stelle in ${best.attacks} attacchi)`);
+    lines.push(c.best(best.names.length, best.names.map((name) => `**${name}**`).join(', '), best.stars, best.attacks));
   }
-  lines.push(...honourLines(data.honours));
-  lines.push('', `Tutta la lega su ${SITE}`);
+  lines.push(...honourLines(t, data.honours), '', c.footer);
   return lines.join('\n');
 }
 
-function donationsCaption(data: DonationsData): string {
-  const lines = [`🤝 **${data.clanName} · donazioni di ${monthLabel(data.season)}**`, ''];
-  lines.push(`📦 ${formatNumber(data.total)} truppe donate nella stagione`);
+function donationsCaption(t: AnnouncementTexts, data: DonationsData): string {
+  const c = t.caption.donations;
+  const lines = [c.title(data.clanName, t.month(data.season)), '', c.total(t.number(data.total))];
   const medals = ['🥇', '🥈', '🥉'];
-  data.top.slice(0, 3).forEach((p, i) => lines.push(`${medals[i]} **${p.name}**: ${formatNumber(p.donations)}`));
-  lines.push(...honourLines(data.honours));
-  lines.push('', `Grazie a chi rinforza i compagni! Classifica completa su ${SITE}`);
+  data.top.slice(0, 3).forEach((p, i) => lines.push(`${medals[i]} **${p.name}**: ${t.number(p.donations)}`));
+  lines.push(...honourLines(t, data.honours), '', c.footer);
   return lines.join('\n');
 }
 
-function recordCaption(data: RecordData): string {
-  const label = RECORD_LABELS[data.record];
-  const lines = [`⚔️ **Nuovo record di ${data.clanName}!** ⚔️`, ''];
+function recordCaption(t: AnnouncementTexts, data: RecordData): string {
+  const c = t.caption.record;
+  const lines = [c.title(data.clanName), ''];
   switch (data.record) {
     case 'perfectWars':
-      lines.push(`⭐ **${formatNumber(data.value)} guerre perfette**: ogni stella presa, ogni volta.`);
+      lines.push(c.perfectWars(t.number(data.value)));
       break;
     case 'warWinStreak':
-      lines.push(`⚔️ **${data.value} guerre vinte di fila**${data.previous ? ` (precedente: ${data.previous})` : ''}.`);
+      lines.push(c.warWinStreak(data.value, data.previous));
       break;
-    case 'cwlLeague':
-      lines.push(
-        `🏆 Siamo in **${data.leagueName}**: la lega più alta mai raggiunta${
-          data.previousLeagueName && data.previousLeagueName !== data.leagueName ? ` (prima: ${data.previousLeagueName})` : ''
-        }.`,
-      );
+    case 'cwlLeague': {
+      const before = data.previousLeagueName && data.previousLeagueName !== data.leagueName ? t.league(data.previousLeagueName) : null;
+      lines.push(c.cwlLeague(t.league(data.leagueName ?? ''), before));
       break;
+    }
     case 'localRank':
     case 'localCapitalRank':
-      lines.push(`📈 ${label}: **${data.value}° posto**${data.previous ? ` (precedente: ${data.previous}°)` : ''}.`);
+      lines.push(c.ranking(t.records[data.record], t.place(data.value), data.previous ? t.place(data.previous) : null));
       break;
     case 'capitalPoints':
-      lines.push(`🏰 **${formatNumber(data.value)} trofei della capitale**${data.previous ? ` (precedente: ${formatNumber(data.previous)})` : ''}.`);
+      lines.push(c.capitalPoints(t.number(data.value), data.previous ? t.number(data.previous) : null));
       break;
   }
-  lines.push('', `Tutti i record su ${SITE}`);
+  lines.push('', c.footer);
   return lines.join('\n');
 }
 
-function honourLines(honours: Honour[]): string[] {
+function honourLines(t: AnnouncementTexts, honours: Honour[]): string[] {
   if (!honours.length) return [];
-  const lines = ['', '🎖️ **Encomi**'];
+  const lines = ['', `🎖️ **${t.caption.honours}**`];
   for (const honour of honours) {
     const names = honour.players.map((p) => (p.times > 1 ? `${p.name} ×${p.times}` : p.name));
     const shown = names.slice(0, MAX_NAMES).join(', ');
-    const more = names.length > MAX_NAMES ? ` e altri ${names.length - MAX_NAMES}` : '';
-    lines.push(`• ${COMMENDATION_LABELS[honour.type][honour.tier]}: ${shown}${more}`);
+    const more = names.length > MAX_NAMES ? t.caption.andOthers(names.length - MAX_NAMES) : '';
+    lines.push(`• ${t.commendations[honour.type][honour.tier]}: ${shown}${more}`);
   }
   return lines;
 }

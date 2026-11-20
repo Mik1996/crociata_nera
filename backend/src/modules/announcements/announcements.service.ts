@@ -14,6 +14,7 @@ import {
   AnnouncementModel,
   AnnouncementState,
 } from './announcement.model';
+import { AnnouncementLanguage, DEFAULT_ANNOUNCEMENT_LANGUAGE } from './announcement-texts';
 import { announcementSvgs, renderAnnouncementImage, renderAnnouncementImages } from './image/announcement-image';
 
 /** Announcements already published or discarded listed after the drafts. */
@@ -34,7 +35,10 @@ export interface AnnouncementView {
   leagueName: string | null;
   /** Promotions: the player promoted. */
   playerName: string | null;
-  /** Caption that goes (or went) with the pictures: `**text**` is bold. */
+  /**
+   * Caption that goes with the pictures (`**text**` is bold): the one written by an administrator,
+   * or the generated one in the language asked.
+   */
   caption: string;
   /** The caption was written by an administrator (not the generated one). */
   captionEdited: boolean;
@@ -46,12 +50,14 @@ export interface AnnouncementView {
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
+  /** Language of the caption and the pictures: the one it was published in, else the one asked. */
+  language: AnnouncementLanguage;
   /** Link of the post in a public channel (`null`: private channel or not published). */
   postUrl: string | null;
 }
 
 /** The drafts (newest first), then the latest announcements published or discarded. */
-export async function listAnnouncements(): Promise<AnnouncementView[]> {
+export async function listAnnouncements(language: AnnouncementLanguage): Promise<AnnouncementView[]> {
   const [drafts, decided] = await Promise.all([
     AnnouncementModel.find({ state: { $in: [AnnouncementState.DRAFT, AnnouncementState.PUBLISHING] } }).sort({ createdAt: -1 }),
     AnnouncementModel.find({ state: { $in: [AnnouncementState.PUBLISHED, AnnouncementState.DISCARDED] } })
@@ -61,11 +67,18 @@ export async function listAnnouncements(): Promise<AnnouncementView[]> {
   const usernames = new Map(
     (await TelegramChatModel.find({ username: { $ne: null } }).select('chatId username').lean()).map((c) => [c.chatId, c.username!]),
   );
-  return Promise.all([...drafts, ...decided].map((doc) => toView(doc, usernames)));
+  return Promise.all([...drafts, ...decided].map((doc) => toView(doc, usernames, language)));
 }
 
-async function toView(doc: AnnouncementDocument, usernames: Map<number, string>): Promise<AnnouncementView> {
+/** The language of an announcement's words: the one it was published in, else the one asked. */
+function languageOf(doc: Pick<Announcement, 'state' | 'language'>, asked: AnnouncementLanguage): AnnouncementLanguage {
+  if (doc.state !== AnnouncementState.PUBLISHED) return asked;
+  return (doc.language as AnnouncementLanguage | null) ?? DEFAULT_ANNOUNCEMENT_LANGUAGE;
+}
+
+async function toView(doc: AnnouncementDocument, usernames: Map<number, string>, asked: AnnouncementLanguage): Promise<AnnouncementView> {
   const data = doc.data as AnnouncementData;
+  const language = languageOf(doc, asked);
   const username = doc.chatId != null ? usernames.get(doc.chatId) : undefined;
   const firstMessage = doc.messageIds[0];
   return {
@@ -79,20 +92,21 @@ async function toView(doc: AnnouncementDocument, usernames: Map<number, string>)
     leagueName:
       data.kind === 'record' ? (data.leagueName ?? null) : data.kind === 'promotion' ? data.league.name : null,
     playerName: data.kind === 'promotion' ? data.playerName : null,
-    caption: captionOf(doc),
+    caption: captionOf(doc, language),
     captionEdited: doc.caption !== null,
-    pages: doc.messageIds.length || (await announcementSvgs(data)).length,
+    pages: doc.messageIds.length || (await announcementSvgs(data, language)).length,
     error: doc.error ?? null,
     interrupted: doc.interrupted ?? false,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
     publishedAt: doc.publishedAt?.toISOString() ?? null,
+    language,
     postUrl: username && firstMessage ? `https://t.me/${username}/${firstMessage}` : null,
   };
 }
 
-function captionOf(doc: Pick<Announcement, 'caption' | 'data'>): string {
-  return doc.caption ?? fitCaption(generatedCaption(doc.data as AnnouncementData));
+function captionOf(doc: Pick<Announcement, 'caption' | 'data'>, language: AnnouncementLanguage): string {
+  return doc.caption ?? fitCaption(generatedCaption(doc.data as AnnouncementData, language));
 }
 
 async function findAnnouncement(id: string): Promise<AnnouncementDocument> {
@@ -107,17 +121,17 @@ async function findDraft(id: string): Promise<AnnouncementDocument> {
   return doc;
 }
 
-async function viewOf(doc: AnnouncementDocument): Promise<AnnouncementView> {
+async function viewOf(doc: AnnouncementDocument, language: AnnouncementLanguage): Promise<AnnouncementView> {
   const usernames = new Map<number, string>();
   if (doc.chatId != null) {
     const chat = await TelegramChatModel.findOne({ chatId: doc.chatId }).select('username').lean();
     if (chat?.username) usernames.set(doc.chatId, chat.username);
   }
-  return toView(doc, usernames);
+  return toView(doc, usernames, language);
 }
 
 /** Changes the caption of a draft; `null` goes back to the generated one. */
-export async function updateCaption(id: string, caption: string | null): Promise<AnnouncementView> {
+export async function updateCaption(id: string, caption: string | null, language: AnnouncementLanguage): Promise<AnnouncementView> {
   await findDraft(id);
   // Only while still a draft: a publication started meanwhile keeps the caption it sent.
   const doc = await AnnouncementModel.findOneAndUpdate(
@@ -126,19 +140,19 @@ export async function updateCaption(id: string, caption: string | null): Promise
     { returnDocument: 'after' },
   );
   if (!doc) throwException(409, MessageKey.ANNOUNCEMENT_NOT_DRAFT);
-  return viewOf(doc);
+  return viewOf(doc, language);
 }
 
 /** Picture `page` (0-based) of an announcement as JPEG. */
-export async function announcementImage(id: string, page: number): Promise<Buffer> {
+export async function announcementImage(id: string, page: number, language: AnnouncementLanguage): Promise<Buffer> {
   const doc = await findAnnouncement(id);
-  const image = await renderAnnouncementImage(doc.data as AnnouncementData, page);
+  const image = await renderAnnouncementImage(doc.data as AnnouncementData, page, languageOf(doc, language));
   if (!image) throwException(404, MessageKey.NOT_FOUND);
   return image;
 }
 
 /** Drops a draft: it is not published (a record announcement then waits for a better value). */
-export async function discardAnnouncement(id: string, userId: string): Promise<AnnouncementView> {
+export async function discardAnnouncement(id: string, userId: string, language: AnnouncementLanguage): Promise<AnnouncementView> {
   const doc = await findDraft(id);
   const updated = await AnnouncementModel.findOneAndUpdate(
     { _id: doc._id, state: AnnouncementState.DRAFT },
@@ -147,14 +161,14 @@ export async function discardAnnouncement(id: string, userId: string): Promise<A
   );
   if (!updated) throwException(409, MessageKey.ANNOUNCEMENT_NOT_DRAFT);
   if (updated.kind === AnnouncementKind.RECORD) await settleRecord(updated.data as RecordData);
-  return viewOf(updated);
+  return viewOf(updated, language);
 }
 
 /**
- * Publishes a draft in the announcements channel: its pictures (an album when more than one) with
- * the caption on the first. On failure it stays a draft, with Telegram's error.
+ * Publishes a draft in the announcements channel, in a language: its pictures (an album when more
+ * than one) with the caption on the first. On failure it stays a draft, with Telegram's error.
  */
-export async function publishAnnouncement(id: string, userId: string): Promise<AnnouncementView> {
+export async function publishAnnouncement(id: string, userId: string, language: AnnouncementLanguage): Promise<AnnouncementView> {
   assertConfigured();
   await findDraft(id);
   const chat = await TelegramChatModel.findOne({ purpose: TelegramChatPurpose.ANNOUNCEMENTS }).lean();
@@ -170,8 +184,8 @@ export async function publishAnnouncement(id: string, userId: string): Promise<A
 
   let messageIds: number[];
   try {
-    const images = await renderAnnouncementImages(doc.data as AnnouncementData);
-    messageIds = await sendPost(chat.chatId, images, captionToHtml(captionOf(doc)));
+    const images = await renderAnnouncementImages(doc.data as AnnouncementData, language);
+    messageIds = await sendPost(chat.chatId, images, captionToHtml(captionOf(doc, language)));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await AnnouncementModel.updateOne({ _id: doc._id }, { $set: { state: AnnouncementState.DRAFT, error: message.slice(0, 300) } });
@@ -186,6 +200,7 @@ export async function publishAnnouncement(id: string, userId: string): Promise<A
     publishedAt: new Date(),
     chatId: chat.chatId,
     messageIds,
+    language,
     decidedBy: userId,
     error: null,
     interrupted: false,
@@ -193,7 +208,7 @@ export async function publishAnnouncement(id: string, userId: string): Promise<A
   await doc.save();
   if (doc.kind === AnnouncementKind.RECORD) await settleRecord(doc.data as RecordData);
   console.info(`[announcements] ${doc.key} published in chat ${chat.chatId}`);
-  return viewOf(doc);
+  return viewOf(doc, language);
 }
 
 const jpeg = (image: Buffer) => new Blob([new Uint8Array(image)], { type: 'image/jpeg' });

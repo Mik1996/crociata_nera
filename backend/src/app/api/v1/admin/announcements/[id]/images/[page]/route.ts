@@ -3,8 +3,8 @@ import { UserRole } from '@/lib/auth/user-role';
 import { apiHandler } from '@/lib/http/api-handler';
 import { ApiName } from '@/lib/http/api-name';
 import { preflight } from '@/lib/http/cors';
-import { validate } from '@/lib/validation/parse';
-import { imageParamsSchema } from '@/modules/announcements/announcements.schemas';
+import { parseQuery, validate } from '@/lib/validation/parse';
+import { imageParamsSchema, languageQuerySchema } from '@/modules/announcements/announcements.schemas';
 import { announcementImage } from '@/modules/announcements/announcements.service';
 
 type Params = z.input<typeof imageParamsSchema>;
@@ -15,9 +15,10 @@ type Params = z.input<typeof imageParamsSchema>;
  */
 export const GET = apiHandler<Params, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },
-  async ({ params }) => {
+  async ({ request, params }) => {
     const { id, page } = validate(imageParamsSchema, params);
-    const image = await announcementImage(id, page - 1);
+    const { lang } = parseQuery(request, languageQuerySchema);
+    const image = await announcementImage(id, page - 1, lang);
     return new Response(new Uint8Array(image), {
       headers: {
         'Content-Type': 'image/jpeg',

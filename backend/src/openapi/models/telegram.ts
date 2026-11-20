@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ANNOUNCEMENT_KINDS, ANNOUNCEMENT_STATES } from '@/modules/announcements/announcement.model';
+import { ANNOUNCEMENT_LANGUAGES } from '@/modules/announcements/announcement-texts';
 import { TELEGRAM_CHAT_PURPOSES } from '@/modules/telegram/telegram-chat.model';
 import { dateTime, model, nullableDateTime } from './common';
 
@@ -91,6 +92,9 @@ export const Announcement = model(
     createdAt: dateTime('When the draft was prepared.'),
     updatedAt: dateTime('Last change.'),
     publishedAt: nullableDateTime('When it was published.'),
+    language: z
+      .enum(ANNOUNCEMENT_LANGUAGES)
+      .describe('Language of the caption and the pictures: the one it was published in, otherwise the one asked (`lang`).'),
     postUrl: z.string().nullable().describe('Link of the post in a public channel; `null` otherwise.'),
   }),
 );

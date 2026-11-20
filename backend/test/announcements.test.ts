@@ -594,6 +594,46 @@ describe('administration', () => {
     expect(res.body.result[0]).toMatchObject({ state: 'draft', interrupted: true });
   });
 
+  it('writes the captions in the language asked, and publishes in it; a published one keeps its language', async () => {
+    const telegram = mockTelegramApi({ sendMediaGroup: () => ({ result: [{ message_id: 7 }, { message_id: 8 }] }) });
+    const id = await draft();
+    await announcementsChannel();
+    const admin = await adminToken();
+    const path = (lang: string) => `/api/v1/admin/announcements?lang=${lang}`;
+
+    const english = await call(listAnnouncements, { token: admin, path: path('en-US') });
+    expect(english.body.result[0]).toMatchObject({ language: 'en-US' });
+    expect(english.body.result[0].caption).toContain('**Crociata Nera · November 2026**');
+    expect(english.body.result[0].caption).toContain('Commendations');
+    const wrong = await call(listAnnouncements, { token: admin, path: path('fr-FR') });
+    expect(wrong.status).toBe(400);
+
+    const published = await call(publish, { token: admin, params: { id }, path: `/api/v1/admin/announcements/${id}/publish?lang=es-ES` });
+    expect(published.status).toBe(200);
+    const media = JSON.parse(telegram.of('sendMediaGroup')[0]!.params['media'] as string) as { caption?: string }[];
+    expect(media[0]!.caption).toContain('Noviembre de 2026');
+    expect(media[0]!.caption).toContain('Encomios');
+
+    const later = await call(listAnnouncements, { token: admin, path: path('it-IT') });
+    expect(later.body.result[0]).toMatchObject({ state: 'published', language: 'es-ES' });
+    expect(later.body.result[0].caption).toContain('Noviembre de 2026');
+  }, 30_000);
+
+  it('names the leagues in the language asked', () => {
+    const data = {
+      kind: 'promotion',
+      clanTag: MAIN,
+      clanName: 'Crociata Nera',
+      playerTag: '#P',
+      playerName: 'Mik',
+      league: { id: 105000035, name: 'Legend League II' },
+      previousLeague: null,
+    } as PromotionData;
+    expect(generatedCaption(data, 'it-IT')).toContain('**Mik** sale in **Lega Leggende II**!');
+    expect(generatedCaption(data, 'en-US')).toContain('**Mik** reaches **Legend League II**!');
+    expect(generatedCaption(data, 'es-ES')).toContain('¡**Mik** sube a **Liga Leyenda II**!');
+  });
+
   it('discards a draft, which then cannot be published', async () => {
     const id = await draft();
     const admin = await adminToken();

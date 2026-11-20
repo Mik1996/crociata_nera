@@ -58,6 +58,8 @@ const announcementSchema = new Schema(
     /** Last failure of a publication (Telegram's words). */
     error: { type: String, default: null },
     publishedAt: { type: Date, default: null },
+    /** Language it was published in (`it-IT`, `en-US`, `es-ES`); `null` while not published. */
+    language: { type: String, default: null },
     chatId: { type: Number, default: null },
     messageIds: { type: [Number], default: [] },
     /** Who published or discarded it (user id). */

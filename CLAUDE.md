@@ -196,7 +196,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   season, donation season, beaten record; perfect wars every 25, main clan only; a member's league
   never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
   `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`), published or
-  discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Pictures are
+  discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Captions and
+  pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
+  a post goes out in it; a published one keeps its `language`. Pictures are
   SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
   turned into paths with opentype.js (no system fonts in the image; its own text layout and
   `toPathData` are broken, glyphs are placed by hand), files of `public/` read via `readSiteAsset`

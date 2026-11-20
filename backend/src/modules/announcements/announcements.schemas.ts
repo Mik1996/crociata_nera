@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { MessageKey } from '@/lib/http/message-key';
 import { ANNOUNCEMENT_CAPTION_LIMIT, captionLength } from './announcement-caption';
+import { ANNOUNCEMENT_LANGUAGES, DEFAULT_ANNOUNCEMENT_LANGUAGE } from './announcement-texts';
+
+/** `?lang=`: language of the captions and pictures (the post goes out in it); Italian by default. */
+export const languageQuerySchema = z.object({
+  lang: z.enum(ANNOUNCEMENT_LANGUAGES, { error: MessageKey.INVALID_FIELD }).default(DEFAULT_ANNOUNCEMENT_LANGUAGE),
+});
 
 /** Path parameter `{page}` of a picture: 1 to 10 (Telegram groups at most 10 pictures). */
 export const imageParamsSchema = z.object({

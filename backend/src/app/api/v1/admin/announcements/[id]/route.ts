@@ -3,8 +3,8 @@ import { apiHandler } from '@/lib/http/api-handler';
 import { ApiName } from '@/lib/http/api-name';
 import { preflight } from '@/lib/http/cors';
 import { MessageKey } from '@/lib/http/message-key';
-import { parseBody } from '@/lib/validation/parse';
-import { updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
+import { parseBody, parseQuery } from '@/lib/validation/parse';
+import { languageQuerySchema, updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
 import { updateCaption } from '@/modules/announcements/announcements.service';
 
 /**
@@ -14,8 +14,9 @@ import { updateCaption } from '@/modules/announcements/announcements.service';
 export const PATCH = apiHandler<{ id: string }, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },
   async ({ request, params }) => {
+    const { lang } = parseQuery(request, languageQuerySchema);
     const { caption } = await parseBody(request, updateAnnouncementSchema);
-    return { result: await updateCaption(params.id, caption), messages: [{ key: MessageKey.ANNOUNCEMENT_UPDATED }] };
+    return { result: await updateCaption(params.id, caption, lang), messages: [{ key: MessageKey.ANNOUNCEMENT_UPDATED }] };
   },
 );
 
