@@ -96,7 +96,11 @@ export class AnnouncementsAdminPage {
   protected readonly kindIcons = KIND_ICONS;
   protected readonly stateTones = STATE_TONES;
 
-  protected readonly announcements = rxResource({ stream: () => this.service.list() });
+  /** Reloaded when the language changes: generated captions and pictures come in it. */
+  protected readonly announcements = rxResource({
+    params: () => this.language.current(),
+    stream: ({ params: lang }) => this.service.list(lang),
+  });
   private readonly items = computed(() =>
     this.announcements.hasValue() ? this.announcements.value() : [],
   );
@@ -177,7 +181,7 @@ export class AnnouncementsAdminPage {
     if (!reset && (!caption || this.tooLong(a))) return;
     this.saving.set(a.id);
     this.feedback.set(null);
-    this.service.updateCaption(a.id, caption).subscribe({
+    this.service.updateCaption(a.id, caption, this.language.current()).subscribe({
       next: (updated) => {
         this.replace(updated);
         this.forget(a.id);

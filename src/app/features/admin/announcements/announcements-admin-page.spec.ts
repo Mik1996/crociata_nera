@@ -5,6 +5,7 @@ import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { provideRouter } from '@angular/router';
 import { Announcement } from '../../../core/backend/backend-api.types';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { provideCocApiTest } from '../../../testing/fixtures';
 import { AnnouncementsAdminPage, captionLength } from './announcements-admin-page';
 
@@ -28,6 +29,7 @@ const month: Announcement = {
   createdAt: '2026-12-01T05:00:00Z',
   updatedAt: '2026-12-01T05:00:00Z',
   publishedAt: null,
+  language: 'it-IT',
   postUrl: null,
 };
 const record: Announcement = {
@@ -71,7 +73,7 @@ describe('AnnouncementsAdminPage', () => {
     httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(AnnouncementsAdminPage);
     fixture.detectChanges();
-    httpMock.expectOne(URL_BASE).flush(ok(list));
+    expectOne(URL_BASE).flush(ok(list));
     TestBed.tick();
     for (const a of list.filter((x) => x.state === 'draft')) await flushImages(a);
     await fixture.whenStable();
@@ -84,10 +86,17 @@ describe('AnnouncementsAdminPage', () => {
       const url = `${URL_BASE}/${a.id}/images/${page}`;
       const req = await vi.waitFor(() => {
         TestBed.tick();
-        return httpMock.expectOne(url);
+        return expectOne(url);
       });
       req.flush(new Blob(['jpeg']));
     }
+  }
+
+  /** The request to a URL (whatever its `lang`), checking it carries the language of the page. */
+  function expectOne(url: string) {
+    const req = httpMock.expectOne((r) => r.url === url);
+    expect(req.request.params.get('lang')).toBe('it-IT');
+    return req;
   }
 
   afterEach(() => {
@@ -127,6 +136,17 @@ describe('AnnouncementsAdminPage', () => {
     );
   });
 
+  it('asks the drafts again in the new language when the language changes', async () => {
+    await render([record]);
+    TestBed.inject(LanguageService).use('en-US').subscribe();
+    const req = await vi.waitFor(() => {
+      TestBed.tick();
+      return httpMock.expectOne((r) => r.url === URL_BASE);
+    });
+    expect(req.request.params.get('lang')).toBe('en-US');
+    req.flush(ok([record]));
+  });
+
   it('saves a caption written by hand, and restores the automatic one', async () => {
     const { fixture, el } = await render([month]);
     const textarea = el.querySelector('textarea')!;
@@ -137,7 +157,7 @@ describe('AnnouncementsAdminPage', () => {
       b.textContent!.includes('Salva didascalia'),
     )!;
     save.click();
-    const req = httpMock.expectOne(`${URL_BASE}/a1`);
+    const req = expectOne(`${URL_BASE}/a1`);
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ caption: '**Bravi!**' });
     const edited = {
@@ -156,7 +176,7 @@ describe('AnnouncementsAdminPage', () => {
     [...el.querySelectorAll<HTMLButtonElement>('.actions button')]
       .find((b) => b.textContent!.includes('Ripristina'))!
       .click();
-    const reset = httpMock.expectOne(`${URL_BASE}/a1`);
+    const reset = expectOne(`${URL_BASE}/a1`);
     expect(reset.request.body).toEqual({ caption: null });
     reset.flush(ok(month));
     await flushImages(month);
@@ -185,7 +205,7 @@ describe('AnnouncementsAdminPage', () => {
     const dialog = document.querySelector('crn-announcement-decision-dialog')!;
     expect(dialog.textContent).toContain('Crociata Nera · Novembre 2026');
     dialog.querySelector<HTMLFormElement>('form')!.dispatchEvent(new Event('submit'));
-    const req = httpMock.expectOne(`${URL_BASE}/a1/publish`);
+    const req = expectOne(`${URL_BASE}/a1/publish`);
     expect(req.request.method).toBe('POST');
     req.flush(ok({ ...month, state: 'published', publishedAt: '2026-12-01T07:00:00Z' }));
     await fixture.whenStable();

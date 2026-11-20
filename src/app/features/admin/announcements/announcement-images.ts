@@ -24,12 +24,14 @@ export class AnnouncementImages {
 
   protected readonly images = rxResource({
     params: () => {
-      const { id, pages, updatedAt } = this.announcement();
-      return { id, pages, updatedAt };
+      const { id, pages, updatedAt, language } = this.announcement();
+      return { id, pages, updatedAt, language };
     },
     stream: ({ params }) =>
       forkJoin(
-        Array.from({ length: params.pages }, (_, i) => this.service.image(params.id, i + 1)),
+        Array.from({ length: params.pages }, (_, i) =>
+          this.service.image(params.id, i + 1, params.language),
+        ),
       ).pipe(map((blobs) => blobs.map((blob) => URL.createObjectURL(blob)))),
   });
 

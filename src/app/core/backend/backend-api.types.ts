@@ -1,4 +1,5 @@
 /** Types of the application backend (`backend/`). Keep in sync with `backend/src`. */
+import type { LanguageCode } from '../i18n/languages';
 
 import { ClanCastleTroop } from '../game/clan-castle';
 
@@ -350,6 +351,8 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
+  /** Language of the caption and pictures: the one it was published in, else the one asked. */
+  language: LanguageCode;
   /** Link of the post in a public channel. */
   postUrl: string | null;
 }

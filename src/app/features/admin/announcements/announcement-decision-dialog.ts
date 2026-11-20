@@ -4,6 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AnnouncementsAdminService } from '../../../core/backend/announcements-admin.service';
 import { Announcement, BackendMessage } from '../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../core/backend/backend-errors';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 export interface AnnouncementDecisionData {
@@ -29,6 +30,7 @@ export class AnnouncementDecisionDialog {
   private readonly ref =
     inject<MatDialogRef<AnnouncementDecisionDialog, Announcement>>(MatDialogRef);
   private readonly service = inject(AnnouncementsAdminService);
+  private readonly language = inject(LanguageService);
 
   protected readonly busy = signal(false);
   protected readonly errors = signal<BackendMessage[]>([]);
@@ -38,10 +40,12 @@ export class AnnouncementDecisionDialog {
     this.busy.set(true);
     this.errors.set([]);
     const { announcement, action } = this.data;
+    // The post goes out in the language of the page.
+    const lang = this.language.current();
     const request =
       action === 'publish'
-        ? this.service.publish(announcement.id)
-        : this.service.discard(announcement.id);
+        ? this.service.publish(announcement.id, lang)
+        : this.service.discard(announcement.id, lang);
     request.subscribe({
       next: (updated) => this.ref.close(updated),
       error: (error: unknown) => {
