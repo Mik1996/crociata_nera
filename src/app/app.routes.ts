@@ -172,13 +172,9 @@ export const routes: Routes = [
           import('./features/admin/telegram/telegram-admin-page').then((m) => m.TelegramAdminPage),
       },
       {
+        // Old address: the announcements are the first tab of the Telegram page.
         path: 'admin/announcements',
-        title: 'nav.announcementsAdmin',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/admin/announcements/announcements-admin-page').then(
-            (m) => m.AnnouncementsAdminPage,
-          ),
+        redirectTo: 'admin/telegram',
       },
       {
         path: '**',

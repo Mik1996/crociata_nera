@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angu
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin, map } from 'rxjs';
-import { AnnouncementsAdminService } from '../../../core/backend/announcements-admin.service';
-import { Announcement } from '../../../core/backend/backend-api.types';
-import { Icon } from '../../../shared/components/icon/icon';
+import { AnnouncementsAdminService } from '../../../../core/backend/announcements-admin.service';
+import { Announcement } from '../../../../core/backend/backend-api.types';
+import { Icon } from '../../../../shared/components/icon/icon';
 
 /**
  * The pictures of an announcement, as they go to Telegram, side by side; each opens full size in a

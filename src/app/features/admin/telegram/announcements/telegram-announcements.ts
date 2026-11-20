@@ -4,24 +4,25 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AnnouncementsAdminService } from '../../../core/backend/announcements-admin.service';
+import { AnnouncementsAdminService } from '../../../../core/backend/announcements-admin.service';
 import {
   Announcement,
   AnnouncementKind,
   BackendMessage,
-} from '../../../core/backend/backend-api.types';
-import { backendErrors } from '../../../core/backend/backend-errors';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { formatLocalDate, formatLocalNumber, LocalDatePipe } from '../../../core/i18n/locale-pipes';
-import { Alert } from '../../../shared/components/alert/alert';
-import { Icon } from '../../../shared/components/icon/icon';
-import { IconName } from '../../../shared/components/icon/icon-names';
-import { LoadState } from '../../../shared/components/load-state/load-state';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
-import { Tag, TagTone } from '../../../shared/components/tag/tag';
-import { ScrollFade } from '../../../shared/directives/scroll-fade';
+} from '../../../../core/backend/backend-api.types';
+import { backendErrors } from '../../../../core/backend/backend-errors';
+import { LanguageService } from '../../../../core/i18n/language.service';
+import {
+  formatLocalDate,
+  formatLocalNumber,
+  LocalDatePipe,
+} from '../../../../core/i18n/locale-pipes';
+import { Alert } from '../../../../shared/components/alert/alert';
+import { Icon } from '../../../../shared/components/icon/icon';
+import { IconName } from '../../../../shared/components/icon/icon-names';
+import { LoadState } from '../../../../shared/components/load-state/load-state';
+import { Tag, TagTone } from '../../../../shared/components/tag/tag';
 import {
   AnnouncementDecisionDialog,
   AnnouncementDecisionData,
@@ -62,38 +63,36 @@ const DIALOG_CONFIG = {
 } as const;
 
 /**
- * Announcements of the Telegram channel (administrators). The backend prepares a draft when a month
+ * Announcements tab of the Telegram page (administrators). The backend prepares a draft when a month
  * closes, a Clan War League or game season ends, or a record of a clan of the Crusade falls; here
  * the drafts are looked at (pictures and caption), the caption changed, then published or discarded.
  */
 @Component({
-  selector: 'crn-announcements-admin-page',
+  selector: 'crn-telegram-announcements',
   imports: [
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterLink,
     TranslatePipe,
     Alert,
     AnnouncementImages,
     Icon,
     LoadState,
     LocalDatePipe,
-    PageHeader,
-    ScrollFade,
     Tag,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'page--fill' },
-  templateUrl: './announcements-admin-page.html',
-  styleUrl: './announcements-admin-page.scss',
+  templateUrl: './telegram-announcements.html',
+  styleUrl: './telegram-announcements.scss',
 })
-export class AnnouncementsAdminPage {
+export class TelegramAnnouncements {
   private readonly service = inject(AnnouncementsAdminService);
   private readonly language = inject(LanguageService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly limit = CAPTION_LIMIT;
+  /** When the backend prepares a draft (`announcementsAdmin.intro.cases.*`). */
+  protected readonly introCases = ['period', 'record', 'league', 'legend'] as const;
   protected readonly kindIcons = KIND_ICONS;
   protected readonly stateTones = STATE_TONES;
 

@@ -1,0 +1,34 @@
+@if (state.data()) {
+  @if (current(); as c) {
+    <p class="channel">
+      <crn-icon class="channel__icon" name="campaign" />
+      <span>{{ 'telegramAdmin.announcementsChat.publishedIn' | translate }}</span>
+      @if (state.link(c); as href) {
+        <a class="channel__name" [href]="href" target="_blank" rel="noopener">{{ c.title }}</a>
+      } @else {
+        <span class="channel__name">{{ c.title }}</span>
+      }
+      @if (!c.canPost) {
+        <crn-tag
+          tone="danger"
+          tabindex="0"
+          [matTooltip]="'telegramAdmin.chats.cannotPostHint' | translate"
+          >{{ 'telegramAdmin.chats.cannotPost' | translate }}</crn-tag
+        >
+      }
+      <a class="channel__manage" routerLink="." [queryParams]="{ tab: null }" replaceUrl>{{
+        'telegramAdmin.tabs.bot' | translate
+      }}</a>
+    </p>
+  } @else {
+    <crn-alert tone="warning">
+      <p>
+        {{ 'telegramAdmin.announcementsChat.missing' | translate }}
+        <a routerLink="." [queryParams]="{ tab: null }" replaceUrl>{{
+          'telegramAdmin.tabs.bot' | translate
+        }}</a
+        >.
+      </p>
+    </crn-alert>
+  }
+}

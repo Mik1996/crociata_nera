@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AnnouncementsAdminService } from '../../../core/backend/announcements-admin.service';
-import { Announcement, BackendMessage } from '../../../core/backend/backend-api.types';
-import { backendErrors } from '../../../core/backend/backend-errors';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { AnnouncementsAdminService } from '../../../../core/backend/announcements-admin.service';
+import { Announcement, BackendMessage } from '../../../../core/backend/backend-api.types';
+import { backendErrors } from '../../../../core/backend/backend-errors';
+import { LanguageService } from '../../../../core/i18n/language.service';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 export interface AnnouncementDecisionData {
   announcement: Announcement;

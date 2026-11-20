@@ -6,10 +6,6 @@
     [title]="'telegramAdmin.title' | translate"
     [subtitle]="'telegramAdmin.subtitle' | translate"
   >
-    <a mat-stroked-button routerLink="/admin/announcements">
-      <crn-icon matButtonIcon name="campaign" />
-      {{ 'announcementsAdmin.title' | translate }}
-    </a>
     <a mat-stroked-button routerLink="/admin">
       <crn-icon matButtonIcon name="arrow_back" />
       {{ 'baseModeration.backToAdmin' | translate }}
@@ -17,218 +13,61 @@
   </crn-page-header>
 
   <div class="page__body">
-    @if (feedback(); as f) {
-      <crn-alert class="feedback" [tone]="f.kind">
-        @for (m of f.messages; track $index) {
-          <p>{{ m.key | translate: m.params }}</p>
-        }
-      </crn-alert>
-    }
-
-    <crn-load-state
-      [loading]="status.isLoading() && !data()"
-      [error]="status.error()"
-      [empty]="false"
-      (retry)="status.reload()"
+    <nav
+      mat-tab-nav-bar
+      crnSwipeTabs
+      class="tabs cn-tabs--sticky"
+      [tabPanel]="panel"
+      [attr.aria-label]="'telegramAdmin.title' | translate"
     >
-      @if (data(); as s) {
-        @if (!s.configured) {
-          <crn-alert tone="warning" class="feedback">
-            <p>{{ 'telegramAdmin.notConfigured' | translate }}</p>
-          </crn-alert>
-        }
-
-        <div class="grid">
-          <!-- Bot and posts -->
-          <section class="cn-card cn-section" aria-labelledby="bot-title">
-            <h2 id="bot-title">{{ 'telegramAdmin.bot.title' | translate }}</h2>
-            <dl class="facts">
-              <div>
-                <dt>{{ 'telegramAdmin.bot.name' | translate }}</dt>
-                <dd>
-                  @if (s.botUsername) {
-                    <a [href]="'https://t.me/' + s.botUsername" target="_blank" rel="noopener"
-                      >&#64;{{ s.botUsername }}</a
-                    >
-                  } @else {
-                    <span class="cn-muted">—</span>
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt>{{ 'telegramAdmin.bot.updates' | translate }}</dt>
-                <dd>
-                  @if (s.updates) {
-                    {{ 'telegramAdmin.bot.mode.' + s.updates | translate }}
-                  } @else {
-                    <span class="cn-muted">—</span>
-                  }
-                </dd>
-              </div>
-            </dl>
-
-            <h3>{{ 'telegramAdmin.posts.title' | translate }}</h3>
-            <ul class="counts">
-              <li>
-                <span class="counts__value cn-num">{{ s.basePosts.sent }}</span>
-                {{ 'telegramAdmin.posts.sent' | translate }}
-              </li>
-              @if (s.basePosts.pending) {
-                <li>
-                  <span class="counts__value cn-num">{{ s.basePosts.pending }}</span>
-                  {{ 'telegramAdmin.posts.pending' | translate }}
-                </li>
-              }
-            </ul>
-
-            @for (w of s.basePosts.waiting; track w.townHallLevel) {
-              <crn-alert tone="warning" icon="schedule" class="notice">
-                <p>
-                  {{
-                    'telegramAdmin.posts.waiting'
-                      | translate: { n: w.bases, level: w.townHallLevel }
-                  }}
-                </p>
-              </crn-alert>
-            }
-
-            @if (s.basePosts.failed.length) {
-              <h3>{{ 'telegramAdmin.posts.failedTitle' | translate }}</h3>
-              <ul class="failures">
-                @for (f of s.basePosts.failed; track f.baseId) {
-                  <li>
-                    <crn-tag tone="danger">TH{{ f.townHallLevel }}</crn-tag>
-                    <span class="failures__error">{{ f.error }}</span>
-                    @if (f.retryAt) {
-                      <span class="cn-muted failures__retry">
-                        {{
-                          'telegramAdmin.posts.retryAt'
-                            | translate: { date: (f.retryAt | localDate: 'dateTime') }
-                        }}
-                      </span>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-
-            <div class="actions">
-              <button
-                mat-stroked-button
-                type="button"
-                [disabled]="!s.configured || busy() !== null"
-                (click)="sync()"
-              >
-                <crn-icon matButtonIcon name="send" />
-                {{ 'telegramAdmin.posts.retry' | translate }}
-              </button>
-              <button
-                mat-button
-                type="button"
-                [disabled]="status.isLoading()"
-                (click)="status.reload()"
-              >
-                <crn-icon matButtonIcon name="refresh" />
-                {{ 'telegramAdmin.refresh' | translate }}
-              </button>
-            </div>
-          </section>
-
-          <!-- Channels -->
-          <section class="cn-card cn-section chats-card" aria-labelledby="chats-title">
-            <h2 id="chats-title">{{ 'telegramAdmin.chats.title' | translate }}</h2>
-            <p class="cn-muted intro">{{ 'telegramAdmin.chats.intro' | translate }}</p>
-
-            <ul class="chats">
-              @for (c of s.chats; track c.chatId) {
-                <li class="chat" [class.chat--busy]="busy() === c.chatId">
-                  <div class="chat__info">
-                    <p class="chat__title">
-                      @if (link(c); as href) {
-                        <a [href]="href" target="_blank" rel="noopener">{{ c.title }}</a>
-                      } @else {
-                        {{ c.title }}
-                      }
-                    </p>
-                    <p class="chat__meta">
-                      <crn-tag>{{ 'telegramAdmin.chats.type.' + c.type | translate }}</crn-tag>
-                      @if (c.canPost) {
-                        <crn-tag tone="success">{{
-                          'telegramAdmin.chats.canPost' | translate
-                        }}</crn-tag>
-                      } @else {
-                        <crn-tag
-                          tone="danger"
-                          tabindex="0"
-                          [matTooltip]="'telegramAdmin.chats.cannotPostHint' | translate"
-                          >{{ 'telegramAdmin.chats.cannotPost' | translate }}</crn-tag
-                        >
-                      }
-                    </p>
-                  </div>
-                  <crn-select
-                    class="chat__level"
-                    icon="castle"
-                    [label]="'telegramAdmin.chats.content' | translate"
-                    [options]="contentOptions(c)"
-                    [value]="contentOf(c)"
-                    [disabled]="c.locked"
-                    [matTooltip]="c.locked ? ('telegramAdmin.chats.lockedHint' | translate) : ''"
-                    (valueChange)="setContent(c, $event)"
-                  />
-                  <mat-slide-toggle
-                    class="chat__lock"
-                    [checked]="c.locked"
-                    [disabled]="busy() !== null"
-                    [matTooltip]="'telegramAdmin.chats.lockHint' | translate"
-                    [attr.aria-label]="'telegramAdmin.chats.lockOf' | translate: { name: c.title }"
-                    (change)="setLocked(c, $event.checked)"
-                    >{{ 'telegramAdmin.chats.lock' | translate }}</mat-slide-toggle
-                  >
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="chat__remove"
-                    [disabled]="busy() !== null || c.locked"
-                    [matTooltip]="'telegramAdmin.chats.remove' | translate"
-                    [attr.aria-label]="
-                      'telegramAdmin.chats.removeOf' | translate: { name: c.title }
-                    "
-                    (click)="removeChat(c)"
-                  >
-                    <crn-icon name="delete" />
-                  </button>
-                </li>
-              } @empty {
-                <li class="cn-muted">{{ 'telegramAdmin.chats.empty' | translate }}</li>
-              }
-            </ul>
-
-            <form class="add" (submit)="$event.preventDefault(); addChat()">
-              <mat-form-field appearance="outline" class="add__field" subscriptSizing="dynamic">
-                <mat-label>{{ 'telegramAdmin.chats.addLabel' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="chat"
-                  autocomplete="off"
-                  [ngModel]="newChat()"
-                  (ngModelChange)="newChat.set($event)"
-                  [disabled]="!s.configured"
-                />
-                <mat-hint>{{ 'telegramAdmin.chats.addHint' | translate }}</mat-hint>
-              </mat-form-field>
-              <button
-                mat-flat-button
-                type="submit"
-                [disabled]="!s.configured || !newChat().trim() || busy() !== null"
-              >
-                <crn-icon matButtonIcon name="add_link" />
-                {{ 'telegramAdmin.chats.add' | translate }}
-              </button>
-            </form>
-          </section>
-        </div>
+      @for (t of tabs; track t.id) {
+        <a
+          mat-tab-link
+          routerLink="."
+          [queryParams]="{ tab: t.id === tabs[0].id ? null : t.id }"
+          replaceUrl
+          [active]="active() === t.id"
+        >
+          <crn-icon class="tabs__icon" [name]="t.icon" />
+          {{ 'telegramAdmin.tabs.' + t.id | translate }}
+        </a>
       }
-    </crn-load-state>
+    </nav>
+
+    <mat-tab-nav-panel #panel>
+      @if (state.data()?.configured === false) {
+        <crn-alert tone="warning" class="feedback">
+          <p>{{ 'telegramAdmin.notConfigured' | translate }}</p>
+        </crn-alert>
+      }
+      @if (state.feedback(); as f) {
+        <crn-alert class="feedback" [tone]="f.kind">
+          @for (m of f.messages; track $index) {
+            <p>{{ m.key | translate: m.params }}</p>
+          }
+        </crn-alert>
+      }
+
+      @switch (active()) {
+        @case ('announcements') {
+          <crn-announcement-channel />
+          <crn-telegram-announcements />
+        }
+        @default {
+          <crn-load-state
+            [loading]="state.status.isLoading() && !state.data()"
+            [error]="state.status.error()"
+            [empty]="false"
+            (retry)="state.status.reload()"
+          >
+            @if (active() === 'bases') {
+              <crn-telegram-bases />
+            } @else {
+              <crn-telegram-bot />
+            }
+          </crn-load-state>
+        }
+      }
+    </mat-tab-nav-panel>
   </div>
 </div>

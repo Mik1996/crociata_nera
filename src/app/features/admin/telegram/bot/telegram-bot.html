@@ -1,0 +1,131 @@
+@if (state.data(); as s) {
+  <div class="grid">
+    <section class="cn-card cn-section" aria-labelledby="bot-title">
+      <h2 id="bot-title">{{ 'telegramAdmin.bot.title' | translate }}</h2>
+      <dl class="facts">
+        <div>
+          <dt>{{ 'telegramAdmin.bot.name' | translate }}</dt>
+          <dd>
+            @if (s.botUsername) {
+              <a [href]="'https://t.me/' + s.botUsername" target="_blank" rel="noopener"
+                >&#64;{{ s.botUsername }}</a
+              >
+            } @else {
+              <span class="cn-muted">—</span>
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>{{ 'telegramAdmin.bot.updates' | translate }}</dt>
+          <dd>
+            @if (s.updates) {
+              {{ 'telegramAdmin.bot.mode.' + s.updates | translate }}
+            } @else {
+              <span class="cn-muted">—</span>
+            }
+          </dd>
+        </div>
+      </dl>
+      <div class="actions">
+        <button
+          mat-button
+          type="button"
+          [disabled]="state.status.isLoading()"
+          (click)="state.status.reload()"
+        >
+          <crn-icon matButtonIcon name="refresh" />
+          {{ 'telegramAdmin.refresh' | translate }}
+        </button>
+      </div>
+    </section>
+
+    <section class="cn-card cn-section" aria-labelledby="chats-title">
+      <h2 id="chats-title">{{ 'telegramAdmin.chats.title' | translate }}</h2>
+      <p class="cn-muted intro">{{ 'telegramAdmin.chats.intro' | translate }}</p>
+
+      <ul class="chats">
+        @for (c of s.chats; track c.chatId) {
+          <li class="chat" [class.chat--busy]="state.busy() === c.chatId">
+            <div class="chat__info">
+              <p class="chat__title">
+                @if (state.link(c); as href) {
+                  <a [href]="href" target="_blank" rel="noopener">{{ c.title }}</a>
+                } @else {
+                  {{ c.title }}
+                }
+              </p>
+              <p class="chat__meta">
+                <crn-tag>{{ 'telegramAdmin.chats.type.' + c.type | translate }}</crn-tag>
+                @if (c.canPost) {
+                  <crn-tag tone="success">{{ 'telegramAdmin.chats.canPost' | translate }}</crn-tag>
+                } @else {
+                  <crn-tag
+                    tone="danger"
+                    tabindex="0"
+                    [matTooltip]="'telegramAdmin.chats.cannotPostHint' | translate"
+                    >{{ 'telegramAdmin.chats.cannotPost' | translate }}</crn-tag
+                  >
+                }
+              </p>
+            </div>
+            <crn-select
+              class="chat__level"
+              icon="castle"
+              [label]="'telegramAdmin.chats.content' | translate"
+              [options]="contentOptions(c)"
+              [value]="contentOf(c)"
+              [disabled]="c.locked"
+              [matTooltip]="c.locked ? ('telegramAdmin.chats.lockedHint' | translate) : ''"
+              (valueChange)="setContent(c, $event)"
+            />
+            <mat-slide-toggle
+              class="chat__lock"
+              [checked]="c.locked"
+              [disabled]="state.busy() !== null"
+              [matTooltip]="'telegramAdmin.chats.lockHint' | translate"
+              [attr.aria-label]="'telegramAdmin.chats.lockOf' | translate: { name: c.title }"
+              (change)="state.setLocked(c, $event.checked)"
+              >{{ 'telegramAdmin.chats.lock' | translate }}</mat-slide-toggle
+            >
+            <button
+              mat-icon-button
+              type="button"
+              class="chat__remove"
+              [disabled]="state.busy() !== null || c.locked"
+              [matTooltip]="'telegramAdmin.chats.remove' | translate"
+              [attr.aria-label]="'telegramAdmin.chats.removeOf' | translate: { name: c.title }"
+              (click)="state.removeChat(c)"
+            >
+              <crn-icon name="delete" />
+            </button>
+          </li>
+        } @empty {
+          <li class="cn-muted">{{ 'telegramAdmin.chats.empty' | translate }}</li>
+        }
+      </ul>
+
+      <form class="add" (submit)="$event.preventDefault(); addChat()">
+        <mat-form-field appearance="outline" class="add__field" subscriptSizing="dynamic">
+          <mat-label>{{ 'telegramAdmin.chats.addLabel' | translate }}</mat-label>
+          <input
+            matInput
+            name="chat"
+            autocomplete="off"
+            [ngModel]="newChat()"
+            (ngModelChange)="newChat.set($event)"
+            [disabled]="!s.configured"
+          />
+          <mat-hint>{{ 'telegramAdmin.chats.addHint' | translate }}</mat-hint>
+        </mat-form-field>
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="!s.configured || !newChat().trim() || state.busy() !== null"
+        >
+          <crn-icon matButtonIcon name="add_link" />
+          {{ 'telegramAdmin.chats.add' | translate }}
+        </button>
+      </form>
+    </section>
+  </div>
+}

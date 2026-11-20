@@ -1,5 +1,9 @@
 @use 'variables' as *;
 
+:host {
+  display: block;
+}
+
 .feedback {
   margin-bottom: $space-m;
 
@@ -23,6 +27,16 @@ h2 {
 
 .intro {
   margin: 0 0 $space-l;
+
+  p,
+  ul {
+    margin: 0;
+  }
+
+  ul {
+    margin-block: $space-xs;
+    padding-inline-start: $space-l;
+  }
 }
 
 /* The drafts list is the container of the side-by-side layout below. */

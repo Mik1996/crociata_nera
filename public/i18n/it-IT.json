@@ -90,8 +90,7 @@
     "settings": "Impostazioni",
     "bases": "Arsenale basi",
     "baseModeration": "Moderazione basi",
-    "telegramAdmin": "Telegram",
-    "announcementsAdmin": "Annunci Telegram"
+    "telegramAdmin": "Telegram"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -1247,9 +1246,18 @@
   },
   "telegramAdmin": {
     "title": "Telegram",
-    "subtitle": "Le basi dell'arsenale pubblicate nei canali Telegram del clan",
-    "notConfigured": "Il bot non è configurato sul server (TELEGRAM_BOT_TOKEN): nessuna base viene pubblicata su Telegram.",
+    "subtitle": "Annunci e basi dell'arsenale pubblicati nei canali Telegram del clan",
+    "tabs": {
+      "bot": "Bot e canali",
+      "bases": "Basi",
+      "announcements": "Annunci"
+    },
+    "notConfigured": "Il bot non è configurato sul server (TELEGRAM_BOT_TOKEN): niente viene pubblicato su Telegram.",
     "refresh": "Aggiorna",
+    "announcementsChat": {
+      "publishedIn": "Gli annunci escono in",
+      "missing": "Nessun canale riceve gli annunci: non possono essere pubblicati. Scegline uno in"
+    },
     "bot": {
       "title": "Bot",
       "name": "Bot",
@@ -1261,6 +1269,7 @@
     },
     "posts": {
       "title": "Post delle basi",
+      "intro": "Le basi dell'arsenale escono nel canale del loro municipio, che si sceglie in",
       "sent": "pubblicate",
       "pending": "in partenza",
       "waiting": "Basi TH{{level}} in attesa: {{n}}. Nessun canale è collegato al TH{{level}}.",
@@ -1270,7 +1279,7 @@
     },
     "chats": {
       "title": "Canali",
-      "intro": "Scegli per ogni canale il municipio delle basi che riceve. Ogni base sta in un solo canale, quello del suo municipio: se cambi il municipio di un canale le sue basi si spostano nel canale che ha il loro municipio (o restano in attesa finché non ce n'è uno) e arrivano quelle del nuovo municipio. Blocca i canali per non cambiarli per sbaglio. Il canale degli annunci non riceve mai basi: per dargli un municipio rimettilo prima su «Nessuno». Un canale compare qui quando aggiungi il bot come amministratore; se lo è già, pubblica un messaggio nel canale oppure aggiungilo qui sotto.",
+      "intro": "Scegli cosa riceve ogni canale: gli annunci (un solo canale) o le basi di un municipio. Ogni base sta in un solo canale, quello del suo municipio: se cambi il municipio di un canale le sue basi si spostano nel canale che ha il loro municipio (o restano in attesa finché non ce n'è uno) e arrivano quelle del nuovo municipio. Il canale degli annunci non riceve mai basi: per dargli un municipio rimettilo prima su «Nessuno». Blocca i canali per non cambiarli per sbaglio. Un canale compare qui quando aggiungi il bot come amministratore; se lo è già, pubblica un messaggio nel canale oppure aggiungilo qui sotto.",
       "noTownHall": "Nessuno",
       "announcements": "Annunci",
       "content": "Contenuto",
@@ -1295,9 +1304,16 @@
     }
   },
   "announcementsAdmin": {
-    "title": "Annunci",
-    "subtitle": "Bozze per il canale annunci di Telegram, pronte da pubblicare",
-    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, quando un clan della Crociata batte un record, quando un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I) e quando un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo. I numeri di una bozza si aggiornano finché non la pubblichi.",
+    "intro": {
+      "lead": "Il sito prepara una bozza quando:",
+      "cases": {
+        "period": "si chiude un mese, una CWL o una stagione di donazioni;",
+        "record": "un clan della Crociata batte un record;",
+        "league": "un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I);",
+        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo."
+      },
+      "note": "I numeri di una bozza si aggiornano finché non la pubblichi."
+    },
     "drafts": "Bozze",
     "noDrafts": "Nessuna bozza in attesa: la prossima arriverà alla chiusura del mese o con un nuovo record.",
     "history": "Pubblicati e scartati",

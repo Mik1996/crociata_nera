@@ -90,8 +90,7 @@
     "settings": "Ajustes",
     "bases": "Arsenal de bases",
     "baseModeration": "Moderación de bases",
-    "telegramAdmin": "Telegram",
-    "announcementsAdmin": "Anuncios de Telegram"
+    "telegramAdmin": "Telegram"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -1247,9 +1246,18 @@
   },
   "telegramAdmin": {
     "title": "Telegram",
-    "subtitle": "Las bases del arsenal publicadas en los canales de Telegram del clan",
-    "notConfigured": "El bot no está configurado en el servidor (TELEGRAM_BOT_TOKEN): no se publica ninguna base en Telegram.",
+    "subtitle": "Anuncios y bases del arsenal publicados en los canales de Telegram del clan",
+    "tabs": {
+      "bot": "Bot y canales",
+      "bases": "Bases",
+      "announcements": "Anuncios"
+    },
+    "notConfigured": "El bot no está configurado en el servidor (TELEGRAM_BOT_TOKEN): no se publica nada en Telegram.",
     "refresh": "Actualizar",
+    "announcementsChat": {
+      "publishedIn": "Los anuncios salen en",
+      "missing": "Ningún canal recibe los anuncios: no se pueden publicar. Elige uno en"
+    },
     "bot": {
       "title": "Bot",
       "name": "Bot",
@@ -1261,6 +1269,7 @@
     },
     "posts": {
       "title": "Publicaciones de bases",
+      "intro": "Las bases del arsenal salen en el canal de su ayuntamiento, que se elige en",
       "sent": "publicadas",
       "pending": "en camino",
       "waiting": "Bases TH{{level}} en espera: {{n}}. Ningún canal está vinculado al TH{{level}}.",
@@ -1270,7 +1279,7 @@
     },
     "chats": {
       "title": "Canales",
-      "intro": "Elige para cada canal el ayuntamiento de las bases que recibe. Cada base está en un solo canal, el de su ayuntamiento: si cambias el ayuntamiento de un canal, sus bases pasan al canal de su ayuntamiento (o esperan hasta que haya uno) y llegan las del nuevo ayuntamiento. Bloquea los canales para no cambiarlos por error. El canal de anuncios nunca recibe bases: para darle un ayuntamiento, vuelve a ponerlo antes en «Ninguno». Un canal aparece aquí cuando añades el bot como administrador; si ya lo es, publica un mensaje en el canal o añádelo aquí abajo.",
+      "intro": "Elige qué recibe cada canal: los anuncios (un solo canal) o las bases de un ayuntamiento. Cada base está en un solo canal, el de su ayuntamiento: si cambias el ayuntamiento de un canal, sus bases pasan al canal de su ayuntamiento (o esperan hasta que haya uno) y llegan las del nuevo ayuntamiento. El canal de anuncios nunca recibe bases: para darle un ayuntamiento, vuelve a ponerlo antes en «Ninguno». Bloquea los canales para no cambiarlos por error. Un canal aparece aquí cuando añades el bot como administrador; si ya lo es, publica un mensaje en el canal o añádelo aquí abajo.",
       "noTownHall": "Ninguno",
       "announcements": "Anuncios",
       "content": "Contenido",
@@ -1295,9 +1304,16 @@
     }
   },
   "announcementsAdmin": {
-    "title": "Anuncios",
-    "subtitle": "Borradores para el canal de anuncios de Telegram, listos para publicar",
-    "intro": "El sitio prepara un borrador cuando se cierra un mes, una CWL o una temporada de donaciones, cuando un clan de la Cruzada bate un récord, cuando un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I) y cuando un jugador cierra la temporada Leyenda entre los 10.000 primeros del mundo. Las cifras de un borrador se actualizan hasta que lo publicas.",
+    "intro": {
+      "lead": "El sitio prepara un borrador cuando:",
+      "cases": {
+        "period": "se cierra un mes, una CWL o una temporada de donaciones;",
+        "record": "un clan de la Cruzada bate un récord;",
+        "league": "un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I);",
+        "legend": "un jugador cierra la temporada Leyenda entre los 10.000 primeros del mundo."
+      },
+      "note": "Las cifras de un borrador se actualizan hasta que lo publicas."
+    },
     "drafts": "Borradores",
     "noDrafts": "No hay borradores pendientes: el próximo llegará al cerrarse el mes o con un nuevo récord.",
     "history": "Publicados y descartados",

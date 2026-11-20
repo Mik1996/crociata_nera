@@ -4,10 +4,10 @@ import { TestBed } from '@angular/core/testing';
 import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { provideRouter } from '@angular/router';
-import { Announcement } from '../../../core/backend/backend-api.types';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { provideCocApiTest } from '../../../testing/fixtures';
-import { AnnouncementsAdminPage, captionLength } from './announcements-admin-page';
+import { Announcement } from '../../../../core/backend/backend-api.types';
+import { LanguageService } from '../../../../core/i18n/language.service';
+import { provideCocApiTest } from '../../../../testing/fixtures';
+import { TelegramAnnouncements, captionLength } from './telegram-announcements';
 
 const URL_BASE = '/api/v1/admin/announcements';
 
@@ -50,7 +50,7 @@ const ok = <T>(result: T, messages: unknown[] = []) => ({
   status: { code: 200, name: 'HTTP_STATUS.OK' },
 });
 
-describe('AnnouncementsAdminPage', () => {
+describe('TelegramAnnouncements', () => {
   let httpMock: HttpTestingController;
 
   async function render(list: Announcement[] = [month, record]) {
@@ -71,7 +71,7 @@ describe('AnnouncementsAdminPage', () => {
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
-    const fixture = TestBed.createComponent(AnnouncementsAdminPage);
+    const fixture = TestBed.createComponent(TelegramAnnouncements);
     fixture.detectChanges();
     expectOne(URL_BASE).flush(ok(list));
     TestBed.tick();
