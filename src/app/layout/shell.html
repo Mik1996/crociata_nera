@@ -212,37 +212,40 @@
     [fixedInViewport]="!pinned()"
     fixedTopGap="64"
   >
-    @if (canPin()) {
-      <div class="sidenav__pin">
-        <button
-          mat-icon-button
-          type="button"
-          [class.active]="pinned()"
-          [attr.aria-pressed]="pinned()"
-          [attr.aria-label]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
-          [title]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
-          (click)="togglePin()"
-        >
-          <crn-icon name="push_pin" />
-        </button>
-      </div>
-    }
-    <nav [attr.aria-label]="'app.mainNavigation' | translate">
-      <mat-nav-list>
-        @for (group of menu(); track $index) {
-          @if (group.label) {
-            <h2 class="nav-group">{{ group.label | translate }}</h2>
+    <!-- A column filling the drawer, so Settings can sit at the bottom -->
+    <div class="sidenav__body">
+      @if (canPin()) {
+        <div class="sidenav__pin">
+          <button
+            mat-icon-button
+            type="button"
+            [class.active]="pinned()"
+            [attr.aria-pressed]="pinned()"
+            [attr.aria-label]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
+            [title]="(pinned() ? 'app.unpinNavigation' : 'app.pinNavigation') | translate"
+            (click)="togglePin()"
+          >
+            <crn-icon name="push_pin" />
+          </button>
+        </div>
+      }
+      <nav [attr.aria-label]="'app.mainNavigation' | translate">
+        <mat-nav-list>
+          @for (group of menu(); track $index) {
+            @if (group.label) {
+              <h2 class="nav-group">{{ group.label | translate }}</h2>
+            }
+            @for (item of group.items; track item.path) {
+              <ng-container *ngTemplateOutlet="navItem; context: { $implicit: item }" />
+            }
           }
-          @for (item of group.items; track item.path) {
-            <ng-container *ngTemplateOutlet="navItem; context: { $implicit: item }" />
-          }
-        }
+        </mat-nav-list>
+      </nav>
+      <!-- Settings (theme and language) at the bottom, for everyone -->
+      <mat-nav-list class="sidenav__bottom" [attr.aria-label]="'nav.settings' | translate">
+        <ng-container *ngTemplateOutlet="navItem; context: { $implicit: settingsItem }" />
       </mat-nav-list>
-    </nav>
-    <!-- Settings (theme and language) at the bottom, for everyone -->
-    <mat-nav-list class="sidenav__bottom" [attr.aria-label]="'nav.settings' | translate">
-      <ng-container *ngTemplateOutlet="navItem; context: { $implicit: settingsItem }" />
-    </mat-nav-list>
+    </div>
   </mat-sidenav>
 
   <ng-template #navItem let-item>

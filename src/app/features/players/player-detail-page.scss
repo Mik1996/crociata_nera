@@ -2,19 +2,10 @@
 @use 'variables' as *;
 
 // The page fills the space below the header (see `.page--fill` in styles.scss): back link, banner and
-// tabs scroll together in `.page__scroll`, the tab bar sticks to its top once scrolled past.
+// tabs scroll together in `.page__scroll`, the tab bar sticks to its top once scrolled past
+// (`cn-tabs--sticky`, styles.scss).
 .player-tabs {
-  // No `overflow` between the tab bar and the scroll area, or `position: sticky` stops working.
-  ::ng-deep .mat-mdc-tab-header {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--cn-bg);
-  }
-
-  ::ng-deep .mat-mdc-tab-body-content {
-    overflow: visible;
-  }
+  --mat-tab-divider-color: var(--cn-border);
 
   .tab {
     padding: 0;
@@ -24,12 +15,6 @@
 .back {
   flex: none;
   margin: (-$space-s) 0 $space-s (-$space-s);
-}
-
-.player-tabs {
-  ::ng-deep .mat-mdc-tab-labels {
-    border-bottom: 1px solid var(--cn-border);
-  }
 }
 
 h2 {
