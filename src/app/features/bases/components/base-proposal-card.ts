@@ -29,7 +29,8 @@ const STATUS_TONE: Record<BaseProposal['status'], TagTone> = {
 /**
  * A base proposed by a member: screenshot (enlarged on click), town hall, layout type, state, who
  * sent it and when, review, reinforcements, description and the in-game link. The actions of the
- * page (approve, correct, withdraw…) are projected at the bottom.
+ * page (approve, correct, withdraw…) are projected at the bottom; an element marked `proposalNote`
+ * goes above them (extra facts of the page).
  */
 @Component({
   selector: 'crn-base-proposal-card',

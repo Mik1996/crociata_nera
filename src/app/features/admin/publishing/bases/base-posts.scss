@@ -1,0 +1,73 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+  margin-bottom: $space-l;
+}
+
+h2 {
+  margin: 0 0 $space-s;
+}
+
+h3 {
+  margin: $space-l 0 $space-s;
+  font-size: var(--cn-fs-md);
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-l;
+  margin: 0 0 $space-s;
+  padding: 0;
+  list-style: none;
+}
+
+.counts__value {
+  margin-inline-end: $space-xs;
+  color: var(--cn-gold);
+  font-size: var(--cn-fs-lg);
+  font-weight: 700;
+}
+
+.notice {
+  margin-bottom: $space-s;
+
+  p {
+    margin: 0;
+  }
+}
+
+.failures {
+  display: grid;
+  gap: $space-s;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs $space-s;
+    align-items: baseline;
+  }
+}
+
+.failures__error {
+  overflow-wrap: anywhere;
+}
+
+.failures__retry {
+  font-size: var(--cn-fs-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  margin-top: $space-l;
+}
+
+.intro {
+  margin: 0 0 $space-m;
+}

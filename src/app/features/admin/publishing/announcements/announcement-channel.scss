@@ -1,0 +1,32 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+  margin-bottom: $space-m;
+}
+
+.channel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs $space-s;
+  align-items: center;
+  margin: 0;
+}
+
+.channel__icon {
+  color: var(--cn-gold);
+}
+
+.channel__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.channel__manage {
+  margin-inline-start: auto;
+  font-size: var(--cn-fs-xs);
+}
+
+crn-alert p {
+  margin: 0;
+}

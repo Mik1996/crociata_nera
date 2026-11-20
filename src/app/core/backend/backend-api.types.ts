@@ -170,9 +170,30 @@ export interface BaseProposal extends DefenseBase {
   rejectionReason: string | null;
 }
 
+/** Where a proposed base goes (or went) on Telegram, for the moderation. */
+export interface BaseTelegramState {
+  /** The channel bound to the town hall of the base now; `null`: none, the base stays on the site. */
+  channel: { title: string; username: string | null; canPost: boolean } | null;
+  /**
+   * The post of an approved base (`null` while waiting): `sent`, `noChannel` (waiting for a
+   * channel), `failed` (tried again later, error in English) or `pending` (goes out within seconds).
+   */
+  post: {
+    status: 'sent' | 'noChannel' | 'failed' | 'pending';
+    error: string | null;
+    retryAt: string | null;
+  } | null;
+}
+
+/** A proposal as administrators see it (`GET /base-proposals`). */
+export interface ModeratedBaseProposal extends BaseProposal {
+  /** `null` for rejected proposals, and while Telegram is not configured on the server. */
+  telegram: BaseTelegramState | null;
+}
+
 /** The proposals in one state of the moderation, with how many there are in each state. */
 export interface BaseProposalList {
-  items: BaseProposal[];
+  items: ModeratedBaseProposal[];
   counts: Record<BaseStatus, number>;
 }
 
@@ -318,6 +339,14 @@ export interface TelegramStatus {
   updates: 'webhook' | 'polling' | null;
   chats: TelegramChat[];
   basePosts: TelegramBasePosts;
+}
+
+/** What waits for an administrator on the Publications page (`GET /admin/publishing/pending-count`). */
+export interface PublishingPendingCount {
+  /** Base proposals waiting for review. */
+  bases: number;
+  /** Announcement drafts waiting to be published or discarded. */
+  announcements: number;
 }
 
 /** What an announcement tells (`GET /admin/announcements`). */

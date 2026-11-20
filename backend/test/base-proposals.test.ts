@@ -1,21 +1,31 @@
 import sharp from 'sharp';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { GET as pendingCount } from '@/app/api/v1/admin/publishing/pending-count/route';
 import { POST as approve } from '@/app/api/v1/base-proposals/[id]/approve/route';
 import { POST as reject } from '@/app/api/v1/base-proposals/[id]/reject/route';
 import { DELETE as withdraw, PATCH as updateProposal } from '@/app/api/v1/base-proposals/[id]/route';
 import { GET as listMine } from '@/app/api/v1/base-proposals/mine/route';
-import { GET as pendingCount } from '@/app/api/v1/base-proposals/pending-count/route';
 import { GET as listProposals, POST as propose } from '@/app/api/v1/base-proposals/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { DELETE as deleteBase, GET as getBase, PATCH as updateBase } from '@/app/api/v1/bases/[id]/route';
 import { GET as listBases, POST as createBase } from '@/app/api/v1/bases/route';
 import { signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
+import { AnnouncementModel, AnnouncementState } from '@/modules/announcements/announcement.model';
 import { UserModel } from '@/modules/auth/user.model';
 import { BaseImageModel } from '@/modules/bases/base-image.store';
 import { MAX_OPEN_PROPOSALS } from '@/modules/bases/base-proposals.service';
 import { BaseStatus, DefenseBaseModel, migrateBaseStatus } from '@/modules/bases/defense-base.model';
 import { call, memberToken } from './helpers';
+
+/** An announcement draft, as the scheduler prepares it (only counted here). */
+const DRAFT = {
+  key: 'month:2026-10@#2J8JVVCLC',
+  kind: 'month' as const,
+  clanTag: '#2J8JVVCLC',
+  subject: '2026-10',
+  data: { kind: 'month' },
+};
 
 const link = (th: number, id = 'AAAAFQAAAALRVVKKOsCkPrNIeGUyK9Qd') =>
   `https://link.clashofclans.com/en?action=OpenLayout&id=TH${th}%3AHV%3A${id}`;
@@ -227,16 +237,19 @@ describe('moderation', () => {
     expect((await moderation(admin, 'REJECTED')).body.result.items).toHaveLength(1);
   });
 
-  it('counts the waiting proposals for the badge of the administrators', async () => {
+  it('counts the waiting proposals (and announcement drafts) for the badges of the administrators', async () => {
     const admin = await adminToken();
     const member = await memberToken('alice');
     await call(createBase, { token: admin, body: form({ layoutUrl: link(18, 'ADMINxxx'), image: await png() }) });
-    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ pending: 0 });
+    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ bases: 0, announcements: 0 });
     const { id } = (await proposeBase(member, 16, 'FIRSTxxx')).body.result;
     await proposeBase(member, 17, 'SECONDxx');
-    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ pending: 2 });
+    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ bases: 2, announcements: 0 });
     await call(approve, { token: admin, params: { id } });
-    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ pending: 1 });
+    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ bases: 1, announcements: 0 });
+    await AnnouncementModel.create(DRAFT);
+    await AnnouncementModel.create({ ...DRAFT, state: AnnouncementState.PUBLISHED, key: 'month:2026-09' });
+    expect((await call(pendingCount, { token: admin })).body.result).toEqual({ bases: 1, announcements: 1 });
     const denied = await call(pendingCount, { token: member });
     expect(denied.status).toBe(403);
     expect(denied.body.messages).toEqual([{ key: 'ERROR.FORBIDDEN' }]);

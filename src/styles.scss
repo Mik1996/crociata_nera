@@ -378,6 +378,14 @@ crn-alert p {
   }
 }
 
+// Same for a tab bar of links (`cn-tabs--sticky` on the `mat-tab-nav-bar`): its panel is plain content.
+.mat-mdc-tab-nav-bar.cn-tabs--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--cn-bg);
+}
+
 // Segmented filters (button toggles): the selected option is a gold game button.
 .mat-button-toggle-group.mat-button-toggle-group-appearance-standard {
   --mat-button-toggle-shape: var(--cn-control-radius);
@@ -645,13 +653,15 @@ mat-sidenav-content > .content:has(> .page--immersive) {
   @include hscroll;
 }
 
-// Tab bars with `crnSwipeTabs`: no pagination arrows, the labels scroll with the finger.
+// Tab bars with `crnSwipeTabs` (tab groups and bars of links): no pagination arrows, the labels
+// scroll with the finger.
 .cn-swipe-tabs {
   .mat-mdc-tab-header-pagination {
     display: none;
   }
 
-  .mat-mdc-tab-label-container {
+  .mat-mdc-tab-label-container,
+  .mat-mdc-tab-link-container {
     @include hscroll;
   }
 
@@ -659,7 +669,8 @@ mat-sidenav-content > .content:has(> .page--immersive) {
     flex-shrink: 0;
   }
 
-  .mat-mdc-tab {
+  .mat-mdc-tab,
+  .mat-mdc-tab-link {
     flex-shrink: 0;
     scroll-snap-align: start;
   }

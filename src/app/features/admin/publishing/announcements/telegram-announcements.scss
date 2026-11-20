@@ -1,0 +1,199 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+}
+
+.feedback {
+  margin-bottom: $space-m;
+
+  p {
+    margin: 0.1rem 0;
+  }
+}
+
+h2 {
+  margin: 0;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-s;
+}
+
+.intro {
+  margin: 0 0 $space-l;
+
+  p,
+  ul {
+    margin: 0;
+  }
+
+  ul {
+    margin-block: $space-xs;
+    padding-inline-start: $space-l;
+  }
+}
+
+/* The drafts list is the container of the side-by-side layout below. */
+.drafts {
+  container-type: inline-size;
+}
+
+.drafts,
+.decided {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drafts {
+  gap: $space-xl;
+}
+
+.draft {
+  display: grid;
+  gap: $space-m;
+  padding-top: $space-l;
+  border-top: 1px solid var(--cn-border);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.draft__head {
+  display: flex;
+  gap: $space-s;
+  align-items: flex-start;
+}
+
+.draft__icon {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--cn-gold);
+}
+
+.draft__titles {
+  min-width: 0;
+}
+
+.draft__title {
+  margin: 0 0 $space-xs;
+  font-size: var(--cn-fs-md);
+  overflow-wrap: anywhere;
+}
+
+.draft__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs $space-s;
+  align-items: center;
+  margin: 0;
+  font-size: var(--cn-fs-xs);
+}
+
+.draft__body {
+  display: grid;
+  gap: $space-m;
+
+  crn-announcement-images {
+    display: block;
+    min-width: 0;
+  }
+}
+
+.draft__text {
+  display: grid;
+  gap: $space-m;
+  align-content: start;
+  min-width: 0;
+}
+
+.draft__error p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.caption {
+  width: 100%;
+
+  textarea {
+    font-family: inherit;
+    line-height: 1.45;
+  }
+}
+
+.too-long {
+  color: var(--cn-red-text);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+}
+
+.actions__discard {
+  margin-inline-start: auto;
+}
+
+.empty {
+  margin: 0;
+}
+
+.decided {
+  gap: $space-s;
+  margin-top: $space-m;
+}
+
+.decided__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs $space-s;
+  align-items: center;
+  padding: $space-s 0;
+  border-bottom: 1px solid var(--cn-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.decided__icon {
+  color: var(--cn-text-muted);
+}
+
+.decided__title {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.decided__date {
+  font-size: var(--cn-fs-xs);
+}
+
+/*
+ * Wide: pictures on the left (at most 32rem, the others scroll), caption and actions beside them.
+ * The caption box is as tall as the pictures: 12.5rem (10rem wide, 4:5, `announcement-images`)
+ * minus the 2rem of vertical padding of an outlined field (density 0).
+ */
+@container (min-width: 48rem) {
+  .draft__body {
+    grid-template-columns: fit-content(32rem) minmax(20rem, 1fr);
+    align-items: start;
+  }
+
+  .caption textarea {
+    height: 10.5rem;
+    resize: none;
+  }
+}

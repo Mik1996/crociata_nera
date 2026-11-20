@@ -183,7 +183,7 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   `ImageStore` interface; max 400 bases for the free cluster). `GET /base-images/{key}/{variant}` is
   public: the key is random and changes with the image, so responses are cached as immutable.
 - Telegram (`backend/src/modules/telegram/`, off without `TELEGRAM_BOT_TOKEN`): every published base is
-  posted in the channel bound to its town hall (`TelegramChats`, set in `/admin/telegram`), picture as JPEG,
+  posted in the channel bound to its town hall (`TelegramChats`, set in the Channels tab of `/admin/publishing`), picture as JPEG,
   Italian caption (troops in English, author = linked account with the highest role, then town hall,
   chosen once) and a "copy base" button. `requestBasePostSync()` (called after every change of the
   arsenal and every 5 min) compares each base with its `TelegramBasePosts` record and sends, edits,
@@ -197,7 +197,7 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
   `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`; a member ending a Legend League
   season in Legend League I among the first 10,000 of the world, from `modules/legends/`), published or
-  discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Captions and
+  discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
   a post goes out in it; a published one keeps its `language`. Pictures are
   SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text

@@ -1,10 +1,10 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    linkedSignal,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,11 +25,12 @@ import { PageHeader } from '../../shared/components/page-header/page-header';
 import { serverTable } from '../../shared/components/table/server-table';
 import { Table } from '../../shared/components/table/table';
 import {
-    DayRange,
-    dayRangeInstants,
-    TableFilters,
-    TableQuery,
+  DayRange,
+  dayRangeInstants,
+  TableFilters,
+  TableQuery,
 } from '../../shared/components/table/table-filters';
+import { PendingPublications } from '../../core/backend/pending-publications';
 import { Tag } from '../../shared/components/tag/tag';
 import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { DeleteUserDialog } from './components/delete-user-dialog';
@@ -79,7 +80,8 @@ const DIALOG_CONFIG = {
 
 /**
  * Administration: registered users, ADMIN role, linked player tags and deletion of users. Links to
- * the moderation of the bases proposed by the members (`/admin/bases`).
+ * the Publications page (`/admin/publishing`: base proposals, announcements, Telegram channels),
+ * with how many of them wait for a decision.
  */
 @Component({
   selector: 'crn-admin-page',
@@ -107,6 +109,8 @@ export class AdminPage {
   private readonly admin = inject(AdminService);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
+  /** What waits on the Publications page: the badge of its button. */
+  protected readonly pending = inject(PendingPublications);
   protected readonly myId = computed(() => this.auth.user()?.id ?? null);
 
   protected readonly columns = ['user', 'playerTag', 'admin', 'verified', 'createdAt', 'actions'];

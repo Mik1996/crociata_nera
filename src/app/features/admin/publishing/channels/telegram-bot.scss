@@ -1,0 +1,141 @@
+@use 'variables' as *;
+
+/*
+ * Bot on the left, the channels (wider) on the right; one column when the content area
+ * is narrow. The container is the host: a container query never applies to the container.
+ */
+:host {
+  display: block;
+  container-type: inline-size;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-l;
+  align-items: start;
+
+  .cn-section {
+    margin-bottom: 0;
+  }
+}
+
+@container (min-width: 60rem) {
+  .grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
+  }
+}
+
+h2 {
+  margin: 0 0 $space-s;
+}
+
+.facts {
+  display: grid;
+  gap: $space-s;
+  margin: 0;
+
+  div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs $space-m;
+    justify-content: space-between;
+  }
+
+  dt {
+    color: var(--cn-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  margin-top: $space-l;
+}
+
+.intro {
+  margin: 0 0 $space-m;
+}
+
+.chats {
+  display: grid;
+  gap: $space-s;
+  margin: 0 0 $space-l;
+  padding: 0;
+  list-style: none;
+}
+
+.chat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-m;
+  align-items: center;
+  padding: $space-s 0;
+  border-bottom: 1px solid var(--cn-border);
+  transition: opacity 0.2s ease;
+}
+
+.chat--busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.chat__info {
+  flex: 1 1 14rem;
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+
+  // Inside `.chat__info`: stronger than the `p` reset above.
+  .chat__meta {
+    margin-top: $space-xs;
+  }
+}
+
+.chat__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.chat__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+/* Same width on every row: without `min-width: 0` the field grows to its content (picture or icon). */
+.chat__level {
+  flex: 0 0 14rem;
+  min-width: 0;
+}
+
+.chat__lock {
+  flex: none;
+}
+
+.chat__remove:not(:disabled) {
+  color: var(--cn-red-text);
+}
+
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s $space-m;
+  align-items: flex-start;
+
+  button {
+    margin-top: $space-xs;
+  }
+}
+
+.add__field {
+  flex: 1 1 16rem;
+}

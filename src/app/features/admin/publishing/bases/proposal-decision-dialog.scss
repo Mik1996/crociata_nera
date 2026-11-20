@@ -1,0 +1,33 @@
+@use 'variables' as *;
+
+.thumb {
+  display: block;
+  width: 100%;
+  max-height: 10rem;
+  margin-bottom: $space-m;
+  border-radius: $radius-m;
+  background: var(--cn-surface-3);
+  object-fit: contain;
+}
+
+.intro {
+  margin: 0;
+}
+
+.reason {
+  width: 100%;
+  margin-top: $space-m;
+}
+
+.telegram {
+  display: flex;
+  gap: $space-s;
+  align-items: flex-start;
+  margin: $space-m 0 0;
+  color: var(--cn-text-muted);
+}
+
+.telegram__icon {
+  flex: none;
+  color: var(--cn-gold);
+}

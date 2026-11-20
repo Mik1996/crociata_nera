@@ -1,0 +1,61 @@
+<mat-chip-listbox
+  class="filter"
+  hideSingleSelectionIndicator
+  [attr.aria-label]="'baseModeration.filter' | translate"
+  [value]="current()"
+  (change)="select($event.value)"
+>
+  @for (s of states; track s.id) {
+    <mat-chip-option [value]="s.status" [selectable]="current() !== s.status">
+      {{ 'baseModeration.tabs.' + s.id | translate }}
+      @if (counts(); as c) {
+        <span class="count cn-num" [class.count--alert]="s.status === 'PENDING' && c.PENDING">
+          {{ c[s.status] }}
+        </span>
+      }
+    </mat-chip-option>
+  }
+</mat-chip-listbox>
+
+<crn-load-state
+  [loading]="list.isLoading() && !items().length"
+  [error]="list.error()"
+  [empty]="!items().length"
+  [emptyIcon]="current() === 'PENDING' ? 'check_circle' : 'inbox'"
+  [emptyMessage]="'baseModeration.empty.' + current() | translate"
+  (retry)="list.reload()"
+>
+  <ul class="grid" [class.grid--stale]="list.isLoading()">
+    @for (p of items(); track p.id) {
+      <li>
+        <crn-base-proposal-card
+          class="card"
+          showAuthor
+          [proposal]="p"
+          [imageUrl]="imageUrl(p)"
+          (enlarge)="openImage(p)"
+        >
+          @if (p.telegram; as telegram) {
+            <crn-proposal-telegram
+              proposalNote
+              [state]="telegram"
+              [townHallLevel]="p.townHallLevel"
+            />
+          }
+          @if (p.status === 'PENDING') {
+            <div class="decisions">
+              <button mat-flat-button type="button" class="approve" (click)="decide(p, 'approve')">
+                <crn-icon matButtonIcon name="check_circle" />
+                {{ 'baseModeration.approve' | translate }}
+              </button>
+              <button mat-stroked-button type="button" class="reject" (click)="decide(p, 'reject')">
+                <crn-icon matButtonIcon name="block" />
+                {{ 'baseModeration.reject' | translate }}
+              </button>
+            </div>
+          }
+        </crn-base-proposal-card>
+      </li>
+    }
+  </ul>
+</crn-load-state>

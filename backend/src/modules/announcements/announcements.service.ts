@@ -70,6 +70,11 @@ export async function listAnnouncements(language: AnnouncementLanguage): Promise
   return Promise.all([...drafts, ...decided].map((doc) => toView(doc, usernames, language)));
 }
 
+/** How many drafts wait for an administrator (the badges of the menu). */
+export async function countDrafts(): Promise<number> {
+  return AnnouncementModel.countDocuments({ state: AnnouncementState.DRAFT });
+}
+
 /** The language of an announcement's words: the one it was published in, else the one asked. */
 function languageOf(doc: Pick<Announcement, 'state' | 'language'>, asked: AnnouncementLanguage): AnnouncementLanguage {
   if (doc.state !== AnnouncementState.PUBLISHED) return asked;

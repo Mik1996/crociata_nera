@@ -1,0 +1,30 @@
+@use 'variables' as *;
+
+.tabs {
+  margin-bottom: $space-l;
+}
+
+.tabs__icon {
+  margin-inline-end: $space-s;
+}
+
+.tabs__badge {
+  display: inline-block;
+  min-width: 1.25rem;
+  margin-inline-start: $space-s;
+  padding: 0 $space-xs;
+  border-radius: $radius-pill;
+  background: var(--cn-red-text);
+  color: var(--cn-surface);
+  font-size: var(--cn-fs-xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+.feedback {
+  margin-bottom: $space-m;
+
+  p {
+    margin: 0.1rem 0;
+  }
+}

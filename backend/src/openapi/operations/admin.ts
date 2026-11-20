@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
 import { deleteUserSchema, linkUserPlayersSchema, listUsersQuerySchema, updateUserSchema } from '@/modules/admin/admin.schemas';
-import { AdminUser, MembersSyncResult, UserPage } from '../models/users';
+import { AdminUser, MembersSyncResult, PublishingPendingCount, UserPage } from '../models/users';
 import { ApiOperation, requestPart } from '../operation';
 
 const userIdPath = requestPart(z.object({ id: z.string() }), {
@@ -15,6 +15,18 @@ const userAndTagPath = requestPart(z.object({ id: z.string(), tag: z.string() })
 });
 
 export const ADMIN_OPERATIONS: ApiOperation[] = [
+  {
+    method: 'GET',
+    path: '/admin/publishing/pending-count',
+    operationId: 'countPendingPublications',
+    tag: 'Admin',
+    summary: 'Count what waits on the Publications page',
+    description:
+      'The base proposals waiting for review and the announcement drafts waiting for a decision: the badges of the account menu and of the Publications page.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    responses: { 200: { description: 'The counts.', result: PublishingPendingCount } },
+  },
   {
     method: 'GET',
     path: '/admin/users',

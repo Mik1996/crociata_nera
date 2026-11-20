@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TROOP_NAMES } from '@/modules/bases/clan-castle';
 import { BASE_STATUSES } from '@/modules/bases/defense-base.model';
+import { BASE_POST_STATUSES } from '@/modules/telegram/telegram-base-post.model';
 import { dateTime, model, nullableDateTime } from './common';
 
 export const ClanCastleTroop = model(
@@ -74,12 +75,45 @@ export const BaseProposal = model(
   }),
 );
 
+export const BaseTelegramState = model(
+  'BaseTelegramState',
+  'Where a proposed base goes (or went) on Telegram: the channel bound to its town hall and, once approved, its post.',
+  z.strictObject({
+    channel: z
+      .strictObject({
+        title: z.string().describe('Title of the chat.'),
+        username: z.string().nullable().describe('Public `@username` without `@`; `null` for private chats.'),
+        canPost: z.boolean().describe('The bot may publish there.'),
+      })
+      .nullable()
+      .describe('The chat bound to the town hall of the base now; `null`: none (the base stays on the site only, its post waits).'),
+    post: z
+      .strictObject({
+        status: z
+          .enum([...BASE_POST_STATUSES, 'pending'])
+          .describe('`sent` (in its channel), `noChannel` (waiting for a channel), `failed` (tried again later) or `pending` (goes out within seconds).'),
+        error: z.string().nullable().describe('Error given by Telegram (English) when `failed`.'),
+        retryAt: nullableDateTime('Next automatic attempt when `failed`.'),
+      })
+      .nullable()
+      .describe('The post of an approved base; `null` while waiting.'),
+  }),
+);
+
+export const ModeratedBaseProposal = model(
+  'ModeratedBaseProposal',
+  'A base proposal as administrators see it: with where it goes on Telegram.',
+  BaseProposal.extend({
+    telegram: BaseTelegramState.nullable().describe('`null` for rejected proposals and while Telegram is not configured.'),
+  }),
+);
+
 export const BaseProposalList = model(
   'BaseProposalList',
   'The proposals in one state of the moderation.',
   z.strictObject({
     items: z
-      .array(BaseProposal)
+      .array(ModeratedBaseProposal)
       .describe('Waiting proposals oldest first; approved and rejected ones most recently reviewed first.'),
     counts: z
       .strictObject({
@@ -89,10 +123,4 @@ export const BaseProposalList = model(
       })
       .describe('Proposals in each state.'),
   }),
-);
-
-export const BaseProposalPendingCount = model(
-  'BaseProposalPendingCount',
-  'How many proposals wait for review.',
-  z.strictObject({ pending: z.number().int().min(0).describe('Proposals waiting for review.') }),
 );

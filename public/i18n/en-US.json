@@ -89,9 +89,7 @@
     "admin": "Administration",
     "settings": "Settings",
     "bases": "Base arsenal",
-    "baseModeration": "Base moderation",
-    "telegramAdmin": "Telegram",
-    "announcementsAdmin": "Telegram announcements"
+    "publishing": "Publications"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -412,8 +410,8 @@
       "signOut": "Sign out",
       "profile": "My profile",
       "admin": "Administration",
-      "baseModeration": "Base moderation",
-      "pendingProposals": "{{n}} proposals to review"
+      "publishing": "Publications",
+      "pendingPublications": "{{n}} publications to review"
     },
     "errors": {
       "backendUnreachable": "Unable to reach the server. Please try again shortly.",
@@ -1218,15 +1216,44 @@
       "war": "War average"
     }
   },
-  "baseModeration": {
-    "title": "Base moderation",
-    "subtitle": "Bases proposed by the members: approve them to publish them in the arsenal",
+  "publishing": {
+    "title": "Publications",
+    "subtitle": "Bases proposed by the members, announcements and Telegram channels: what waits for a decision before going out",
     "backToAdmin": "Administration",
+    "tabs": {
+      "bases": "Bases",
+      "announcements": "Announcements",
+      "channels": "Channels"
+    },
+    "pending": {
+      "bases": "{{n}} bases to review",
+      "announcements": "{{n}} announcement drafts"
+    },
+    "telegram": {
+      "goesTo": "On Telegram it will go to",
+      "postIn": "On Telegram in",
+      "noChannel": "No Telegram channel for TH{{level}}: it stays on the site only until you bind one",
+      "manage": "Manage the channels",
+      "status": {
+        "sent": "Posted",
+        "pending": "On its way",
+        "noChannel": "Waiting for a channel",
+        "failed": "Failed"
+      }
+    },
+    "approveTelegram": {
+      "channel": "It will go out on Telegram too, in {{channel}}.",
+      "cannotPost": "On Telegram it will wait: the bot cannot post in {{channel}}.",
+      "noChannel": "On Telegram it will wait: no channel is bound to TH{{level}}."
+    }
+  },
+  "baseModeration": {
     "tabs": {
       "pending": "Waiting",
       "approved": "Approved",
       "rejected": "Rejected"
     },
+    "filter": "Filter by state",
     "empty": {
       "PENDING": "No proposals to review",
       "APPROVED": "No approved proposals",
@@ -1246,10 +1273,12 @@
     }
   },
   "telegramAdmin": {
-    "title": "Telegram",
-    "subtitle": "The arsenal's bases posted in the clan's Telegram channels",
-    "notConfigured": "The bot is not configured on the server (TELEGRAM_BOT_TOKEN): no base is posted on Telegram.",
+    "notConfigured": "The bot is not configured on the server (TELEGRAM_BOT_TOKEN): nothing is posted on Telegram.",
     "refresh": "Refresh",
+    "announcementsChat": {
+      "publishedIn": "The announcements go to",
+      "missing": "No channel receives the announcements: they cannot be published. Choose one in"
+    },
     "bot": {
       "title": "Bot",
       "name": "Bot",
@@ -1261,6 +1290,7 @@
     },
     "posts": {
       "title": "Base posts",
+      "intro": "Approved bases go out in the channel of their town hall, chosen in",
       "sent": "posted",
       "pending": "on their way",
       "waiting": "TH{{level}} bases waiting: {{n}}. No channel is bound to TH{{level}}.",
@@ -1270,7 +1300,7 @@
     },
     "chats": {
       "title": "Channels",
-      "intro": "Choose for each channel the town hall of the bases it receives. Every base lives in one channel only, the one of its town hall: if you change the town hall of a channel, its bases move to the channel of their town hall (or wait until there is one) and the bases of the new town hall arrive. Lock the channels so they are not changed by mistake. The announcements channel never receives bases: to give it a town hall, set it back to “None” first. A channel appears here when you add the bot as an administrator; if it already is one, post a message in the channel or add it below.",
+      "intro": "Choose what each channel receives: the announcements (one channel only) or the bases of a town hall. Every base lives in one channel only, the one of its town hall: if you change the town hall of a channel, its bases move to the channel of their town hall (or wait until there is one) and the bases of the new town hall arrive. The announcements channel never receives bases: to give it a town hall, set it back to “None” first. Lock the channels so they are not changed by mistake. A channel appears here when you add the bot as an administrator; if it already is one, post a message in the channel or add it below.",
       "noTownHall": "None",
       "announcements": "Announcements",
       "content": "Content",
@@ -1295,9 +1325,16 @@
     }
   },
   "announcementsAdmin": {
-    "title": "Announcements",
-    "subtitle": "Drafts for the Telegram announcements channel, ready to publish",
-    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, when a clan of the Crusade beats a record, when a player reaches a league never reached before (Electro 31 to Legend I) and when a player ends the Legend season among the first 10,000 in the world. The figures of a draft stay up to date until you publish it.",
+    "intro": {
+      "lead": "The site prepares a draft when:",
+      "cases": {
+        "period": "a month, a CWL or a donation season closes;",
+        "record": "a clan of the Crusade beats a record;",
+        "league": "a player reaches a league never reached before (Electro 31 to Legend I);",
+        "legend": "a player ends the Legend season among the first 10,000 in the world."
+      },
+      "note": "The figures of a draft stay up to date until you publish it."
+    },
     "drafts": "Drafts",
     "noDrafts": "No drafts waiting: the next one comes when the month closes or with a new record.",
     "history": "Published and discarded",

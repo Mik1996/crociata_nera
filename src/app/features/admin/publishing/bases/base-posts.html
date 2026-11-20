@@ -1,0 +1,73 @@
+@if (state.data(); as s) {
+  <section class="cn-card cn-section" aria-labelledby="posts-title">
+    <h2 id="posts-title">{{ 'telegramAdmin.posts.title' | translate }}</h2>
+    <p class="cn-muted intro">
+      {{ 'telegramAdmin.posts.intro' | translate }}
+      <a routerLink="." [queryParams]="{ tab: 'channels', status: null }">{{
+        'publishing.tabs.channels' | translate
+      }}</a
+      >.
+    </p>
+    <ul class="counts">
+      <li>
+        <span class="counts__value cn-num">{{ s.basePosts.sent }}</span>
+        {{ 'telegramAdmin.posts.sent' | translate }}
+      </li>
+      @if (s.basePosts.pending) {
+        <li>
+          <span class="counts__value cn-num">{{ s.basePosts.pending }}</span>
+          {{ 'telegramAdmin.posts.pending' | translate }}
+        </li>
+      }
+    </ul>
+
+    @for (w of s.basePosts.waiting; track w.townHallLevel) {
+      <crn-alert tone="warning" icon="schedule" class="notice">
+        <p>
+          {{ 'telegramAdmin.posts.waiting' | translate: { n: w.bases, level: w.townHallLevel } }}
+        </p>
+      </crn-alert>
+    }
+
+    @if (s.basePosts.failed.length) {
+      <h3>{{ 'telegramAdmin.posts.failedTitle' | translate }}</h3>
+      <ul class="failures">
+        @for (f of s.basePosts.failed; track f.baseId) {
+          <li>
+            <crn-tag tone="danger">TH{{ f.townHallLevel }}</crn-tag>
+            <span class="failures__error">{{ f.error }}</span>
+            @if (f.retryAt) {
+              <span class="cn-muted failures__retry">
+                {{
+                  'telegramAdmin.posts.retryAt'
+                    | translate: { date: (f.retryAt | localDate: 'dateTime') }
+                }}
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="actions">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="!s.configured || state.busy() !== null"
+        (click)="state.sync()"
+      >
+        <crn-icon matButtonIcon name="send" />
+        {{ 'telegramAdmin.posts.retry' | translate }}
+      </button>
+      <button
+        mat-button
+        type="button"
+        [disabled]="state.status.isLoading()"
+        (click)="state.status.reload()"
+      >
+        <crn-icon matButtonIcon name="refresh" />
+        {{ 'telegramAdmin.refresh' | translate }}
+      </button>
+    </div>
+  </section>
+}

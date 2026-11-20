@@ -1,0 +1,38 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+  width: 100%;
+  font-size: var(--cn-fs-sm);
+}
+
+p {
+  margin: 0;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs $space-s;
+}
+
+.line__icon {
+  color: var(--cn-gold);
+}
+
+.line__channel {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.failure {
+  margin-top: $space-xs;
+  overflow-wrap: anywhere;
+  font-size: var(--cn-fs-xs);
+}
+
+.manage {
+  display: inline-block;
+  margin-top: $space-xs;
+}

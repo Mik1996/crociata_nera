@@ -1,0 +1,82 @@
+<div crnScrollFade class="page__scroll page__scroll--bleed">
+  <crn-page-header
+    flush
+    scene="candle"
+    [kicker]="'kicker.admin' | translate"
+    [title]="'publishing.title' | translate"
+    [subtitle]="'publishing.subtitle' | translate"
+  >
+    <a mat-stroked-button routerLink="/admin">
+      <crn-icon matButtonIcon name="arrow_back" />
+      {{ 'publishing.backToAdmin' | translate }}
+    </a>
+  </crn-page-header>
+
+  <div class="page__body">
+    <nav
+      mat-tab-nav-bar
+      crnSwipeTabs
+      class="tabs cn-tabs--sticky"
+      [tabPanel]="panel"
+      [attr.aria-label]="'publishing.title' | translate"
+    >
+      @for (t of tabs; track t.id) {
+        <a
+          mat-tab-link
+          routerLink="."
+          [queryParams]="{ tab: t.id === tabs[0].id ? null : t.id }"
+          replaceUrl
+          [active]="active() === t.id"
+        >
+          <crn-icon class="tabs__icon" [name]="t.icon" />
+          {{ 'publishing.tabs.' + t.id | translate }}
+          @if (t.pending && pending.counts()[t.pending]; as n) {
+            <span
+              class="tabs__badge cn-num"
+              [attr.aria-label]="'publishing.pending.' + t.pending | translate: { n }"
+              >{{ n > 99 ? '99+' : n }}</span
+            >
+          }
+        </a>
+      }
+    </nav>
+
+    <mat-tab-nav-panel #panel>
+      @if (state.data()?.configured === false) {
+        <crn-alert tone="warning" class="feedback">
+          <p>{{ 'telegramAdmin.notConfigured' | translate }}</p>
+        </crn-alert>
+      }
+      @if (state.feedback(); as f) {
+        <crn-alert class="feedback" [tone]="f.kind">
+          @for (m of f.messages; track $index) {
+            <p>{{ m.key | translate: m.params }}</p>
+          }
+        </crn-alert>
+      }
+
+      @switch (active()) {
+        @case ('bases') {
+          @if (state.data()?.configured) {
+            <crn-base-posts />
+          }
+          <crn-base-moderation [status]="status()" />
+        }
+        @case ('announcements') {
+          <crn-announcement-channel />
+          <crn-telegram-announcements />
+        }
+        @default {
+          <crn-load-state
+            [loading]="state.status.isLoading() && !state.data()"
+            [error]="state.status.error()"
+            [empty]="false"
+            (retry)="state.status.reload()"
+          >
+            <crn-telegram-bot />
+          </crn-load-state>
+        }
+      }
+    </mat-tab-nav-panel>
+  </div>
+</div>

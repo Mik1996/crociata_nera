@@ -1,0 +1,163 @@
+@if (feedback(); as f) {
+  <crn-alert class="feedback" [tone]="f.kind">
+    @for (m of f.messages; track $index) {
+      <p>{{ m.key | translate: m.params }}</p>
+    }
+  </crn-alert>
+}
+
+<crn-load-state
+  [loading]="announcements.isLoading() && !announcements.hasValue()"
+  [error]="announcements.error()"
+  [empty]="false"
+  (retry)="announcements.reload()"
+>
+  <section class="cn-card cn-section" aria-labelledby="drafts-title">
+    <div class="section-head">
+      <h2 id="drafts-title">{{ 'announcementsAdmin.drafts' | translate }}</h2>
+      <button
+        mat-button
+        type="button"
+        [disabled]="announcements.isLoading()"
+        (click)="announcements.reload()"
+      >
+        <crn-icon matButtonIcon name="refresh" />
+        {{ 'telegramAdmin.refresh' | translate }}
+      </button>
+    </div>
+    <div class="cn-muted intro">
+      <p>{{ 'announcementsAdmin.intro.lead' | translate }}</p>
+      <ul>
+        @for (c of introCases; track c) {
+          <li>{{ 'announcementsAdmin.intro.cases.' + c | translate }}</li>
+        }
+      </ul>
+      <p>{{ 'announcementsAdmin.intro.note' | translate }}</p>
+    </div>
+
+    <ul class="drafts">
+      @for (a of drafts(); track a.id) {
+        <li class="draft">
+          <header class="draft__head">
+            <crn-icon class="draft__icon" [name]="kindIcons[a.kind]" />
+            <div class="draft__titles">
+              <h3 class="draft__title">{{ title(a) }}</h3>
+              <p class="draft__meta">
+                <crn-tag>{{ 'announcementsAdmin.kind.' + a.kind | translate }}</crn-tag>
+                <crn-tag [tone]="stateTones[a.state]">{{
+                  'announcementsAdmin.state.' + a.state | translate
+                }}</crn-tag>
+                <span class="cn-muted">{{
+                  'announcementsAdmin.preparedAt'
+                    | translate: { date: (a.createdAt | localDate: 'dateTime') }
+                }}</span>
+              </p>
+            </div>
+          </header>
+
+          @if (a.interrupted) {
+            <crn-alert tone="warning" class="draft__error">
+              <p>{{ 'announcementsAdmin.interrupted' | translate }}</p>
+            </crn-alert>
+          }
+          @if (a.error) {
+            <crn-alert tone="error" class="draft__error">
+              <p>{{ 'announcementsAdmin.failed' | translate: { error: a.error } }}</p>
+            </crn-alert>
+          }
+
+          <div class="draft__body">
+            <crn-announcement-images [announcement]="a" />
+
+            <div class="draft__text">
+              <mat-form-field appearance="outline" class="caption" subscriptSizing="dynamic">
+                <mat-label>{{ 'announcementsAdmin.caption' | translate }}</mat-label>
+                <textarea
+                  matInput
+                  rows="8"
+                  [value]="captionOf(a)"
+                  [disabled]="a.state !== 'draft'"
+                  (input)="write(a, $any($event.target).value)"
+                ></textarea>
+                <mat-hint>{{ 'announcementsAdmin.captionHint' | translate }}</mat-hint>
+                <mat-hint align="end" [class.too-long]="tooLong(a)"
+                  >{{ length(a) }} / {{ limit }}</mat-hint
+                >
+              </mat-form-field>
+
+              <div class="actions">
+                @if (edited(a)) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="saving() !== null || tooLong(a) || !captionOf(a).trim()"
+                    (click)="saveCaption(a)"
+                  >
+                    <crn-icon matButtonIcon name="check" />
+                    {{ 'announcementsAdmin.saveCaption' | translate }}
+                  </button>
+                } @else if (a.captionEdited) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="saving() !== null"
+                    (click)="saveCaption(a, true)"
+                  >
+                    <crn-icon matButtonIcon name="refresh" />
+                    {{ 'announcementsAdmin.resetCaption' | translate }}
+                  </button>
+                }
+                <button
+                  mat-button
+                  type="button"
+                  class="actions__discard"
+                  [disabled]="a.state !== 'draft' || saving() !== null"
+                  (click)="decide(a, 'discard')"
+                >
+                  <crn-icon matButtonIcon name="delete" />
+                  {{ 'announcementsAdmin.discard' | translate }}
+                </button>
+                <button
+                  mat-flat-button
+                  type="button"
+                  [disabled]="a.state !== 'draft' || saving() !== null"
+                  (click)="decide(a, 'publish')"
+                >
+                  <crn-icon matButtonIcon name="send" />
+                  {{ 'announcementsAdmin.publish' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </li>
+      } @empty {
+        <li class="cn-muted empty">{{ 'announcementsAdmin.noDrafts' | translate }}</li>
+      }
+    </ul>
+  </section>
+
+  @if (decided().length) {
+    <section class="cn-card cn-section" aria-labelledby="decided-title">
+      <h2 id="decided-title">{{ 'announcementsAdmin.history' | translate }}</h2>
+      <ul class="decided">
+        @for (a of decided(); track a.id) {
+          <li class="decided__item">
+            <crn-icon class="decided__icon" [name]="kindIcons[a.kind]" />
+            <span class="decided__title">{{ title(a) }}</span>
+            <crn-tag [tone]="stateTones[a.state]">{{
+              'announcementsAdmin.state.' + a.state | translate
+            }}</crn-tag>
+            <span class="cn-muted decided__date">{{
+              a.publishedAt ?? a.updatedAt | localDate: 'dateTime'
+            }}</span>
+            @if (a.postUrl) {
+              <a class="decided__link" [href]="a.postUrl" target="_blank" rel="noopener">{{
+                'announcementsAdmin.openPost' | translate
+              }}</a>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</crn-load-state>

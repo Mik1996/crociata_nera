@@ -5,7 +5,7 @@ import { DELETE as removeChat, PATCH as updateChat } from '@/app/api/v1/admin/te
 import { POST as addChat } from '@/app/api/v1/admin/telegram/chats/route';
 import { POST as syncPosts } from '@/app/api/v1/admin/telegram/sync/route';
 import { POST as approve } from '@/app/api/v1/base-proposals/[id]/approve/route';
-import { POST as propose } from '@/app/api/v1/base-proposals/route';
+import { GET as listProposals, POST as propose } from '@/app/api/v1/base-proposals/route';
 import { DELETE as deleteBase, PATCH as updateBase } from '@/app/api/v1/bases/[id]/route';
 import { POST as createBase } from '@/app/api/v1/bases/route';
 import { POST as webhook } from '@/app/api/v1/telegram/webhook/route';
@@ -390,6 +390,49 @@ describe('posts of the bases', () => {
     await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ description: 'Good' }) });
     await requestBasePostSync();
     expect(telegram.of('editMessageCaption')[0]!.params.caption).toBe('🏰 <b>Base TH18</b>\n\n📝 Good\n\n👤 Proposta da <b>Mario</b>');
+  });
+
+  it('tells the moderation where each proposal goes on Telegram, and how its post stands', async () => {
+    mockTelegramApi();
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18, { username: 'basi18' });
+    const member = await memberToken('mario');
+    const proposeAt = async (th: number, id: string) =>
+      (await call(propose, { token: member, body: form({ layoutUrl: link(th, id), image: await png() }) })).body.result
+        .id as string;
+    const toTh18 = await proposeAt(18, 'AAAA0018');
+    const toTh17 = await proposeAt(17, 'AAAA0017');
+    const moderation = async (status: string) =>
+      (await call(listProposals, { token: admin, path: `/api/v1/base-proposals?status=${status}` })).body.result.items as {
+        id: string;
+        telegram: unknown;
+      }[];
+
+    const channel18 = { title: 'Arsenale basi TH18', username: 'basi18', canPost: true };
+    expect(Object.fromEntries((await moderation('PENDING')).map((p) => [p.id, p.telegram]))).toEqual({
+      [toTh18]: { channel: channel18, post: null },
+      [toTh17]: { channel: null, post: null },
+    });
+
+    await call(approve, { token: admin, params: { id: toTh18 } });
+    await call(approve, { token: admin, params: { id: toTh17 } });
+    await requestBasePostSync();
+    expect(Object.fromEntries((await moderation('APPROVED')).map((p) => [p.id, p.telegram]))).toEqual({
+      [toTh18]: { channel: channel18, post: { status: 'sent', error: null, retryAt: null } },
+      [toTh17]: { channel: null, post: { status: 'noChannel', error: null, retryAt: null } },
+    });
+
+    // Approved but not handled by the sync yet: on its way.
+    await TelegramBasePostModel.deleteOne({ baseId: toTh18 });
+    expect((await moderation('APPROVED')).find((p) => p.id === toTh18)!.telegram).toEqual({
+      channel: channel18,
+      post: { status: 'pending', error: null, retryAt: null },
+    });
+
+    // Without a bot nothing goes to Telegram: no state at all.
+    delete process.env.TELEGRAM_BOT_TOKEN;
+    resetEnvCache();
+    expect((await moderation('APPROVED')).map((p) => p.telegram)).toEqual([null, null]);
   });
 
   it('saves a failure, waits before trying again, and tries at once when an administrator asks', async () => {
