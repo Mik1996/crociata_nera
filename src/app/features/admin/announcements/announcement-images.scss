@@ -1,0 +1,75 @@
+@use 'variables' as *;
+
+.strip {
+  display: flex;
+  gap: $space-s;
+  padding-bottom: $space-xs;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+/* Portrait 4:5, as on Telegram. */
+.page {
+  flex: 0 0 auto;
+  width: 10rem;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-m;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: var(--cn-surface-2);
+
+  /* Centred when they fit; when they overflow, the strip still scrolls from the first one. */
+  &:first-child {
+    margin-inline-start: auto;
+  }
+
+  &:last-child {
+    margin-inline-end: auto;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: 2px;
+  }
+}
+
+.page--loading {
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+  align-items: center;
+  margin: 0;
+  color: var(--cn-text-muted);
+}
+
+.retry {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--cn-gold);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -1,11 +1,13 @@
 // Same box as the old icon font: a 1em square, 1.5rem by default. Setting `font-size` scales it,
 // setting `width` / `height` sizes the box (the drawing is centred and fills the smaller side).
+// `--crn-icon-size` (inherited) sets the default size for every icon inside an element, e.g. the
+// icons projected in a tag.
 :host {
   display: inline-block;
   flex-shrink: 0;
   width: 1em;
   height: 1em;
-  font-size: 1.5rem;
+  font-size: var(--crn-icon-size, 1.5rem);
   line-height: 1;
   overflow: hidden;
   fill: currentColor;

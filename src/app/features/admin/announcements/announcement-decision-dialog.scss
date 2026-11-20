@@ -1,0 +1,11 @@
+@use 'variables' as *;
+
+.intro {
+  margin: 0;
+}
+
+.warning {
+  margin-top: $space-m;
+  color: var(--cn-red-text);
+  font-weight: 600;
+}

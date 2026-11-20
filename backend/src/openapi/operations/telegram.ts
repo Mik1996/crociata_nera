@@ -1,9 +1,22 @@
 import { z } from 'zod';
 import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
+import { languageQuerySchema, updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
 import { addChatSchema, updateChatSchema } from '@/modules/telegram/telegram.schemas';
-import { TelegramChat, TelegramStatus } from '../models/telegram';
+import { Announcement, TelegramChat, TelegramStatus } from '../models/telegram';
 import { ApiOperation, requestPart } from '../operation';
+
+const languageQuery = requestPart(languageQuerySchema, {
+  lang: {
+    description:
+      'Language of the generated captions and of the pictures: `it-IT` (default), `en-US` or `es-ES`. A published announcement keeps the language it went out in; a caption written by hand stays as written.',
+    example: 'it-IT',
+  },
+});
+
+const announcementPath = requestPart(z.object({ id: z.string() }), {
+  id: { description: 'Announcement id.', example: '6740a1b2c3d4e5f6a7b8c9d0' },
+});
 
 const chatIdPath = requestPart(z.object({ chatId: z.string() }), {
   chatId: { description: 'Telegram id of the chat (channels are negative).', example: '-1001234567890' },
@@ -102,5 +115,88 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     rateLimit: ApiName.ADMIN,
     responses: { 200: { description: 'Status of the bot.', result: TelegramStatus, messages: [K.TELEGRAM_SYNC_STARTED] } },
     errors: { 409: [K.TELEGRAM_NOT_CONFIGURED] },
+  },
+  {
+    method: 'GET',
+    path: '/admin/announcements',
+    operationId: 'listAnnouncements',
+    tag: 'Admin',
+    summary: 'List the Telegram announcements',
+    description:
+      'The drafts prepared by the backend for every clan of the Crusade (newest first), then the latest 30 announcements published or discarded. A draft is prepared when a month closes (wars, Raid Weekends and commendations of the month), a Clan War League season ends, a game season ends (donations), a record of the clan is beaten (perfect wars at every 25) or a member reaches a league higher than any before (Electro League 31 up to Legend League I, one draft per player) or a member ends a Legend League season in Legend League I among the first 10,000 of the world (trophies, world and country position); its figures follow the data until it is published.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    query: languageQuery,
+    responses: { 200: { description: 'The announcements.', result: z.array(Announcement) } },
+  },
+  {
+    method: 'PATCH',
+    path: '/admin/announcements/{id}',
+    operationId: 'updateAnnouncement',
+    tag: 'Admin',
+    summary: 'Change the caption of an announcement',
+    description:
+      'Changes the caption of a draft: plain text where `**text**` is bold, at most 1024 visible characters (Telegram\'s limit). `null` goes back to the generated caption.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    query: languageQuery,
+    params: announcementPath,
+    body: requestPart(updateAnnouncementSchema, {
+      caption: { description: 'New caption, or `null` for the generated one.', example: '🔥 **Nuovo record!**' },
+    }),
+    responses: { 200: { description: 'The announcement.', result: Announcement, messages: [K.ANNOUNCEMENT_UPDATED] } },
+    errors: { 400: [K.CAPTION_IS_TOO_LONG], 404: [K.ANNOUNCEMENT_NOT_FOUND], 409: [K.ANNOUNCEMENT_NOT_DRAFT] },
+  },
+  {
+    method: 'POST',
+    path: '/admin/announcements/{id}/publish',
+    operationId: 'publishAnnouncement',
+    tag: 'Admin',
+    summary: 'Publish an announcement',
+    description:
+      'Posts a draft in the announcements channel, in the language `lang`: its pictures (an album when more than one) with the caption on the first. It is then frozen. On a Telegram failure it stays a draft, with the error (502).',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    query: languageQuery,
+    params: announcementPath,
+    responses: { 200: { description: 'The announcement, published.', result: Announcement, messages: [K.ANNOUNCEMENT_PUBLISHED] } },
+    errors: {
+      404: [K.ANNOUNCEMENT_NOT_FOUND],
+      409: [K.ANNOUNCEMENT_NOT_DRAFT, K.TELEGRAM_NOT_CONFIGURED, K.TELEGRAM_NO_ANNOUNCEMENTS_CHAT],
+      502: [K.TELEGRAM_API_UNAVAILABLE],
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/announcements/{id}/discard',
+    operationId: 'discardAnnouncement',
+    tag: 'Admin',
+    summary: 'Discard an announcement',
+    description:
+      'Drops a draft without publishing it. A record announcement discarded waits for a better value of the record.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    query: languageQuery,
+    params: announcementPath,
+    responses: { 200: { description: 'The announcement, discarded.', result: Announcement, messages: [K.ANNOUNCEMENT_DISCARDED] } },
+    errors: { 404: [K.ANNOUNCEMENT_NOT_FOUND], 409: [K.ANNOUNCEMENT_NOT_DRAFT] },
+  },
+  {
+    method: 'GET',
+    path: '/admin/announcements/{id}/images/{page}',
+    operationId: 'getAnnouncementImage',
+    tag: 'Admin',
+    summary: 'Get a picture of an announcement',
+    description:
+      'Picture `page` of an announcement as JPEG (1080×1350), as it goes (or went) to Telegram: the iron frame of the site, the crest of the clan, the figures; the commendations on the following pages. Drawn at every request (`Cache-Control: no-store`).',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    query: languageQuery,
+    params: requestPart(z.object({ id: z.string(), page: z.string() }), {
+      id: { description: 'Announcement id.', example: '6740a1b2c3d4e5f6a7b8c9d0' },
+      page: { description: 'Picture, from 1 (`Announcement.pages`).', example: '1' },
+    }),
+    responses: { 200: { description: 'The picture.', result: null, binary: 'image/jpeg' } },
+    errors: { 404: [K.ANNOUNCEMENT_NOT_FOUND, K.NOT_FOUND] },
   },
 ];

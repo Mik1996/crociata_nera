@@ -116,8 +116,8 @@ describe('Clash of Clans data through the backend', () => {
     const res = await call(memberships, { token: auth });
     expect(res.status).toBe(200);
     expect(res.body.result).toEqual([
-      { tag: '#MREADER', name: 'Reader', role: 'elder', clanTag: NERA, clanName: 'Crociata Nera' },
-      { tag: '#RRR111', name: 'Rosso', role: 'coLeader', clanTag: ROSSA, clanName: 'Crociata Rossa' },
+      { tag: '#MREADER', name: 'Reader', role: 'elder', townHallLevel: 17, clanTag: NERA, clanName: 'Crociata Nera' },
+      { tag: '#RRR111', name: 'Rosso', role: 'coLeader', townHallLevel: 17, clanTag: ROSSA, clanName: 'Crociata Rossa' },
     ]);
     expect((await call(memberships)).status).toBe(401);
   });

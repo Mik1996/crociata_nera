@@ -1,0 +1,15 @@
+<crn-confirm-dialog
+  [danger]="data.action === 'discard'"
+  [title]="'announcementsAdmin.dialog.' + data.action + '.title' | translate"
+  [confirmLabel]="'announcementsAdmin.dialog.' + data.action + '.confirm' | translate"
+  [busy]="busy()"
+  [errors]="errors()"
+  (confirm)="submit()"
+>
+  <p class="intro">
+    {{ 'announcementsAdmin.dialog.' + data.action + '.intro' | translate: { title: data.title } }}
+  </p>
+  @if (data.action === 'publish' && data.announcement.interrupted) {
+    <p class="intro warning">{{ 'announcementsAdmin.interrupted' | translate }}</p>
+  }
+</crn-confirm-dialog>

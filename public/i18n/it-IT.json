@@ -90,7 +90,8 @@
     "settings": "Impostazioni",
     "bases": "Arsenale basi",
     "baseModeration": "Moderazione basi",
-    "telegramAdmin": "Telegram"
+    "telegramAdmin": "Telegram",
+    "announcementsAdmin": "Annunci Telegram"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -470,7 +471,10 @@
     "TELEGRAM_CHAT_ADDED": "Canale {{name}} aggiunto.",
     "TELEGRAM_CHAT_UPDATED": "Canale {{name}} aggiornato.",
     "TELEGRAM_CHAT_REMOVED": "Canale dimenticato.",
-    "TELEGRAM_SYNC_STARTED": "Invii avviati: le basi partono a pochi secondi l'una dall'altra."
+    "TELEGRAM_SYNC_STARTED": "Invii avviati: le basi partono a pochi secondi l'una dall'altra.",
+    "ANNOUNCEMENT_UPDATED": "Didascalia salvata.",
+    "ANNOUNCEMENT_PUBLISHED": "Annuncio pubblicato nel canale Telegram.",
+    "ANNOUNCEMENT_DISCARDED": "Annuncio scartato."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -551,7 +555,11 @@
     "TELEGRAM_CHAT_LOCKED": "Il canale {{name}} è bloccato: sbloccalo prima di cambiarlo.",
     "TELEGRAM_CHAT_NOT_FOR_BASES": "Il canale {{name}} è quello degli annunci: non riceve basi.",
     "TELEGRAM_ANNOUNCEMENTS_TAKEN": "Un altro canale è già quello degli annunci.",
-    "TELEGRAM_API_UNAVAILABLE": "Telegram non risponde: riprova tra poco."
+    "TELEGRAM_API_UNAVAILABLE": "Telegram non risponde: riprova tra poco.",
+    "ANNOUNCEMENT_NOT_FOUND": "Annuncio non trovato.",
+    "ANNOUNCEMENT_NOT_DRAFT": "L'annuncio è già stato pubblicato o scartato.",
+    "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "Nessun canale annunci in cui il bot possa scrivere: impostalo nella pagina Telegram.",
+    "CAPTION_IS_TOO_LONG": "La didascalia supera i 1024 caratteri ammessi da Telegram."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -1285,5 +1293,68 @@
         "group": "Gruppo"
       }
     }
+  },
+  "announcementsAdmin": {
+    "title": "Annunci",
+    "subtitle": "Bozze per il canale annunci di Telegram, pronte da pubblicare",
+    "intro": "Il sito prepara una bozza quando si chiude un mese, una CWL o una stagione di donazioni, quando un clan della Crociata batte un record, quando un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I) e quando un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo. I numeri di una bozza si aggiornano finché non la pubblichi.",
+    "drafts": "Bozze",
+    "noDrafts": "Nessuna bozza in attesa: la prossima arriverà alla chiusura del mese o con un nuovo record.",
+    "history": "Pubblicati e scartati",
+    "preparedAt": "Preparata il {{date}}",
+    "failed": "Pubblicazione non riuscita: {{error}}",
+    "caption": "Didascalia",
+    "captionHint": "**testo** in grassetto",
+    "saveCaption": "Salva didascalia",
+    "resetCaption": "Ripristina didascalia automatica",
+    "saveFirst": "Salva la didascalia prima di pubblicare.",
+    "publish": "Pubblica",
+    "discard": "Scarta",
+    "openPost": "Apri il post",
+    "image": "Immagine {{n}} di {{total}}",
+    "imageError": "Impossibile disegnare le immagini.",
+    "kind": {
+      "month": "Mese",
+      "cwl": "CWL",
+      "donations": "Donazioni",
+      "record": "Record",
+      "promotion": "Promozione",
+      "legendSeason": "Stagione Leggenda"
+    },
+    "state": {
+      "draft": "Bozza",
+      "publishing": "In pubblicazione",
+      "published": "Pubblicato",
+      "discarded": "Scartato"
+    },
+    "records": {
+      "perfectWars": "Guerre perfette: {{value}}",
+      "warWinStreak": "Serie di vittorie: {{value}}",
+      "cwlLeague": "Miglior lega CWL: {{league}}",
+      "localRank": "Classifica nazionale: {{value}}°",
+      "localCapitalRank": "Classifica capitale: {{value}}°",
+      "capitalPoints": "Trofei capitale: {{value}}"
+    },
+    "dialog": {
+      "publish": {
+        "title": "Pubblicare su Telegram?",
+        "intro": "«{{title}}» verrà pubblicato nel canale annunci. Dal sito non si potrà più modificare né cancellare.",
+        "confirm": "Pubblica"
+      },
+      "discard": {
+        "title": "Scartare l'annuncio?",
+        "intro": "«{{title}}» non verrà pubblicato. Per un record, la prossima bozza arriverà solo con un valore migliore.",
+        "confirm": "Scarta"
+      }
+    },
+    "interrupted": "Una pubblicazione di questo annuncio si è interrotta: potrebbe essere già nel canale. Controlla Telegram prima di pubblicarlo di nuovo.",
+    "promotion": "{{player}} sale in {{league}}",
+    "league": "Lega {{family}} {{division}}",
+    "leagueFamily": {
+      "Electro": "Elettro",
+      "Legend": "Leggende",
+      "Dragon": "Drago"
+    },
+    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei"
   }
 }

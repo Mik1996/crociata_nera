@@ -56,6 +56,7 @@ interface CocMember {
   tag?: string;
   name?: string;
   role?: string;
+  townHallLevel?: number;
 }
 
 /** A linked account that is in a clan of the Crusade now. */
@@ -63,6 +64,8 @@ export interface Membership {
   tag: string;
   name: string;
   role: MemberRole;
+  /** `null` when the API leaves it out. */
+  townHallLevel: number | null;
   clanTag: string;
   clanName: string;
 }
@@ -92,6 +95,7 @@ export async function getMemberships(playerTags: readonly string[]): Promise<Mem
         tag: m.tag,
         name: m.name,
         role: ROLES[m.role ?? ''] ?? 'member',
+        townHallLevel: m.townHallLevel ?? null,
         clanTag,
         clanName: (clan?.['name'] as string | undefined) ?? CRUSADE_CLAN_NAMES[clanTag] ?? clanTag,
       });

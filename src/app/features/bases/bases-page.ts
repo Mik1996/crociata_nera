@@ -9,6 +9,8 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,6 +19,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { catchError, of } from 'rxjs';
+import { CocApiService } from '../../core/api/coc-api';
 import { AuthService } from '../../core/backend/auth.service';
 import { BaseProposal, DefenseBase } from '../../core/backend/backend-api.types';
 import { BaseImageVariant, DefenseBasesService } from '../../core/backend/defense-bases.service';
@@ -50,7 +54,8 @@ export interface TownHallGroup {
 
 /**
  * Arsenal of defense bases: screenshot, in-game "copy base" link and notes, filtered by town hall
- * (`?th=18`) and grouped by town hall when not filtered. Endless list: the next page is asked for
+ * (`?th=18`) and grouped by town hall in sections that expand and collapse when not filtered.
+ * Opened without a filter, it selects the highest town hall among the user's linked accounts. Endless list: the next page is asked for
  * when the end of the list comes near; pages already read stay in {@link BaseArsenal}. Members of
  * the clans read it and propose bases, which wait for an administrator's approval ("My proposals",
  * above the arsenal); administrators add (published at once), edit and delete bases.
@@ -58,6 +63,7 @@ export interface TownHallGroup {
 @Component({
   selector: 'crn-bases-page',
   imports: [
+    NgTemplateOutlet,
     MatButtonModule,
     MatChipsModule,
     Icon,
@@ -84,6 +90,7 @@ export class BasesPage {
   private readonly snackBar = inject(MatSnackBar);
   private readonly language = inject(LanguageService);
   private readonly auth = inject(AuthService);
+  private readonly api = inject(CocApiService);
   private readonly useMock = inject(APP_CONFIG).useMockApi;
 
   /**
@@ -123,6 +130,28 @@ export class BasesPage {
     }
     return groups;
   });
+  /** Town hall sections the user collapsed (all expanded at first). */
+  protected readonly collapsed = signal<ReadonlySet<number>>(new Set());
+
+  /**
+   * The linked accounts in a clan of the Crusade, with their town hall: read only to pick the
+   * default filter (no request without linked accounts).
+   */
+  private readonly memberships = rxResource({
+    params: () => {
+      const tags = this.auth.linkedPlayers().map((p) => p.tag);
+      return tags.length ? tags : undefined;
+    },
+    stream: () => this.api.getMemberships().pipe(catchError(() => of([]))),
+  });
+  /**
+   * The default filter has been decided (or was not needed: a filter in the address, no linked
+   * accounts, a choice of the user). No page is asked for before, so the arsenal is not read
+   * twice.
+   */
+  private readonly defaultDecided = signal(false);
+  private defaultRequested = false;
+
   /** Marker after the last base: near the visible part, the next page is asked for. */
   private readonly end = viewChild(NearEnd);
 
@@ -136,10 +165,30 @@ export class BasesPage {
   });
 
   constructor() {
+    // Opened without a filter: the highest town hall among the user's accounts, once.
+    effect(() => {
+      if (this.defaultDecided() || this.defaultRequested) return;
+      if (this.th() !== undefined || !this.auth.linkedPlayers().length) {
+        this.defaultDecided.set(true);
+        return;
+      }
+      if (this.memberships.isLoading()) return;
+      const levels = (this.memberships.value() ?? [])
+        .map((m) => m.townHallLevel)
+        .filter((level): level is number => level !== null && level > 0);
+      if (!levels.length) {
+        this.defaultDecided.set(true);
+        return;
+      }
+      this.defaultRequested = true;
+      untracked(() => this.selectTownHall(Math.max(...levels)));
+    });
+
     // First page of a filter, then one more each time the end of the list comes near (also right
     // after a page too short to fill the screen). A feed never asks for a page twice, nor after
     // the last one.
     effect(() => {
+      if (!this.defaultDecided()) return;
       const feed = this.feed();
       const wanted = !feed.items().length || !!this.end()?.visible();
       if (wanted && !feed.loading() && !feed.complete() && feed.error() === undefined) {
@@ -157,10 +206,28 @@ export class BasesPage {
   }
 
   protected selectTownHall(level: number | null | undefined): void {
-    void this.router.navigate([], {
-      queryParams: { th: level ?? null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
+    void this.router
+      .navigate([], {
+        queryParams: { th: level ?? null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      })
+      .finally(() => this.defaultDecided.set(true));
+  }
+
+  /** Types the bases handed to the grid template. */
+  protected asBases(bases: DefenseBase[]): DefenseBase[] {
+    return bases;
+  }
+
+  protected onGroupToggle(level: number, event: Event): void {
+    const open = (event.target as HTMLDetailsElement).open;
+    if (open !== this.collapsed().has(level)) return;
+    this.collapsed.update((levels) => {
+      const next = new Set(levels);
+      if (open) next.delete(level);
+      else next.add(level);
+      return next;
     });
   }
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { env } from '@/lib/config/env';
+import { crusadeClanTags, primaryClanTag } from '@/lib/coc/crusade-clans';
 import { CocApiError, fetchCapitalRankings, fetchClan, fetchClanRankings } from '@/lib/coc/coc-client';
 import { WarModel } from '@/modules/wars/war.model';
 import { ClanRecordsModel } from './clan-records.model';
@@ -12,6 +13,20 @@ export const INITIAL_CLAN_RECORDS = {
   localRank: 37,
   localCapitalRank: 12,
   capitalPoints: 5380,
+} as const;
+
+/**
+ * Starting point of the other clans of the Crusade, whose past records are unknown: the first read
+ * of the clan sets every record (a ranking position of 0 means "never ranked"), and perfect wars are
+ * counted from then on.
+ */
+export const EMPTY_CLAN_RECORDS = {
+  perfectWars: 0,
+  warWinStreak: 0,
+  cwlLeague: { id: 0, name: '' },
+  localRank: 0,
+  localCapitalRank: 0,
+  capitalPoints: 0,
 } as const;
 
 /** A best value; `achievedAt` is `null` for the records of the seed. */
@@ -53,7 +68,7 @@ const rankingSchema = z.object({ items: z.array(z.object({ tag: z.string(), rank
  * already part of the seeded perfect wars count.
  */
 export async function ensureClanRecords(clanTag: string, now: Date): Promise<void> {
-  const seed = INITIAL_CLAN_RECORDS;
+  const seed = clanTag === primaryClanTag() ? INITIAL_CLAN_RECORDS : EMPTY_CLAN_RECORDS;
   const record = (value: number) => ({ value, achievedAt: null });
   await ClanRecordsModel.updateOne(
     { clanTag },
@@ -81,10 +96,22 @@ export async function ensureClanRecords(clanTag: string, now: Date): Promise<voi
  * Every update is conditional on the stored value, so concurrent runs cannot lower a record.
  */
 export async function syncClanRecords(now = new Date()): Promise<RecordSyncReport> {
-  const report: RecordSyncReport = { perfectWars: [], improved: [], error: null };
   const clanTag = env().CLAN_TAG;
-  if (!clanTag) return report;
+  if (!clanTag) return { perfectWars: [], improved: [], error: null };
+  return syncRecordsOf(clanTag, now);
+}
 
+/** The same for the other clans of the Crusade, one report each. */
+export async function syncOtherClanRecords(now = new Date()): Promise<(RecordSyncReport & { clanTag: string })[]> {
+  const reports: (RecordSyncReport & { clanTag: string })[] = [];
+  for (const clanTag of crusadeClanTags().filter((tag) => tag !== primaryClanTag())) {
+    reports.push({ clanTag, ...(await syncRecordsOf(clanTag, now)) });
+  }
+  return reports;
+}
+
+async function syncRecordsOf(clanTag: string, now: Date): Promise<RecordSyncReport> {
+  const report: RecordSyncReport = { perfectWars: [], improved: [], error: null };
   await ensureClanRecords(clanTag, now);
   report.perfectWars = await countPerfectWars(clanTag, now);
 
@@ -102,6 +129,7 @@ export async function syncClanRecords(now = new Date()): Promise<RecordSyncRepor
       await improve('localRank', await rankIn(fetchClanRankings(clan.location.id), clanTag));
       await improve('localCapitalRank', await rankIn(fetchCapitalRankings(clan.location.id), clanTag));
     }
+    await ClanRecordsModel.updateOne({ clanTag }, { $set: { lastSyncedAt: now } });
   } catch (error) {
     if (!(error instanceof CocApiError)) throw error;
     report.error = { status: error.status, reason: error.reason, message: error.message };
@@ -142,11 +170,13 @@ async function countPerfectWars(clanTag: string, now: Date): Promise<string[]> {
   return counted;
 }
 
-/** Saves `value` if better than the record: higher, or lower for the rankings. */
+/** Saves `value` if better than the record: higher, or lower for the rankings (0: never ranked). */
 async function improveRecord(clanTag: string, name: NumericRecord, value: number, now: Date): Promise<boolean> {
-  const better = name === 'localRank' || name === 'localCapitalRank' ? '$gt' : '$lt';
+  const field = `${name}.value`;
+  const ranking = name === 'localRank' || name === 'localCapitalRank';
+  const better = ranking ? { $or: [{ [field]: 0 }, { [field]: { $gt: value } }] } : { [field]: { $lt: value } };
   const write = await ClanRecordsModel.updateOne(
-    { clanTag, [`${name}.value`]: { [better]: value } },
+    { clanTag, ...better },
     { $set: { [name]: { value, achievedAt: now } } },
   );
   return write.modifiedCount === 1;

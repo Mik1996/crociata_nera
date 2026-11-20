@@ -172,6 +172,15 @@ export const routes: Routes = [
           import('./features/admin/telegram/telegram-admin-page').then((m) => m.TelegramAdminPage),
       },
       {
+        path: 'admin/announcements',
+        title: 'nav.announcementsAdmin',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/announcements/announcements-admin-page').then(
+            (m) => m.AnnouncementsAdminPage,
+          ),
+      },
+      {
         path: '**',
         title: 'nav.notFound',
         loadComponent: () =>

@@ -1,4 +1,5 @@
 /** Types of the application backend (`backend/`). Keep in sync with `backend/src`. */
+import type { LanguageCode } from '../i18n/languages';
 
 import { ClanCastleTroop } from '../game/clan-castle';
 
@@ -317,4 +318,42 @@ export interface TelegramStatus {
   updates: 'webhook' | 'polling' | null;
   chats: TelegramChat[];
   basePosts: TelegramBasePosts;
+}
+
+/** What an announcement tells (`GET /admin/announcements`). */
+export type AnnouncementKind =
+  'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason';
+export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
+
+/** An announcement for the Telegram announcements channel, prepared by the backend. */
+export interface Announcement {
+  id: string;
+  kind: AnnouncementKind;
+  state: AnnouncementState;
+  clanTag: string;
+  clanName: string;
+  /** Period `YYYY-MM`, or the record name for `record`. */
+  subject: string;
+  /** Records: the new value (league id for `cwlLeague`). */
+  value: number | null;
+  /** League reached, as the API names it (records `cwlLeague`, promotions). */
+  leagueName: string | null;
+  /** Promotions: the player promoted. */
+  playerName: string | null;
+  /** Caption of the post, `**text**` in bold. */
+  caption: string;
+  captionEdited: boolean;
+  /** Pictures of the post (an album when more than one). */
+  pages: number;
+  /** Last failure of a publication (Telegram's words, English). */
+  error: string | null;
+  /** A publication was interrupted: the post may already be in the channel. */
+  interrupted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  /** Language of the caption and pictures: the one it was published in, else the one asked. */
+  language: LanguageCode;
+  /** Link of the post in a public channel. */
+  postUrl: string | null;
 }

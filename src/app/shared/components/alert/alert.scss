@@ -3,7 +3,7 @@
 
 :host {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: $space-s;
   padding: $space-s $space-m;
   border: 2px solid transparent;
@@ -18,11 +18,10 @@
 
 .alert__body {
   min-width: 0;
-
-  ::ng-deep p {
-    margin: 0.1rem 0;
-  }
 }
+
+// Paragraphs in the message: see `crn-alert p` in styles.scss (projected content belongs to the page,
+// these styles cannot reach it).
 
 :host(.alert--error) {
   border-color: var(--cn-red-mid);

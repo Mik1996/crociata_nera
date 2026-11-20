@@ -15,6 +15,13 @@ WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3001 HOSTNAME=0.0.0.0
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
+# Files of the site the announcement pictures are drawn with (src/lib/assets/site-assets.ts).
+COPY --chown=node:node public/assets/fonts/pdf ./site-assets/assets/fonts/pdf
+COPY --chown=node:node public/commendations ./site-assets/commendations
+COPY --chown=node:node public/images/clan-crest-black.webp public/images/clan-crest-red.webp public/images/clan-crest-gold.webp ./site-assets/images/
+COPY --chown=node:node public/game/war-leagues ./site-assets/game/war-leagues
+COPY --chown=node:node public/game/league-tiers/large ./site-assets/game/league-tiers/large
+COPY --chown=node:node public/flags ./site-assets/flags
 USER node
 EXPOSE 3001
 CMD ["node", "server.js"]

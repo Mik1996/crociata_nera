@@ -113,11 +113,6 @@ crn-tag.mock-chip {
   display: flex;
   flex-direction: column;
 
-  // Material wraps the content in an inner container: a column, so Settings can sit at the bottom.
-  ::ng-deep .mat-drawer-inner-container {
-    display: flex;
-    flex-direction: column;
-  }
 
   // Menu entries. Ferro: the active one is a crimson banner pointing at the page.
   // Acciaio: a raised gold button.
@@ -170,6 +165,14 @@ crn-tag.mock-chip {
     height: 1px;
     background: linear-gradient(90deg, var(--cn-sidenav-border), transparent);
   }
+}
+
+// Material wraps the content in an inner container (as tall as the drawer, scrolling): this column
+// fills it, so Settings can sit at the bottom.
+.sidenav__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 // Settings: pinned to the bottom of the side navigation, above the notice.
@@ -253,9 +256,8 @@ crn-alert.offline-banner {
   text-align: center;
   color: var(--cn-text-muted);
 
-  ::ng-deep a {
-    color: inherit;
-  }
+  // The notice is translated HTML (`innerHTML`): its links read the colour from the global `a` rule.
+  --cn-link-color: currentColor;
 }
 
 .picker {

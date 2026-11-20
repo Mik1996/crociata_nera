@@ -1,4 +1,4 @@
-# Crociata Nera · Guerre di clan
+# Crociata Nera · Clan italiano di Clash of Clans
 
 Webapp Angular per il clan **Crociata Nera** di Clash of Clans (tag `#2J8JVVCLC`).
 Permette di consultare le guerre del clan e di analizzare nel tempo le performance dei partecipanti.

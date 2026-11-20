@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { ANNOUNCEMENT_KINDS, ANNOUNCEMENT_STATES } from '@/modules/announcements/announcement.model';
+import { ANNOUNCEMENT_LANGUAGES } from '@/modules/announcements/announcement-texts';
 import { TELEGRAM_CHAT_PURPOSES } from '@/modules/telegram/telegram-chat.model';
 import { dateTime, model, nullableDateTime } from './common';
 
@@ -60,5 +62,39 @@ export const TelegramStatus = model(
       .describe('How the bot receives updates: `webhook` (production) or `polling` (`getUpdates`, development); `null` while off.'),
     chats: z.array(TelegramChat).describe('Chats the bot was seen in: those bound to a town hall first.'),
     basePosts: TelegramBasePosts,
+  }),
+);
+
+export const Announcement = model(
+  'Announcement',
+  'An announcement for the Telegram announcements channel: prepared by the backend, published or discarded by an administrator.',
+  z.strictObject({
+    id: z.string().describe('Announcement id.'),
+    kind: z
+      .enum(ANNOUNCEMENT_KINDS)
+      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world.'),
+    state: z
+      .enum(ANNOUNCEMENT_STATES)
+      .describe('`draft` (its figures follow the data until published), `publishing`, `published` (frozen) or `discarded`.'),
+    clanTag: z.string().describe('Clan of the Crusade the announcement is about.'),
+    clanName: z.string().describe('Name of the clan.'),
+    subject: z.string().describe('Period (`YYYY-MM`), record name (`perfectWars`, `warWinStreak`, `cwlLeague`, `localRank`, `localCapitalRank`, `capitalPoints`) or player tag (promotions).'),
+    value: z.number().nullable().describe('Records: the new value (league id for `cwlLeague`, position for the rankings); promotions: the league id; Legend seasons: the final trophies; otherwise `null`.'),
+    leagueName: z.string().nullable().describe('League reached, as the API names it (records `cwlLeague` and promotions); otherwise `null`.'),
+    playerName: z.string().nullable().describe('Promotions and Legend seasons: the player; otherwise `null`.'),
+    caption: z.string().describe('Caption of the post (`**text**` is bold): the one written by an administrator, or the generated one.'),
+    captionEdited: z.boolean().describe('The caption was written by an administrator.'),
+    pages: z.number().int().describe('Pictures of the post (an album when more than one).'),
+    error: z.string().nullable().describe('Last failure of a publication (Telegram\'s words).'),
+    interrupted: z
+      .boolean()
+      .describe('A publication was interrupted (no answer saved within 10 minutes): the post may already be in the channel, check it before publishing again.'),
+    createdAt: dateTime('When the draft was prepared.'),
+    updatedAt: dateTime('Last change.'),
+    publishedAt: nullableDateTime('When it was published.'),
+    language: z
+      .enum(ANNOUNCEMENT_LANGUAGES)
+      .describe('Language of the caption and the pictures: the one it was published in, otherwise the one asked (`lang`).'),
+    postUrl: z.string().nullable().describe('Link of the post in a public channel; `null` otherwise.'),
   }),
 );

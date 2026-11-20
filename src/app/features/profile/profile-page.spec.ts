@@ -156,6 +156,7 @@ describe('ProfilePage', () => {
             tag: '#RED123',
             name: 'Redknight',
             role: 'coLeader',
+            townHallLevel: 16,
             clanTag: '#2JU8RPR2G',
             clanName: 'Crociata Rossa',
           },

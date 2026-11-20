@@ -191,10 +191,30 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   channel only, the one bound to its town hall: a channel unbound or removed loses its posts (they wait),
   a rebound one gets them moved in. A `locked` chat cannot change town hall or purpose or be removed. The
   `announcements` chat (`purpose`, one only) never gets a town hall nor bases. Direction is
-  always site → Telegram. Updates of the bot: webhook `POST /telegram/webhook` with
+  always site → Telegram. Announcements (`backend/src/modules/announcements/`): after every sync the
+  scheduler prepares drafts for each clan of the Crusade (closed month with its Raid Weekends, CWL
+  season, donation season, beaten record; perfect wars every 25, main clan only; a member's league
+  never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
+  `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`; a member ending a Legend League
+  season in Legend League I among the first 10,000 of the world, from `modules/legends/`), published or
+  discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Captions and
+  pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
+  a post goes out in it; a published one keeps its `language`. Pictures are
+  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
+  turned into paths with opentype.js (no system fonts in the image; its own text layout and
+  `toPathData` are broken, glyphs are placed by hand), files of `public/` read via `readSiteAsset`
+  (copied to `/app/site-assets` by `deploy/backend.Dockerfile`). Only periods closed after a clan was
+  first seen get drafts (`AnnouncementBaselines`). Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
+- Legend League seasons (`backend/src/modules/legends/`): tournaments of four weeks, ending on Monday at
+  05:00 UTC, sometimes followed by a week of break. The one in progress starts at `currentLeagueSeasonId`
+  (seconds) of the profile of a player in Legend League I (for the other leagues it is the weekly
+  tournament). `GET /leagues/29000022/seasons` lists the ended ones (`v2-<end>`), `/seasons/{id}?limit=10000` gives
+  the final world ranking (the first 10,000 stay in Legend League I). The country ranking
+  (`/locations/{id}/rankings/players`, top 200) is reset at the end, so the scheduler reads it 3 minutes
+  before (`legendCheckAt`) and the country position is worked out from the final world positions.
 - CoC API gotchas: names come back in English only; `battlelog` is lowercase; season rankings need
   `limit` 100–25000; `capitalraidseasons` lists members only for the ongoing weekend (saved by the
   backend); the official API is GET-only except `verifytoken`.
@@ -203,7 +223,8 @@ cannot be moved to `develop`: a rebase resets it to `master`.
 
 - MongoDB Atlas cluster `crociata-nera-prod`: database **`Prod`** (VPS) and **`dev`** (local,
   `backend/.env.local`). Always keep the database name in `DATABASE_URL`, otherwise MongoDB silently
-  uses `test`.
+  uses `test`. To bring `dev` back to the state of `Prod` (all but the arsenal, Telegram, users and
+  sessions): `backend/scripts/copy-prod-to-dev.mjs` (skill `copy-prod-to-dev`, plan first, `--apply`).
 - Production VPS: `ssh -i ~/.ssh/crociata_vps root@217.61.63.44`, app in `~/crociata_nera/deploy`.
   Claude cannot SSH into it: give the user the commands to run there.
 
