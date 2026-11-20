@@ -20,8 +20,9 @@ const leagueRecordSchema = new Schema(
 );
 
 /**
- * All-time records of the clan, one document per clan. Seeded with the records known before the
- * backend tracked them (`INITIAL_CLAN_RECORDS`), then improved by the sync whenever the Clash of
+ * All-time records of a clan of the Crusade, one document per clan. The main clan is seeded with the
+ * records known before the backend tracked them (`INITIAL_CLAN_RECORDS`), the other clans with
+ * nothing (`EMPTY_CLAN_RECORDS`: their first read sets every record); then improved by the sync whenever the Clash of
  * Clans API shows a better value; a record never gets worse.
  */
 const clanRecordsSchema = new Schema(
@@ -36,12 +37,14 @@ const clanRecordsSchema = new Schema(
     /** Longest series of consecutive war wins (`warWinStreak`). */
     warWinStreak: { type: recordSchema, required: true },
     cwlLeague: { type: leagueRecordSchema, required: true },
-    /** Best position in the clan rankings of the clan's country (1 = first). */
+    /** Best position in the clan rankings of the clan's country (1 = first; 0 = never ranked). */
     localRank: { type: recordSchema, required: true },
     /** Best position in the Clan Capital rankings of the clan's country. */
     localCapitalRank: { type: recordSchema, required: true },
     /** Most Clan Capital trophies (`clanCapitalPoints`). */
     capitalPoints: { type: recordSchema, required: true },
+    /** Last successful read of the clan from the API (`null`: never read since the field exists). */
+    lastSyncedAt: { type: Date, default: null },
   },
   { collection: 'ClanRecords', timestamps: true, versionKey: false },
 );
