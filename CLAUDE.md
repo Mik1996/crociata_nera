@@ -191,7 +191,15 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   channel only, the one bound to its town hall: a channel unbound or removed loses its posts (they wait),
   a rebound one gets them moved in. A `locked` chat cannot change town hall or purpose or be removed. The
   `announcements` chat (`purpose`, one only) never gets a town hall nor bases. Direction is
-  always site → Telegram. Updates of the bot: webhook `POST /telegram/webhook` with
+  always site → Telegram. Announcements (`backend/src/modules/announcements/`): after every sync the
+  scheduler prepares drafts for each clan of the Crusade (closed month with its Raid Weekends, CWL
+  season, donation season, beaten record; perfect wars every 25, main clan only), published or
+  discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Pictures are
+  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
+  turned into paths with opentype.js (no system fonts in the image; its own text layout and
+  `toPathData` are broken, glyphs are placed by hand), files of `public/` read via `readSiteAsset`
+  (copied to `/app/site-assets` by `deploy/backend.Dockerfile`). Only periods closed after a clan was
+  first seen get drafts (`AnnouncementBaselines`). Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.

@@ -5,7 +5,8 @@ import { syncCommendations, syncMembers } from '@/modules/commendations/commenda
 import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
-import { syncClanRecords } from '@/modules/records/clan-records.service';
+import { syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
+import { syncClanRecords, syncOtherClanRecords } from '@/modules/records/clan-records.service';
 import { syncWars, WarSyncReport } from '@/modules/wars/war-sync.service';
 
 /** Steps of a run whose last success is tracked (health check). */
@@ -112,6 +113,8 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     await runRecordSync();
     // Commendations of the periods closed by the syncs above.
     await runCommendationSync();
+    // Drafts of the Telegram announcements: periods closed and records beaten above.
+    await runAnnouncementDrafts();
     // Last: heroes of the members saved above (CWL line-up).
     await runProfileSync();
     return report;
@@ -228,8 +231,23 @@ async function runRecordSync(): Promise<void> {
     if (result.error) console.warn(`[records] ${result.error.reason} (${result.error.status}): ${result.error.message}`);
     if (result.perfectWars.length) console.info(`[records] perfect wars: ${result.perfectWars.join(', ')}`);
     if (result.improved.length) console.info(`[records] new records: ${result.improved.join(', ')}`);
+    for (const other of await syncOtherClanRecords()) {
+      if (other.error) console.warn(`[records] ${other.clanTag}: ${other.error.reason} (${other.error.status})`);
+      if (other.improved.length) console.info(`[records] ${other.clanTag} new records: ${other.improved.join(', ')}`);
+    }
   } catch (error) {
     console.error('[records] run failed:', error);
+  }
+}
+
+/** Drafts of the announcements (published by an administrator from the site). */
+async function runAnnouncementDrafts(): Promise<void> {
+  try {
+    const result = await syncAnnouncementDrafts();
+    if (result.created.length) console.info(`[announcements] new drafts: ${result.created.join(', ')}`);
+    if (result.removed.length) console.info(`[announcements] drafts no longer news, removed: ${result.removed.join(', ')}`);
+  } catch (error) {
+    console.error('[announcements] drafts not prepared:', error);
   }
 }
 
