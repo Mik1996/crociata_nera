@@ -5,9 +5,9 @@ import { MATERIAL_ANIMATIONS } from '@angular/material/core';
 import { provideRouter } from '@angular/router';
 import { TelegramChat, TelegramStatus } from '../../../core/backend/backend-api.types';
 import { provideCocApiTest } from '../../../testing/fixtures';
-import { TelegramAdminPage } from './telegram-admin-page';
+import { PublishingPage } from './publishing-page';
 
-/** Test data and set-up shared by the specs of the Telegram page and its tabs. */
+/** Test data and set-up shared by the specs of the Publications page and its tabs. */
 export const STATUS_URL = '/api/v1/admin/telegram';
 export const ANNOUNCEMENTS_URL = '/api/v1/admin/announcements';
 
@@ -58,10 +58,10 @@ export const ok = <T>(result: T, messages: unknown[] = []) => ({
 });
 
 /**
- * Renders the Telegram page on a tab, answering the status of the bot (and the announcements, empty,
- * on their tab).
+ * Renders the Publications page on a tab, answering the status of the bot (and the announcements,
+ * empty, on their tab; the proposals come from the mock data).
  */
-export async function renderTelegramPage(tab?: string, initial: TelegramStatus = status) {
+export async function renderPublishingPage(tab?: string, initial: TelegramStatus = status) {
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
@@ -72,7 +72,7 @@ export async function renderTelegramPage(tab?: string, initial: TelegramStatus =
     ],
   });
   const httpMock = TestBed.inject(HttpTestingController);
-  const fixture = TestBed.createComponent(TelegramAdminPage);
+  const fixture = TestBed.createComponent(PublishingPage);
   if (tab) fixture.componentRef.setInput('tab', tab);
   fixture.detectChanges();
   httpMock.expectOne(STATUS_URL).flush(ok(initial));

@@ -89,8 +89,7 @@
     "admin": "Amministrazione",
     "settings": "Impostazioni",
     "bases": "Arsenale basi",
-    "baseModeration": "Moderazione basi",
-    "telegramAdmin": "Telegram"
+    "publishing": "Pubblicazioni"
   },
   "common": {
     "nameOrTag": "Nome o tag",
@@ -411,8 +410,8 @@
       "signOut": "Esci",
       "profile": "Il mio profilo",
       "admin": "Amministrazione",
-      "baseModeration": "Moderazione basi",
-      "pendingProposals": "{{n}} proposte da revisionare"
+      "publishing": "Pubblicazioni",
+      "pendingPublications": "{{n}} pubblicazioni da revisionare"
     },
     "errors": {
       "backendUnreachable": "Impossibile contattare il server. Riprova tra poco.",
@@ -1217,15 +1216,44 @@
       "war": "Media guerre"
     }
   },
-  "baseModeration": {
-    "title": "Moderazione basi",
-    "subtitle": "Le basi proposte dai membri: approvale per pubblicarle nell'arsenale",
+  "publishing": {
+    "title": "Pubblicazioni",
+    "subtitle": "Basi proposte dai membri, annunci e canali Telegram: quello che aspetta una decisione prima di uscire",
     "backToAdmin": "Amministrazione",
+    "tabs": {
+      "bases": "Basi",
+      "announcements": "Annunci",
+      "channels": "Canali"
+    },
+    "pending": {
+      "bases": "{{n}} basi da revisionare",
+      "announcements": "{{n}} bozze di annunci"
+    },
+    "telegram": {
+      "goesTo": "Su Telegram andrà in",
+      "postIn": "Su Telegram in",
+      "noChannel": "Nessun canale Telegram per il TH{{level}}: resta solo sul sito finché non ne colleghi uno",
+      "manage": "Gestisci i canali",
+      "status": {
+        "sent": "Pubblicata",
+        "pending": "In partenza",
+        "noChannel": "In attesa di un canale",
+        "failed": "Non riuscita"
+      }
+    },
+    "approveTelegram": {
+      "channel": "Uscirà anche su Telegram, in {{channel}}.",
+      "cannotPost": "Su Telegram aspetterà: il bot non può pubblicare in {{channel}}.",
+      "noChannel": "Su Telegram aspetterà: nessun canale è collegato al TH{{level}}."
+    }
+  },
+  "baseModeration": {
     "tabs": {
       "pending": "In attesa",
       "approved": "Approvate",
       "rejected": "Rifiutate"
     },
+    "filter": "Filtra per stato",
     "empty": {
       "PENDING": "Nessuna proposta da revisionare",
       "APPROVED": "Nessuna proposta approvata",
@@ -1245,13 +1273,6 @@
     }
   },
   "telegramAdmin": {
-    "title": "Telegram",
-    "subtitle": "Annunci e basi dell'arsenale pubblicati nei canali Telegram del clan",
-    "tabs": {
-      "bot": "Bot e canali",
-      "bases": "Basi",
-      "announcements": "Annunci"
-    },
     "notConfigured": "Il bot non è configurato sul server (TELEGRAM_BOT_TOKEN): niente viene pubblicato su Telegram.",
     "refresh": "Aggiorna",
     "announcementsChat": {
@@ -1269,7 +1290,7 @@
     },
     "posts": {
       "title": "Post delle basi",
-      "intro": "Le basi dell'arsenale escono nel canale del loro municipio, che si sceglie in",
+      "intro": "Le basi approvate escono nel canale del loro municipio, che si sceglie in",
       "sent": "pubblicate",
       "pending": "in partenza",
       "waiting": "Basi TH{{level}} in attesa: {{n}}. Nessun canale è collegato al TH{{level}}.",

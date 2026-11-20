@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { UserModel } from '@/modules/auth/user.model';
-import { requestBasePostSync } from '@/modules/telegram/base-posts.service';
+import { BaseTelegramState, requestBasePostSync, telegramStateOfBases } from '@/modules/telegram/base-posts.service';
 import { imageStore } from './base-image.store';
 import { CreateBaseInput, ListProposalsQuery, UpdateBaseInput } from './bases.schemas';
 import { changeBase, saveNewBase } from './bases.service';
@@ -43,9 +43,15 @@ export interface BaseProposal extends PublicDefenseBase {
   rejectionReason: string | null;
 }
 
-/** The proposals in one state, with how many there are in each state (for the tabs). */
+/** A proposal as administrators see it: with where it goes (or went) on Telegram. */
+export interface ModeratedBaseProposal extends BaseProposal {
+  /** `null` for rejected proposals, and while Telegram is not configured. */
+  telegram: BaseTelegramState | null;
+}
+
+/** The proposals in one state, with how many there are in each state (for the filters). */
 export interface BaseProposalList {
-  items: BaseProposal[];
+  items: ModeratedBaseProposal[];
   counts: Record<BaseStatus, number>;
 }
 
@@ -140,14 +146,19 @@ export async function listProposals({ status }: ListProposalsQuery): Promise<Bas
   ]);
   const counts = Object.fromEntries(BASE_STATUSES.map((s) => [s, 0])) as Record<BaseStatus, number>;
   for (const { _id, n } of totals) if (_id in counts) counts[_id] = n;
-  return { items: await withUsers(bases), counts };
+  const items = await withUsers(bases);
+  const telegram =
+    status === BaseStatus.REJECTED
+      ? null
+      : await telegramStateOfBases(
+          items.map((p) => ({ id: p.id, townHallLevel: p.townHallLevel, published: p.status === BaseStatus.APPROVED })),
+        );
+  return { items: items.map((p) => ({ ...p, telegram: telegram?.get(p.id) ?? null })), counts };
 }
 
-/** How many proposals wait for review (administrators: the badge of the menu). */
-export async function countPendingProposals(): Promise<{ pending: number }> {
-  return {
-    pending: await DefenseBaseModel.countDocuments({ status: BaseStatus.PENDING, submittedAt: { $ne: null } }),
-  };
+/** How many proposals wait for review (administrators: the badges of the menu). */
+export async function countPendingProposals(): Promise<number> {
+  return DefenseBaseModel.countDocuments({ status: BaseStatus.PENDING, submittedAt: { $ne: null } });
 }
 
 /** Publishes a waiting proposal in the arsenal (and on Telegram), recording who approved it and when. */

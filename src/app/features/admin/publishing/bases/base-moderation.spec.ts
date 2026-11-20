@@ -2,19 +2,23 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { MATERIAL_ANIMATIONS } from '@angular/material/core';
-import { provideRouter } from '@angular/router';
-import { BaseProposal, BaseStatus } from '../../../core/backend/backend-api.types';
-import { provideCocApiTest } from '../../../testing/fixtures';
-import { PendingBaseProposals } from '../../../core/backend/pending-base-proposals';
-import { BaseArsenal } from '../../bases/base-arsenal';
-import { BaseModerationPage } from './base-moderation-page';
+import { provideRouter, Router } from '@angular/router';
+import {
+  BaseStatus,
+  BaseTelegramState,
+  ModeratedBaseProposal,
+} from '../../../../core/backend/backend-api.types';
+import { provideCocApiTest } from '../../../../testing/fixtures';
+import { PendingPublications } from '../../../../core/backend/pending-publications';
+import { BaseArsenal } from '../../../bases/base-arsenal';
+import { BaseModeration } from './base-moderation';
 
 const ok = <T>(result: T) => ({ result, messages: [], status: { code: 200, name: 'OK' } });
 const proposal = (
   id: string,
   status: BaseStatus,
-  extra: Partial<BaseProposal> = {},
-): BaseProposal => ({
+  extra: Partial<ModeratedBaseProposal> = {},
+): ModeratedBaseProposal => ({
   id,
   townHallLevel: 17,
   layoutUrl: `https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AWB%3A${id}xxxxxxxxx`,
@@ -29,9 +33,10 @@ const proposal = (
   reviewedBy: null,
   reviewedAt: null,
   rejectionReason: null,
+  telegram: null,
   ...extra,
 });
-const list = (items: BaseProposal[], counts = { PENDING: 2, APPROVED: 1, REJECTED: 0 }) =>
+const list = (items: ModeratedBaseProposal[], counts = { PENDING: 2, APPROVED: 1, REJECTED: 0 }) =>
   ok({ items, counts });
 
 const dialog = () => document.querySelector('mat-dialog-container') as HTMLElement;
@@ -40,10 +45,17 @@ const settle = async () => {
   TestBed.tick();
 };
 
-describe('BaseModerationPage', () => {
+const channel17 = { title: 'Basi TH17', username: 'basi17', canPost: true };
+const telegram = (
+  channel: BaseTelegramState['channel'],
+  post: BaseTelegramState['post'] = null,
+): BaseTelegramState => ({ channel, post });
+const sentPost = { status: 'sent' as const, error: null, retryAt: null };
+
+describe('BaseModeration', () => {
   let httpMock: HttpTestingController;
 
-  async function render(tab?: string) {
+  async function render(status?: string) {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -54,8 +66,8 @@ describe('BaseModerationPage', () => {
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
-    const fixture = TestBed.createComponent(BaseModerationPage);
-    if (tab) fixture.componentRef.setInput('tab', tab);
+    const fixture = TestBed.createComponent(BaseModeration);
+    if (status) fixture.componentRef.setInput('status', status);
     fixture.detectChanges();
     return { fixture, el: fixture.nativeElement as HTMLElement };
   }
@@ -72,10 +84,10 @@ describe('BaseModerationPage', () => {
       .flush(list([proposal('p1', 'PENDING'), proposal('p2', 'PENDING', { author: null })]));
     await fixture.whenStable();
 
-    const tabs = [...el.querySelectorAll('[mat-tab-link]')].map((t) =>
+    const states = [...el.querySelectorAll('mat-chip-option')].map((t) =>
       t.textContent!.replace(/\s+/g, ' ').trim(),
     );
-    expect(tabs).toEqual(['In attesa 2', 'Approvate 1', 'Rifiutate 0']);
+    expect(states).toEqual(['In attesa 2', 'Approvate 1', 'Rifiutate 0']);
     const cards = el.querySelectorAll('crn-base-proposal-card');
     expect(cards).toHaveLength(2);
     const card = cards[0];
@@ -108,7 +120,7 @@ describe('BaseModerationPage', () => {
       .flush(list([proposal('p1', 'PENDING')]));
     await fixture.whenStable();
     const reset = vi.spyOn(TestBed.inject(BaseArsenal), 'reset');
-    expect(TestBed.inject(PendingBaseProposals).count()).toBe(2);
+    expect(TestBed.inject(PendingPublications).counts().bases).toBe(2);
 
     el.querySelector<HTMLButtonElement>('.approve')!.click();
     await settle();
@@ -126,7 +138,7 @@ describe('BaseModerationPage', () => {
     await fixture.whenStable();
     expect(reset).toHaveBeenCalled();
     // The badge of the account menu follows the list.
-    expect(TestBed.inject(PendingBaseProposals).count()).toBe(0);
+    expect(TestBed.inject(PendingPublications).counts().bases).toBe(0);
     expect(document.body.textContent).toContain("Base approvata e pubblicata nell'arsenale");
     expect(el.textContent).toContain('Nessuna proposta da revisionare');
   });
@@ -196,5 +208,72 @@ describe('BaseModerationPage', () => {
     expect(card.querySelector('crn-rejection-reason')!.textContent).toContain('Manca il castello');
     // History only: no actions.
     expect(card.querySelector('.approve')).toBeNull();
+  });
+
+  it('tells where each waiting base goes on Telegram, and links to the channels when none', async () => {
+    const { el, fixture } = await render();
+    httpMock
+      .expectOne('/api/v1/base-proposals?status=PENDING')
+      .flush(
+        list([
+          proposal('p1', 'PENDING', { telegram: telegram(channel17) }),
+          proposal('p2', 'PENDING', { townHallLevel: 14, telegram: telegram(null) }),
+          proposal('p3', 'PENDING', { telegram: telegram({ ...channel17, canPost: false }) }),
+        ]),
+      );
+    await fixture.whenStable();
+    const notes = [...el.querySelectorAll('crn-proposal-telegram')];
+    expect(notes).toHaveLength(3);
+    expect(notes[0].textContent).toContain('Su Telegram andrà in');
+    expect(notes[0].querySelector<HTMLAnchorElement>('.line__channel')!.href).toBe(
+      'https://t.me/basi17',
+    );
+    expect(notes[0].querySelector('.manage')).toBeNull();
+    expect(notes[1].textContent).toContain('Nessun canale Telegram per il TH14');
+    expect(notes[1].querySelector('.manage')!.textContent).toContain('Gestisci i canali');
+    expect(notes[2].textContent).toContain('Non può pubblicare');
+
+    // The approval says it too.
+    el.querySelector<HTMLButtonElement>('.approve')!.click();
+    await settle();
+    expect(dialog().textContent).toContain('Uscirà anche su Telegram, in Basi TH17');
+  });
+
+  it('shows how the post of each approved base stands', async () => {
+    const { el, fixture } = await render('approved');
+    httpMock.expectOne('/api/v1/base-proposals?status=APPROVED').flush(
+      list([
+        proposal('p1', 'APPROVED', { telegram: telegram(channel17, sentPost) }),
+        proposal('p2', 'APPROVED', {
+          telegram: telegram(channel17, {
+            status: 'failed',
+            error: 'Bad Request: wrong file',
+            retryAt: '2026-11-20T18:00:00Z',
+          }),
+        }),
+        proposal('p3', 'APPROVED'),
+      ]),
+    );
+    await fixture.whenStable();
+    const notes = [...el.querySelectorAll('crn-proposal-telegram')];
+    // Without Telegram on the server, no line at all.
+    expect(notes).toHaveLength(2);
+    expect(notes[0].textContent).toContain('Pubblicata');
+    expect(notes[1].textContent).toContain('Non riuscita');
+    expect(notes[1].textContent).toContain('Bad Request: wrong file');
+    expect(notes[1].querySelector('.manage')).not.toBeNull();
+  });
+
+  it('changes state from the chips, keeping the other parameters of the page', async () => {
+    const { el, fixture } = await render();
+    httpMock.expectOne('/api/v1/base-proposals?status=PENDING').flush(list([]));
+    await fixture.whenStable();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    el.querySelectorAll<HTMLElement>('mat-chip-option')[2].querySelector('button')!.click();
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { status: 'rejected' },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 });

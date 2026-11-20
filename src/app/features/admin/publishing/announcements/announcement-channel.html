@@ -16,16 +16,16 @@
           >{{ 'telegramAdmin.chats.cannotPost' | translate }}</crn-tag
         >
       }
-      <a class="channel__manage" routerLink="." [queryParams]="{ tab: null }" replaceUrl>{{
-        'telegramAdmin.tabs.bot' | translate
+      <a class="channel__manage" routerLink="." [queryParams]="{ tab: 'channels' }" replaceUrl>{{
+        'publishing.tabs.channels' | translate
       }}</a>
     </p>
   } @else {
     <crn-alert tone="warning">
       <p>
         {{ 'telegramAdmin.announcementsChat.missing' | translate }}
-        <a routerLink="." [queryParams]="{ tab: null }" replaceUrl>{{
-          'telegramAdmin.tabs.bot' | translate
+        <a routerLink="." [queryParams]="{ tab: 'channels' }" replaceUrl>{{
+          'publishing.tabs.channels' | translate
         }}</a
         >.
       </p>

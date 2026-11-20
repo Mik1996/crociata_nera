@@ -53,8 +53,6 @@ export abstract class DefenseBasesService {
 
   /** The proposals in one state, with the count of each state. */
   abstract proposals(status: BaseStatus): Observable<BaseProposalList>;
-  /** How many proposals wait for review. */
-  abstract pendingCount(): Observable<number>;
   /** Publishes a waiting proposal in the arsenal. */
   abstract approve(id: string): Observable<BaseProposal>;
   /** Refuses a waiting proposal; the reason is shown to its author. */
@@ -134,14 +132,6 @@ export class HttpDefenseBasesService extends DefenseBasesService {
         context: noCache(),
       })
       .pipe(map((response) => response.result!));
-  }
-
-  pendingCount(): Observable<number> {
-    return this.http
-      .get<BaseResult<{ pending: number }>>(`${this.proposalsUrl}/pending-count`, {
-        context: noCache(),
-      })
-      .pipe(map((response) => response.result?.pending ?? 0));
   }
 
   approve(id: string): Observable<BaseProposal> {

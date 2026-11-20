@@ -23,8 +23,8 @@ type ChatContent = typeof NO_CONTENT | typeof ANNOUNCEMENTS_PURPOSE | number;
 const LOWEST_TOWN_HALL = 3;
 
 /**
- * "Bot and channels" tab of the Telegram page (administrators), the only place where the channels
- * are managed: the bot, every chat it was seen in and what it receives (the announcements or the
+ * Bot and channels, in the "Channels" tab of the Publications page (administrators): the only
+ * place where the channels are managed: the bot, every chat it was seen in and what it receives (the announcements or the
  * bases of a town hall), to lock, forget or add.
  */
 @Component({

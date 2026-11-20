@@ -194,11 +194,11 @@ export class MockDefenseBasesService extends DefenseBasesService {
   proposals(status: BaseStatus): Observable<BaseProposalList> {
     const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
     for (const p of this.proposalList) counts[p.status]++;
-    return this.reply({ items: this.proposalList.filter((p) => p.status === status), counts });
-  }
-
-  pendingCount(): Observable<number> {
-    return this.reply(this.proposalList.filter((p) => p.status === 'PENDING').length);
+    // No Telegram in mock mode.
+    const items = this.proposalList
+      .filter((p) => p.status === status)
+      .map((p) => ({ ...p, telegram: null }));
+    return this.reply({ items, counts });
   }
 
   approve(id: string): Observable<BaseProposal> {

@@ -9,17 +9,18 @@ import { Tag } from '../../../../shared/components/tag/tag';
 import { TelegramAdminState } from '../telegram-admin-state';
 
 /**
- * "Bases" tab of the Telegram page (administrators): how the posts of the arsenal stand (sent,
- * waiting for a channel, failed). The posts go out from the backend whenever the arsenal changes;
- * the town hall of each channel is chosen in the "Bot and channels" tab.
+ * Posts of the bases, at the top of the "Bases" tab of the Publications page (administrators): how
+ * the posts of the whole arsenal stand (sent, waiting for a channel, failed), with a retry. The
+ * posts go out from the backend whenever the arsenal changes, in the channel bound to the town hall
+ * of each base (chosen in the "Channels" tab).
  */
 @Component({
-  selector: 'crn-telegram-bases',
+  selector: 'crn-base-posts',
   imports: [MatButtonModule, RouterLink, TranslatePipe, Alert, Icon, LocalDatePipe, Tag],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './telegram-bases.html',
-  styleUrl: './telegram-bases.scss',
+  templateUrl: './base-posts.html',
+  styleUrl: './base-posts.scss',
 })
-export class TelegramBases {
+export class BasePosts {
   protected readonly state = inject(TelegramAdminState);
 }

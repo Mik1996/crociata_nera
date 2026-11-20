@@ -1,0 +1,44 @@
+@let c = channel();
+@let p = post();
+<p class="line">
+  <crn-icon class="line__icon" name="send" />
+  @if (c) {
+    <span class="cn-muted">{{
+      (p ? 'publishing.telegram.postIn' : 'publishing.telegram.goesTo') | translate
+    }}</span>
+    @if (link(); as href) {
+      <a class="line__channel" [href]="href" target="_blank" rel="noopener">{{ c.title }}</a>
+    } @else {
+      <span class="line__channel">{{ c.title }}</span>
+    }
+  } @else {
+    <span class="cn-muted">{{
+      'publishing.telegram.noChannel' | translate: { level: townHallLevel() }
+    }}</span>
+  }
+  @if (p) {
+    <crn-tag [tone]="tone()" appearance="soft">{{
+      'publishing.telegram.status.' + p.status | translate
+    }}</crn-tag>
+  } @else if (c && !c.canPost) {
+    <crn-tag tone="danger" appearance="soft">{{
+      'telegramAdmin.chats.cannotPost' | translate
+    }}</crn-tag>
+  }
+</p>
+@if (p?.status === 'failed') {
+  <p class="cn-muted failure">
+    {{ p!.error }}
+    @if (p!.retryAt) {
+      ·
+      {{
+        'telegramAdmin.posts.retryAt' | translate: { date: (p!.retryAt | localDate: 'dateTime') }
+      }}
+    }
+  </p>
+}
+@if (needsCare()) {
+  <a class="manage" routerLink="." [queryParams]="{ tab: 'channels', status: null }">{{
+    'publishing.telegram.manage' | translate
+  }}</a>
+}

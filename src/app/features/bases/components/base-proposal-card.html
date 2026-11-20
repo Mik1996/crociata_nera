@@ -73,6 +73,9 @@
     <p class="description">{{ p.description }}</p>
   }
 
+  <!-- Extra facts of the page showing the card (e.g. where the base goes on Telegram). -->
+  <ng-content select="[proposalNote]" />
+
   <div class="actions">
     <a
       mat-stroked-button

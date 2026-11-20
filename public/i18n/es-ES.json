@@ -89,8 +89,7 @@
     "admin": "Administración",
     "settings": "Ajustes",
     "bases": "Arsenal de bases",
-    "baseModeration": "Moderación de bases",
-    "telegramAdmin": "Telegram"
+    "publishing": "Publicaciones"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -411,8 +410,8 @@
       "signOut": "Cerrar sesión",
       "profile": "Mi perfil",
       "admin": "Administración",
-      "baseModeration": "Moderación de bases",
-      "pendingProposals": "{{n}} propuestas por revisar"
+      "publishing": "Publicaciones",
+      "pendingPublications": "{{n}} publicaciones por revisar"
     },
     "errors": {
       "backendUnreachable": "No se puede contactar con el servidor. Inténtalo de nuevo en breve.",
@@ -1217,15 +1216,44 @@
       "war": "Media de guerras"
     }
   },
-  "baseModeration": {
-    "title": "Moderación de bases",
-    "subtitle": "Bases propuestas por los miembros: apruébalas para publicarlas en el arsenal",
+  "publishing": {
+    "title": "Publicaciones",
+    "subtitle": "Bases propuestas por los miembros, anuncios y canales de Telegram: lo que espera una decisión antes de salir",
     "backToAdmin": "Administración",
+    "tabs": {
+      "bases": "Bases",
+      "announcements": "Anuncios",
+      "channels": "Canales"
+    },
+    "pending": {
+      "bases": "{{n}} bases por revisar",
+      "announcements": "{{n}} borradores de anuncios"
+    },
+    "telegram": {
+      "goesTo": "En Telegram irá a",
+      "postIn": "En Telegram en",
+      "noChannel": "Ningún canal de Telegram para el TH{{level}}: se queda solo en el sitio hasta que vincules uno",
+      "manage": "Gestionar los canales",
+      "status": {
+        "sent": "Publicada",
+        "pending": "En camino",
+        "noChannel": "Esperando un canal",
+        "failed": "Fallida"
+      }
+    },
+    "approveTelegram": {
+      "channel": "Saldrá también en Telegram, en {{channel}}.",
+      "cannotPost": "En Telegram esperará: el bot no puede publicar en {{channel}}.",
+      "noChannel": "En Telegram esperará: ningún canal está vinculado al TH{{level}}."
+    }
+  },
+  "baseModeration": {
     "tabs": {
       "pending": "Pendientes",
       "approved": "Aprobadas",
       "rejected": "Rechazadas"
     },
+    "filter": "Filtrar por estado",
     "empty": {
       "PENDING": "No hay propuestas que revisar",
       "APPROVED": "No hay propuestas aprobadas",
@@ -1245,13 +1273,6 @@
     }
   },
   "telegramAdmin": {
-    "title": "Telegram",
-    "subtitle": "Anuncios y bases del arsenal publicados en los canales de Telegram del clan",
-    "tabs": {
-      "bot": "Bot y canales",
-      "bases": "Bases",
-      "announcements": "Anuncios"
-    },
     "notConfigured": "El bot no está configurado en el servidor (TELEGRAM_BOT_TOKEN): no se publica nada en Telegram.",
     "refresh": "Actualizar",
     "announcementsChat": {
@@ -1269,7 +1290,7 @@
     },
     "posts": {
       "title": "Publicaciones de bases",
-      "intro": "Las bases del arsenal salen en el canal de su ayuntamiento, que se elige en",
+      "intro": "Las bases aprobadas salen en el canal de su ayuntamiento, que se elige en",
       "sent": "publicadas",
       "pending": "en camino",
       "waiting": "Bases TH{{level}} en espera: {{n}}. Ningún canal está vinculado al TH{{level}}.",

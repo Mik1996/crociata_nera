@@ -17,6 +17,12 @@
         | translate: { author: data.proposal.author?.username ?? '—' }
     }}
   </p>
+  @if (telegramNote; as note) {
+    <p class="telegram">
+      <crn-icon class="telegram__icon" name="send" />
+      <span>{{ note.key | translate: note.params }}</span>
+    </p>
+  }
   @if (rejecting) {
     <mat-form-field appearance="outline" class="reason" subscriptSizing="dynamic">
       <mat-label>{{ 'baseModeration.rejectDialog.reason' | translate }}</mat-label>

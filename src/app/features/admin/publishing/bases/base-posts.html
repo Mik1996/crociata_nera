@@ -3,8 +3,8 @@
     <h2 id="posts-title">{{ 'telegramAdmin.posts.title' | translate }}</h2>
     <p class="cn-muted intro">
       {{ 'telegramAdmin.posts.intro' | translate }}
-      <a routerLink="." [queryParams]="{ tab: null }" replaceUrl>{{
-        'telegramAdmin.tabs.bot' | translate
+      <a routerLink="." [queryParams]="{ tab: 'channels', status: null }">{{
+        'publishing.tabs.channels' | translate
       }}</a
       >.
     </p>

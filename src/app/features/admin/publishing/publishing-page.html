@@ -3,12 +3,12 @@
     flush
     scene="candle"
     [kicker]="'kicker.admin' | translate"
-    [title]="'telegramAdmin.title' | translate"
-    [subtitle]="'telegramAdmin.subtitle' | translate"
+    [title]="'publishing.title' | translate"
+    [subtitle]="'publishing.subtitle' | translate"
   >
     <a mat-stroked-button routerLink="/admin">
       <crn-icon matButtonIcon name="arrow_back" />
-      {{ 'baseModeration.backToAdmin' | translate }}
+      {{ 'publishing.backToAdmin' | translate }}
     </a>
   </crn-page-header>
 
@@ -18,7 +18,7 @@
       crnSwipeTabs
       class="tabs cn-tabs--sticky"
       [tabPanel]="panel"
-      [attr.aria-label]="'telegramAdmin.title' | translate"
+      [attr.aria-label]="'publishing.title' | translate"
     >
       @for (t of tabs; track t.id) {
         <a
@@ -29,7 +29,14 @@
           [active]="active() === t.id"
         >
           <crn-icon class="tabs__icon" [name]="t.icon" />
-          {{ 'telegramAdmin.tabs.' + t.id | translate }}
+          {{ 'publishing.tabs.' + t.id | translate }}
+          @if (t.pending && pending.counts()[t.pending]; as n) {
+            <span
+              class="tabs__badge cn-num"
+              [attr.aria-label]="'publishing.pending.' + t.pending | translate: { n }"
+              >{{ n > 99 ? '99+' : n }}</span
+            >
+          }
         </a>
       }
     </nav>
@@ -49,6 +56,12 @@
       }
 
       @switch (active()) {
+        @case ('bases') {
+          @if (state.data()?.configured) {
+            <crn-base-posts />
+          }
+          <crn-base-moderation [status]="status()" />
+        }
         @case ('announcements') {
           <crn-announcement-channel />
           <crn-telegram-announcements />
@@ -60,11 +73,7 @@
             [empty]="false"
             (retry)="state.status.reload()"
           >
-            @if (active() === 'bases') {
-              <crn-telegram-bases />
-            } @else {
-              <crn-telegram-bot />
-            }
+            <crn-telegram-bot />
           </crn-load-state>
         }
       }

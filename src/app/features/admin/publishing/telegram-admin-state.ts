@@ -15,9 +15,9 @@ export type TelegramBusy = number | 'add' | 'sync';
 export const ANNOUNCEMENTS_PURPOSE = 'announcements';
 
 /**
- * State of the Telegram page, shared by its tabs (provided by the page): the bot and its chats read
- * once, the changes to them (made in the "Bot and channels" tab only), and what the backend answered
- * to the last one.
+ * Telegram state of the Publications page, shared by its tabs (provided by the page): the bot and
+ * its chats read once, the changes to them (made in the "Channels" tab only), and what the backend
+ * answered to the last one.
  */
 @Injectable()
 export class TelegramAdminState {

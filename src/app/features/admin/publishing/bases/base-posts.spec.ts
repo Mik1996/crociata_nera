@@ -1,20 +1,20 @@
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ok, renderTelegramPage, status, STATUS_URL } from '../telegram-admin-testing';
+import { ok, renderPublishingPage, status, STATUS_URL } from '../publishing-testing';
 
-describe('TelegramBases', () => {
+describe('BasePosts', () => {
   let httpMock: HttpTestingController;
 
   async function render(initial = status) {
-    const rendered = await renderTelegramPage('bases', initial);
+    const rendered = await renderPublishingPage(undefined, initial);
     httpMock = rendered.httpMock;
     return rendered;
   }
 
   afterEach(() => httpMock.verify());
 
-  it('shows how the posts stand, without managing the channels', async () => {
+  it('shows how the posts stand on the bases tab, without managing the channels', async () => {
     const { el } = await render();
-    const bases = el.querySelector('crn-telegram-bases')!;
+    const bases = el.querySelector('crn-base-posts')!;
     expect(bases.textContent).toContain('12');
     expect(bases.textContent).toContain('Basi TH19 in attesa: 3');
     expect(bases.textContent).toContain('Bad Request: wrong file');

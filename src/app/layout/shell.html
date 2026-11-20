@@ -126,14 +126,15 @@
         (menuOpened)="onAccountMenuOpened()"
         [attr.aria-label]="
           ('auth.account.menu' | translate: { name: user.username }) +
-          (pendingProposals.count()
-            ? ' · ' + ('auth.account.pendingProposals' | translate: { n: pendingProposals.count() })
+          (pendingPublications.count()
+            ? ' · ' +
+              ('auth.account.pendingPublications' | translate: { n: pendingPublications.count() })
             : '')
         "
       >
         <span class="account__avatar">
           <crn-avatar [name]="user.username" />
-          @if (pendingProposals.count(); as n) {
+          @if (pendingPublications.count(); as n) {
             <span class="account__badge cn-num" aria-hidden="true">{{ n > 99 ? '99+' : n }}</span>
           }
         </span>
@@ -169,13 +170,13 @@
             <crn-icon name="admin_panel_settings" />
             <span>{{ 'auth.account.admin' | translate }}</span>
           </a>
-          <a mat-menu-item routerLink="/admin/bases">
-            <crn-icon name="shield" />
-            <span>{{ 'auth.account.baseModeration' | translate }}</span>
-            @if (pendingProposals.count(); as n) {
+          <a mat-menu-item routerLink="/admin/publishing">
+            <crn-icon name="campaign" />
+            <span>{{ 'auth.account.publishing' | translate }}</span>
+            @if (pendingPublications.count(); as n) {
               <span
                 class="menu-badge cn-num"
-                [attr.aria-label]="'auth.account.pendingProposals' | translate: { n }"
+                [attr.aria-label]="'auth.account.pendingPublications' | translate: { n }"
                 >{{ n > 99 ? '99+' : n }}</span
               >
             }

@@ -23,7 +23,7 @@ import { CLAN_CREST_URL, ClanBadge } from '../core/api/clan-badge';
 import { CocApiService } from '../core/api/coc-api';
 import { guestRedirect, needsSignIn, returnUrlParams } from '../core/backend/auth.guards';
 import { AuthService } from '../core/backend/auth.service';
-import { PendingBaseProposals } from '../core/backend/pending-base-proposals';
+import { PendingPublications } from '../core/backend/pending-publications';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { LanguageCode } from '../core/i18n/languages';
@@ -98,8 +98,8 @@ export class Shell {
   protected readonly language = inject(LanguageService);
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
-  /** Proposals waiting for review: the badge next to "Base moderation" (administrators). */
-  protected readonly pendingProposals = inject(PendingBaseProposals);
+  /** What waits on the Publications page: the badge next to "Publications" (administrators). */
+  protected readonly pendingPublications = inject(PendingPublications);
   /** A confirmed session of an administrator (not the profile remembered offline). */
   private readonly confirmedAdmin = computed(
     () => !this.useMock && this.auth.isAdmin() && !this.auth.isUnconfirmed(),
@@ -164,7 +164,7 @@ export class Shell {
 
   /** The account menu opens: the count of the badge is read again (others may have reviewed). */
   protected onAccountMenuOpened(): void {
-    if (this.confirmedAdmin()) this.pendingProposals.refresh();
+    if (this.confirmedAdmin()) this.pendingPublications.refresh();
   }
 
   protected readonly signInParams = computed(() => {
@@ -177,7 +177,7 @@ export class Shell {
     // or page load) and kept current; forgotten at sign-out.
     effect(() => {
       const admin = this.confirmedAdmin();
-      untracked(() => (admin ? this.pendingProposals.start() : this.pendingProposals.stop()));
+      untracked(() => (admin ? this.pendingPublications.start() : this.pendingPublications.stop()));
     });
     // Signed out (button, expired or revoked session): leave a protected page for the welcome
     // page, remembering where the user was. Public pages (settings, join) stay open.

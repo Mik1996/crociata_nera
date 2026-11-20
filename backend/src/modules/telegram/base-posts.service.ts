@@ -387,3 +387,65 @@ export async function basePostsSummary(): Promise<BasePostsSummary> {
 export async function retryFailedPosts(): Promise<void> {
   await TelegramBasePostModel.updateMany({ status: BasePostStatus.FAILED }, { $set: { retryAt: null } });
 }
+
+/** Where a base stands on Telegram, for the moderation of the proposals. */
+export interface BaseTelegramState {
+  /**
+   * The channel bound to the town hall of the base now: where it goes (or went) once approved;
+   * `null`: none, the base stays on the site only until one is bound.
+   */
+  channel: { title: string; username: string | null; canPost: boolean } | null;
+  /**
+   * The post of a base in the arsenal; `null` for a base not approved. `pending`: not handled yet
+   * (the sync has not run since it was approved).
+   */
+  post: { status: BasePostStatus | 'pending'; error: string | null; retryAt: string | null } | null;
+}
+
+/**
+ * How some bases stand on Telegram, by base id: `null` while Telegram is not configured (nothing is
+ * posted). `published` tells which of them are in the arsenal (and so have a post).
+ */
+export async function telegramStateOfBases(
+  bases: { id: string; townHallLevel: number; published: boolean }[],
+): Promise<Map<string, BaseTelegramState> | null> {
+  if (!isTelegramConfigured()) return null;
+  const levels = [...new Set(bases.map((base) => base.townHallLevel))];
+  const publishedIds = bases.filter((base) => base.published).map((base) => base.id);
+  const [chats, posts] = await Promise.all([
+    levels.length
+      ? TelegramChatModel.find({
+          townHallLevel: { $in: levels },
+          purpose: { $ne: TelegramChatPurpose.ANNOUNCEMENTS },
+        })
+          .select('title username canPost townHallLevel')
+          .lean()
+      : [],
+    publishedIds.length
+      ? TelegramBasePostModel.find({ baseId: { $in: publishedIds } })
+          .select('baseId status error retryAt')
+          .lean()
+      : [],
+  ]);
+  const channelOf = new Map(chats.map((chat) => [chat.townHallLevel!, chat]));
+  const postOf = new Map(posts.map((post) => [post.baseId.toString(), post]));
+  return new Map(
+    bases.map((base) => {
+      const chat = channelOf.get(base.townHallLevel);
+      const post = postOf.get(base.id);
+      const state: BaseTelegramState = {
+        channel: chat ? { title: chat.title, username: chat.username ?? null, canPost: chat.canPost } : null,
+        post: !base.published
+          ? null
+          : post
+            ? {
+                status: post.status as BasePostStatus,
+                error: post.status === BasePostStatus.FAILED ? (post.error ?? null) : null,
+                retryAt: post.status === BasePostStatus.FAILED ? (post.retryAt?.toISOString() ?? null) : null,
+              }
+            : { status: 'pending', error: null, retryAt: null },
+      };
+      return [base.id, state];
+    }),
+  );
+}

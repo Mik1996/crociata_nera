@@ -456,7 +456,9 @@ bot nel canale Telegram del suo municipio, con l'immagine, il castello del clan,
 in gioco del suo villaggio di grado più alto) e il pulsante **Copia la base**. Modificare o eliminare la base
 sul sito modifica o elimina anche il post. La direzione è sempre sito → Telegram.
 
-- **Canali**: in **Amministrazione → Telegram** (`/admin/telegram`) si sceglie il municipio di ogni canale.
+- **Canali**: in **Amministrazione → Pubblicazioni**, tab **Canali** (`/admin/publishing?tab=channels`), si
+  sceglie il municipio di ogni canale. Nel tab **Basi** ogni proposta mostra il canale in cui uscirà e, una
+  volta approvata, lo stato del suo post.
   Un canale compare lì quando il bot ne diventa amministratore (con il permesso di pubblicare). Se il bot lo
   era già prima, basta pubblicare un messaggio nel canale, oppure aggiungerlo con il suo `@username`.
 - **Municipio senza canale** (es. TH19): il bot non può creare canali. La base resta "in attesa" e parte

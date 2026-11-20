@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import {
   adminGuard,
   authGuard,
@@ -156,25 +157,35 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/admin-page').then((m) => m.AdminPage),
       },
       {
-        path: 'admin/bases',
-        title: 'nav.baseModeration',
+        path: 'admin/publishing',
+        title: 'nav.publishing',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./features/admin/base-moderation/base-moderation-page').then(
-            (m) => m.BaseModerationPage,
-          ),
+          import('./features/admin/publishing/publishing-page').then((m) => m.PublishingPage),
+      },
+      // Old addresses: base moderation and Telegram are tabs of the Publications page.
+      {
+        path: 'admin/bases',
+        redirectTo: ({ queryParams }) =>
+          inject(Router).createUrlTree(['/admin/publishing'], {
+            queryParams: { status: queryParams['tab'] },
+          }),
       },
       {
         path: 'admin/telegram',
-        title: 'nav.telegramAdmin',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/admin/telegram/telegram-admin-page').then((m) => m.TelegramAdminPage),
+        redirectTo: ({ queryParams }) =>
+          inject(Router).createUrlTree(['/admin/publishing'], {
+            queryParams: {
+              tab: queryParams['tab'] === 'announcements' ? 'announcements' : 'channels',
+            },
+          }),
       },
       {
-        // Old address: the announcements are the first tab of the Telegram page.
         path: 'admin/announcements',
-        redirectTo: 'admin/telegram',
+        redirectTo: () =>
+          inject(Router).createUrlTree(['/admin/publishing'], {
+            queryParams: { tab: 'announcements' },
+          }),
       },
       {
         path: '**',

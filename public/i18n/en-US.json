@@ -89,8 +89,7 @@
     "admin": "Administration",
     "settings": "Settings",
     "bases": "Base arsenal",
-    "baseModeration": "Base moderation",
-    "telegramAdmin": "Telegram"
+    "publishing": "Publications"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -411,8 +410,8 @@
       "signOut": "Sign out",
       "profile": "My profile",
       "admin": "Administration",
-      "baseModeration": "Base moderation",
-      "pendingProposals": "{{n}} proposals to review"
+      "publishing": "Publications",
+      "pendingPublications": "{{n}} publications to review"
     },
     "errors": {
       "backendUnreachable": "Unable to reach the server. Please try again shortly.",
@@ -1217,15 +1216,44 @@
       "war": "War average"
     }
   },
-  "baseModeration": {
-    "title": "Base moderation",
-    "subtitle": "Bases proposed by the members: approve them to publish them in the arsenal",
+  "publishing": {
+    "title": "Publications",
+    "subtitle": "Bases proposed by the members, announcements and Telegram channels: what waits for a decision before going out",
     "backToAdmin": "Administration",
+    "tabs": {
+      "bases": "Bases",
+      "announcements": "Announcements",
+      "channels": "Channels"
+    },
+    "pending": {
+      "bases": "{{n}} bases to review",
+      "announcements": "{{n}} announcement drafts"
+    },
+    "telegram": {
+      "goesTo": "On Telegram it will go to",
+      "postIn": "On Telegram in",
+      "noChannel": "No Telegram channel for TH{{level}}: it stays on the site only until you bind one",
+      "manage": "Manage the channels",
+      "status": {
+        "sent": "Posted",
+        "pending": "On its way",
+        "noChannel": "Waiting for a channel",
+        "failed": "Failed"
+      }
+    },
+    "approveTelegram": {
+      "channel": "It will go out on Telegram too, in {{channel}}.",
+      "cannotPost": "On Telegram it will wait: the bot cannot post in {{channel}}.",
+      "noChannel": "On Telegram it will wait: no channel is bound to TH{{level}}."
+    }
+  },
+  "baseModeration": {
     "tabs": {
       "pending": "Waiting",
       "approved": "Approved",
       "rejected": "Rejected"
     },
+    "filter": "Filter by state",
     "empty": {
       "PENDING": "No proposals to review",
       "APPROVED": "No approved proposals",
@@ -1245,13 +1273,6 @@
     }
   },
   "telegramAdmin": {
-    "title": "Telegram",
-    "subtitle": "Announcements and arsenal bases posted in the clan's Telegram channels",
-    "tabs": {
-      "bot": "Bot and channels",
-      "bases": "Bases",
-      "announcements": "Announcements"
-    },
     "notConfigured": "The bot is not configured on the server (TELEGRAM_BOT_TOKEN): nothing is posted on Telegram.",
     "refresh": "Refresh",
     "announcementsChat": {
@@ -1269,7 +1290,7 @@
     },
     "posts": {
       "title": "Base posts",
-      "intro": "The arsenal's bases go to the channel of their town hall, chosen in",
+      "intro": "Approved bases go out in the channel of their town hall, chosen in",
       "sent": "posted",
       "pending": "on their way",
       "waiting": "TH{{level}} bases waiting: {{n}}. No channel is bound to TH{{level}}.",

@@ -81,3 +81,12 @@ export const MembersSyncResult = model(
     nextCheckAt: nullableDateTime('Last read of the donations before the game season ends, if known.'),
   }),
 );
+
+export const PublishingPendingCount = model(
+  'PublishingPendingCount',
+  'What waits for an administrator on the Publications page.',
+  z.strictObject({
+    bases: z.number().int().min(0).describe('Base proposals waiting for review.'),
+    announcements: z.number().int().min(0).describe('Announcement drafts waiting to be published or discarded.'),
+  }),
+);

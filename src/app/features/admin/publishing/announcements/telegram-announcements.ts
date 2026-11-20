@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -12,6 +19,7 @@ import {
   BackendMessage,
 } from '../../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../../core/backend/backend-errors';
+import { PendingPublications } from '../../../../core/backend/pending-publications';
 import { LanguageService } from '../../../../core/i18n/language.service';
 import {
   formatLocalDate,
@@ -63,7 +71,7 @@ const DIALOG_CONFIG = {
 } as const;
 
 /**
- * Announcements tab of the Telegram page (administrators). The backend prepares a draft when a month
+ * Announcements tab of the Publications page (administrators). The backend prepares a draft when a month
  * closes, a Clan War League or game season ends, or a record of a clan of the Crusade falls; here
  * the drafts are looked at (pictures and caption), the caption changed, then published or discarded.
  */
@@ -110,6 +118,16 @@ export class TelegramAnnouncements {
   protected readonly decided = computed(() =>
     this.items().filter((a) => a.state === 'published' || a.state === 'discarded'),
   );
+
+  constructor() {
+    // The badges (menu, tab) follow the drafts read here.
+    const pending = inject(PendingPublications);
+    effect(() => {
+      if (this.announcements.hasValue()) {
+        pending.set('announcements', this.items().filter((a) => a.state === 'draft').length);
+      }
+    });
+  }
 
   /** Captions being written, by announcement id (until saved). */
   private readonly edits = signal<Record<string, string>>({});

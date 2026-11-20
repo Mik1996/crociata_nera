@@ -13,7 +13,6 @@ import {
 import {
   BaseProposal,
   BaseProposalList,
-  BaseProposalPendingCount,
   DefenseBase,
   DefenseBasePage,
 } from '../models/bases';
@@ -263,17 +262,6 @@ export const BASE_OPERATIONS: ApiOperation[] = [
     }),
     responses: { 200: { description: 'The proposals.', result: BaseProposalList } },
     errors: { 400: [K.INVALID_FIELD] },
-  },
-  {
-    method: 'GET',
-    path: '/base-proposals/pending-count',
-    operationId: 'countPendingBaseProposals',
-    tag: 'Bases',
-    summary: 'Count the waiting base proposals',
-    description: 'How many proposals wait for review: the badge next to "Base moderation" in the account menu.',
-    access: 'admin',
-    rateLimit: ApiName.BASES_READ,
-    responses: { 200: { description: 'The count.', result: BaseProposalPendingCount } },
   },
   {
     method: 'POST',

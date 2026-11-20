@@ -3,12 +3,12 @@ import { TelegramChat } from '../../../../core/backend/backend-api.types';
 import {
   news,
   ok,
-  renderTelegramPage,
+  renderPublishingPage,
   status,
   STATUS_URL,
   th18,
   th19,
-} from '../telegram-admin-testing';
+} from '../publishing-testing';
 
 type Content = number | 'announcements';
 
@@ -16,7 +16,7 @@ describe('TelegramBot', () => {
   let httpMock: HttpTestingController;
 
   async function render(initial = status) {
-    const rendered = await renderTelegramPage('bot', initial);
+    const rendered = await renderPublishingPage('channels', initial);
     httpMock = rendered.httpMock;
     const bot = rendered.fixture.debugElement.query((d) => d.name === 'crn-telegram-bot')
       .componentInstance as {

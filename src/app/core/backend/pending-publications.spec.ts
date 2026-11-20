@@ -2,22 +2,18 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideCocApiTest } from '../../testing/fixtures';
-import {
-  PENDING_REFRESH_MS,
-  PENDING_RETRY_MS,
-  PendingBaseProposals,
-} from './pending-base-proposals';
+import { PENDING_REFRESH_MS, PENDING_RETRY_MS, PendingPublications } from './pending-publications';
 
-const URL = '/api/v1/base-proposals/pending-count';
-const ok = (pending: number) => ({
-  result: { pending },
+const URL = '/api/v1/admin/publishing/pending-count';
+const ok = (bases: number, announcements = 0) => ({
+  result: { bases, announcements },
   messages: [],
   status: { code: 200, name: 'OK' },
 });
 
-describe('PendingBaseProposals', () => {
+describe('PendingPublications', () => {
   let httpMock: HttpTestingController;
-  let pending: PendingBaseProposals;
+  let pending: PendingPublications;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -29,7 +25,7 @@ describe('PendingBaseProposals', () => {
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
-    pending = TestBed.inject(PendingBaseProposals);
+    pending = TestBed.inject(PendingPublications);
   });
 
   afterEach(() => {
@@ -46,8 +42,9 @@ describe('PendingBaseProposals', () => {
     vi.advanceTimersByTime(PENDING_REFRESH_MS - 1);
     httpMock.expectNone(URL);
     vi.advanceTimersByTime(1);
-    httpMock.expectOne(URL).flush(ok(5));
-    expect(pending.count()).toBe(5);
+    httpMock.expectOne(URL).flush(ok(5, 2));
+    expect(pending.count()).toBe(7);
+    expect(pending.counts()).toEqual({ bases: 5, announcements: 2 });
   });
 
   it('tries again soon after a failed read, keeping the last count', () => {
@@ -68,6 +65,14 @@ describe('PendingBaseProposals', () => {
     document.dispatchEvent(new Event('visibilitychange'));
     httpMock.expectOne(URL).flush(ok(4));
     expect(pending.count()).toBe(4);
+  });
+
+  it('takes the part of a tab that read its list', () => {
+    pending.start();
+    httpMock.expectOne(URL).flush(ok(2, 1));
+    pending.set('announcements', 4);
+    expect(pending.counts()).toEqual({ bases: 2, announcements: 4 });
+    expect(pending.count()).toBe(6);
   });
 
   it('stops reading and forgets the count at sign-out', () => {

@@ -6,13 +6,16 @@
     [title]="'admin.title' | translate"
     [subtitle]="'admin.subtitle' | translate: { n: total() }"
   >
-    <a mat-flat-button routerLink="/admin/bases">
-      <crn-icon matButtonIcon name="shield" />
-      {{ 'baseModeration.title' | translate }}
-    </a>
-    <a mat-stroked-button routerLink="/admin/telegram">
-      <crn-icon matButtonIcon name="send" />
-      {{ 'telegramAdmin.title' | translate }}
+    <a mat-flat-button routerLink="/admin/publishing" class="publishing">
+      <crn-icon matButtonIcon name="campaign" />
+      {{ 'publishing.title' | translate }}
+      @if (pending.count(); as n) {
+        <span
+          class="publishing__badge cn-num"
+          [attr.aria-label]="'auth.account.pendingPublications' | translate: { n }"
+          >{{ n > 99 ? '99+' : n }}</span
+        >
+      }
     </a>
   </crn-page-header>
 
