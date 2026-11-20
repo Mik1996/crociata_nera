@@ -131,6 +131,8 @@ export interface Membership {
   tag: string;
   name: string;
   role: ClanRole;
+  /** `null` when unknown. */
+  townHallLevel: number | null;
   clanTag: string;
   clanName: string;
 }

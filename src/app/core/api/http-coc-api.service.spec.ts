@@ -135,6 +135,7 @@ describe('HttpCocApiService', () => {
       tag: '#A',
       name: 'A',
       role: 'elder',
+      townHallLevel: 17,
       clanTag: '#2J8JVVCLC',
       clanName: 'Crociata Nera',
     };

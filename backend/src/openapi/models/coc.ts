@@ -94,6 +94,7 @@ export const Membership = model(
     tag: tag('Player.'),
     name: z.string().describe('In-game name.'),
     role: z.enum(['leader', 'coLeader', 'elder', 'member']).describe('Role in the clan.'),
+    townHallLevel: z.number().int().nullable().describe('Town hall level; null when unknown.'),
     clanTag: tag('Clan of the Crusade the account is in.'),
     clanName: z.string().describe('Name of that clan.'),
   }),

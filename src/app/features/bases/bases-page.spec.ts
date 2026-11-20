@@ -303,6 +303,87 @@ describe('BasesPage', () => {
       expect([...groups].map((g) => g.querySelectorAll('.base').length)).toEqual([2, 1]);
     });
 
+    it('collapses and expands the sections of each town hall', async () => {
+      const { fixture, el } = await render(
+        ['USER'],
+        page([base('a', 18), base('c', 18), base('b', 17)]),
+      );
+      const groups = () => [...el.querySelectorAll<HTMLDetailsElement>('details.group')];
+      expect(groups().map((g) => g.open)).toEqual([true, true]);
+
+      groups()[0].querySelector<HTMLElement>('summary')!.click();
+      groups()[0].dispatchEvent(new Event('toggle'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(groups().map((g) => g.open)).toEqual([false, true]);
+
+      groups()[0].querySelector<HTMLElement>('summary')!.click();
+      groups()[0].dispatchEvent(new Event('toggle'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(groups().map((g) => g.open)).toEqual([true, true]);
+    });
+
+    it('selects the highest town hall of the linked accounts when opened without a filter', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([{ path: 'bases', component: BasesPage }]),
+          provideHttpClient(withInterceptors([authInterceptor])),
+          provideHttpClientTesting(),
+          provideCocApiTest({ useMockApi: false }),
+          { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
+        ],
+      });
+      httpMock = TestBed.inject(HttpTestingController);
+      TestBed.inject(AuthService).restoreSession();
+      const players = [
+        { tag: '#AAA', verified: true },
+        { tag: '#BBB', verified: true },
+      ];
+      httpMock.expectOne('/api/v1/auth/refresh').flush(
+        ok({
+          accessToken: 'tok',
+          accessTokenExpiresAt: '',
+          user: { id: 'u', username: 'Knight', roles: ['ADMIN'], players, clanAccess: true },
+        }),
+      );
+      let navigated!: (done: boolean) => void;
+      const navigate = vi
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockReturnValue(new Promise<boolean>((resolve) => (navigated = resolve)));
+      const fixture = TestBed.createComponent(BasesPage);
+      fixture.detectChanges();
+      // No page of the arsenal before the default filter is known.
+      httpMock.expectNone('/api/v1/bases');
+      const member = (tag: string, townHallLevel: number) => ({
+        tag,
+        name: tag,
+        role: 'member',
+        townHallLevel,
+        clanTag: '#2J8JVVCLC',
+        clanName: 'Crociata Nera',
+      });
+      httpMock
+        .expectOne('/api/v1/auth/me/memberships')
+        .flush(ok([member('#AAA', 16), member('#BBB', 17)]));
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(navigate).toHaveBeenCalled();
+      });
+      expect(navigate).toHaveBeenCalledWith(
+        [],
+        expect.objectContaining({ queryParams: { th: 17 } }),
+      );
+      // The router sets the filter before the navigation ends.
+      fixture.componentRef.setInput('th', '17');
+      navigated(true);
+      await Promise.resolve();
+      fixture.detectChanges();
+      httpMock.expectOne('/api/v1/bases?th=17').flush(page([base('b', 17)], null));
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelectorAll('.base')).toHaveLength(1);
+    });
+
     it('asks for the next page when the end of the list comes near, until the last one', async () => {
       const { el, fixture } = await render(['USER'], page([base('a', 18)], 'c1'));
       expect(el.querySelector('.feed-end__done')).toBeNull();

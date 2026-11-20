@@ -77,93 +77,26 @@
       (retry)="feed().retry()"
     >
       @for (group of groups(); track group.level) {
-        <section
-          class="group"
-          [attr.aria-labelledby]="townHall() ? null : 'bases-th-' + group.level"
-        >
-          @if (!townHall()) {
-            <h2 class="group__title" [id]="'bases-th-' + group.level">
-              @if (townHallImage(group.level); as src) {
-                <img [src]="src" alt="" />
-              }
-              {{ 'common.townHallN' | translate: { n: group.level } }}
-            </h2>
-          }
-          <ul class="grid">
-            @for (base of group.bases; track base.id) {
-              <li class="base cn-card cn-card--plain">
-                <button
-                  type="button"
-                  class="base__media"
-                  (click)="openImage(base)"
-                  [attr.aria-label]="'bases.enlarge' | translate: { n: base.townHallLevel }"
-                >
-                  <img
-                    [src]="imageUrl(base, 'thumb')"
-                    [width]="base.image.width"
-                    [height]="base.image.height"
-                    loading="lazy"
-                    decoding="async"
-                    alt=""
-                  />
-                </button>
-                <span class="base__th">
-                  @if (townHallImage(base.townHallLevel); as src) {
-                    <img [src]="src" alt="" />
-                  }
-                  {{ 'bases.thShort' | translate: { n: base.townHallLevel } }}
-                </span>
-
-                @if (base.description) {
-                  <p class="base__description">{{ base.description }}</p>
+        @if (townHall()) {
+          <ng-container *ngTemplateOutlet="grid; context: { $implicit: group.bases }" />
+        } @else {
+          <details
+            class="group"
+            [open]="!collapsed().has(group.level)"
+            (toggle)="onGroupToggle(group.level, $event)"
+          >
+            <summary class="group__summary">
+              <crn-icon class="group__chevron" name="expand_more" />
+              <h2 class="group__title">
+                @if (townHallImage(group.level); as src) {
+                  <img [src]="src" alt="" />
                 }
-
-                @if (base.clanCastleTroops.length) {
-                  <crn-clan-castle-troops
-                    class="base__troops"
-                    [troops]="base.clanCastleTroops"
-                    [townHallLevel]="base.townHallLevel"
-                  />
-                }
-
-                <div class="base__actions">
-                  <a
-                    mat-flat-button
-                    class="base__copy"
-                    [href]="base.layoutUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    [attr.aria-label]="'bases.copyOf' | translate: { n: base.townHallLevel }"
-                  >
-                    <crn-icon matButtonIcon name="download" />
-                    {{ 'bases.copy' | translate }}
-                  </a>
-                  @if (canEdit()) {
-                    <button
-                      mat-icon-button
-                      type="button"
-                      (click)="openEdit(base)"
-                      [matTooltip]="'bases.edit' | translate"
-                      [attr.aria-label]="'bases.editOf' | translate: { n: base.townHallLevel }"
-                    >
-                      <crn-icon name="edit" />
-                    </button>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      class="base__delete"
-                      (click)="openDelete(base)"
-                      [matTooltip]="'bases.delete' | translate"
-                      [attr.aria-label]="'bases.deleteOf' | translate: { n: base.townHallLevel }"
-                    >
-                      <crn-icon name="delete" />
-                    </button>
-                  }
-                </div>
-              </li>
-            }
-          </ul>
-        </section>
+                {{ 'common.townHallN' | translate: { n: group.level } }}
+              </h2>
+            </summary>
+            <ng-container *ngTemplateOutlet="grid; context: { $implicit: group.bases }" />
+          </details>
+        }
       }
 
       <div class="feed-end" crnNearEnd>
@@ -185,3 +118,80 @@
     </crn-load-state>
   </div>
 </div>
+
+<ng-template #grid let-bases>
+  <ul class="grid">
+    @for (base of asBases(bases); track base.id) {
+      <li class="base cn-card cn-card--plain">
+        <button
+          type="button"
+          class="base__media"
+          (click)="openImage(base)"
+          [attr.aria-label]="'bases.enlarge' | translate: { n: base.townHallLevel }"
+        >
+          <img
+            [src]="imageUrl(base, 'thumb')"
+            [width]="base.image.width"
+            [height]="base.image.height"
+            loading="lazy"
+            decoding="async"
+            alt=""
+          />
+        </button>
+        <span class="base__th">
+          @if (townHallImage(base.townHallLevel); as src) {
+            <img [src]="src" alt="" />
+          }
+          {{ 'bases.thShort' | translate: { n: base.townHallLevel } }}
+        </span>
+
+        @if (base.description) {
+          <p class="base__description">{{ base.description }}</p>
+        }
+
+        @if (base.clanCastleTroops.length) {
+          <crn-clan-castle-troops
+            class="base__troops"
+            [troops]="base.clanCastleTroops"
+            [townHallLevel]="base.townHallLevel"
+          />
+        }
+
+        <div class="base__actions">
+          <a
+            mat-flat-button
+            class="base__copy"
+            [href]="base.layoutUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="'bases.copyOf' | translate: { n: base.townHallLevel }"
+          >
+            <crn-icon matButtonIcon name="download" />
+            {{ 'bases.copy' | translate }}
+          </a>
+          @if (canEdit()) {
+            <button
+              mat-icon-button
+              type="button"
+              (click)="openEdit(base)"
+              [matTooltip]="'bases.edit' | translate"
+              [attr.aria-label]="'bases.editOf' | translate: { n: base.townHallLevel }"
+            >
+              <crn-icon name="edit" />
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="base__delete"
+              (click)="openDelete(base)"
+              [matTooltip]="'bases.delete' | translate"
+              [attr.aria-label]="'bases.deleteOf' | translate: { n: base.townHallLevel }"
+            >
+              <crn-icon name="delete" />
+            </button>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+</ng-template>
