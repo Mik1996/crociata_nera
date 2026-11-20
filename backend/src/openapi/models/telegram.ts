@@ -71,15 +71,16 @@ export const Announcement = model(
     id: z.string().describe('Announcement id.'),
     kind: z
       .enum(ANNOUNCEMENT_KINDS)
-      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan.'),
+      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I).'),
     state: z
       .enum(ANNOUNCEMENT_STATES)
       .describe('`draft` (its figures follow the data until published), `publishing`, `published` (frozen) or `discarded`.'),
     clanTag: z.string().describe('Clan of the Crusade the announcement is about.'),
     clanName: z.string().describe('Name of the clan.'),
-    subject: z.string().describe('Period (`YYYY-MM`) or record name (`perfectWars`, `warWinStreak`, `cwlLeague`, `localRank`, `localCapitalRank`, `capitalPoints`).'),
-    value: z.number().nullable().describe('Records: the new value (league id for `cwlLeague`, position for the rankings); `null` for the other kinds.'),
-    leagueName: z.string().nullable().describe('Records `cwlLeague`: the league reached; otherwise `null`.'),
+    subject: z.string().describe('Period (`YYYY-MM`), record name (`perfectWars`, `warWinStreak`, `cwlLeague`, `localRank`, `localCapitalRank`, `capitalPoints`) or player tag (promotions).'),
+    value: z.number().nullable().describe('Records: the new value (league id for `cwlLeague`, position for the rankings); promotions: the league id; otherwise `null`.'),
+    leagueName: z.string().nullable().describe('League reached, as the API names it (records `cwlLeague` and promotions); otherwise `null`.'),
+    playerName: z.string().nullable().describe('Promotions: the player promoted; otherwise `null`.'),
     caption: z.string().describe('Caption of the post (`**text**` is bold): the one written by an administrator, or the generated one.'),
     captionEdited: z.boolean().describe('The caption was written by an administrator.'),
     pages: z.number().int().describe('Pictures of the post (an album when more than one).'),

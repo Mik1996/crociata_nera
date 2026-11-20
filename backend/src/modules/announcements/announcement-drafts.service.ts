@@ -1,5 +1,6 @@
 import { crusadeClanTags, periodSuffix, primaryClanTag } from '@/lib/coc/crusade-clans';
 import { CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
+import { PlayerModel } from '@/modules/commendations/player.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { monthBounds } from '@/modules/wars/history.service';
@@ -9,6 +10,7 @@ import {
   buildDonationsData,
   buildMonthData,
   clanName,
+  PromotionData,
   RECORD_NAMES,
   RecordData,
   RecordName,
@@ -18,6 +20,7 @@ import {
   AnnouncementKind,
   AnnouncementModel,
   AnnouncementState,
+  PlayerLeagueBestModel,
 } from './announcement.model';
 
 /**
@@ -25,12 +28,16 @@ import {
  * - a closed month (`month:` commendation period): wars, Raid Weekends and commendations of the month;
  * - an ended Clan War League season (`cwl:`);
  * - an ended game season (`donations:`), per clan;
- * - a record better than the last one announced (one draft per record, following it while open).
+ * - a record better than the last one announced (one draft per record, following it while open);
+ * - a player in a league higher than any reached before, from Electro League 31 up to Legend League I
+ *   (one draft per player, following the player while open).
  *
  * Reads the saved state rather than reacting to events, so nothing is missed while the server is down.
  * Only periods closed after the clan was first seen get a draft (no drafts for the past). Idempotent.
  */
 
+/** Leagues whose promotions are announced (`leagueTier` ids): Electro League 31 … Legend League I. */
+export const PROMOTION_LEAGUES = { first: 105000031, last: 105000036 } as const;
 /** Perfect wars are announced at every multiple of this. */
 export const PERFECT_WARS_STEP = 25;
 /** Name of the league of a clan that never played a Clan War League. */
@@ -66,6 +73,7 @@ export async function syncAnnouncementDrafts(now = new Date()): Promise<DraftSyn
     await periodDrafts(clanTag, baseline.since, report);
     await recordDrafts(clanTag, (baseline.records as RecordValues | null) ?? null, report);
   }
+  await promotionDrafts(now, report);
   await refreshDrafts(report);
   return report;
 }
@@ -141,6 +149,83 @@ async function refreshDrafts(report: DraftSyncReport): Promise<void> {
     if (!data || JSON.stringify(data) === JSON.stringify(draft.data)) continue;
     await AnnouncementModel.updateOne({ _id: draft._id, state: AnnouncementState.DRAFT }, { $set: { data } });
     report.updated.push(draft.key);
+  }
+}
+
+// --- promotions --------------------------------------------------------------
+
+/**
+ * The members whose league is higher than any they reached before: their best league is raised and,
+ * from Electro League 31 up, a draft is prepared (or the player's open draft follows the new league).
+ * Legend League I, the top of the game, is celebrated at every arrival, even when reached before.
+ * Demotions and leagues held change nothing.
+ */
+async function promotionDrafts(now: Date, report: DraftSyncReport): Promise<void> {
+  const players = await PlayerModel.find({ inClan: true, 'league.id': { $ne: null } })
+    .select('tag name clanTag league')
+    .lean();
+  const bests = new Map((await PlayerLeagueBestModel.find().lean()).map((b) => [b.playerTag, b]));
+  for (const player of players) {
+    if (typeof player.league?.id !== 'number') continue;
+    const league = { id: player.league.id, name: player.league.name ?? '' };
+    const best = bests.get(player.tag);
+    if (!best) {
+      // First time seen: the starting point, not news.
+      await PlayerLeagueBestModel.updateOne(
+        { playerTag: player.tag },
+        {
+          $setOnInsert: {
+            playerTag: player.tag,
+            leagueId: league.id,
+            leagueName: league.name,
+            reachedAt: now,
+            lastLeagueId: league.id,
+          },
+        },
+        { upsert: true },
+      );
+      continue;
+    }
+    const last = best.lastLeagueId ?? null;
+    if (league.id === last) continue;
+    const raised = league.id > best.leagueId;
+    // Back to the top after a demotion (unknown last league: not news).
+    const backToTop = !raised && league.id === PROMOTION_LEAGUES.last && last !== null && last < league.id;
+    // Conditional on the values read: two runs at once cannot announce the same promotion twice.
+    const write = await PlayerLeagueBestModel.updateOne(
+      { playerTag: player.tag, lastLeagueId: last, leagueId: best.leagueId },
+      {
+        $set: {
+          lastLeagueId: league.id,
+          ...(raised ? { leagueId: league.id, leagueName: league.name, reachedAt: now } : {}),
+        },
+      },
+    );
+    if (write.modifiedCount !== 1) continue;
+    const announced = league.id >= PROMOTION_LEAGUES.first && league.id <= PROMOTION_LEAGUES.last;
+    if (!((raised && announced) || backToTop)) continue;
+
+    const clanTag = player.clanTag ?? primaryClanTag()!;
+    // Every arrival at the top is its own announcement: the key carries the time.
+    const key = `promotion:${player.tag}:${league.id}${backToTop ? `:${now.getTime()}` : ''}`;
+    const open = await AnnouncementModel.findOne({ kind: AnnouncementKind.PROMOTION, subject: player.tag, state: AnnouncementState.DRAFT });
+    const before = backToTop ? { id: last!, name: '' } : { id: best.leagueId, name: best.leagueName };
+    const data: PromotionData = {
+      kind: 'promotion',
+      clanTag,
+      clanName: clanName(clanTag),
+      playerTag: player.tag,
+      playerName: player.name,
+      league,
+      // An open draft keeps the league the player had before it.
+      previousLeague: open ? (open.data as PromotionData).previousLeague : before,
+    };
+    if (open) {
+      await AnnouncementModel.updateOne({ _id: open._id, state: AnnouncementState.DRAFT }, { $set: { key, clanTag, data } });
+      report.updated.push(key);
+    } else if (await createDraft(key, AnnouncementKind.PROMOTION, clanTag, player.tag, data)) {
+      report.created.push(key);
+    }
   }
 }
 

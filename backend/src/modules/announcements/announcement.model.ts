@@ -2,9 +2,16 @@ import { HydratedDocument, InferSchemaType, model, models, Model, Schema } from 
 
 /**
  * What an announcement tells: the month of a clan (wars, Raid Weekends and the commendations of the
- * month), a Clan War League season, the donations of a game season, or a new record of the clan.
+ * month), a Clan War League season, the donations of a game season, a new record of the clan, or a
+ * player promoted to a league never reached before (Electro League 31 and up).
  */
-export const AnnouncementKind = { MONTH: 'month', CWL: 'cwl', DONATIONS: 'donations', RECORD: 'record' } as const;
+export const AnnouncementKind = {
+  MONTH: 'month',
+  CWL: 'cwl',
+  DONATIONS: 'donations',
+  RECORD: 'record',
+  PROMOTION: 'promotion',
+} as const;
 export type AnnouncementKind = (typeof AnnouncementKind)[keyof typeof AnnouncementKind];
 export const ANNOUNCEMENT_KINDS = Object.values(AnnouncementKind);
 
@@ -30,12 +37,13 @@ const announcementSchema = new Schema(
   {
     /**
      * Unique: `month:2026-11@#TAG`, `cwl:2026-11@#TAG`, `donations:2026-11@#TAG`; records carry their
-     * value (`record:warWinStreak:57@#TAG`), which changes while the draft follows the record.
+     * value (`record:warWinStreak:57@#TAG`), which changes while the draft follows the record;
+     * promotions the player and the league (`promotion:#PLAYER:105000032`), same.
      */
     key: { type: String, required: true, unique: true },
     kind: { type: String, enum: ANNOUNCEMENT_KINDS, required: true },
     clanTag: { type: String, required: true },
-    /** Period (`2026-11`) or record name (`warWinStreak`). */
+    /** Period (`2026-11`), record name (`warWinStreak`) or player tag (promotions). */
     subject: { type: String, required: true },
     state: { type: String, enum: ANNOUNCEMENT_STATES, required: true, default: AnnouncementState.DRAFT },
     /** Figures of the announcement (`AnnouncementData`), drawn in the pictures and the caption. */
@@ -64,6 +72,12 @@ announcementSchema.index(
   { unique: true, partialFilterExpression: { kind: AnnouncementKind.RECORD, state: AnnouncementState.DRAFT } },
 );
 
+// One open draft per player: a player promoted again before it is published gets it updated.
+announcementSchema.index(
+  { kind: 1, subject: 1 },
+  { unique: true, partialFilterExpression: { kind: AnnouncementKind.PROMOTION, state: AnnouncementState.DRAFT } },
+);
+
 export type Announcement = InferSchemaType<typeof announcementSchema>;
 export type AnnouncementDocument = HydratedDocument<Announcement>;
 
@@ -90,3 +104,25 @@ export type AnnouncementBaseline = InferSchemaType<typeof announcementBaselineSc
 export const AnnouncementBaselineModel: Model<AnnouncementBaseline> =
   (models.AnnouncementBaseline as Model<AnnouncementBaseline>) ??
   model<AnnouncementBaseline>('AnnouncementBaseline', announcementBaselineSchema);
+
+/**
+ * Highest home village league (`leagueTier`, the id grows with the league) each player was seen in
+ * while in a clan of the Crusade: a promotion is announced only when it beats this (Legend League I,
+ * the top, at every arrival: `lastLeagueId`). The first time a player is seen, the current league is
+ * the starting point (not news).
+ */
+const playerLeagueBestSchema = new Schema(
+  {
+    playerTag: { type: String, required: true, unique: true },
+    leagueId: { type: Number, required: true },
+    leagueName: { type: String, required: true },
+    reachedAt: { type: Date, required: true },
+    /** League of the last read (`null`: saved before it was tracked). */
+    lastLeagueId: { type: Number, default: null },
+  },
+  { collection: 'PlayerLeagueBests', versionKey: false },
+);
+
+export const PlayerLeagueBestModel: Model<InferSchemaType<typeof playerLeagueBestSchema>> =
+  (models.PlayerLeagueBest as Model<InferSchemaType<typeof playerLeagueBestSchema>>) ??
+  model('PlayerLeagueBest', playerLeagueBestSchema);

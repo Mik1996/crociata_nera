@@ -115,7 +115,7 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     tag: 'Admin',
     summary: 'List the Telegram announcements',
     description:
-      'The drafts prepared by the backend for every clan of the Crusade (newest first), then the latest 30 announcements published or discarded. A draft is prepared when a month closes (wars, Raid Weekends and commendations of the month), a Clan War League season ends, a game season ends (donations) or a record of the clan is beaten (perfect wars at every 25); its figures follow the data until it is published.',
+      'The drafts prepared by the backend for every clan of the Crusade (newest first), then the latest 30 announcements published or discarded. A draft is prepared when a month closes (wars, Raid Weekends and commendations of the month), a Clan War League season ends, a game season ends (donations), a record of the clan is beaten (perfect wars at every 25) or a member reaches a league higher than any before (Electro League 31 up to Legend League I, one draft per player); its figures follow the data until it is published.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     responses: { 200: { description: 'The announcements.', result: z.array(Announcement) } },

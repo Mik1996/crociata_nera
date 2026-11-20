@@ -54,3 +54,27 @@ export function formatNumber(value: number, decimals?: number): string {
     useGrouping: 'always',
   }).format(value);
 }
+
+/** Italian names of the home village leagues (the API writes them in English). */
+const LEAGUE_NAMES: Readonly<Record<string, string>> = {
+  Skeleton: 'Scheletro',
+  Barbarian: 'Barbaro',
+  Archer: 'Arciere',
+  Wizard: 'Stregone',
+  Valkyrie: 'Valchiria',
+  Witch: 'Strega',
+  Golem: 'Golem',
+  'P.E.K.K.A': 'P.E.K.K.A',
+  Titan: 'Titano',
+  Dragon: 'Drago',
+  Electro: 'Elettro',
+  Legend: 'Leggende',
+};
+
+/** `Electro League 32` -> `Lega Elettro 32`, `Legend League III` -> `Lega Leggende III`. */
+export function leagueLabel(name: string): string {
+  const match = /^(.+) League (\S+)$/.exec(name);
+  const italian = match?.[1] ? LEAGUE_NAMES[match[1]] : undefined;
+  if (!match || !italian) return name === 'Unranked' ? 'Senza lega' : name;
+  return `Lega ${italian} ${match[2]}`;
+}

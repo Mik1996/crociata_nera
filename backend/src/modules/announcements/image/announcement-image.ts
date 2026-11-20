@@ -1,7 +1,8 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
-import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, RecordData } from '../announcement-data';
-import { COMMENDATION_LABELS, formatNumber, monthLabel, RECORD_LABELS, TIER_LABELS } from '../announcement-texts';
+import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from '../announcement-data';
+import { COMMENDATION_LABELS, formatNumber, leagueLabel, monthLabel, RECORD_LABELS, TIER_LABELS } from '../announcement-texts';
+import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
 import { SvgText } from './svg-text';
 
@@ -41,7 +42,10 @@ function picture(file: string, size: number): Promise<string | null> {
   let uri = pictures.get(id);
   if (!uri) {
     uri = readSiteAsset(file)
-      .then((data) => sharp(data, { density: 300 }).resize({ width: size, height: size, fit: 'inside' }).png().toBuffer())
+      .then((data) =>
+        // Never enlarged: a small picture drawn bigger looks pixelated (SVGs are rasterised at 300 dpi).
+        sharp(data, { density: 300 }).resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true }).png().toBuffer(),
+      )
       .then((png) => `data:image/png;base64,${png.toString('base64')}`)
       .catch((error: unknown) => {
         console.warn(`[announcements] picture ${file} not drawn: ${(error as Error).message}`);
@@ -62,6 +66,35 @@ function warLeagueFile(name: string | undefined): string | null {
   const match = /^(Champion|Master|Crystal|Gold|Silver|Bronze) League (I{1,3})$/.exec(name ?? '');
   const [, tier, division] = match ?? [];
   return tier && division ? `game/war-leagues/${tier.toLowerCase()}-${division.length}.webp` : null;
+}
+
+/** Colours of the frame of a page: the gold iron of every announcement, or a league's (promotions). */
+interface FrameLook {
+  frame: string;
+  frameLight: string;
+  kicker: string;
+  title: string;
+  vignette: string;
+  vignetteOpacity: number;
+  ember: string;
+  emberOpacity: number;
+}
+
+const IRON_LOOK: FrameLook = {
+  frame: T.gold,
+  frameLight: T.goldText,
+  kicker: T.gold,
+  title: T.goldText,
+  vignette: T.crimson,
+  vignetteOpacity: 0.55,
+  ember: T.ember,
+  emberOpacity: 0.38,
+};
+
+/** Extra layers of a page: `defs`, and a backdrop drawn under the frame and the texts. */
+interface PageLayers {
+  defs?: string;
+  backdrop?: string;
 }
 
 interface Header {
@@ -101,6 +134,8 @@ export async function announcementSvgs(data: AnnouncementData): Promise<string[]
       ].slice(0, MAX_PAGES);
     case 'record':
       return [page({ kicker: data.clanName, title: 'Nuovo record', subtitle: RECORD_LABELS[data.record] }, await recordBody(text, data))];
+    case 'promotion':
+      return [await promotionPage(text, crest, data)];
   }
 }
 
@@ -119,12 +154,19 @@ export async function renderAnnouncementImage(data: AnnouncementData, page: numb
 }
 
 function renderSvg(svg: string): Promise<Buffer> {
-  return sharp(Buffer.from(svg)).jpeg({ quality: 88, mozjpeg: true }).toBuffer();
+  return sharp(Buffer.from(svg)).jpeg({ quality: 92, mozjpeg: true, chromaSubsampling: '4:4:4' }).toBuffer();
 }
 
 // --- frame -------------------------------------------------------------------
 
-function framePage(text: SvgText, crest: string | null, header: Header, body: string): string {
+function framePage(
+  text: SvgText,
+  crest: string | null,
+  header: Header,
+  body: string,
+  look: FrameLook = IRON_LOOK,
+  layers: PageLayers = {},
+): string {
   const studs = [
     [36, 36], [W / 2, 36], [W - 36, 36],
     [36, H / 2], [W - 36, H / 2],
@@ -142,32 +184,34 @@ function framePage(text: SvgText, crest: string | null, header: Header, body: st
     <feColorMatrix type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 0.09 0"/>
   </filter>
   <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.75">
-    <stop offset="0.55" stop-color="${T.crimson}" stop-opacity="0"/><stop offset="1" stop-color="${T.crimson}" stop-opacity="0.55"/>
+    <stop offset="0.55" stop-color="${look.vignette}" stop-opacity="0"/><stop offset="1" stop-color="${look.vignette}" stop-opacity="${look.vignetteOpacity}"/>
   </radialGradient>
   <radialGradient id="ember" cx="0.5" cy="1" r="0.6">
-    <stop offset="0" stop-color="${T.ember}" stop-opacity="0.38"/><stop offset="1" stop-color="${T.ember}" stop-opacity="0"/>
+    <stop offset="0" stop-color="${look.ember}" stop-opacity="${look.emberOpacity}"/><stop offset="1" stop-color="${look.ember}" stop-opacity="0"/>
   </radialGradient>
   <radialGradient id="stud" cx="0.35" cy="0.35" r="0.7">
-    <stop offset="0" stop-color="${T.goldText}"/><stop offset="0.6" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.edge}"/>
+    <stop offset="0" stop-color="${look.frameLight}"/><stop offset="0.6" stop-color="${look.frame}"/><stop offset="1" stop-color="${T.edge}"/>
   </radialGradient>
   <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="${T.gold}" stop-opacity="0"/><stop offset="0.5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.gold}" stop-opacity="0"/>
+    <stop offset="0" stop-color="${look.frame}" stop-opacity="0"/><stop offset="0.5" stop-color="${look.frame}"/><stop offset="1" stop-color="${look.frame}" stop-opacity="0"/>
   </linearGradient>
+  ${layers.defs ?? ''}
 </defs>
 <rect width="${W}" height="${H}" fill="${T.background}"/>
 <rect width="${W}" height="${H}" fill="url(#plate)"/>
 <rect width="${W}" height="${H}" filter="url(#brushed)"/>
 <rect width="${W}" height="${H}" fill="url(#vignette)"/>
 <rect y="${H * 0.55}" width="${W}" height="${H * 0.45}" fill="url(#ember)"/>
-<rect x="24" y="24" width="${W - 48}" height="${H - 48}" fill="none" stroke="${T.gold}" stroke-width="6"/>
-<rect x="44" y="44" width="${W - 88}" height="${H - 88}" fill="none" stroke="${T.gold}" stroke-width="2" stroke-opacity="0.8"/>
+${layers.backdrop ?? ''}
+<rect x="24" y="24" width="${W - 48}" height="${H - 48}" fill="none" stroke="${look.frame}" stroke-width="6"/>
+<rect x="44" y="44" width="${W - 88}" height="${H - 88}" fill="none" stroke="${look.frame}" stroke-width="2" stroke-opacity="0.8"/>
 ${studs}
 ${image(crest, W / 2 - 75, 68, 150)}
-${text.draw(header.kicker.toUpperCase(), { font: 'title', size: 34, x: W / 2, y: 268, fill: T.gold, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 24 })}
-${text.draw(header.title, { font: 'display', size: 76, x: W / 2, y: 352, fill: T.goldText, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 44 })}
+${text.draw(header.kicker.toUpperCase(), { font: 'title', size: 34, x: W / 2, y: 268, fill: look.kicker, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 24 })}
+${text.draw(header.title, { font: 'display', size: 76, x: W / 2, y: 352, fill: look.title, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 44 })}
 ${text.draw(header.subtitle, { font: 'semibold', size: 30, x: W / 2, y: 398, fill: T.muted, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 22 })}
 <rect x="${LEFT}" y="420" width="${RIGHT - LEFT}" height="3" fill="url(#rule)"/>
-<rect x="${W / 2 - 160}" y="427" width="320" height="2" fill="${T.ember}" fill-opacity="0.7"/>
+<rect x="${W / 2 - 160}" y="427" width="320" height="2" fill="${look.ember}" fill-opacity="0.7"/>
 ${body}
 <rect x="${LEFT}" y="1238" width="${RIGHT - LEFT}" height="2" fill="url(#rule)"/>
 ${text.draw('crociatanera.it', { font: 'title', size: 28, x: W / 2, y: 1284, fill: T.muted, anchor: 'middle' })}
@@ -378,4 +422,162 @@ async function honourPages(text: SvgText, honours: Honour[], page: (n: number) =
     y += height + 16;
   }
   return pages.map((rows, i) => page(i + 1).replace('</svg>', `${rows.join('')}</svg>`));
+}
+
+// --- promotions --------------------------------------------------------------
+
+/** Centre of the league badge on a promotion page. */
+const BADGE_X = W / 2;
+const BADGE_Y = CONTENT_TOP + 245;
+
+/**
+ * A player promoted to a league: the iron frame in the colours of the league, the badge in the
+ * middle of a glow, rays, rings and lightning (Electro) or embers and flames (Legend), more of them
+ * at every league up to Legend League I.
+ */
+async function promotionPage(text: SvgText, crest: string | null, data: PromotionData): Promise<string> {
+  const look = promotionLook(data.league.id);
+  const { level, accent, light, deep } = look;
+  const random = seededRandom(data.league.id);
+  const top = level === 6;
+  const frame: FrameLook = {
+    frame: top ? T.legendLight : accent,
+    frameLight: light,
+    kicker: accent,
+    title: light,
+    vignette: deep,
+    vignetteOpacity: Math.min(0.95, 0.55 + level * 0.07),
+    ember: accent,
+    emberOpacity: Math.min(0.75, 0.3 + level * 0.07),
+  };
+
+  const defs = `
+  <radialGradient id="badgeGlow" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="${light}" stop-opacity="${Math.min(0.9, 0.45 + level * 0.08)}"/>
+    <stop offset="0.45" stop-color="${accent}" stop-opacity="${Math.min(0.6, 0.25 + level * 0.06)}"/>
+    <stop offset="1" stop-color="${accent}" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${4 + level}"/></filter>
+  <clipPath id="inside"><rect x="48" y="48" width="${W - 96}" height="${H - 96}"/></clipPath>
+  <clipPath id="content"><rect x="48" y="${CONTENT_TOP - 8}" width="${W - 96}" height="${1236 - CONTENT_TOP}"/></clipPath>`;
+
+  const layers: string[] = [];
+  /** Rays and glow stay below the header. */
+  const centred: string[] = [];
+  // Rays from the badge (from Electro League 32).
+  const rays = [0, 12, 16, 20, 26, 36][level - 1]!;
+  const rayLength = 620 + level * 40;
+  for (let i = 0; i < rays; i++) {
+    const angle = (i / rays) * Math.PI * 2 + (level % 2) * 0.13;
+    const spread = 0.035 + level * 0.004;
+    const point = (a: number, r: number) => `${(BADGE_X + Math.cos(a) * r).toFixed(1)},${(BADGE_Y + Math.sin(a) * r).toFixed(1)}`;
+    centred.push(
+      `<polygon points="${point(angle - spread, 60)} ${point(angle, rayLength)} ${point(angle + spread, 60)}" fill="${light}" fill-opacity="${(0.04 + level * 0.018).toFixed(3)}"/>`,
+    );
+  }
+  // Glow behind the badge.
+  const glowRadius = 250 + level * 28;
+  centred.push(`<circle cx="${BADGE_X}" cy="${BADGE_Y}" r="${glowRadius}" fill="url(#badgeGlow)"/>`);
+  // Sparks (blue) or embers (orange), rising from the bottom.
+  const sparks = level * (look.family === 'legend' ? 22 : 12);
+  for (let i = 0; i < sparks; i++) {
+    const x = 70 + random() * (W - 140);
+    const y = CONTENT_TOP - 120 + random() * (H - CONTENT_TOP);
+    const r = 1.2 + random() * (look.family === 'legend' ? 3.4 : 2.4);
+    const color = random() < 0.5 ? light : accent;
+    layers.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${color}" fill-opacity="${(0.35 + random() * 0.6).toFixed(2)}"/>`);
+  }
+  if (look.family === 'electro') {
+    // Lightning bolts on both sides of the badge (never over the title or the name): 2, 4, 6.
+    const bolts = level * 2;
+    for (let i = 0; i < bolts; i++) {
+      const side = i % 2 ? Math.PI : 0;
+      const row = Math.floor(i / 2);
+      const angle = side + (row - (level - 1) / 2) * 0.42 + (random() - 0.5) * 0.12;
+      const path: string[] = [];
+      for (let step = 0; step <= 5; step++) {
+        const r = 225 + step * 24;
+        const a = angle + (step % 2 ? 0.07 : -0.07) * (0.6 + random());
+        path.push(`${(BADGE_X + Math.cos(a) * r).toFixed(1)},${(BADGE_Y + Math.sin(a) * r).toFixed(1)}`);
+      }
+      const points = path.join(' ');
+      layers.push(
+        `<polyline points="${points}" fill="none" stroke="${accent}" stroke-width="${6 + level * 2}" stroke-linejoin="round" stroke-opacity="0.8" filter="url(#softGlow)"/>`,
+        `<polyline points="${points}" fill="none" stroke="${light}" stroke-width="${2 + level * 0.6}" stroke-linejoin="round"/>`,
+      );
+    }
+  } else {
+    // Flames around the badge: a crown of tongues, longer at every Legend league.
+    const tongues = 18 + (level - 4) * 8;
+    for (let i = 0; i < tongues; i++) {
+      const angle = (i / tongues) * Math.PI * 2;
+      const inner = 205;
+      const outer = inner + 40 + (level - 3) * 18 + random() * 30;
+      const p = (a: number, r: number) => `${(BADGE_X + Math.cos(a) * r).toFixed(1)},${(BADGE_Y + Math.sin(a) * r).toFixed(1)}`;
+      const width = Math.PI / tongues;
+      layers.push(
+        `<path d="M${p(angle - width, inner)} Q${p(angle - width * 0.2, (inner + outer) / 2)} ${p(angle + width * 0.3, outer)} Q${p(angle + width * 0.4, (inner + outer) / 2)} ${p(angle + width, inner)} Z" fill="${i % 2 ? accent : light}" fill-opacity="${(0.55 + level * 0.05).toFixed(2)}" filter="url(#softGlow)"/>`,
+      );
+    }
+  }
+  // Rings: one from Electro League 32, two from Legend League III, three at Legend League I.
+  if (level >= 2) layers.push(`<circle cx="${BADGE_X}" cy="${BADGE_Y}" r="200" fill="none" stroke="${accent}" stroke-width="4"/>`);
+  if (level >= 4) layers.push(`<circle cx="${BADGE_X}" cy="${BADGE_Y}" r="186" fill="none" stroke="${light}" stroke-width="1.5" stroke-dasharray="6 8"/>`);
+  if (top) {
+    layers.push(`<circle cx="${BADGE_X}" cy="${BADGE_Y}" r="214" fill="none" stroke="${T.goldText}" stroke-width="2.5"/>`);
+    // Four-pointed stars scattered in the glow.
+    for (let i = 0; i < 14; i++) {
+      const a = random() * Math.PI * 2;
+      const r = 235 + random() * 110;
+      const x = BADGE_X + Math.cos(a) * r;
+      const y = BADGE_Y + Math.sin(a) * r * 0.75;
+      const s = 8 + random() * 14;
+      centred.push(
+        `<path d="M${x},${y - s} L${x + s * 0.25},${y - s * 0.25} L${x + s},${y} L${x + s * 0.25},${y + s * 0.25} L${x},${y + s} L${x - s * 0.25},${y + s * 0.25} L${x - s},${y} L${x - s * 0.25},${y - s * 0.25} Z" fill="${T.goldText}" fill-opacity="${(0.6 + random() * 0.4).toFixed(2)}"/>`,
+      );
+    }
+  }
+  const backdrop = `<g clip-path="url(#content)">${centred.join('')}</g><g clip-path="url(#inside)">${layers.join('')}</g>`;
+
+  // The large badge of the API (308×326), drawn at its own size: sharp at every league.
+  const badge = await picture(`game/league-tiers/large/${data.league.id}.png`, 326);
+  const badgeSize = 326;
+  const body = [
+    image(badge, BADGE_X - badgeSize / 2, BADGE_Y - badgeSize / 2, badgeSize),
+    legendDivision(data.league.name, BADGE_X - badgeSize / 2, BADGE_Y - badgeSize / 2, badgeSize),
+    text.draw(data.playerName, { font: 'bold', size: 76, x: W / 2, y: CONTENT_TOP + 575, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 40 }),
+    text.draw(`sale in ${leagueLabel(data.league.name)}`.toUpperCase(), { font: 'title', size: 42, x: W / 2, y: CONTENT_TOP + 640, fill: light, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 28 }),
+  ].join('');
+
+  const title = 'Promozione!';
+  const subtitle = top ? 'Tra i campioni del mondo' : look.family === 'legend' ? 'Tra le Leggende' : 'Nuova lega raggiunta';
+  return framePage(text, crest, { kicker: data.clanName, title, subtitle }, body, frame, { defs, backdrop });
+}
+
+/**
+ * The division of a Legend league (III, II, I) as the game shows it: a black rounded box with
+ * white bars at the bottom right of the badge. The API gives the three leagues the same picture;
+ * the box is drawn over it (the picture itself is not changed). Nothing for the other leagues, whose
+ * number is part of their picture.
+ */
+function legendDivision(leagueName: string, x: number, y: number, size: number): string {
+  const division = /^Legend League (I{1,3})$/.exec(leagueName)?.[1]?.length ?? 0;
+  if (!division) return '';
+  // The same square box for the three divisions; the bars narrow to fit inside it.
+  const side = size * 0.24;
+  const pad = side * 0.2;
+  const gap = side * 0.09;
+  const inner = side - pad * 2;
+  const barWidth = Math.min(side * 0.14, (inner - (division - 1) * gap) / division);
+  const barsWidth = division * barWidth + (division - 1) * gap;
+  const boxX = x + size * 0.8 - side / 2;
+  const boxY = y + size * 0.86 - side / 2;
+  const bars = Array.from({ length: division }, (_, i) => {
+    const barX = boxX + (side - barsWidth) / 2 + i * (barWidth + gap);
+    return `<rect x="${barX.toFixed(1)}" y="${(boxY + pad).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${inner.toFixed(1)}" rx="${(barWidth * 0.2).toFixed(1)}" fill="${T.divisionNumeral}"/>`;
+  }).join('');
+  return [
+    `<rect x="${boxX.toFixed(1)}" y="${boxY.toFixed(1)}" width="${side.toFixed(1)}" height="${side.toFixed(1)}" rx="${(side * 0.18).toFixed(1)}" fill="${T.divisionBox}" stroke="${T.divisionEdge}" stroke-width="2"/>`,
+    bars,
+  ].join('');
 }

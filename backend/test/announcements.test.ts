@@ -10,10 +10,11 @@ import { UserRole } from '@/lib/auth/user-role';
 import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
-import { buildCwlData, buildMonthData, MonthData } from '@/modules/announcements/announcement-data';
+import { buildCwlData, buildMonthData, MonthData, PromotionData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
-import { AnnouncementBaselineModel, AnnouncementModel } from '@/modules/announcements/announcement.model';
+import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
+import { PlayerModel } from '@/modules/commendations/player.model';
 import { UserModel } from '@/modules/auth/user.model';
 import { CommendationAwardModel, CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
 import { DonationTotalModel } from '@/modules/donations/donation.model';
@@ -281,6 +282,103 @@ describe('drafts of the records', () => {
     expect(newRecordValue('localRank', 0, 37)).toBeNull();
     expect(newRecordValue('perfectWars', 175, 150)).toBe(175);
     expect(newRecordValue('capitalPoints', 5000, 5000)).toBeNull();
+  });
+});
+
+describe('drafts of the promotions', () => {
+  const LEAGUES: Record<number, string> = {
+    105000028: 'Dragon League 28',
+    105000029: 'Dragon League 29',
+    105000030: 'Dragon League 30',
+    105000031: 'Electro League 31',
+    105000032: 'Electro League 32',
+    105000034: 'Legend League III',
+    105000035: 'Legend League II',
+    105000036: 'Legend League I',
+  };
+  async function league(tag: string, id: number, extra: Record<string, unknown> = {}) {
+    await PlayerModel.updateOne(
+      { tag },
+      { $set: { tag, name: `Player ${tag}`, inClan: true, clanTag: MAIN, league: { id, name: LEAGUES[id] }, ...extra } },
+      { upsert: true },
+    );
+  }
+  const promotions = () => AnnouncementModel.find({ kind: 'promotion' }).lean();
+
+  it('takes the league of a player first seen as the starting point', async () => {
+    await league('#A', 105000032);
+    await syncAnnouncementDrafts(T0);
+    expect(await promotions()).toHaveLength(0);
+    expect(await PlayerLeagueBestModel.findOne({ playerTag: '#A' }).lean()).toMatchObject({ leagueId: 105000032 });
+  });
+
+  it('announces a league never reached before, from Electro League 31 up, not demotions nor leagues held', async () => {
+    await league('#A', 105000030);
+    await league('#B', 105000028, { clanTag: RED });
+    await syncAnnouncementDrafts(T0);
+
+    // Below Electro League 31: the best league is raised, nothing announced.
+    await league('#B', 105000029, { clanTag: RED });
+    await league('#A', 105000031);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual(['promotion:#A:105000031']);
+    expect((await PlayerLeagueBestModel.findOne({ playerTag: '#B' }).lean())!.leagueId).toBe(105000029);
+
+    // Held, then demoted, then back to the same league: nothing new.
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await league('#A', 105000030);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await league('#A', 105000031);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    expect(await promotions()).toHaveLength(1);
+  });
+
+  it('an open draft follows the player promoted again, keeping the league before it', async () => {
+    await league('#A', 105000034, { clanTag: GOLD });
+    await syncAnnouncementDrafts(T0);
+    await league('#A', 105000035, { clanTag: GOLD });
+    await syncAnnouncementDrafts(LATER);
+    const [draft] = await promotions();
+    expect(draft).toMatchObject({ clanTag: GOLD, subject: '#A', key: 'promotion:#A:105000035' });
+    expect(draft!.data as PromotionData).toMatchObject({
+      clanName: "Crociata d'Oro",
+      league: { id: 105000035, name: 'Legend League II' },
+      previousLeague: { id: 105000034, name: 'Legend League III' },
+    });
+    expect(generatedCaption(draft!.data as PromotionData)).toContain('**Player #A** sale in **Lega Leggende II**!');
+  });
+
+  it('celebrates Legend League I at every arrival, even when reached before', async () => {
+    const admin = await adminToken();
+    await league('#A', 105000036);
+    await syncAnnouncementDrafts(T0);
+    // Held: nothing.
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    // Demoted, then back: a new announcement.
+    await league('#A', 105000035);
+    await syncAnnouncementDrafts(LATER);
+    await league('#A', 105000036);
+    const first = (await syncAnnouncementDrafts(LATER)).created;
+    expect(first).toHaveLength(1);
+    expect(first[0]).toMatch(/^promotion:#A:105000036:\d+$/);
+    const [draft] = await promotions();
+    expect(generatedCaption(draft!.data as PromotionData)).toContain('Tra i campioni del mondo');
+    expect(generatedCaption(draft!.data as PromotionData)).not.toContain('Prima');
+    await call(discard, { token: admin, params: { id: draft!._id.toString() } });
+
+    // And again the week after.
+    await league('#A', 105000035);
+    await syncAnnouncementDrafts(new Date('2026-12-08T05:00:00Z'));
+    await league('#A', 105000036);
+    expect((await syncAnnouncementDrafts(new Date('2026-12-08T06:00:00Z'))).created).toHaveLength(1);
+    expect(await promotions()).toHaveLength(2);
+  });
+
+  it('ignores the players who left the clans', async () => {
+    await league('#A', 105000030, { inClan: false });
+    await syncAnnouncementDrafts(T0);
+    await league('#A', 105000031, { inClan: false });
+    await syncAnnouncementDrafts(LATER);
+    expect(await promotions()).toHaveLength(0);
   });
 });
 

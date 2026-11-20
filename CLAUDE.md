@@ -193,7 +193,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   `announcements` chat (`purpose`, one only) never gets a town hall nor bases. Direction is
   always site → Telegram. Announcements (`backend/src/modules/announcements/`): after every sync the
   scheduler prepares drafts for each clan of the Crusade (closed month with its Raid Weekends, CWL
-  season, donation season, beaten record; perfect wars every 25, main clan only), published or
+  season, donation season, beaten record; perfect wars every 25, main clan only; a member's league
+  never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
+  `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`), published or
   discarded by administrators in `/admin/announcements` (site only, no Telegram buttons). Pictures are
   SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
   turned into paths with opentype.js (no system fonts in the image; its own text layout and

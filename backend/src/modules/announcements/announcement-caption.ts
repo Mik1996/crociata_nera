@@ -1,6 +1,6 @@
 import { escapeHtml } from '@/lib/telegram/telegram-client';
-import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, RecordData } from './announcement-data';
-import { COMMENDATION_LABELS, formatNumber, monthLabel, RECORD_LABELS } from './announcement-texts';
+import { AnnouncementData, CwlData, DonationsData, Honour, MonthData, PromotionData, RecordData } from './announcement-data';
+import { COMMENDATION_LABELS, formatNumber, leagueLabel, monthLabel, RECORD_LABELS } from './announcement-texts';
 
 /**
  * Captions of the announcements. They are plain text, where `**text**` is bold: what the
@@ -24,7 +24,32 @@ export function generatedCaption(data: AnnouncementData): string {
       return donationsCaption(data);
     case 'record':
       return recordCaption(data);
+    case 'promotion':
+      return promotionCaption(data);
   }
+}
+
+/** Legend League I and up: the top of the game. */
+const TOP_LEAGUE = 105000036;
+/** Legend League III and up. */
+const LEGEND_LEAGUES = 105000034;
+
+function promotionCaption(data: PromotionData): string {
+  const top = data.league.id >= TOP_LEAGUE;
+  const legend = data.league.id >= LEGEND_LEAGUES;
+  const icon = top ? '👑' : legend ? '🔥' : '⚡';
+  const lines = [
+    `${icon} **${data.playerName}** sale in **${leagueLabel(data.league.name)}**!`,
+    '',
+    top
+      ? 'Tra i campioni del mondo: la lega più alta che esista.'
+      : legend
+        ? 'Tra le Leggende: un traguardo per pochi.'
+        : 'Un altro gradino verso le Leggende.',
+    '',
+    `Complimenti da tutta la ${data.clanName}! ⚔️`,
+  ];
+  return lines.join('\n');
 }
 
 function monthCaption(data: MonthData): string {

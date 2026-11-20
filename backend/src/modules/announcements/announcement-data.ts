@@ -87,7 +87,24 @@ export interface RecordData extends ClanPart {
   previousLeagueName?: string | null;
 }
 
-export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData;
+/** A home village league (`leagueTier`): the id grows with the league. */
+export interface LeagueTier {
+  id: number;
+  /** English, as the API writes it (`Electro League 32`, `Legend League III`). */
+  name: string;
+}
+
+export interface PromotionData extends ClanPart {
+  kind: 'promotion';
+  playerTag: string;
+  playerName: string;
+  /** League reached. */
+  league: LeagueTier;
+  /** Highest league before (`null`: unknown). */
+  previousLeague: LeagueTier | null;
+}
+
+export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData;
 
 export function clanName(clanTag: string): string {
   return CRUSADE_CLAN_NAMES[clanTag] ?? clanTag;

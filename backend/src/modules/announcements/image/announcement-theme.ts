@@ -32,4 +32,16 @@ export const IRON_THEME = {
   danger: '#ff7a6b',
   /** `--cn-pdf-reserve`: good news (victories). */
   good: '#4ed97a',
+  /** Electro leagues (promotions): `--cn-pdf-starter` and its lighter and darker shades. */
+  electro: '#4fa8ff',
+  electroLight: '#c4e6ff',
+  electroDeep: '#0b2747',
+  /** Legend leagues (promotions): fire orange and its lighter and darker shades. */
+  legend: '#ff8a1e',
+  legendLight: '#ffd27a',
+  legendDeep: '#5a1d04',
+  /** Division tag of the Legend league badges (as the game draws it): box, its edge, the numerals. */
+  divisionBox: '#151413',
+  divisionEdge: '#5c5853',
+  divisionNumeral: '#f8efc2',
 } as const;
