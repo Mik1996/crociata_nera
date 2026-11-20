@@ -90,7 +90,8 @@
     "settings": "Ajustes",
     "bases": "Arsenal de bases",
     "baseModeration": "Moderación de bases",
-    "telegramAdmin": "Telegram"
+    "telegramAdmin": "Telegram",
+    "announcementsAdmin": "Anuncios de Telegram"
   },
   "common": {
     "nameOrTag": "Nombre o etiqueta",
@@ -470,7 +471,10 @@
     "TELEGRAM_CHAT_ADDED": "Canal {{name}} añadido.",
     "TELEGRAM_CHAT_UPDATED": "Canal {{name}} actualizado.",
     "TELEGRAM_CHAT_REMOVED": "Canal olvidado.",
-    "TELEGRAM_SYNC_STARTED": "Envíos iniciados: las bases salen con unos segundos de diferencia."
+    "TELEGRAM_SYNC_STARTED": "Envíos iniciados: las bases salen con unos segundos de diferencia.",
+    "ANNOUNCEMENT_UPDATED": "Texto guardado.",
+    "ANNOUNCEMENT_PUBLISHED": "Anuncio publicado en el canal de Telegram.",
+    "ANNOUNCEMENT_DISCARDED": "Anuncio descartado."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -551,7 +555,11 @@
     "TELEGRAM_CHAT_LOCKED": "El canal {{name}} está bloqueado: desbloquéalo antes de cambiarlo.",
     "TELEGRAM_CHAT_NOT_FOR_BASES": "El canal {{name}} es el de anuncios: no recibe bases.",
     "TELEGRAM_ANNOUNCEMENTS_TAKEN": "Otro canal ya es el de anuncios.",
-    "TELEGRAM_API_UNAVAILABLE": "Telegram no responde: inténtalo de nuevo en breve."
+    "TELEGRAM_API_UNAVAILABLE": "Telegram no responde: inténtalo de nuevo en breve.",
+    "ANNOUNCEMENT_NOT_FOUND": "Anuncio no encontrado.",
+    "ANNOUNCEMENT_NOT_DRAFT": "El anuncio ya fue publicado o descartado.",
+    "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "No hay un canal de anuncios donde el bot pueda publicar: configúralo en la página de Telegram.",
+    "CAPTION_IS_TOO_LONG": "El texto supera los 1024 caracteres que admite Telegram."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -1285,5 +1293,58 @@
         "group": "Grupo"
       }
     }
+  },
+  "announcementsAdmin": {
+    "title": "Anuncios",
+    "subtitle": "Borradores para el canal de anuncios de Telegram, listos para publicar",
+    "intro": "El sitio prepara un borrador cuando se cierra un mes, una CWL o una temporada de donaciones, y cuando un clan de la Cruzada bate un récord. Las cifras de un borrador se actualizan hasta que lo publicas.",
+    "drafts": "Borradores",
+    "noDrafts": "No hay borradores pendientes: el próximo llegará al cerrarse el mes o con un nuevo récord.",
+    "history": "Publicados y descartados",
+    "preparedAt": "Preparado el {{date}}",
+    "failed": "La publicación falló: {{error}}",
+    "caption": "Texto",
+    "captionHint": "**texto** en negrita",
+    "saveCaption": "Guardar texto",
+    "resetCaption": "Restaurar el texto automático",
+    "saveFirst": "Guarda el texto antes de publicar.",
+    "publish": "Publicar",
+    "discard": "Descartar",
+    "openPost": "Abrir la publicación",
+    "image": "Imagen {{n}} de {{total}}",
+    "imageError": "No se pudieron dibujar las imágenes.",
+    "kind": {
+      "month": "Mes",
+      "cwl": "CWL",
+      "donations": "Donaciones",
+      "record": "Récord"
+    },
+    "state": {
+      "draft": "Borrador",
+      "publishing": "Publicando",
+      "published": "Publicado",
+      "discarded": "Descartado"
+    },
+    "records": {
+      "perfectWars": "Guerras perfectas: {{value}}",
+      "warWinStreak": "Racha de victorias: {{value}}",
+      "cwlLeague": "Mejor liga de CWL: {{league}}",
+      "localRank": "Clasificación nacional: {{value}}.º",
+      "localCapitalRank": "Clasificación de la capital: {{value}}.º",
+      "capitalPoints": "Trofeos de la capital: {{value}}"
+    },
+    "dialog": {
+      "publish": {
+        "title": "¿Publicar en Telegram?",
+        "intro": "«{{title}}» se publicará en el canal de anuncios. Desde el sitio ya no se podrá modificar ni borrar.",
+        "confirm": "Publicar"
+      },
+      "discard": {
+        "title": "¿Descartar el anuncio?",
+        "intro": "«{{title}}» no se publicará. Para un récord, el próximo borrador llegará solo con un valor mejor.",
+        "confirm": "Descartar"
+      }
+    },
+    "interrupted": "Una publicación de este anuncio se interrumpió: puede que ya esté en el canal. Revisa Telegram antes de publicarlo de nuevo."
   }
 }

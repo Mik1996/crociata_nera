@@ -318,3 +318,36 @@ export interface TelegramStatus {
   chats: TelegramChat[];
   basePosts: TelegramBasePosts;
 }
+
+/** What an announcement tells (`GET /admin/announcements`). */
+export type AnnouncementKind = 'month' | 'cwl' | 'donations' | 'record';
+export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
+
+/** An announcement for the Telegram announcements channel, prepared by the backend. */
+export interface Announcement {
+  id: string;
+  kind: AnnouncementKind;
+  state: AnnouncementState;
+  clanTag: string;
+  clanName: string;
+  /** Period `YYYY-MM`, or the record name for `record`. */
+  subject: string;
+  /** Records: the new value (league id for `cwlLeague`). */
+  value: number | null;
+  /** Records `cwlLeague`: the league reached. */
+  leagueName: string | null;
+  /** Caption of the post, `**text**` in bold. */
+  caption: string;
+  captionEdited: boolean;
+  /** Pictures of the post (an album when more than one). */
+  pages: number;
+  /** Last failure of a publication (Telegram's words, English). */
+  error: string | null;
+  /** A publication was interrupted: the post may already be in the channel. */
+  interrupted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  /** Link of the post in a public channel. */
+  postUrl: string | null;
+}

@@ -6,6 +6,10 @@
     [title]="'telegramAdmin.title' | translate"
     [subtitle]="'telegramAdmin.subtitle' | translate"
   >
+    <a mat-stroked-button routerLink="/admin/announcements">
+      <crn-icon matButtonIcon name="campaign" />
+      {{ 'announcementsAdmin.title' | translate }}
+    </a>
     <a mat-stroked-button routerLink="/admin">
       <crn-icon matButtonIcon name="arrow_back" />
       {{ 'baseModeration.backToAdmin' | translate }}

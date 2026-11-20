@@ -1,0 +1,28 @@
+<div class="strip">
+  @if (images.hasValue()) {
+    @for (url of images.value(); track $index) {
+      <a class="page" [href]="url" target="_blank" rel="noopener">
+        <img
+          [src]="url"
+          [alt]="
+            'announcementsAdmin.image' | translate: { n: $index + 1, total: images.value().length }
+          "
+          width="1080"
+          height="1350"
+        />
+      </a>
+    }
+  } @else if (images.error()) {
+    <p class="error">
+      <crn-icon name="error_outline" />
+      {{ 'announcementsAdmin.imageError' | translate }}
+      <button type="button" class="retry" (click)="images.reload()">
+        {{ 'status.retry' | translate }}
+      </button>
+    </p>
+  } @else {
+    @for (i of placeholders(); track i) {
+      <span class="page page--loading" aria-hidden="true"></span>
+    }
+  }
+</div>

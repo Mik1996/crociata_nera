@@ -90,7 +90,8 @@
     "settings": "Settings",
     "bases": "Base arsenal",
     "baseModeration": "Base moderation",
-    "telegramAdmin": "Telegram"
+    "telegramAdmin": "Telegram",
+    "announcementsAdmin": "Telegram announcements"
   },
   "common": {
     "nameOrTag": "Name or tag",
@@ -470,7 +471,10 @@
     "TELEGRAM_CHAT_ADDED": "Channel {{name}} added.",
     "TELEGRAM_CHAT_UPDATED": "Channel {{name}} updated.",
     "TELEGRAM_CHAT_REMOVED": "Channel forgotten.",
-    "TELEGRAM_SYNC_STARTED": "Posting started: the bases go out a few seconds apart."
+    "TELEGRAM_SYNC_STARTED": "Posting started: the bases go out a few seconds apart.",
+    "ANNOUNCEMENT_UPDATED": "Caption saved.",
+    "ANNOUNCEMENT_PUBLISHED": "Announcement published in the Telegram channel.",
+    "ANNOUNCEMENT_DISCARDED": "Announcement discarded."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -551,7 +555,11 @@
     "TELEGRAM_CHAT_LOCKED": "The channel {{name}} is locked: unlock it before changing it.",
     "TELEGRAM_CHAT_NOT_FOR_BASES": "The channel {{name}} is the announcements one: it receives no bases.",
     "TELEGRAM_ANNOUNCEMENTS_TAKEN": "Another channel is already the announcements one.",
-    "TELEGRAM_API_UNAVAILABLE": "Telegram is not answering: try again shortly."
+    "TELEGRAM_API_UNAVAILABLE": "Telegram is not answering: try again shortly.",
+    "ANNOUNCEMENT_NOT_FOUND": "Announcement not found.",
+    "ANNOUNCEMENT_NOT_DRAFT": "The announcement was already published or discarded.",
+    "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "No announcements channel the bot can post in: set it on the Telegram page.",
+    "CAPTION_IS_TOO_LONG": "The caption is longer than the 1024 characters Telegram allows."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -1285,5 +1293,58 @@
         "group": "Group"
       }
     }
+  },
+  "announcementsAdmin": {
+    "title": "Announcements",
+    "subtitle": "Drafts for the Telegram announcements channel, ready to publish",
+    "intro": "The site prepares a draft when a month, a CWL or a donation season closes, and when a clan of the Crusade beats a record. The figures of a draft stay up to date until you publish it.",
+    "drafts": "Drafts",
+    "noDrafts": "No drafts waiting: the next one comes when the month closes or with a new record.",
+    "history": "Published and discarded",
+    "preparedAt": "Prepared on {{date}}",
+    "failed": "Publication failed: {{error}}",
+    "caption": "Caption",
+    "captionHint": "**text** in bold",
+    "saveCaption": "Save caption",
+    "resetCaption": "Restore the automatic caption",
+    "saveFirst": "Save the caption before publishing.",
+    "publish": "Publish",
+    "discard": "Discard",
+    "openPost": "Open the post",
+    "image": "Picture {{n}} of {{total}}",
+    "imageError": "The pictures could not be drawn.",
+    "kind": {
+      "month": "Month",
+      "cwl": "CWL",
+      "donations": "Donations",
+      "record": "Record"
+    },
+    "state": {
+      "draft": "Draft",
+      "publishing": "Publishing",
+      "published": "Published",
+      "discarded": "Discarded"
+    },
+    "records": {
+      "perfectWars": "Perfect wars: {{value}}",
+      "warWinStreak": "Win streak: {{value}}",
+      "cwlLeague": "Best CWL league: {{league}}",
+      "localRank": "National ranking: #{{value}}",
+      "localCapitalRank": "Capital ranking: #{{value}}",
+      "capitalPoints": "Capital trophies: {{value}}"
+    },
+    "dialog": {
+      "publish": {
+        "title": "Publish on Telegram?",
+        "intro": "“{{title}}” will be posted in the announcements channel. It can no longer be changed or deleted from the site.",
+        "confirm": "Publish"
+      },
+      "discard": {
+        "title": "Discard the announcement?",
+        "intro": "“{{title}}” will not be published. For a record, the next draft comes only with a better value.",
+        "confirm": "Discard"
+      }
+    },
+    "interrupted": "A publication of this announcement was interrupted: it may already be in the channel. Check Telegram before publishing it again."
   }
 }
