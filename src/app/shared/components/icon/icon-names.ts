@@ -68,6 +68,7 @@ export const ICON_NAMES = [
   'person_add',
   'person_off',
   'photo_camera',
+  'photo_library',
   'picture_as_pdf',
   'playlist_add',
   'public',

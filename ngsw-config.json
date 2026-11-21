@@ -43,7 +43,8 @@
           "/flags/**",
           "/commendations/**",
           "/icons/**",
-          "/assets/fonts/**"
+          "/assets/fonts/**",
+          "/assets/pdfjs/**"
         ]
       }
     },

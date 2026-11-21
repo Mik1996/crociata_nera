@@ -75,6 +75,7 @@ const NAMES = [
   'person',
   'person_add',
   'person_off',
+  'photo_library',
   'photo_camera',
   'picture_as_pdf',
   'playlist_add',

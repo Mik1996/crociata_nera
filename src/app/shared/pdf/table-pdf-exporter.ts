@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { pdfPagesAsImages } from './pdf-pages';
 import { PdfToolkit } from './pdf-toolkit';
 import { TablePdf } from './table-pdf';
 import { buildTablePdf, pdfImageUrls } from './table-pdf-document';
@@ -17,6 +18,11 @@ export class TablePdfExporter {
 
   async download(pdf: TablePdf<unknown>): Promise<void> {
     await (await this.document(pdf)).download(`${pdf.fileName}.pdf`);
+  }
+
+  /** The pages of the PDF as JPEG files (to send in a chat). */
+  async images(pdf: TablePdf<unknown>): Promise<File[]> {
+    return pdfPagesAsImages(await (await this.document(pdf)).getBlob(), pdf.fileName);
   }
 
   /** The PDF as a file (to share it). */

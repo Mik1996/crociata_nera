@@ -1106,13 +1106,15 @@
     }
   },
   "pdf": {
-    "download": "Scarica PDF",
-    "downloading": "Creo il PDF…",
+    "download": "Scarica",
+    "downloading": "Creo il file…",
     "share": "Condividi",
-    "sharing": "Creo il PDF…",
-    "ready": "PDF pronto",
-    "shareError": "Non è stato possibile condividere il PDF.",
-    "error": "Non è stato possibile creare il PDF. Riprova.",
+    "sharing": "Creo il file…",
+    "asPdf": "PDF",
+    "asImages": "Immagini (una per pagina)",
+    "ready": "File pronto",
+    "shareError": "Non è stato possibile condividere il file.",
+    "error": "Non è stato possibile creare il file. Riprova.",
     "generatedAt": "Generato il {{date}}",
     "page": "Pagina {{n}} di {{total}}",
     "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la Fan Content Policy di Supercell: supercell.com/en/fan-content-policy"

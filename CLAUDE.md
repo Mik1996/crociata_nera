@@ -118,8 +118,11 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   the "iron" look of the site (`shared/pdf/iron-pdf.ts`: brushed iron from `PdfToolkit.ironPlate`, double gold
   frame with studs, same header and footer on every page, colours `--cn-pdf-*` read as `PdfTheme`). Pictures must be same-origin: league badges are copied in
   `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up, the Raid Weekend and the war report
-  (`features/wars/war-report-pdf.ts`). Where the device shares files, `<crn-pdf-button>` adds "Share" (Web
-  Share API; a notice asks one more tap when the browser refuses a share started too long after the tap).
+  (`features/wars/war-report-pdf.ts`). `<crn-pdf-button>` downloads the PDF or its pages as JPEG pictures
+  (`shared/pdf/pdf-pages.ts`: pdf.js, lazy chunk, worker copied to `assets/pdfjs/` by `angular.json`; several
+  pages in one ZIP, `shared/pdf/zip.ts`, as a click starts one download only). Where the device shares files
+  it adds "Share" with the same choice (Web Share API; a notice asks one more tap when the browser refuses a
+  share started too long after the tap).
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
   administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.

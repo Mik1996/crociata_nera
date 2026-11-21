@@ -116,7 +116,10 @@ describe('RaidsPage', () => {
     const fixture = TestBed.createComponent(RaidsPage);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLButtonElement>('crn-pdf-button button')!.click();
+    // "Download" opens its menu: the PDF.
+    el.querySelector<HTMLButtonElement>('crn-pdf-button button.download')!.click();
+    await fixture.whenStable();
+    document.querySelector<HTMLButtonElement>('.download-pdf')!.click();
     await fixture.whenStable();
     const pdf = exporter.download.mock.calls[0][0] as TablePdf<RaidMember>;
     expect(pdf.fileName).toMatch(/^crociata-nera-raid-2026-11-06/);
