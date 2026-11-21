@@ -88,23 +88,26 @@ describe('AdminPage', () => {
 
   it('asks the backend for the users matching the filters, sorted and a page at a time', async () => {
     const { fixture, el } = await render();
-    // A request in flight keeps `whenStable` waiting: a short pause lets the page send it.
-    const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    const users = (matches: (params: URLSearchParams) => boolean) =>
-      httpMock.expectOne(
-        (req) =>
-          req.url === '/api/v1/admin/users' &&
-          matches(new URL(req.urlWithParams, 'http://x').searchParams),
-      );
+    // A request in flight keeps `whenStable` waiting, so wait for the request itself instead: a
+    // fixed pause breaks when the machine is busy (the whole suite running in parallel).
+    const users = async (matches: (params: URLSearchParams) => boolean) => {
+      const isMatch = (req: { url: string; urlWithParams: string }) =>
+        req.url === '/api/v1/admin/users' &&
+        matches(new URL(req.urlWithParams, 'http://x').searchParams);
+      for (const deadline = Date.now() + 3000; Date.now() < deadline;) {
+        const [request] = httpMock.match(isMatch);
+        if (request) return request;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      return httpMock.expectOne(isMatch); // fails with the requests actually sent
+    };
 
     // Text filters wait for a pause in typing, then start again from the first page.
     el.querySelector<HTMLButtonElement>('.crn-table__toggle')!.click();
     await fixture.whenStable();
     type(el.querySelector<HTMLInputElement>('.crn-table__filter-row input[type="search"]')!, 'mem');
-    await pause(100);
     httpMock.expectNone((req) => req.urlWithParams.includes('user=mem'));
-    await pause(300);
-    users((p) => p.get('user') === 'mem' && p.get('page') === '1').flush(
+    (await users((p) => p.get('user') === 'mem' && p.get('page') === '1')).flush(
       ok({ items: [member], total: 30, page: 1, limit: 25 }),
     );
     await fixture.whenStable();
@@ -113,21 +116,21 @@ describe('AdminPage', () => {
 
     // More than one page: the next one, with the same filters.
     el.querySelector<HTMLButtonElement>('.mat-mdc-paginator-navigation-next')!.click();
-    await pause(50);
-    users((p) => p.get('page') === '2' && p.get('user') === 'mem').flush(
+    (await users((p) => p.get('page') === '2' && p.get('user') === 'mem')).flush(
       ok({ items: [member], total: 30, page: 2, limit: 25 }),
     );
     await fixture.whenStable();
 
     // Sorting by user: ascending usernames, from the first page again.
     el.querySelector<HTMLElement>('th.mat-column-user .mat-sort-header-container')!.click();
-    await pause(50);
-    users(
-      (p) =>
-        p.get('sort') === 'username' &&
-        p.get('order') === 'asc' &&
-        p.get('user') === 'mem' &&
-        p.get('page') === '1',
+    (
+      await users(
+        (p) =>
+          p.get('sort') === 'username' &&
+          p.get('order') === 'asc' &&
+          p.get('user') === 'mem' &&
+          p.get('page') === '1',
+      )
     ).flush(ok({ items: [member], total: 30, page: 1, limit: 25 }));
     await fixture.whenStable();
   });
