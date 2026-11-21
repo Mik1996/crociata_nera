@@ -299,14 +299,16 @@ interface Tile {
   accent?: string;
 }
 
-/** Tiles of figures, two per row (a single one in the middle). Returns the SVG and the y below them. */
+/** Tiles of figures, two per row (one alone on its row in the middle). Returns the SVG and the y below them. */
 function tiles(text: SvgText, items: Tile[], top: number): { svg: string; bottom: number } {
   const gap = 28;
   const width = (RIGHT - LEFT - gap) / 2;
   const height = 168;
   let svg = '';
   items.forEach((tile, i) => {
-    const x = items.length === 1 ? (W - width) / 2 : LEFT + (i % 2) * (width + gap);
+    // A tile alone on its row (the only one, or the last of an odd number) stands in the middle.
+    const alone = i === items.length - 1 && i % 2 === 0;
+    const x = alone ? (W - width) / 2 : LEFT + (i % 2) * (width + gap);
     const y = top + Math.floor(i / 2) * (height + gap);
     svg += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="14" fill="${T.tile}" fill-opacity="0.82" stroke="${T.edge}" stroke-width="2"/>`;
     svg += text.draw(tile.label.toUpperCase(), { font: 'semibold', size: 22, x: x + 28, y: y + 44, fill: T.muted, maxWidth: width - 56, minSize: 16 });
@@ -355,13 +357,9 @@ function monthBody(text: SvgText, t: AnnouncementTexts, data: MonthData): string
       { label: m.starsPerWar, value: formatNumber(w.averageStars, 2), note: m.starsNote(formatNumber(w.stars)) },
       { label: m.destruction, value: `${formatNumber(w.averageDestruction, 1)}%` },
       { label: m.threeStars, value: `${formatNumber(w.threeStarRate, 1)}%`, note: m.threeStarsNote(formatNumber(w.attacksUsed)) },
-      {
-        label: m.missed,
-        value: String(w.attacksMissed),
-        accent: w.attacksMissed > 0 ? T.danger : T.good,
-        note: w.attacksMissed > 0 ? m.missedSome : m.missedNone,
-      },
     );
+    // Shown only as a boast: a public channel is no place to count who missed.
+    if (w.attacksMissed === 0) items.push({ label: m.missed, value: '0', accent: T.good, note: m.missedNone });
   }
   if (data.raids) {
     items.push({
@@ -495,7 +493,8 @@ async function warBody(text: SvgText, t: AnnouncementTexts, crest: string | null
   svg += text.draw('VS', { font: 'display', size: 54, x: W / 2, y: top + 250, fill: T.gold, anchor: 'middle' });
   const total = data.teamSize * data.attacksPerMember;
   const missed = Math.max(0, total - data.clan.attacks);
-  svg += text.draw(`${w.attacks}: ${data.clan.attacks}/${total} · ${w.attacksNote(missed)}`, {
+  // Every attack used is a boast; the missed ones are not counted out loud.
+  svg += text.draw(missed ? `${w.attacks}: ${data.clan.attacks}/${total}` : `${w.attacks}: ${data.clan.attacks}/${total} · ${w.allUsed}`, {
     font: 'semibold',
     size: 28,
     x: W / 2,

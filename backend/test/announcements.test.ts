@@ -21,7 +21,7 @@ import { CommendationAwardModel, CommendationPeriodModel } from '@/modules/comme
 import { DonationTotalModel } from '@/modules/donations/donation.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { WarModel } from '@/modules/wars/war.model';
-import { renderAnnouncementImages } from '@/modules/announcements/image/announcement-image';
+import { announcementSvgs, renderAnnouncementImages } from '@/modules/announcements/image/announcement-image';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { EMPTY_CLAN_RECORDS, INITIAL_CLAN_RECORDS, syncOtherClanRecords } from '@/modules/records/clan-records.service';
 import { TelegramChatModel } from '@/modules/telegram/telegram-chat.model';
@@ -496,6 +496,17 @@ describe('captions', () => {
 
   it('builds the month even without wars', async () => {
     expect(await buildMonthData(MAIN, '2026-11')).toMatchObject({ wars: null, raids: null, mvp: null, honours: [] });
+  });
+});
+
+describe('pictures', () => {
+  it('show the missed attacks of the month only when there are none, as a boast', async () => {
+    const wars = { total: 10, victories: 8, draws: 1, defeats: 1, stars: 400, averageStars: 40, averageDestruction: 95, threeStarRate: 70, attacksUsed: 196, attacksMissed: 4 };
+    const month = { kind: 'month', clanTag: MAIN, clanName: 'Crociata Nera', month: '2026-10', wars, raids: null, mvp: null, honours: [] } as unknown as AnnouncementData;
+    // Tiles of figures (rounded 14).
+    const tiles = async (data: AnnouncementData) => ((await announcementSvgs(data))[0]!.match(/rx="14"/g) ?? []).length;
+    expect(await tiles(month)).toBe(4);
+    expect(await tiles({ ...month, wars: { ...wars, attacksMissed: 0 } } as AnnouncementData)).toBe(5);
   });
 });
 

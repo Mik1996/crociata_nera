@@ -119,7 +119,6 @@ export interface AnnouncementTexts {
       threeStars: string;
       threeStarsNote(attacks: string): string;
       missed: string;
-      missedSome: string;
       missedNone: string;
       capitalGold: string;
       capitalGoldNote(weekends: number, attacks: string): string;
@@ -164,7 +163,8 @@ export interface AnnouncementTexts {
       stars: string;
       destruction: string;
       attacks: string;
-      attacksNote(missed: number): string;
+      /** After the attacks when every one was used. */
+      allUsed: string;
       best: string;
       /** Row of a best attacker. */
       attacker(stars: number, destruction: string): string;
@@ -358,7 +358,6 @@ const ITALIAN: AnnouncementTexts = {
       threeStars: 'Attacchi a tre stelle',
       threeStarsNote: (attacks) => `su ${attacks} attacchi`,
       missed: 'Attacchi mancati',
-      missedSome: 'ogni attacco conta',
       missedNone: 'nessuno: tutti presenti!',
       capitalGold: 'Oro della capitale',
       capitalGoldNote: (weekends, attacks) => `${weekends} Raid Weekend · ${attacks} attacchi`,
@@ -419,7 +418,7 @@ const ITALIAN: AnnouncementTexts = {
       stars: 'stelle',
       destruction: 'distruzione',
       attacks: 'Attacchi',
-      attacksNote: (missed) => (missed ? `${count(missed, 'attacco mancato', 'attacchi mancati')}` : 'tutti usati'),
+      allUsed: 'tutti usati',
       best: 'Migliori in attacco',
       attacker: (stars, d) => `${stars} stelle · ${d}%`,
     },
@@ -571,7 +570,6 @@ const ENGLISH: AnnouncementTexts = {
       threeStars: 'Three-star attacks',
       threeStarsNote: (attacks) => `of ${attacks} attacks`,
       missed: 'Missed attacks',
-      missedSome: 'every attack counts',
       missedNone: 'none: everyone showed up!',
       capitalGold: 'Capital Gold',
       capitalGoldNote: (weekends, attacks) => `${weekends} Raid Weekend${weekends === 1 ? '' : 's'} · ${attacks} attacks`,
@@ -632,7 +630,7 @@ const ENGLISH: AnnouncementTexts = {
       stars: 'stars',
       destruction: 'destruction',
       attacks: 'Attacks',
-      attacksNote: (missed) => (missed ? count(missed, 'attack missed', 'attacks missed') : 'all used'),
+      allUsed: 'all used',
       best: 'Best attackers',
       attacker: (stars, d) => `${stars} stars · ${d}%`,
     },
@@ -785,7 +783,6 @@ const SPANISH: AnnouncementTexts = {
       threeStars: 'Ataques de tres estrellas',
       threeStarsNote: (attacks) => `de ${attacks} ataques`,
       missed: 'Ataques perdidos',
-      missedSome: 'cada ataque cuenta',
       missedNone: 'ninguno: ¡todos presentes!',
       capitalGold: 'Oro de la capital',
       capitalGoldNote: (weekends, attacks) => `${weekends} Raid Weekend · ${attacks} ataques`,
@@ -846,7 +843,7 @@ const SPANISH: AnnouncementTexts = {
       stars: 'estrellas',
       destruction: 'destrucción',
       attacks: 'Ataques',
-      attacksNote: (missed) => (missed ? count(missed, 'ataque perdido', 'ataques perdidos') : 'todos usados'),
+      allUsed: 'todos usados',
       best: 'Mejores atacantes',
       attacker: (stars, d) => `${stars} estrellas · ${d}%`,
     },
