@@ -36,6 +36,8 @@ export interface AnnouncementTexts {
   country(code: string): string;
   /** A day: `23 novembre 2026`. */
   day(iso: string): string;
+  /** A Raid Weekend by the day it starts: `Weekend del 13 novembre 2026`. */
+  weekend(iso: string): string;
 
   caption: {
     month: {
@@ -81,6 +83,23 @@ export interface AnnouncementTexts {
       world(place: string): string;
       closing: string;
     };
+    war: {
+      /** First line, by result: `🏆 **Vittoria contro X!**`. */
+      title(result: 'win' | 'lose' | 'tie', opponent: string): string;
+      score(stars: number, opponentStars: number, destruction: string, opponentDestruction: string): string;
+      attacks(used: number, total: number): string;
+      best: string;
+      /** A best attacker: stars and destruction. */
+      attacker(name: string, stars: number, destruction: string): string;
+      footer: string;
+    };
+    raid: {
+      title(clan: string, weekend: string): string;
+      gold(gold: string, attacks: string): string;
+      districts(districts: number, raids: number): string;
+      medals(medals: string): string;
+      footer: string;
+    };
     honours: string;
     andOthers(n: number): string;
     /** Label of the button that opens the page of the announcement on the site. */
@@ -108,7 +127,7 @@ export interface AnnouncementTexts {
       best: string;
       bestNote(average: string, wars: number): string;
     };
-    honours: { title: string; cwl(month: string): string; donations(month: string): string };
+    honours: { title: string; cwl(month: string): string; donations(month: string): string; raid(weekend: string): string };
     cwl: {
       title: string;
       place: string;
@@ -137,6 +156,30 @@ export interface AnnouncementTexts {
       country(country: string): string;
       world: string;
       top: string;
+    };
+    war: {
+      result: Readonly<Record<'win' | 'lose' | 'tie', string>>;
+      /** Subtitle: `contro X · 15 contro 15`. */
+      against(opponent: string, size: number): string;
+      stars: string;
+      destruction: string;
+      attacks: string;
+      attacksNote(missed: number): string;
+      best: string;
+      /** Row of a best attacker. */
+      attacker(stars: number, destruction: string): string;
+    };
+    raid: {
+      title: string;
+      gold: string;
+      goldNote(attacks: string): string;
+      districts: string;
+      districtsNote(raids: number): string;
+      medals: string;
+      medalsNote(offense: string, defense: string): string;
+      participants: string;
+      participantsNote: string;
+      looters: string;
     };
   };
 }
@@ -228,6 +271,7 @@ const ITALIAN: AnnouncementTexts = {
   count,
   country: countries('it-IT'),
   day: days('it-IT'),
+  weekend: (iso) => `Weekend del ${days('it-IT')(iso)}`,
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -273,6 +317,22 @@ const ITALIAN: AnnouncementTexts = {
       world: (place) => `🌍 **${place}** nel mondo`,
       closing: 'Tra i migliori 10.000 giocatori del pianeta. Complimenti da tutti i clan della Crociata! ⚔️',
     },
+    war: {
+      title: (result, opponent) =>
+        result === 'win' ? `🏆 **Vittoria contro ${opponent}!**` : result === 'tie' ? `🤝 **Pareggio contro ${opponent}**` : `⚔️ **Sconfitta contro ${opponent}**`,
+      score: (stars, other, d, od) => `⭐ ${stars} stelle a ${other} · ${d}% a ${od}%`,
+      attacks: (used, total) => `🎯 Attacchi: ${used} su ${total}`,
+      best: 'Migliori in attacco',
+      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      footer: `Tutta la guerra su ${SITE}`,
+    },
+    raid: {
+      title: (clan, weekend) => `🏰 **${clan} · Raid Weekend**\n${weekend}`,
+      gold: (gold, attacks) => `💰 ${gold} di oro della capitale in ${attacks} attacchi`,
+      districts: (districts, raids) => `🗺️ ${count(districts, 'distretto distrutto', 'distretti distrutti')} · ${count(raids, 'capitale conquistata', 'capitali conquistate')}`,
+      medals: (medals) => `🏅 ${medals} medaglie raid a testa`,
+      footer: `Tutti i dettagli su ${SITE}`,
+    },
     honours: 'Encomi',
     andOthers: (n) => ` e altri ${n}`,
     openSite: '🌐 Apri sul sito',
@@ -283,6 +343,8 @@ const ITALIAN: AnnouncementTexts = {
       record: 'Record',
       promotion: 'Promozione',
       legendSeason: 'Leggende',
+      war: 'Guerra',
+      raid: 'RaidWeekend',
     },
   },
   image: {
@@ -304,7 +366,7 @@ const ITALIAN: AnnouncementTexts = {
       best: 'Migliore del mese',
       bestNote: (average, wars) => `${average} stelle a guerra in ${count(wars, 'guerra', 'guerre')}`,
     },
-    honours: { title: "Albo d'onore", cwl: (month) => `CWL di ${month}`, donations: (month) => `Donazioni di ${month}` },
+    honours: { title: "Albo d'onore", cwl: (month) => `CWL di ${month}`, donations: (month) => `Donazioni di ${month}`, raid: (weekend) => weekend },
     cwl: {
       title: 'Lega fra Clan',
       place: 'Posizione',
@@ -350,6 +412,28 @@ const ITALIAN: AnnouncementTexts = {
       country: (country) => `in ${country}`,
       world: 'nel mondo',
       top: 'Tra i migliori 10.000 del mondo',
+    },
+    war: {
+      result: { win: 'Vittoria!', lose: 'Sconfitta', tie: 'Pareggio' },
+      against: (opponent, size) => `contro ${opponent} · ${size} contro ${size}`,
+      stars: 'stelle',
+      destruction: 'distruzione',
+      attacks: 'Attacchi',
+      attacksNote: (missed) => (missed ? `${count(missed, 'attacco mancato', 'attacchi mancati')}` : 'tutti usati'),
+      best: 'Migliori in attacco',
+      attacker: (stars, d) => `${stars} stelle · ${d}%`,
+    },
+    raid: {
+      title: 'Raid Weekend',
+      gold: 'Oro della capitale',
+      goldNote: (attacks) => `in ${attacks} attacchi`,
+      districts: 'Distretti distrutti',
+      districtsNote: (raids) => count(raids, 'capitale conquistata', 'capitali conquistate'),
+      medals: 'Medaglie raid',
+      medalsNote: (offense, defense) => `a testa · attacco ${offense} · difesa ${defense}`,
+      participants: 'Partecipanti',
+      participantsNote: 'membri che hanno attaccato',
+      looters: 'Migliori razziatori',
     },
   },
 };
@@ -401,6 +485,7 @@ const ENGLISH: AnnouncementTexts = {
   count,
   country: countries('en-US'),
   day: days('en-US'),
+  weekend: (iso) => `Weekend of ${days('en-US')(iso)}`,
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -445,6 +530,22 @@ const ENGLISH: AnnouncementTexts = {
       world: (place) => `🌍 **${place}** in the world`,
       closing: 'Among the best 10,000 players on the planet. Congratulations from all the clans of the Crusade! ⚔️',
     },
+    war: {
+      title: (result, opponent) =>
+        result === 'win' ? `🏆 **Victory against ${opponent}!**` : result === 'tie' ? `🤝 **Draw against ${opponent}**` : `⚔️ **Defeat against ${opponent}**`,
+      score: (stars, other, d, od) => `⭐ ${stars} stars to ${other} · ${d}% to ${od}%`,
+      attacks: (used, total) => `🎯 Attacks: ${used} of ${total}`,
+      best: 'Best attackers',
+      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      footer: `The whole war on ${SITE}`,
+    },
+    raid: {
+      title: (clan, weekend) => `🏰 **${clan} · Raid Weekend**\n${weekend}`,
+      gold: (gold, attacks) => `💰 ${gold} Capital Gold in ${attacks} attacks`,
+      districts: (districts, raids) => `🗺️ ${count(districts, 'district destroyed', 'districts destroyed')} · ${count(raids, 'capital conquered', 'capitals conquered')}`,
+      medals: (medals) => `🏅 ${medals} raid medals each`,
+      footer: `All the details on ${SITE}`,
+    },
     honours: 'Commendations',
     andOthers: (n) => ` and ${n} more`,
     openSite: '🌐 Open on the site',
@@ -455,6 +556,8 @@ const ENGLISH: AnnouncementTexts = {
       record: 'Record',
       promotion: 'Promotion',
       legendSeason: 'Legends',
+      war: 'War',
+      raid: 'RaidWeekend',
     },
   },
   image: {
@@ -476,7 +579,7 @@ const ENGLISH: AnnouncementTexts = {
       best: 'Best of the month',
       bestNote: (average, wars) => `${average} stars per war in ${count(wars, 'war', 'wars')}`,
     },
-    honours: { title: 'Roll of honour', cwl: (month) => `${month} CWL`, donations: (month) => `${month} donations` },
+    honours: { title: 'Roll of honour', cwl: (month) => `${month} CWL`, donations: (month) => `${month} donations`, raid: (weekend) => weekend },
     cwl: {
       title: 'Clan War League',
       place: 'Place',
@@ -522,6 +625,28 @@ const ENGLISH: AnnouncementTexts = {
       country: (country) => `in ${country}`,
       world: 'in the world',
       top: 'Among the best 10,000 in the world',
+    },
+    war: {
+      result: { win: 'Victory!', lose: 'Defeat', tie: 'Draw' },
+      against: (opponent, size) => `against ${opponent} · ${size} vs ${size}`,
+      stars: 'stars',
+      destruction: 'destruction',
+      attacks: 'Attacks',
+      attacksNote: (missed) => (missed ? count(missed, 'attack missed', 'attacks missed') : 'all used'),
+      best: 'Best attackers',
+      attacker: (stars, d) => `${stars} stars · ${d}%`,
+    },
+    raid: {
+      title: 'Raid Weekend',
+      gold: 'Capital Gold',
+      goldNote: (attacks) => `in ${attacks} attacks`,
+      districts: 'Districts destroyed',
+      districtsNote: (raids) => count(raids, 'capital conquered', 'capitals conquered'),
+      medals: 'Raid medals',
+      medalsNote: (offense, defense) => `each · attack ${offense} · defense ${defense}`,
+      participants: 'Participants',
+      participantsNote: 'members who attacked',
+      looters: 'Top raiders',
     },
   },
 };
@@ -573,6 +698,7 @@ const SPANISH: AnnouncementTexts = {
   count,
   country: countries('es-ES'),
   day: days('es-ES'),
+  weekend: (iso) => `Fin de semana del ${days('es-ES')(iso)}`,
   caption: {
     month: {
       title: (clan, month) => `⚔️ **${clan} · ${month}**`,
@@ -618,6 +744,22 @@ const SPANISH: AnnouncementTexts = {
       world: (place) => `🌍 **${place}** en el mundo`,
       closing: 'Entre los 10.000 mejores jugadores del planeta. ¡Enhorabuena de parte de todos los clanes de la Cruzada! ⚔️',
     },
+    war: {
+      title: (result, opponent) =>
+        result === 'win' ? `🏆 **¡Victoria contra ${opponent}!**` : result === 'tie' ? `🤝 **Empate contra ${opponent}**` : `⚔️ **Derrota contra ${opponent}**`,
+      score: (stars, other, d, od) => `⭐ ${stars} estrellas a ${other} · ${d}% a ${od}%`,
+      attacks: (used, total) => `🎯 Ataques: ${used} de ${total}`,
+      best: 'Mejores atacantes',
+      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      footer: `Toda la guerra en ${SITE}`,
+    },
+    raid: {
+      title: (clan, weekend) => `🏰 **${clan} · Raid Weekend**\n${weekend}`,
+      gold: (gold, attacks) => `💰 ${gold} de oro de la capital en ${attacks} ataques`,
+      districts: (districts, raids) => `🗺️ ${count(districts, 'distrito destruido', 'distritos destruidos')} · ${count(raids, 'capital conquistada', 'capitales conquistadas')}`,
+      medals: (medals) => `🏅 ${medals} medallas de incursión cada uno`,
+      footer: `Todos los detalles en ${SITE}`,
+    },
     honours: 'Encomios',
     andOthers: (n) => ` y ${n} más`,
     openSite: '🌐 Abrir en el sitio',
@@ -628,6 +770,8 @@ const SPANISH: AnnouncementTexts = {
       record: 'Récord',
       promotion: 'Ascenso',
       legendSeason: 'Leyendas',
+      war: 'Guerra',
+      raid: 'RaidWeekend',
     },
   },
   image: {
@@ -649,7 +793,7 @@ const SPANISH: AnnouncementTexts = {
       best: 'Mejor del mes',
       bestNote: (average, wars) => `${average} estrellas por guerra en ${count(wars, 'guerra', 'guerras')}`,
     },
-    honours: { title: 'Cuadro de honor', cwl: (month) => `CWL de ${month}`, donations: (month) => `Donaciones de ${month}` },
+    honours: { title: 'Cuadro de honor', cwl: (month) => `CWL de ${month}`, donations: (month) => `Donaciones de ${month}`, raid: (weekend) => weekend },
     cwl: {
       title: 'Liga de Clanes',
       place: 'Puesto',
@@ -695,6 +839,28 @@ const SPANISH: AnnouncementTexts = {
       country: (country) => `en ${country}`,
       world: 'en el mundo',
       top: 'Entre los 10.000 mejores del mundo',
+    },
+    war: {
+      result: { win: '¡Victoria!', lose: 'Derrota', tie: 'Empate' },
+      against: (opponent, size) => `contra ${opponent} · ${size} contra ${size}`,
+      stars: 'estrellas',
+      destruction: 'destrucción',
+      attacks: 'Ataques',
+      attacksNote: (missed) => (missed ? count(missed, 'ataque perdido', 'ataques perdidos') : 'todos usados'),
+      best: 'Mejores atacantes',
+      attacker: (stars, d) => `${stars} estrellas · ${d}%`,
+    },
+    raid: {
+      title: 'Raid Weekend',
+      gold: 'Oro de la capital',
+      goldNote: (attacks) => `en ${attacks} ataques`,
+      districts: 'Distritos destruidos',
+      districtsNote: (raids) => count(raids, 'capital conquistada', 'capitales conquistadas'),
+      medals: 'Medallas de incursión',
+      medalsNote: (offense, defense) => `cada uno · ataque ${offense} · defensa ${defense}`,
+      participants: 'Participantes',
+      participantsNote: 'miembros que atacaron',
+      looters: 'Mejores saqueadores',
     },
   },
 };

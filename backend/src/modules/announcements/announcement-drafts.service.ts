@@ -5,11 +5,14 @@ import { LegendSeasonModel } from '@/modules/legends/legend-season.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { monthBounds } from '@/modules/wars/history.service';
+import { WarModel } from '@/modules/wars/war.model';
 import {
   AnnouncementData,
   buildCwlData,
   buildDonationsData,
   buildMonthData,
+  buildRaidData,
+  buildWarData,
   clanName,
   LegendSeasonData,
   PromotionData,
@@ -34,7 +37,9 @@ import {
  * - a player in a league higher than any reached before, from Electro League 31 up to Legend League I
  *   (one draft per player, following the player while open);
  * - a member who ended a Legend League season in Legend League I, among the first 10,000 of the world
- *   (one draft per player and season).
+ *   (one draft per player and season);
+ * - an ended war (its result), per clan;
+ * - an ended Raid Weekend, once its commendations are awarded, per clan.
  *
  * Reads the saved state rather than reacting to events, so nothing is missed while the server is down.
  * Only periods closed after the clan was first seen get a draft (no drafts for the past). Idempotent.
@@ -76,6 +81,9 @@ export async function syncAnnouncementDrafts(now = new Date()): Promise<DraftSyn
     ).lean();
     await periodDrafts(clanTag, baseline.since, report);
     await recordDrafts(clanTag, (baseline.records as RecordValues | null) ?? null, report);
+    const kindsSince = await sinceOfLaterKinds(clanTag, (baseline.kindsSince as Partial<Record<LaterKind, Date>> | null) ?? {}, now);
+    await warDrafts(clanTag, kindsSince.war, report);
+    await raidDrafts(clanTag, kindsSince.raid, report);
   }
   await promotionDrafts(now, report);
   await legendSeasonDrafts(report);
@@ -143,17 +151,83 @@ async function createDraft(key: string, kind: AnnouncementKind, clanTag: string,
   }
 }
 
-/** The figures of the open drafts, brought up to date (a late Raid Weekend, a raised donor tier…). */
+/**
+ * The figures of the open drafts, brought up to date (a late Raid Weekend, a raised donor tier, a war
+ * corrected with the war log…).
+ */
 async function refreshDrafts(report: DraftSyncReport): Promise<void> {
   const drafts = await AnnouncementModel.find({
     state: AnnouncementState.DRAFT,
-    kind: { $in: [AnnouncementKind.MONTH, AnnouncementKind.CWL, AnnouncementKind.DONATIONS] },
+    kind: { $in: [AnnouncementKind.MONTH, AnnouncementKind.CWL, AnnouncementKind.DONATIONS, AnnouncementKind.WAR, AnnouncementKind.RAID] },
   });
   for (const draft of drafts) {
-    const data = await buildPeriodData(draft.kind as 'month' | 'cwl' | 'donations', draft.clanTag, draft.subject);
+    const data = await currentData(draft.kind as AnnouncementKind, draft.clanTag, draft.subject);
     if (!data || JSON.stringify(data) === JSON.stringify(draft.data)) continue;
     await AnnouncementModel.updateOne({ _id: draft._id, state: AnnouncementState.DRAFT }, { $set: { data } });
     report.updated.push(draft.key);
+  }
+}
+
+/** The figures of a draft as they are now; `null` when its subject is gone. */
+async function currentData(kind: AnnouncementKind, clanTag: string, subject: string): Promise<AnnouncementData | null> {
+  switch (kind) {
+    case AnnouncementKind.WAR: {
+      const war = await WarModel.findOne({ warKey: subject, clanTag }).lean();
+      return war ? buildWarData(war) : null;
+    }
+    case AnnouncementKind.RAID: {
+      const raid = await RaidSeasonModel.findOne({ clanTag, startTime: new Date(subject) }).lean();
+      return raid ? buildRaidData(raid) : null;
+    }
+    default:
+      return buildPeriodData(kind as 'month' | 'cwl' | 'donations', clanTag, subject);
+  }
+}
+
+// --- wars and Raid Weekends --------------------------------------------------
+
+/** Kinds announced since after the others: they start from when they were first looked for. */
+type LaterKind = 'war' | 'raid';
+const LATER_KINDS: readonly LaterKind[] = ['war', 'raid'];
+
+/**
+ * Start of the wars and Raid Weekends of a clan: set to now the first time (the ones ended before are
+ * not news), kept afterwards.
+ */
+async function sinceOfLaterKinds(clanTag: string, known: Partial<Record<LaterKind, Date>>, now: Date): Promise<Record<LaterKind, Date>> {
+  if (LATER_KINDS.every((kind) => known[kind])) return known as Record<LaterKind, Date>;
+  // Each start set only when missing (two runs at once keep the first one).
+  const starts = Object.fromEntries(LATER_KINDS.map((kind) => [kind, { $ifNull: [`$kindsSince.${kind}`, now] }]));
+  await AnnouncementBaselineModel.updateOne({ clanTag }, [
+    { $set: { kindsSince: { $mergeObjects: [{ $ifNull: ['$kindsSince', {}] }, starts] } } },
+  ], { updatePipeline: true });
+  const saved = await AnnouncementBaselineModel.findOne({ clanTag }).select('kindsSince').lean();
+  const since = (saved?.kindsSince ?? {}) as Partial<Record<LaterKind, Date>>;
+  return { war: since.war ?? now, raid: since.raid ?? now };
+}
+
+/** The wars of a clan ended since `since`: one draft each, with their result. */
+async function warDrafts(clanTag: string, since: Date, report: DraftSyncReport): Promise<void> {
+  const wars = await WarModel.find({ clanTag, state: 'warEnded', endTime: { $gte: since } }).lean();
+  for (const war of wars) {
+    const key = `war:${war.warKey}@${clanTag}`;
+    if (await AnnouncementModel.exists({ key })) continue;
+    const data = buildWarData(war);
+    if (!data) continue;
+    if (await createDraft(key, AnnouncementKind.WAR, clanTag, war.warKey, data)) report.created.push(key);
+  }
+}
+
+/** The Raid Weekends of a clan ended since `since`, once their commendations are awarded. */
+async function raidDrafts(clanTag: string, since: Date, report: DraftSyncReport): Promise<void> {
+  const raids = await RaidSeasonModel.find({ clanTag, state: 'ended', endTime: { $gte: since } }).lean();
+  for (const raid of raids) {
+    const subject = raid.startTime.toISOString();
+    const key = `raid:${subject}@${clanTag}`;
+    if (await AnnouncementModel.exists({ key })) continue;
+    // Its commendations go in the announcement: wait for them (none without the member list).
+    if (raid.hasMembers && !(await CommendationPeriodModel.exists({ periodKey: `raid:${subject}${periodSuffix(clanTag)}` }))) continue;
+    if (await createDraft(key, AnnouncementKind.RAID, clanTag, subject, await buildRaidData(raid))) report.created.push(key);
   }
 }
 

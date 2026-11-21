@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
@@ -68,10 +68,18 @@ export class RaidsPage {
       label: `${this.label(w)} · ${this.language.t('raids.state.' + w.state)}`,
     })),
   );
-  /** Weekend chosen in the selector; the most recent one until the user picks another. */
+  /** Weekend asked by the address (`?weekend=<start ISO>`, links of the Telegram announcements). */
+  readonly weekendParam = input<string | undefined>(undefined, { alias: 'weekend' });
+  /**
+   * Weekend chosen in the selector; until the user picks one, the weekend of the address (when
+   * saved), otherwise the most recent one.
+   */
   private readonly chosen = signal<string | null>(null);
   protected readonly weekend = computed<RaidSeason | null>(
-    () => this.weekends().find((w) => w.id === this.chosen()) ?? this.weekends().at(0) ?? null,
+    () =>
+      this.weekends().find((w) => w.id === (this.chosen() ?? this.weekendParam())) ??
+      this.weekends().at(0) ??
+      null,
   );
 
   /** Current members with no attack in the weekend. */

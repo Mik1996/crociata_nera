@@ -1339,7 +1339,9 @@
         "period": "a month, a CWL or a donation season closes;",
         "record": "a clan of the Crusade beats a record;",
         "league": "a player reaches a league never reached before (Electro 31 to Legend I);",
-        "legend": "a player ends the Legend season among the first 10,000 in the world."
+        "legend": "a player ends the Legend season among the first 10,000 in the world;",
+        "war": "a war of a clan of the Crusade ends;",
+        "raid": "a Raid Weekend closes (after its commendations)."
       },
       "note": "The figures of a draft stay up to date until you publish it."
     },
@@ -1364,7 +1366,9 @@
       "donations": "Donations",
       "record": "Record",
       "promotion": "Promotion",
-      "legendSeason": "Legend season"
+      "legendSeason": "Legend season",
+      "war": "War",
+      "raid": "Raid Weekend"
     },
     "state": {
       "draft": "Draft",
@@ -1400,6 +1404,12 @@
       "Legend": "Legend",
       "Dragon": "Dragon"
     },
-    "legendSeason": "{{player}} ends the Legend season with {{trophies}} trophies"
+    "legendSeason": "{{player}} ends the Legend season with {{trophies}} trophies",
+    "war": {
+      "win": "victory against {{opponent}}",
+      "lose": "defeat against {{opponent}}",
+      "tie": "draw against {{opponent}}"
+    },
+    "raid": "Raid Weekend of {{day}}"
   }
 }

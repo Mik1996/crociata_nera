@@ -1,10 +1,11 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
-import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, MonthData, PromotionData, RecordData } from '../announcement-data';
+import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, MonthData, PromotionData, RaidData, raidMedals, RecordData, WarData } from '../announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../announcement-texts';
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
 import { SvgText } from './svg-text';
+import { percent } from '../announcement-caption';
 
 /**
  * Pictures of the announcements, in the "iron" look of the PDFs: brushed iron, crimson vignette,
@@ -49,6 +50,46 @@ function picture(file: string, size: number): Promise<string | null> {
       .then((png) => `data:image/png;base64,${png.toString('base64')}`)
       .catch((error: unknown) => {
         console.warn(`[announcements] picture ${file} not drawn: ${(error as Error).message}`);
+        pictures.delete(id);
+        return null;
+      });
+    pictures.set(id, uri);
+  }
+  return uri;
+}
+
+/** Host of the clan badges of the game: the only one remote pictures are read from. */
+const BADGE_HOST = 'api-assets.clashofclans.com';
+/** Longest wait for a remote picture: the announcement is drawn without it after this. */
+const REMOTE_TIMEOUT_MS = 5000;
+
+/**
+ * A clan badge of the game's servers (the opponent of a war) as a PNG data URI, kept in memory;
+ * `null` when it cannot be read (the page is drawn without it).
+ */
+function remotePicture(url: string | null, size: number): Promise<string | null> {
+  if (!url) return Promise.resolve(null);
+  let host: string;
+  try {
+    host = new URL(url).host;
+  } catch {
+    return Promise.resolve(null);
+  }
+  if (host !== BADGE_HOST) return Promise.resolve(null);
+  const id = `${url}@${size}`;
+  let uri = pictures.get(id);
+  if (!uri) {
+    uri = fetch(url, { signal: AbortSignal.timeout(REMOTE_TIMEOUT_MS) })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const png = await sharp(Buffer.from(await response.arrayBuffer()))
+          .resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
+          .png()
+          .toBuffer();
+        return `data:image/png;base64,${png.toString('base64')}`;
+      })
+      .catch((error: unknown) => {
+        console.warn(`[announcements] badge ${url} not drawn: ${(error as Error).message}`);
         pictures.delete(id);
         return null;
       });
@@ -144,6 +185,19 @@ export async function announcementSvgs(data: AnnouncementData, language?: Announ
       return [await promotionPage(text, t, crest, data)];
     case 'legendSeason':
       return [await legendSeasonPage(text, t, crest, data)];
+    case 'war': {
+      const w = t.image.war;
+      return [page({ kicker: data.clanName, title: w.result[data.result], subtitle: w.against(data.opponent.name, data.teamSize) }, await warBody(text, t, crest, data))];
+    }
+    case 'raid': {
+      const weekend = t.weekend(data.startTime);
+      return [
+        page({ kicker: data.clanName, title: t.image.raid.title, subtitle: weekend }, raidBody(text, t, data)),
+        ...(await honourPages(text, t, data.honours, (n) =>
+          page({ kicker: data.clanName, title: h.title, subtitle: pageSubtitle(h.raid(weekend), n) }, ''),
+        )),
+      ].slice(0, MAX_PAGES);
+    }
   }
 }
 
@@ -391,6 +445,97 @@ async function recordBody(text: SvgText, t: AnnouncementTexts, data: RecordData)
     text.draw(r.units[data.record], { font: 'title', size: 40, x: middle, y: CONTENT_TOP + 600, fill: T.text, anchor: 'middle', maxWidth: RIGHT - LEFT, minSize: 26 }),
     text.draw(previous, { font: 'regular', size: 30, x: middle, y: CONTENT_TOP + 660, fill: T.muted, anchor: 'middle', maxWidth: RIGHT - LEFT }),
   ].join('');
+}
+
+/** Rows of the best players (attackers, raiders): place, name and a figure on the right. */
+function podium(text: SvgText, t: AnnouncementTexts, top: number, rows: { name: string; value: string }[], rowHeight: number): string {
+  const medals = [T.goldText, T.text, T.gold];
+  return rows
+    .map((row, i) => {
+      const y = top + i * rowHeight;
+      return [
+        `<rect x="${LEFT}" y="${y}" width="${RIGHT - LEFT}" height="${rowHeight - 14}" rx="12" fill="${i % 2 ? T.plate : T.tile}" fill-opacity="0.85" stroke="${T.edge}" stroke-width="2"/>`,
+        text.draw(t.place(i + 1), { font: 'title', size: 34, x: LEFT + 30, y: y + (rowHeight - 14) / 2 + 12, fill: medals[i] ?? T.muted }),
+        text.draw(row.name, { font: 'semibold', size: 32, x: LEFT + 110, y: y + (rowHeight - 14) / 2 + 11, fill: T.text, maxWidth: 440, minSize: 22 }),
+        text.draw(row.value, { font: 'title', size: 30, x: RIGHT - 30, y: y + (rowHeight - 14) / 2 + 11, fill: T.goldText, anchor: 'end', maxWidth: 300, minSize: 20 }),
+      ].join('');
+    })
+    .join('');
+}
+
+/**
+ * A war: the two clans face to face (their badges of the game, the clan's crest when its badge cannot
+ * be read; names, stars and destruction), the attacks used and the best attackers.
+ */
+async function warBody(text: SvgText, t: AnnouncementTexts, crest: string | null, data: WarData): Promise<string> {
+  const w = t.image.war;
+  const [ownBadge, badge] = await Promise.all([remotePicture(data.clan.badgeUrl, 300), remotePicture(data.opponent.badgeUrl, 300)]);
+  const top = CONTENT_TOP + 20;
+  const height = 400;
+  const columns = [
+    { x: LEFT + (RIGHT - LEFT) / 4, side: data.clan, badge: ownBadge ?? crest, wins: data.result === 'win' },
+    { x: RIGHT - (RIGHT - LEFT) / 4, side: data.opponent, badge, wins: data.result === 'lose' },
+  ];
+  let svg = `<rect x="${LEFT}" y="${top}" width="${RIGHT - LEFT}" height="${height}" rx="16" fill="${T.plate}" fill-opacity="0.9" stroke="${T.gold}" stroke-width="3"/>`;
+  for (const { x, side, badge: picture, wins } of columns) {
+    svg += image(picture, x - 70, top + 24, 140);
+    svg += text.draw(side.name, { font: 'bold', size: 32, x, y: top + 206, fill: T.text, anchor: 'middle', maxWidth: 380, minSize: 20 });
+    svg += text.draw(String(side.stars), { font: 'display', size: 96, x, y: top + 312, fill: wins || data.result === 'tie' ? T.goldText : T.muted, anchor: 'middle' });
+    svg += text.draw(`${w.stars} · ${percent(t, side.destruction)}% ${w.destruction}`, {
+      font: 'semibold',
+      size: 24,
+      x,
+      y: top + 360,
+      fill: T.muted,
+      anchor: 'middle',
+      maxWidth: 400,
+      minSize: 16,
+    });
+  }
+  svg += text.draw('VS', { font: 'display', size: 54, x: W / 2, y: top + 250, fill: T.gold, anchor: 'middle' });
+  const total = data.teamSize * data.attacksPerMember;
+  const missed = Math.max(0, total - data.clan.attacks);
+  svg += text.draw(`${w.attacks}: ${data.clan.attacks}/${total} · ${w.attacksNote(missed)}`, {
+    font: 'semibold',
+    size: 28,
+    x: W / 2,
+    y: top + height + 52,
+    fill: missed ? T.muted : T.good,
+    anchor: 'middle',
+    maxWidth: RIGHT - LEFT,
+  });
+  if (data.bestAttackers.length) {
+    const labelY = top + height + 118;
+    svg += text.draw(w.best.toUpperCase(), { font: 'title', size: 26, x: W / 2, y: labelY, fill: T.gold, anchor: 'middle' });
+    svg += podium(
+      text,
+      t,
+      labelY + 22,
+      data.bestAttackers.map((a) => ({ name: a.name, value: w.attacker(a.stars, t.number(a.destruction, 0)) })),
+      74,
+    );
+  }
+  return svg;
+}
+
+/** A Raid Weekend: Capital Gold, districts, medals and participants, then the best raiders. */
+function raidBody(text: SvgText, t: AnnouncementTexts, data: RaidData): string {
+  const r = t.image.raid;
+  const medals = raidMedals(data);
+  const items: Tile[] = [
+    { label: r.gold, value: t.number(data.capitalGold), note: r.goldNote(t.number(data.attacks)) },
+    { label: r.districts, value: t.number(data.districts), note: r.districtsNote(data.raids) },
+    { label: r.medals, value: t.number(medals.total), note: r.medalsNote(t.number(medals.offense), t.number(medals.defense)) },
+  ];
+  if (data.participants !== null) items.push({ label: r.participants, value: String(data.participants), note: r.participantsNote });
+  const grid = tiles(text, items, CONTENT_TOP + 20);
+  if (!data.topLooters.length) return grid.svg;
+  const labelY = grid.bottom + 66;
+  return (
+    grid.svg +
+    text.draw(r.looters.toUpperCase(), { font: 'title', size: 26, x: W / 2, y: labelY, fill: T.gold, anchor: 'middle' }) +
+    podium(text, t, labelY + 22, data.topLooters.map((p) => ({ name: p.name, value: t.number(p.gold) })), 86)
+  );
 }
 
 /**

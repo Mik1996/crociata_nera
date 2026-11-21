@@ -1339,7 +1339,9 @@
         "period": "si chiude un mese, una CWL o una stagione di donazioni;",
         "record": "un clan della Crociata batte un record;",
         "league": "un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I);",
-        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo."
+        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo;",
+        "war": "finisce una guerra di un clan della Crociata;",
+        "raid": "si chiude un Raid Weekend (dopo gli encomi)."
       },
       "note": "I numeri di una bozza si aggiornano finché non la pubblichi."
     },
@@ -1364,7 +1366,9 @@
       "donations": "Donazioni",
       "record": "Record",
       "promotion": "Promozione",
-      "legendSeason": "Stagione Leggenda"
+      "legendSeason": "Stagione Leggenda",
+      "war": "Guerra",
+      "raid": "Raid Weekend"
     },
     "state": {
       "draft": "Bozza",
@@ -1400,6 +1404,12 @@
       "Legend": "Leggende",
       "Dragon": "Drago"
     },
-    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei"
+    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei",
+    "war": {
+      "win": "vittoria contro {{opponent}}",
+      "lose": "sconfitta contro {{opponent}}",
+      "tie": "pareggio contro {{opponent}}"
+    },
+    "raid": "Raid Weekend del {{day}}"
   }
 }

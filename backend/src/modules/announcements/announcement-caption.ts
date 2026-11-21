@@ -7,7 +7,10 @@ import {
   LegendSeasonData,
   MonthData,
   PromotionData,
+  RaidData,
+  raidMedals,
   RecordData,
+  WarData,
 } from './announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from './announcement-texts';
 
@@ -49,7 +52,51 @@ function captionBody(t: AnnouncementTexts, data: AnnouncementData): string {
       return promotionCaption(t, data);
     case 'legendSeason':
       return legendSeasonCaption(t, data);
+    case 'war':
+      return warCaption(t, data);
+    case 'raid':
+      return raidCaption(t, data);
   }
+}
+
+function warCaption(t: AnnouncementTexts, data: WarData): string {
+  const c = t.caption.war;
+  const lines = [
+    c.title(data.result, data.opponent.name),
+    '',
+    c.score(data.clan.stars, data.opponent.stars, percent(t, data.clan.destruction), percent(t, data.opponent.destruction)),
+    c.attacks(data.clan.attacks, data.teamSize * data.attacksPerMember),
+  ];
+  if (data.bestAttackers.length) {
+    lines.push('', `👑 ${c.best}`);
+    const medals = ['🥇', '🥈', '🥉'];
+    data.bestAttackers.forEach((a, i) => lines.push(`${medals[i]} ${c.attacker(a.name, a.stars, t.number(a.destruction, 0))}`));
+  }
+  lines.push('', c.footer);
+  return lines.join('\n');
+}
+
+/** A percentage with at most one decimal and no trailing zero: `100`, `98,7`. */
+export function percent(t: AnnouncementTexts, value: number): string {
+  return t.number(Math.round(value * 10) / 10);
+}
+
+function raidCaption(t: AnnouncementTexts, data: RaidData): string {
+  const c = t.caption.raid;
+  const lines = [
+    c.title(data.clanName, t.weekend(data.startTime)),
+    '',
+    c.gold(t.number(data.capitalGold), t.number(data.attacks)),
+    c.districts(data.districts, data.raids),
+    c.medals(t.number(raidMedals(data).total)),
+  ];
+  if (data.topLooters.length) {
+    lines.push('');
+    const medals = ['🥇', '🥈', '🥉'];
+    data.topLooters.forEach((p, i) => lines.push(`${medals[i]} **${p.name}**: ${t.number(p.gold)}`));
+  }
+  lines.push(...honourLines(t, data.honours), '', c.footer);
+  return lines.join('\n');
 }
 
 /**

@@ -72,16 +72,18 @@ export const Announcement = model(
     id: z.string().describe('Announcement id.'),
     kind: z
       .enum(ANNOUNCEMENT_KINDS)
-      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world.'),
+      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world. `war`: the result of a war. `raid`: a Raid Weekend.'),
     state: z
       .enum(ANNOUNCEMENT_STATES)
       .describe('`draft` (its figures follow the data until published), `publishing`, `published` (frozen) or `discarded`.'),
     clanTag: z.string().describe('Clan of the Crusade the announcement is about.'),
     clanName: z.string().describe('Name of the clan.'),
-    subject: z.string().describe('Period (`YYYY-MM`), record name (`perfectWars`, `warWinStreak`, `cwlLeague`, `localRank`, `localCapitalRank`, `capitalPoints`) or player tag (promotions).'),
+    subject: z.string().describe('Period (`YYYY-MM`), record name (`perfectWars`, `warWinStreak`, `cwlLeague`, `localRank`, `localCapitalRank`, `capitalPoints`), player tag (promotions), war key (wars) or start of the weekend (Raid Weekends, ISO 8601).'),
     value: z.number().nullable().describe('Records: the new value (league id for `cwlLeague`, position for the rankings); promotions: the league id; Legend seasons: the final trophies; otherwise `null`.'),
     leagueName: z.string().nullable().describe('League reached, as the API names it (records `cwlLeague` and promotions); otherwise `null`.'),
     playerName: z.string().nullable().describe('Promotions and Legend seasons: the player; otherwise `null`.'),
+    opponentName: z.string().nullable().describe('Wars: the opponent clan; otherwise `null`.'),
+    warResult: z.enum(['win', 'lose', 'tie']).nullable().describe('Wars: the result for the clan; otherwise `null`.'),
     caption: z.string().describe('Caption of the post (`**text**` is bold): the one written by an administrator, or the generated one.'),
     captionEdited: z.boolean().describe('The caption was written by an administrator.'),
     pages: z.number().int().describe('Pictures of the post (an album when more than one).'),

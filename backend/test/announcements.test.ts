@@ -11,7 +11,7 @@ import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
 import { announcementLink } from '@/modules/announcements/announcement-link';
-import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData } from '@/modules/announcements/announcement-data';
+import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
@@ -20,6 +20,8 @@ import { UserModel } from '@/modules/auth/user.model';
 import { CommendationAwardModel, CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
 import { DonationTotalModel } from '@/modules/donations/donation.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
+import { WarModel } from '@/modules/wars/war.model';
+import { renderAnnouncementImages } from '@/modules/announcements/image/announcement-image';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { EMPTY_CLAN_RECORDS, INITIAL_CLAN_RECORDS, syncOtherClanRecords } from '@/modules/records/clan-records.service';
 import { TelegramChatModel } from '@/modules/telegram/telegram-chat.model';
@@ -125,7 +127,8 @@ describe('drafts of the closed periods', () => {
     ]);
 
     const report = await syncAnnouncementDrafts(LATER);
-    expect(report.created.sort()).toEqual([`month:2026-11@${MAIN}`, `month:2026-11@${RED}`]);
+    // The Raid Weekend gets its own draft too.
+    expect(report.created.sort()).toEqual([`month:2026-11@${MAIN}`, `month:2026-11@${RED}`, `raid:2026-11-06T07:00:00.000Z@${RED}`]);
     expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
 
     const red = await AnnouncementModel.findOne({ key: `month:2026-11@${RED}` }).lean();
@@ -154,7 +157,8 @@ describe('drafts of the closed periods', () => {
     await RaidSeasonModel.updateOne({ _id: raid._id }, { $set: { state: 'ended' } });
     expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
     await closePeriod('raid:2026-11-27T07:00:00.000Z', LATER, [{ tag: '#A', name: 'Anna', type: 'capitalRaider', tier: 'gold' }]);
-    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`month:2026-11@${MAIN}`]);
+    // The month and the Raid Weekend's own draft, both with its commendations.
+    expect((await syncAnnouncementDrafts(LATER)).created.sort()).toEqual([`month:2026-11@${MAIN}`, `raid:2026-11-27T07:00:00.000Z@${MAIN}`]);
     const draft = await AnnouncementModel.findOne({ key: `month:2026-11@${MAIN}` }).lean();
     expect((draft!.data as MonthData).honours).toHaveLength(1);
   });
@@ -492,6 +496,163 @@ describe('captions', () => {
 
   it('builds the month even without wars', async () => {
     expect(await buildMonthData(MAIN, '2026-11')).toMatchObject({ wars: null, raids: null, mvp: null, honours: [] });
+  });
+});
+
+describe('drafts of the wars and Raid Weekends', () => {
+  const member = (name: string, attacks: [number, number, number?][]) => ({
+    tag: `#${name.toUpperCase()}`,
+    name,
+    townhallLevel: 17,
+    mapPosition: 1,
+    attacks: attacks.map(([stars, destructionPercentage, duration], order) => ({
+      attackerTag: '#X',
+      defenderTag: '#Y',
+      stars,
+      destructionPercentage,
+      order,
+      duration: duration ?? null,
+    })),
+  });
+
+  async function war(endTime: Date, overrides: Record<string, unknown> = {}) {
+    const key = `${endTime.toISOString().replace(/[-:]/g, '').slice(0, 15)}-OPP`;
+    await WarModel.create({
+      warKey: key,
+      clanTag: MAIN,
+      state: 'warEnded',
+      stateRank: 2,
+      teamSize: 5,
+      attacksPerMember: 2,
+      preparationStartTime: new Date(endTime.getTime() - 48 * 3600_000),
+      startTime: new Date(endTime.getTime() - 24 * 3600_000),
+      endTime,
+      result: 'win',
+      clan: {
+        tag: MAIN,
+        name: 'Crociata Nera',
+        clanLevel: 20,
+        attacks: 9,
+        stars: 14,
+        destructionPercentage: 97.66,
+        members: [
+          // Anna and Elio both take every star at 100%: Elio is faster. Fabio's times are unknown.
+          member('Anna', [[3, 100, 150], [3, 100, 140]]),
+          member('Elio', [[3, 100, 120], [3, 100, 130]]),
+          member('Fabio', [[3, 100], [3, 100]]),
+          member('Bruno', [[3, 100], [2, 80]]),
+          member('Dario', []),
+        ],
+      },
+      opponent: { tag: '#OPP', name: 'Les Gaulois ⚔️', clanLevel: 15, badgeUrl: 'https://example.com/badge.png', stars: 11, destructionPercentage: 85.2 },
+      lastSyncedAt: endTime,
+      ...overrides,
+    });
+    return key;
+  }
+
+  it('prepares a draft for each war ended after they were first looked for, with its result and best attackers', async () => {
+    await war(new Date('2026-10-30T20:00:00Z'));
+    await syncAnnouncementDrafts(T0);
+    expect(await AnnouncementModel.countDocuments({ kind: 'war' })).toBe(0);
+
+    const key = await war(new Date('2026-11-20T20:00:00Z'));
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`war:${key}@${MAIN}`]);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    const draft = await AnnouncementModel.findOne({ kind: 'war' }).lean();
+    expect(draft!.subject).toBe(key);
+    const data = draft!.data as WarData;
+    expect(data).toMatchObject({
+      result: 'win',
+      teamSize: 5,
+      clan: { stars: 14, destruction: 97.66, attacks: 9 },
+      opponent: { name: 'Les Gaulois ⚔️', tag: '#OPP', stars: 11 },
+    });
+    expect(data.bestAttackers).toEqual([
+      { name: 'Elio', stars: 6, destruction: 100, attacks: 2 },
+      { name: 'Anna', stars: 6, destruction: 100, attacks: 2 },
+      { name: 'Fabio', stars: 6, destruction: 100, attacks: 2 },
+    ]);
+
+    // Corrected by the war log while still a draft: the figures follow.
+    await WarModel.updateOne({ warKey: key }, { $set: { 'clan.stars': 15 } });
+    expect((await syncAnnouncementDrafts(LATER)).updated).toEqual([`war:${key}@${MAIN}`]);
+
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🏆 **Vittoria contro Les Gaulois ⚔️!**');
+    expect(caption).toContain('⭐ 14 stelle a 11 · 97,7% a 85,2%');
+    expect(caption).toContain('🎯 Attacchi: 9 su 10');
+    expect(caption).toContain('🥇 **Elio** 6⭐ 100%');
+    expect(caption.split('\n').at(-1)).toBe('#Guerra #CrociataNera');
+    expect(generatedCaption({ ...data, result: 'lose' }, 'en-US')).toContain('⚔️ **Defeat against Les Gaulois ⚔️**');
+
+    // Badges are read from the game's servers only: the opponent's (another host) is left out.
+    const png = await sharp({ create: { width: 8, height: 8, channels: 4, background: '#ffffff' } }).png().toBuffer();
+    const fetch = vi.fn(async () => new Response(new Uint8Array(png)));
+    vi.stubGlobal('fetch', fetch);
+    const own = 'https://api-assets.clashofclans.com/badges/512/own.png';
+    const [image] = await renderAnnouncementImages({ ...data, clan: { ...data.clan, badgeUrl: own } });
+    expect((await sharp(image!).metadata()).format).toBe('jpeg');
+    expect(fetch.mock.calls.map((call) => String((call as unknown[])[0]))).toEqual([own]);
+  }, 30_000);
+
+  it('prepares a Raid Weekend once its commendations are awarded, with totals, medals and best raiders', async () => {
+    await syncAnnouncementDrafts(T0);
+    const startTime = new Date('2026-11-13T07:00:00Z');
+    await RaidSeasonModel.create({
+      clanTag: MAIN,
+      startTime,
+      endTime: new Date('2026-11-16T07:00:00Z'),
+      state: 'ended',
+      season: {
+        capitalTotalLoot: 812345,
+        totalAttacks: 280,
+        enemyDistrictsDestroyed: 41,
+        raidsCompleted: 5,
+        offensiveReward: 1460,
+        defensiveReward: 380,
+        members: [
+          { tag: '#A', name: 'Anna', attacks: 6, capitalResourcesLooted: 30000 },
+          { tag: '#B', name: 'Bruno', attacks: 5, capitalResourcesLooted: 42000 },
+          { tag: '#C', name: 'Carla', attacks: 6, capitalResourcesLooted: 28000 },
+          { tag: '#D', name: 'Dario', attacks: 2, capitalResourcesLooted: 9000 },
+        ],
+      },
+      hasMembers: true,
+      lastSyncedAt: LATER,
+    });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await closePeriod('raid:2026-11-13T07:00:00.000Z', LATER, [{ tag: '#B', name: 'Bruno', type: 'capitalRaider', tier: 'gold' }]);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`raid:2026-11-13T07:00:00.000Z@${MAIN}`]);
+
+    const draft = await AnnouncementModel.findOne({ kind: 'raid' }).lean();
+    expect(draft!.subject).toBe('2026-11-13T07:00:00.000Z');
+    const data = draft!.data as RaidData;
+    expect(data).toMatchObject({ capitalGold: 812345, attacks: 280, districts: 41, raids: 5, offensiveReward: 1460, defensiveReward: 380, participants: 4 });
+    expect(data.topLooters.map((p) => p.name)).toEqual(['Bruno', 'Anna', 'Carla']);
+    expect(data.honours).toHaveLength(1);
+
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🏰 **Crociata Nera · Raid Weekend**\nWeekend del 13 novembre 2026');
+    expect(caption).toContain('💰 812.345 di oro della capitale in 280 attacchi');
+    // 6 attacks × 1460 + 380, as the Raid Weekend page counts them.
+    expect(caption).toContain('🏅 9.140 medaglie raid a testa');
+    expect(caption).toContain('🥇 **Bruno**: 42.000');
+    expect(caption.split('\n').at(-1)).toBe('#RaidWeekend #CrociataNera');
+    // Summary and roll of honour.
+    expect(await renderAnnouncementImages(data)).toHaveLength(2);
+  }, 30_000);
+
+  it('lead to the war and to the Raid Weekend on the site', () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
+    const base = { clanTag: MAIN, clanName: 'Crociata Nera' };
+    expect(announcementLink({ ...base, kind: 'war', warKey: '20261119T213344-JPLL8YGG' } as AnnouncementData)).toBe(
+      'https://crociatanera.it/wars/20261119T213344-JPLL8YGG',
+    );
+    expect(announcementLink({ ...base, kind: 'raid', startTime: '2026-11-13T07:00:00.000Z' } as AnnouncementData)).toBe(
+      'https://crociatanera.it/raids?weekend=2026-11-13T07%3A00%3A00.000Z',
+    );
   });
 });
 

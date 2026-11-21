@@ -70,6 +70,23 @@ describe('RaidsPage', () => {
     expect(el.querySelectorAll('crn-kpi-card')).toHaveLength(4);
   });
 
+  it('opens the weekend of the address, the latest one when it is not saved', async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([]), provideCocApiTest()] });
+    const fixture = TestBed.createComponent(RaidsPage);
+    const page = fixture.componentInstance as unknown as {
+      weekends: () => { id: string }[];
+      weekend: () => { id: string } | null;
+    };
+    await fixture.whenStable();
+    const ids = page.weekends().map((w) => w.id);
+    expect(ids.length).toBeGreaterThan(1);
+
+    fixture.componentRef.setInput('weekend', ids[1]);
+    expect(page.weekend()!.id).toBe(ids[1]);
+    fixture.componentRef.setInput('weekend', '1999-01-01T07:00:00.000Z');
+    expect(page.weekend()!.id).toBe(ids[0]);
+  });
+
   it('switching to another weekend shows its members', async () => {
     TestBed.configureTestingModule({ providers: [provideRouter([]), provideCocApiTest()] });
     const fixture = TestBed.createComponent(RaidsPage);

@@ -36,6 +36,9 @@ export interface AnnouncementView {
   leagueName: string | null;
   /** Promotions and Legend seasons: the player. */
   playerName: string | null;
+  /** Wars: the opponent and the result. */
+  opponentName: string | null;
+  warResult: 'win' | 'lose' | 'tie' | null;
   /**
    * Caption that goes with the pictures (`**text**` is bold): the one written by an administrator,
    * or the generated one in the language asked.
@@ -105,6 +108,8 @@ async function toView(doc: AnnouncementDocument, usernames: Map<number, string>,
     leagueName:
       data.kind === 'record' ? (data.leagueName ?? null) : data.kind === 'promotion' ? data.league.name : null,
     playerName: data.kind === 'promotion' || data.kind === 'legendSeason' ? data.playerName : null,
+    opponentName: data.kind === 'war' ? data.opponent.name : null,
+    warResult: data.kind === 'war' ? data.result : null,
     caption: captionOf(doc, language),
     captionEdited: doc.caption !== null,
     pages: doc.messageIds.length || (await announcementSvgs(data, language)).length,

@@ -21,6 +21,8 @@ const month: Announcement = {
   value: null,
   leagueName: null,
   playerName: null,
+  opponentName: null,
+  warResult: null,
   caption: '⚔️ **Crociata Nera · Novembre 2026**',
   captionEdited: false,
   pages: 2,
@@ -150,6 +152,29 @@ describe('TelegramAnnouncements', () => {
     expect(el.querySelector('.decided__item')!.textContent).toContain(
       'Crociata Rossa · Mik chiude la stagione Leggenda con 5.091 trofei',
     );
+  });
+
+  it('names a war with its result and opponent, a Raid Weekend with its day', async () => {
+    const war: Announcement = {
+      ...month,
+      id: 'a5',
+      kind: 'war',
+      state: 'published',
+      subject: '20261119T213344-JPLL8YGG',
+      opponentName: 'Les Gaulois',
+      warResult: 'win',
+    };
+    const raid: Announcement = {
+      ...month,
+      id: 'a6',
+      kind: 'raid',
+      state: 'published',
+      subject: '2026-11-13T07:00:00.000Z',
+    };
+    const { el } = await render([war, raid]);
+    const items = Array.from(el.querySelectorAll('.decided__item'), (i) => i.textContent);
+    expect(items.join('|')).toContain('Crociata Nera · vittoria contro Les Gaulois');
+    expect(items.join('|')).toContain('Crociata Nera · Raid Weekend del 13 novembre 2026');
   });
 
   it('asks the drafts again in the new language when the language changes', async () => {

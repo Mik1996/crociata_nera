@@ -1339,7 +1339,9 @@
         "period": "se cierra un mes, una CWL o una temporada de donaciones;",
         "record": "un clan de la Cruzada bate un récord;",
         "league": "un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I);",
-        "legend": "un jugador cierra la temporada Leyenda entre los 10.000 primeros del mundo."
+        "legend": "un jugador cierra la temporada Leyenda entre los 10.000 primeros del mundo;",
+        "war": "termina una guerra de un clan de la Cruzada;",
+        "raid": "se cierra un Raid Weekend (tras las distinciones)."
       },
       "note": "Las cifras de un borrador se actualizan hasta que lo publicas."
     },
@@ -1364,7 +1366,9 @@
       "donations": "Donaciones",
       "record": "Récord",
       "promotion": "Ascenso",
-      "legendSeason": "Temporada Leyenda"
+      "legendSeason": "Temporada Leyenda",
+      "war": "Guerra",
+      "raid": "Raid Weekend"
     },
     "state": {
       "draft": "Borrador",
@@ -1400,6 +1404,12 @@
       "Legend": "Leyenda",
       "Dragon": "Dragón"
     },
-    "legendSeason": "{{player}} cierra la temporada Leyenda con {{trophies}} trofeos"
+    "legendSeason": "{{player}} cierra la temporada Leyenda con {{trophies}} trofeos",
+    "war": {
+      "win": "victoria contra {{opponent}}",
+      "lose": "derrota contra {{opponent}}",
+      "tie": "empate contra {{opponent}}"
+    },
+    "raid": "Raid Weekend del {{day}}"
   }
 }
