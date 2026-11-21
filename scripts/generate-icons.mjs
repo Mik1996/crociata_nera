@@ -87,6 +87,7 @@ const NAMES = [
   'search_off',
   'send',
   'settings',
+  'share',
   'shield',
   'speed',
   'sports_esports',

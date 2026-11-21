@@ -1096,6 +1096,10 @@
   "pdf": {
     "download": "Scarica PDF",
     "downloading": "Creo il PDF…",
+    "share": "Condividi",
+    "sharing": "Creo il PDF…",
+    "ready": "PDF pronto",
+    "shareError": "Non è stato possibile condividere il PDF.",
     "error": "Non è stato possibile creare il PDF. Riprova.",
     "generatedAt": "Generato il {{date}}",
     "page": "Pagina {{n}} di {{total}}",

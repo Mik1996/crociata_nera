@@ -2,9 +2,22 @@
   mat-stroked-button
   type="button"
   [disabled]="!pdf() || busy()"
-  [attr.aria-busy]="busy()"
+  [attr.aria-busy]="busy() === 'download'"
   (click)="download()"
 >
   <crn-icon matButtonIcon name="download" />
-  {{ (busy() ? 'pdf.downloading' : 'pdf.download') | translate }}
+  {{ (busy() === 'download' ? 'pdf.downloading' : 'pdf.download') | translate }}
 </button>
+@if (canShare) {
+  <button
+    mat-stroked-button
+    type="button"
+    class="share"
+    [disabled]="!pdf() || busy()"
+    [attr.aria-busy]="busy() === 'share'"
+    (click)="share()"
+  >
+    <crn-icon matButtonIcon name="share" />
+    {{ (busy() === 'share' ? 'pdf.sharing' : 'pdf.share') | translate }}
+  </button>
+}
