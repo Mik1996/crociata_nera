@@ -10,7 +10,8 @@ import { UserRole } from '@/lib/auth/user-role';
 import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
-import { buildCwlData, buildMonthData, MonthData, PromotionData } from '@/modules/announcements/announcement-data';
+import { announcementLink } from '@/modules/announcements/announcement-link';
+import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
@@ -91,6 +92,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  delete process.env.APP_URL;
   delete process.env.TELEGRAM_BOT_TOKEN;
   delete process.env.TELEGRAM_API_BASE_URL;
   resetEnvCache();
@@ -400,6 +402,40 @@ describe('records of the other clans', () => {
 });
 
 describe('captions', () => {
+  it('end with the hashtags of the kind and the clan, in the language', () => {
+    const data = { kind: 'cwl', clanTag: '#2RRYUGQYJ', clanName: "Crociata d'Oro", season: '2026-11', rank: 1, clans: 8, wins: 7, draws: 0, losses: 0, stars: 250, bestAttackers: null, honours: [] } as unknown as AnnouncementData;
+    expect(generatedCaption(data).split('\n').at(-1)).toBe('#CWL #CrociataDOro');
+    const month = { ...data, kind: 'month', month: '2026-10', wars: null, raids: null, mvp: null, clanTag: MAIN, clanName: 'Crociata Nera' } as unknown as AnnouncementData;
+    expect(generatedCaption(month, 'it-IT').split('\n').at(-1)).toBe('#Resoconto #CrociataNera');
+    expect(generatedCaption(month, 'en-US').split('\n').at(-1)).toBe('#Recap #CrociataNera');
+    expect(generatedCaption(month, 'es-ES').split('\n').at(-1)).toBe('#Resumen #CrociataNera');
+  });
+
+  it('link the name of the site to the page of the announcement', () => {
+    expect(captionToHtml('Tutto su crociatanera.it', 'https://crociatanera.it/cwl?season=2026-11&x="y"')).toBe(
+      'Tutto su <a href="https://crociatanera.it/cwl?season=2026-11&amp;x=&quot;y&quot;">crociatanera.it</a>',
+    );
+    expect(captionToHtml('Tutto su crociatanera.it', null)).toBe('Tutto su crociatanera.it');
+  });
+
+  it('lead to the page of the main clan the announcement tells about, the welcome page for the others', () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
+    const of = (data: object) => announcementLink({ clanTag: MAIN, clanName: 'Crociata Nera', ...data } as AnnouncementData);
+    expect(of({ kind: 'month', month: '2026-10' })).toBe('https://crociatanera.it/statistics?period=2026-10');
+    expect(of({ kind: 'cwl', season: '2026-11' })).toBe('https://crociatanera.it/cwl?season=2026-11');
+    expect(of({ kind: 'donations', season: '2026-11' })).toBe('https://crociatanera.it/players');
+    expect(of({ kind: 'record', record: 'localRank' })).toBe('https://crociatanera.it/');
+    expect(of({ kind: 'promotion', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'legendSeason', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'month', month: '2026-10', clanTag: '#2JU8RPR2G' })).toBe('https://crociatanera.it/');
+
+    // Telegram refuses buttons to other addresses than https (development).
+    delete process.env.APP_URL;
+    resetEnvCache();
+    expect(of({ kind: 'month', month: '2026-10' })).toBeNull();
+  });
+
   it('turns **text** into bold and escapes the rest', () => {
     expect(captionToHtml('**Anna <3** & co')).toBe('<b>Anna &lt;3</b> &amp; co');
     expect(captionLength('**ab** c')).toBe(4);
@@ -532,7 +568,9 @@ describe('administration', () => {
     expect(res.body.messages[0]!.key).toBe('ERROR.TELEGRAM_NO_ANNOUNCEMENTS_CHAT');
   });
 
-  it('publishes an album with the caption in HTML, once', async () => {
+  it('publishes an album with the caption in HTML, once (no button: Telegram allows none on albums)', async () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
     const telegram = mockTelegramApi({ sendMediaGroup: () => ({ result: [{ message_id: 41 }, { message_id: 42 }] }) });
     const id = await draft();
     await announcementsChannel();
@@ -550,6 +588,7 @@ describe('administration', () => {
       { type: 'photo', media: 'attach://page1' },
     ]);
     expect(sent!.params['page1']).toBeInstanceOf(Blob);
+    expect(sent!.params['reply_markup']).toBeUndefined();
     expect((await AnnouncementModel.findById(id).lean())!.messageIds).toEqual([41, 42]);
 
     const again = await call(publish, { token: admin, params: { id } });
@@ -557,7 +596,9 @@ describe('administration', () => {
     expect(again.body.messages[0]!.key).toBe('ERROR.ANNOUNCEMENT_NOT_DRAFT');
   }, 30_000);
 
-  it('publishes a single picture with sendPhoto, and settles the record', async () => {
+  it('publishes a single picture with sendPhoto and the button to the site, and settles the record', async () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
     const telegram = mockTelegramApi();
     await records(MAIN);
     await syncAnnouncementDrafts(T0);
@@ -569,6 +610,10 @@ describe('administration', () => {
     expect(res.status).toBe(200);
     expect(telegram.of('sendPhoto')).toHaveLength(1);
     expect(String(telegram.of('sendPhoto')[0]!.params['caption'])).toContain('<b>20° posto</b>');
+    expect(String(telegram.of('sendPhoto')[0]!.params['caption'])).toContain('<a href="https://crociatanera.it/">crociatanera.it</a>');
+    expect(JSON.parse(String(telegram.of('sendPhoto')[0]!.params['reply_markup']))).toEqual({
+      inline_keyboard: [[{ text: '🌐 Apri sul sito', url: 'https://crociatanera.it/' }]],
+    });
     const baseline = await AnnouncementBaselineModel.findOne({ clanTag: MAIN }).lean();
     expect((baseline!.records as Record<string, number>)['localRank']).toBe(20);
   });

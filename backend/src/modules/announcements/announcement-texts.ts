@@ -1,5 +1,6 @@
 import { CommendationTier, CommendationType } from '@/modules/commendations/commendation-rules';
 import type { RecordName } from './announcement-data';
+import type { AnnouncementKind } from './announcement.model';
 
 /**
  * Words of the announcements (captions and pictures) in the languages of the site: they follow the
@@ -82,6 +83,10 @@ export interface AnnouncementTexts {
     };
     honours: string;
     andOthers(n: number): string;
+    /** Label of the button that opens the page of the announcement on the site. */
+    openSite: string;
+    /** Hashtag of each kind of announcement (without `#`), to find them in the channel. */
+    hashtags: Readonly<Record<AnnouncementKind, string>>;
   };
 
   image: {
@@ -270,6 +275,15 @@ const ITALIAN: AnnouncementTexts = {
     },
     honours: 'Encomi',
     andOthers: (n) => ` e altri ${n}`,
+    openSite: '🌐 Apri sul sito',
+    hashtags: {
+      month: 'Resoconto',
+      cwl: 'CWL',
+      donations: 'Donazioni',
+      record: 'Record',
+      promotion: 'Promozione',
+      legendSeason: 'Leggende',
+    },
   },
   image: {
     month: {
@@ -433,6 +447,15 @@ const ENGLISH: AnnouncementTexts = {
     },
     honours: 'Commendations',
     andOthers: (n) => ` and ${n} more`,
+    openSite: '🌐 Open on the site',
+    hashtags: {
+      month: 'Recap',
+      cwl: 'CWL',
+      donations: 'Donations',
+      record: 'Record',
+      promotion: 'Promotion',
+      legendSeason: 'Legends',
+    },
   },
   image: {
     month: {
@@ -597,6 +620,15 @@ const SPANISH: AnnouncementTexts = {
     },
     honours: 'Encomios',
     andOthers: (n) => ` y ${n} más`,
+    openSite: '🌐 Abrir en el sitio',
+    hashtags: {
+      month: 'Resumen',
+      cwl: 'CWL',
+      donations: 'Donaciones',
+      record: 'Récord',
+      promotion: 'Ascenso',
+      legendSeason: 'Leyendas',
+    },
   },
   image: {
     month: {

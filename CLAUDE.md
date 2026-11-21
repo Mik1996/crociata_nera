@@ -199,7 +199,11 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   season in Legend League I among the first 10,000 of the world, from `modules/legends/`), published or
   discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
-  a post goes out in it; a published one keeps its `language`. Pictures are
+  a post goes out in it; a published one keeps its `language`. Captions end with hashtags (kind and clan,
+  base posts `#TH17`); `announcementLink` gives the page of the site an announcement leads to (main clan:
+  `/statistics?period=`, `/cwl?season=`, `/players/{tag}`…; sister clans: `/`; none without an `https` `APP_URL`):
+  the "crociatanera.it" of the caption links it, and a single picture gets an "Open on the site" button
+  (albums cannot have buttons). Pictures are
   SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
   turned into paths with opentype.js (its own text layout and `toPathData` are broken, glyphs are placed
   by hand); what those fonts lack in names (emoji, other scripts) is drawn by Pango through `sharp` with

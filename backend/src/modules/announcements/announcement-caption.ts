@@ -26,9 +26,16 @@ const TOP_LEAGUE = 105000036;
 /** Legend League III and up. */
 const LEGEND_LEAGUES = 105000034;
 
-/** The caption of an announcement in a language (Italian, the channel's, by default). */
+/**
+ * The caption of an announcement in a language (Italian, the channel's, by default), ending with
+ * its hashtags.
+ */
 export function generatedCaption(data: AnnouncementData, language?: AnnouncementLanguage): string {
   const t = announcementTexts(language);
+  return `${captionBody(t, data)}\n\n${hashtags(t, data)}`;
+}
+
+function captionBody(t: AnnouncementTexts, data: AnnouncementData): string {
   switch (data.kind) {
     case 'month':
       return monthCaption(t, data);
@@ -43,6 +50,23 @@ export function generatedCaption(data: AnnouncementData, language?: Announcement
     case 'legendSeason':
       return legendSeasonCaption(t, data);
   }
+}
+
+/**
+ * Hashtags of an announcement: its kind and its clan (`#CWL #CrociataNera`), so the members find
+ * them with the search of the channel.
+ */
+export function hashtags(t: AnnouncementTexts, data: AnnouncementData): string {
+  return `#${t.caption.hashtags[data.kind]} #${hashtagOf(data.clanName)}`;
+}
+
+/** A name as a hashtag: words joined, each with a capital (`Crociata d'Oro` -> `CrociataDOro`). */
+function hashtagOf(name: string): string {
+  return name
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .map((word) => word[0]!.toUpperCase() + word.slice(1))
+    .join('');
 }
 
 /** Flag emoji of a country (`IT` -> 🇮🇹). */
@@ -168,7 +192,14 @@ export function fitCaption(caption: string): string {
   return `${chars.join('')}…`;
 }
 
-/** Caption as Telegram HTML: text escaped, `**text**` in bold. */
-export function captionToHtml(caption: string): string {
-  return escapeHtml(caption).replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>');
+/** Name of the site in the captions: a link to the page of the announcement when one is given. */
+const SITE_NAME = /crociatanera\.it/gi;
+
+/**
+ * Caption as Telegram HTML: text escaped, `**text**` in bold, the name of the site a link to `link`
+ * (the page of the announcement).
+ */
+export function captionToHtml(caption: string, link?: string | null): string {
+  const html = escapeHtml(caption).replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>');
+  return link ? html.replace(SITE_NAME, (name) => `<a href="${escapeHtml(link).replace(/"/g, '&quot;')}">${name}</a>`) : html;
 }

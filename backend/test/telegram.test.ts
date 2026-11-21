@@ -117,13 +117,14 @@ describe('caption of a base post', () => {
         '🛡️ Castello del clan: 2× Ice Golem, 1× Witch',
         '📝 Anti &lt;root&gt; rider &amp; co.',
         '👤 Proposta da <b>Mario &lt;3</b>',
+        '#TH18',
       ].join('\n\n'),
     );
   });
 
   it('leaves out the lines without content', () => {
     expect(basePostCaption({ townHallLevel: 17, clanCastleTroops: [], description: '  ', authorName: null })).toBe(
-      '🏰 <b>Base TH17</b>',
+      '🏰 <b>Base TH17</b>\n\n#TH17',
     );
   });
 
@@ -136,7 +137,7 @@ describe('caption of a base post', () => {
     });
     const text = caption.replace(/<\/?b>/g, '');
     expect(text.length).toBe(TELEGRAM_CAPTION_LIMIT);
-    expect(text).toContain('x...\n\n👤 Proposta da Mario');
+    expect(text).toContain('x...\n\n👤 Proposta da Mario\n\n#TH18');
   });
 });
 
@@ -188,7 +189,7 @@ describe('posts of the bases', () => {
     expect(sent!.params).toMatchObject({
       chat_id: String(TH18_CHANNEL),
       parse_mode: 'HTML',
-      caption: '🏰 <b>Base TH18</b>\n\n🛡️ Castello del clan: 1× Ice Golem\n\n📝 Anti air\n\n👤 Proposta da <b>Boss</b>',
+      caption: '🏰 <b>Base TH18</b>\n\n🛡️ Castello del clan: 1× Ice Golem\n\n📝 Anti air\n\n👤 Proposta da <b>Boss</b>\n\n#TH18',
     });
     expect(JSON.parse(sent!.params.reply_markup as string)).toEqual({
       inline_keyboard: [[{ text: '📋 Copia la base', url: link(18) }]],
@@ -235,7 +236,7 @@ describe('posts of the bases', () => {
     await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ description: 'New text' }) });
     await requestBasePostSync();
     expect(telegram.calls.map((c) => c.method)).toEqual(['editMessageCaption']);
-    expect(telegram.calls[0]!.params).toMatchObject({ chat_id: TH18_CHANNEL, message_id: 100, caption: '🏰 <b>Base TH18</b>\n\n📝 New text' });
+    expect(telegram.calls[0]!.params).toMatchObject({ chat_id: TH18_CHANNEL, message_id: 100, caption: '🏰 <b>Base TH18</b>\n\n📝 New text\n\n#TH18' });
 
     telegram.reset();
     await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ image: await png({ r: 200, g: 10, b: 10 }) }) });
@@ -274,7 +275,7 @@ describe('posts of the bases', () => {
     await BaseImageModel.updateOne({ key: imageKey, variant: 'full' }, { $set: { data: Buffer.from('not an image') } });
 
     await requestBasePostSync();
-    expect(telegram.of('sendPhoto').map((c) => c.params.caption)).toEqual(['🏰 <b>Base TH18</b>', '🏰 <b>Base TH18</b>']);
+    expect(telegram.of('sendPhoto').map((c) => c.params.caption)).toEqual(['🏰 <b>Base TH18</b>\n\n#TH18', '🏰 <b>Base TH18</b>\n\n#TH18']);
     expect(await postOf(old)).toMatchObject({ status: BasePostStatus.SENT });
     expect(await postOf(broken)).toMatchObject({ status: BasePostStatus.FAILED });
     expect(await postOf(last)).toMatchObject({ status: BasePostStatus.SENT });
@@ -383,13 +384,13 @@ describe('posts of the bases', () => {
 
     await call(approve, { token: admin, params: { id } });
     await requestBasePostSync();
-    expect(telegram.of('sendPhoto')[0]!.params.caption).toBe('🏰 <b>Base TH18</b>\n\n👤 Proposta da <b>Mario</b>');
+    expect(telegram.of('sendPhoto')[0]!.params.caption).toBe('🏰 <b>Base TH18</b>\n\n👤 Proposta da <b>Mario</b>\n\n#TH18');
 
     // The player changes name: the post keeps the name it was published with.
     await PlayerModel.updateOne({ tag: '#MMARIO' }, { $set: { name: 'Mario the Great' } });
     await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ description: 'Good' }) });
     await requestBasePostSync();
-    expect(telegram.of('editMessageCaption')[0]!.params.caption).toBe('🏰 <b>Base TH18</b>\n\n📝 Good\n\n👤 Proposta da <b>Mario</b>');
+    expect(telegram.of('editMessageCaption')[0]!.params.caption).toBe('🏰 <b>Base TH18</b>\n\n📝 Good\n\n👤 Proposta da <b>Mario</b>\n\n#TH18');
   });
 
   it('tells the moderation where each proposal goes on Telegram, and how its post stands', async () => {

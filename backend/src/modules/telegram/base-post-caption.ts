@@ -33,7 +33,8 @@ interface Line {
 }
 
 /**
- * Caption (HTML) of the post of a base. Lines without content are left out. If the whole caption
+ * Caption (HTML) of the post of a base, ending with the hashtag of its town hall (`#TH17`). Lines
+ * without content are left out. If the whole caption
  * is longer than Telegram accepts, the description is cut and ends with "...".
  */
 export function basePostCaption({ townHallLevel, clanCastleTroops, description, authorName }: BasePostContent): string {
@@ -41,6 +42,8 @@ export function basePostCaption({ townHallLevel, clanCastleTroops, description, 
   const head: Line[] = [plainLine('🏰 ', `Base TH${townHallLevel}`, true)];
   if (troops) head.push(plainLine('🛡️ Castello del clan: ', troops));
   const tail: Line[] = authorName ? [plainLine('👤 Proposta da ', authorName, true)] : [];
+  // Hashtag of the town hall, to find its bases with the search of the channel.
+  tail.push(plainLine('', `#TH${townHallLevel}`));
 
   const text = description.trim();
   if (text) {
