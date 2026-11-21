@@ -144,7 +144,11 @@
     "averageStarsPerAttack": "Ordenar por media de estrellas por ataque",
     "starsConceded": "Ordenar por estrellas concedidas en defensa",
     "league": "Ordenar por liga",
-    "verified": "Ordenar por email verificado"
+    "verified": "Ordenar por email verificado",
+    "defenses": "Ordenar por ataques recibidos",
+    "averageStarsConceded": "Ordenar por media de estrellas recibidas",
+    "threeStarsConcededRate": "Ordenar por porcentaje de 3 estrellas recibidas",
+    "averageDestructionConceded": "Ordenar por destrucción media recibida"
   },
   "paginator": {
     "itemsPerPage": "Filas por página:",
@@ -282,7 +286,11 @@
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Destr. %",
-    "league": "Liga"
+    "league": "Liga",
+    "defenses": "Defensas",
+    "averageStarsConceded": "Media ★ recibidas",
+    "threeStarsConcededRate": "3★ recibidas %",
+    "destructionConceded": "Destr. recibida %"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Ayuntamiento {{th}}",

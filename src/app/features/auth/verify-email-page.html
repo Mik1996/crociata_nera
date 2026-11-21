@@ -1,4 +1,4 @@
-<crn-auth-panel [heading]="'auth.verify.title' | translate">
+<crn-auth-panel pose="fist" sidePose="oath" [heading]="'auth.verify.title' | translate">
   @if (!token()) {
     <crn-alert class="auth-form__message" icon="link_off">
       <p>{{ 'ERROR.INVALID_OR_EXPIRED_VERIFY_TOKEN' | translate }}</p>

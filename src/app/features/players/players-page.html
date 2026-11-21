@@ -229,6 +229,60 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="defenses">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.defenses' | translate"
+            >
+              {{ 'players.defenses' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">{{ m.defenses }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="averageStarsConceded">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.averageStarsConceded' | translate"
+            >
+              <crn-star-text [text]="'players.averageStarsConceded' | translate" />
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              <strong>{{ m.averageStarsConceded | localNumber: '1.2-2' }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="threeStarsConcededRate">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.threeStarsConcededRate' | translate"
+            >
+              <crn-star-text [text]="'players.threeStarsConcededRate' | translate" />
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              {{ m.threeStarsConcededRate | localNumber: '1.0-1' }}%
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="averageDestructionConceded">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [sortActionDescription]="'sort.averageDestructionConceded' | translate"
+            >
+              {{ 'players.destructionConceded' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let m" class="cn-num">
+              {{ m.averageDestructionConceded | localNumber: '1.0-1' }}%
+            </td>
+          </ng-container>
+
           <tr
             mat-row
             *matRowDef="let m; columns: columns"

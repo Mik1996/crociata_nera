@@ -80,11 +80,28 @@ describe('war-stats', () => {
       expect(s.history.map((p) => p.warId)).toEqual(['g0', 'g1']);
     });
 
+    it("adds up the opponents' attacks against the player's base", () => {
+      const tripled = sampleWar({
+        id: 'g3',
+        opponent: {
+          ...sampleWar().opponent,
+          members: [participant('#X', 1, [attack('#X', '#A', 3, 100), attack('#X', '#B', 1, 45)])],
+        },
+      });
+      const s = computePlayerStats(member('#A'), [recent, tripled]);
+      expect(s.defenses).toBe(2);
+      expect(s.averageStarsConceded).toBe(2.5);
+      expect(s.threeStarsConcededRate).toBe(50);
+      expect(s.averageDestructionConceded).toBe(85);
+    });
+
     it('handles a player without wars', () => {
       const s = computePlayerStats(member('#NEW'), [recent]);
       expect(s.warsPlayed).toBe(0);
       expect(s.averageStars).toBe(0);
       expect(s.attendance).toBe(0);
+      expect(s.defenses).toBe(0);
+      expect(s.averageStarsConceded).toBe(0);
       expect(efficiency(s)).toBe(0);
     });
   });

@@ -36,6 +36,14 @@ export interface PlayerStats {
   /** Percentage of 3-star attacks out of all attacks used. */
   threeStarRate: number;
   averageDestruction: number;
+  /** Attacks received from the opponents. */
+  defenses: number;
+  /** Stars conceded per attack received. */
+  averageStarsConceded: number;
+  /** Percentage of 3-star attacks out of the attacks received. */
+  threeStarsConcededRate: number;
+  /** Average destruction of the attacks received. */
+  averageDestructionConceded: number;
   /** Chronological history (from the oldest war to the most recent). */
   history: WarPerformance[];
 }

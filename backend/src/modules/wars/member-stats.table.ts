@@ -55,6 +55,14 @@ export interface MemberStatsRow {
   /** 3-star attacks out of the attacks used (%). */
   threeStarRate: number;
   averageDestruction: number;
+  /** Attacks received from the opponents. */
+  defenses: number;
+  /** Stars conceded per attack received, 2 decimals. */
+  averageStarsConceded: number;
+  /** Attacks received with 3 stars, out of the attacks received (%). */
+  threeStarsConcededRate: number;
+  /** Average destruction of the attacks received (%). */
+  averageDestructionConceded: number;
 }
 
 /** Averages over the matching members, for the footer of the table. */
@@ -68,6 +76,10 @@ export interface MemberStatsAverages {
   averageStars: number;
   threeStarRate: number;
   averageDestruction: number;
+  defenses: number;
+  averageStarsConceded: number;
+  threeStarsConcededRate: number;
+  averageDestructionConceded: number;
 }
 
 export interface MemberStatsSummary {
@@ -113,6 +125,10 @@ export const MEMBER_STATS_TABLE = defineTable<MemberStatsRow>(
     averageStars: { label: 'average stars per attack', filter: 'number', sort: true },
     threeStarRate: { label: '3-star attacks (%)', filter: 'number', sort: true },
     averageDestruction: { label: 'average destruction (%)', filter: 'number', sort: true },
+    defenses: { label: 'attacks received', filter: 'number', sort: true },
+    averageStarsConceded: { label: 'average stars conceded per attack received', filter: 'number', sort: true },
+    threeStarsConcededRate: { label: '3-star attacks received (%)', filter: 'number', sort: true },
+    averageDestructionConceded: { label: 'average destruction (%) of the attacks received', filter: 'number', sort: true },
   },
   { sort: 'league', order: 'desc' },
 );
@@ -228,6 +244,8 @@ export function playerWars(tag: string, wars: War[]): PlayerWarRow[] {
 function memberStats(member: ClanMember, wars: War[]): MemberStatsRow {
   const played = playerWars(member.tag, wars);
   const attacks = wars.flatMap((w) => w.clan.members.filter((m) => m.tag === member.tag)).flatMap((m) => m.attacks);
+  // Defenses: the opponents' attacks against the player's base.
+  const received = wars.flatMap((w) => w.opponent.members.flatMap((m) => m.attacks)).filter((a) => a.defenderTag === member.tag);
   return {
     ...member,
     warsPlayed: played.length,
@@ -239,6 +257,10 @@ function memberStats(member: ClanMember, wars: War[]): MemberStatsRow {
     averageStars: round(average(attacks.map((a) => a.stars)), 2),
     threeStarRate: percentage(attacks.filter((a) => a.stars === 3).length, attacks.length),
     averageDestruction: round(average(attacks.map((a) => a.destructionPercentage))),
+    defenses: received.length,
+    averageStarsConceded: round(average(received.map((a) => a.stars)), 2),
+    threeStarsConcededRate: percentage(received.filter((a) => a.stars === 3).length, received.length),
+    averageDestructionConceded: round(average(received.map((a) => a.destructionPercentage))),
   };
 }
 
@@ -255,6 +277,10 @@ function averages(rows: MemberStatsRow[]): MemberStatsAverages | null {
     averageStars: mean('averageStars'),
     threeStarRate: mean('threeStarRate'),
     averageDestruction: mean('averageDestruction'),
+    defenses: mean('defenses'),
+    averageStarsConceded: mean('averageStarsConceded'),
+    threeStarsConcededRate: mean('threeStarsConcededRate'),
+    averageDestructionConceded: mean('averageDestructionConceded'),
   };
 }
 

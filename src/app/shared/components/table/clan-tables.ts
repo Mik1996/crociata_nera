@@ -66,6 +66,10 @@ export function memberStatsFilters(
     averageStars: { type: 'number' },
     threeStarRate: { type: 'number' },
     averageDestruction: { type: 'number' },
+    defenses: { type: 'number' },
+    averageStarsConceded: { type: 'number' },
+    threeStarsConcededRate: { type: 'number' },
+    averageDestructionConceded: { type: 'number' },
   };
 }
 

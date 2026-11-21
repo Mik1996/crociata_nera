@@ -54,6 +54,10 @@ export type MemberStatsAverages = Pick<
   | 'averageStars'
   | 'threeStarRate'
   | 'averageDestruction'
+  | 'defenses'
+  | 'averageStarsConceded'
+  | 'threeStarsConcededRate'
+  | 'averageDestructionConceded'
 >;
 
 export interface MemberStatsSummary {

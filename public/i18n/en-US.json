@@ -144,7 +144,11 @@
     "averageStarsPerAttack": "Sort by average stars per attack",
     "starsConceded": "Sort by stars conceded on defense",
     "league": "Sort by league",
-    "verified": "Sort by verified email"
+    "verified": "Sort by verified email",
+    "defenses": "Sort by attacks received",
+    "averageStarsConceded": "Sort by average stars conceded",
+    "threeStarsConcededRate": "Sort by 3-star attacks received percentage",
+    "averageDestructionConceded": "Sort by average destruction conceded"
   },
   "paginator": {
     "itemsPerPage": "Rows per page:",
@@ -282,7 +286,11 @@
     "averageStars": "Avg. ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Destr. %",
-    "league": "League"
+    "league": "League",
+    "defenses": "Defenses",
+    "averageStarsConceded": "Avg. ★ conceded",
+    "threeStarsConcededRate": "3★ conceded %",
+    "destructionConceded": "Destr. conceded %"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Town Hall {{th}}",

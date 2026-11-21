@@ -119,6 +119,10 @@ const MemberStatsRow = model(
     averageStars: z.number().min(0).describe('Stars per attack made, 2 decimals.'),
     threeStarRate: percentage('Attacks with 3 stars, % of the attacks made.'),
     averageDestruction: percentage('Average destruction per attack, 0–100.'),
+    defenses: count('Attacks received from the opponents.'),
+    averageStarsConceded: z.number().min(0).describe('Stars conceded per attack received, 2 decimals.'),
+    threeStarsConcededRate: percentage('Attacks received with 3 stars, % of the attacks received.'),
+    averageDestructionConceded: percentage('Average destruction per attack received, 0–100.'),
   }),
 );
 
@@ -147,6 +151,10 @@ export const MemberStatsPage = model(
             averageStars: average('stars per attack'),
             threeStarRate: average('3-star rate (%)'),
             averageDestruction: average('destruction (%)'),
+            defenses: average('attacks received'),
+            averageStarsConceded: average('stars conceded per attack received'),
+            threeStarsConcededRate: average('3-star rate of the attacks received (%)'),
+            averageDestructionConceded: average('destruction conceded (%)'),
           })
           .nullable()
           .describe('Averages over every matching member (all pages); `null` when none matches.'),
