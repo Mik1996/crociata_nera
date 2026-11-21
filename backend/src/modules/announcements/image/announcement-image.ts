@@ -109,6 +109,8 @@ interface Header {
 /** Draws the pages of an announcement (SVG), in a language (Italian, the channel's, by default). */
 export async function announcementSvgs(data: AnnouncementData, language?: AnnouncementLanguage): Promise<string[]> {
   const text = await SvgText.create();
+  // Names may hold emoji or other scripts: their pieces are drawn ahead by Pango.
+  await text.prepare(textsOf(data));
   const t = announcementTexts(language);
   const h = t.image.honours;
   const crest = await picture(CREST_OF[data.clanTag] ?? DEFAULT_CREST, 300);
@@ -143,6 +145,14 @@ export async function announcementSvgs(data: AnnouncementData, language?: Announ
     case 'legendSeason':
       return [await legendSeasonPage(text, t, crest, data)];
   }
+}
+
+/** Every text in the figures of an announcement (names of players and clans). */
+function textsOf(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(textsOf);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(textsOf);
+  return [];
 }
 
 const pageSubtitle = (label: string, n: number) => (n > 1 ? `${label} · ${n}` : label);

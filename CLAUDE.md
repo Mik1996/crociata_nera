@@ -201,8 +201,10 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
   a post goes out in it; a published one keeps its `language`. Pictures are
   SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
-  turned into paths with opentype.js (no system fonts in the image; its own text layout and
-  `toPathData` are broken, glyphs are placed by hand), files of `public/` read via `readSiteAsset`
+  turned into paths with opentype.js (its own text layout and `toPathData` are broken, glyphs are placed
+  by hand); what those fonts lack in names (emoji, other scripts) is drawn by Pango through `sharp` with
+  the system's Noto fonts (installed in `deploy/backend.Dockerfile`) as pictures, prepared ahead
+  (`SvgText.prepare`), files of `public/` read via `readSiteAsset`
   (copied to `/app/site-assets` by `deploy/backend.Dockerfile`). Only periods closed after a clan was
   first seen get drafts (`AnnouncementBaselines`). Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one

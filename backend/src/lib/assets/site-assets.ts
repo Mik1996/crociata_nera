@@ -21,11 +21,16 @@ function publicRoot(): string {
 
 const cache = new Map<string, Promise<Buffer>>();
 
+/** Path on disk of a file of `public/`, for libraries that read files themselves (fonts of `sharp`). */
+export function siteAssetPath(relativePath: string): string {
+  return path.join(/*turbopackIgnore: true*/ publicRoot(), relativePath);
+}
+
 /** A file of `public/` (`commendations/donor-gold.svg`), read once and kept in memory. */
 export function readSiteAsset(relativePath: string): Promise<Buffer> {
   let file = cache.get(relativePath);
   if (!file) {
-    file = readFile(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ publicRoot(), relativePath));
+    file = readFile(/*turbopackIgnore: true*/ siteAssetPath(relativePath));
     // A missing file is not cached: it may be deployed later.
     file.catch(() => cache.delete(relativePath));
     cache.set(relativePath, file);
