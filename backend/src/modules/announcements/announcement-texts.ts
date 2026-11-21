@@ -201,7 +201,7 @@ const ITALIAN: AnnouncementTexts = {
   },
   month: months('it-IT'),
   number: numbers('it-IT'),
-  place: (value) => `${value}°`,
+  place: (value) => `${numbers('it-IT')(value)}°`,
   league: leagues(
     {
       Skeleton: 'Scheletro',
@@ -365,7 +365,7 @@ const ENGLISH: AnnouncementTexts = {
   },
   month: months('en-US'),
   number: numbers('en-US'),
-  place: (value) => `#${value}`,
+  place: (value) => `#${numbers('en-US')(value)}`,
   league: leagues(
     {
       Skeleton: 'Skeleton',
@@ -528,7 +528,7 @@ const SPANISH: AnnouncementTexts = {
   },
   month: months('es-ES'),
   number: numbers('es-ES'),
-  place: (value) => `${value}.º`,
+  place: (value) => `${numbers('es-ES')(value)}.º`,
   league: leagues(
     {
       Skeleton: 'Esqueleto',
