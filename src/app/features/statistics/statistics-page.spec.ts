@@ -45,6 +45,16 @@ describe('StatisticsPage', () => {
     expect(filtered).toBeLessThan(all);
   });
 
+  it('opens the month of the address', async () => {
+    configure();
+    const fixture = TestBed.createComponent(StatisticsPage);
+    const page = fixture.componentInstance as unknown as { period: () => string };
+    fixture.componentRef.setInput('period', '2026-10');
+    expect(page.period()).toBe('2026-10');
+    fixture.componentRef.setInput('period', 'nonsense');
+    expect(page.period()).not.toBe('nonsense');
+  });
+
   it('lists the months in the period selector', async () => {
     configure();
     const el = (await render()).nativeElement as HTMLElement;

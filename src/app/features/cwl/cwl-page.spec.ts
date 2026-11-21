@@ -16,4 +16,24 @@ describe('CwlPage', () => {
     expect(el.querySelectorAll('.players tr.mat-mdc-row').length).toBeGreaterThanOrEqual(15);
     expect(el.querySelector('mat-select')).not.toBeNull();
   });
+
+  it('opens the season of the address, the latest one when the clan did not play it', async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([]), provideCocApiTest()] });
+    const fixture = TestBed.createComponent(CwlPage);
+    const page = fixture.componentInstance as unknown as {
+      seasonList: () => { season: string }[];
+      selected: () => string | undefined;
+    };
+    await fixture.whenStable();
+    const seasons = page.seasonList().map((s) => s.season);
+    expect(seasons.length).toBeGreaterThan(1);
+
+    fixture.componentRef.setInput('season', seasons[1]);
+    await fixture.whenStable();
+    expect(page.selected()).toBe(seasons[1]);
+
+    fixture.componentRef.setInput('season', '1999-01');
+    await fixture.whenStable();
+    expect(page.selected()).toBe(seasons[0]);
+  });
 });
