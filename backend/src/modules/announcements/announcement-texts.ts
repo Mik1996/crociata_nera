@@ -89,8 +89,8 @@ export interface AnnouncementTexts {
       score(stars: number, opponentStars: number, destruction: string, opponentDestruction: string): string;
       attacks(used: number, total: number): string;
       best: string;
-      /** A best attacker: stars and destruction. */
-      attacker(name: string, stars: number, destruction: string): string;
+      /** A best attacker: stars, destruction and average time per attack (`2:05`, when known). */
+      attacker(name: string, stars: number, destruction: string, time: string | null): string;
       footer: string;
     };
     raid: {
@@ -166,8 +166,10 @@ export interface AnnouncementTexts {
       /** After the attacks when every one was used. */
       allUsed: string;
       best: string;
-      /** Row of a best attacker. */
-      attacker(stars: number, destruction: string): string;
+      /** Row of a best attacker (average time per attack `2:05`, when known). */
+      attacker(stars: number, destruction: string, time: string | null): string;
+      /** Under the best attackers: equal stars and destruction are ranked by time. */
+      tieBreak: string;
     };
     raid: {
       title: string;
@@ -322,8 +324,8 @@ const ITALIAN: AnnouncementTexts = {
         result === 'win' ? `🏆 **Vittoria contro ${opponent}!**` : result === 'tie' ? `🤝 **Pareggio contro ${opponent}**` : `⚔️ **Sconfitta contro ${opponent}**`,
       score: (stars, other, d, od) => `⭐ ${stars} stelle a ${other} · ${d}% a ${od}%`,
       attacks: (used, total) => `🎯 Attacchi: ${used} su ${total}`,
-      best: 'Migliori in attacco',
-      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      best: 'Migliori in attacco (a parità, il più veloce)',
+      attacker: (name, stars, d, time) => `**${name}** ${stars}⭐ ${d}%${time ? ` ⏱️ ${time} ad attacco` : ''}`,
       footer: `Tutta la guerra su ${SITE}`,
     },
     raid: {
@@ -420,7 +422,8 @@ const ITALIAN: AnnouncementTexts = {
       attacks: 'Attacchi',
       allUsed: 'tutti usati',
       best: 'Migliori in attacco',
-      attacker: (stars, d) => `${stars} stelle · ${d}%`,
+      attacker: (stars, d, time) => `${stars} stelle · ${d}%${time ? ` · ${time}` : ''}`,
+      tieBreak: 'A parità di stelle e distruzione, vince il tempo medio per attacco più basso',
     },
     raid: {
       title: 'Raid Weekend',
@@ -534,8 +537,8 @@ const ENGLISH: AnnouncementTexts = {
         result === 'win' ? `🏆 **Victory against ${opponent}!**` : result === 'tie' ? `🤝 **Draw against ${opponent}**` : `⚔️ **Defeat against ${opponent}**`,
       score: (stars, other, d, od) => `⭐ ${stars} stars to ${other} · ${d}% to ${od}%`,
       attacks: (used, total) => `🎯 Attacks: ${used} of ${total}`,
-      best: 'Best attackers',
-      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      best: 'Best attackers (on a tie, the fastest)',
+      attacker: (name, stars, d, time) => `**${name}** ${stars}⭐ ${d}%${time ? ` ⏱️ ${time} per attack` : ''}`,
       footer: `The whole war on ${SITE}`,
     },
     raid: {
@@ -632,7 +635,8 @@ const ENGLISH: AnnouncementTexts = {
       attacks: 'Attacks',
       allUsed: 'all used',
       best: 'Best attackers',
-      attacker: (stars, d) => `${stars} stars · ${d}%`,
+      attacker: (stars, d, time) => `${stars} stars · ${d}%${time ? ` · ${time}` : ''}`,
+      tieBreak: 'Same stars and destruction: the lowest average time per attack wins',
     },
     raid: {
       title: 'Raid Weekend',
@@ -747,8 +751,8 @@ const SPANISH: AnnouncementTexts = {
         result === 'win' ? `🏆 **¡Victoria contra ${opponent}!**` : result === 'tie' ? `🤝 **Empate contra ${opponent}**` : `⚔️ **Derrota contra ${opponent}**`,
       score: (stars, other, d, od) => `⭐ ${stars} estrellas a ${other} · ${d}% a ${od}%`,
       attacks: (used, total) => `🎯 Ataques: ${used} de ${total}`,
-      best: 'Mejores atacantes',
-      attacker: (name, stars, d) => `**${name}** ${stars}⭐ ${d}%`,
+      best: 'Mejores atacantes (en empate, el más rápido)',
+      attacker: (name, stars, d, time) => `**${name}** ${stars}⭐ ${d}%${time ? ` ⏱️ ${time} por ataque` : ''}`,
       footer: `Toda la guerra en ${SITE}`,
     },
     raid: {
@@ -845,7 +849,8 @@ const SPANISH: AnnouncementTexts = {
       attacks: 'Ataques',
       allUsed: 'todos usados',
       best: 'Mejores atacantes',
-      attacker: (stars, d) => `${stars} estrellas · ${d}%`,
+      attacker: (stars, d, time) => `${stars} estrellas · ${d}%${time ? ` · ${time}` : ''}`,
+      tieBreak: 'Con las mismas estrellas y destrucción, gana el menor tiempo medio por ataque',
     },
     raid: {
       title: 'Raid Weekend',

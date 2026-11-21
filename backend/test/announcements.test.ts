@@ -579,10 +579,11 @@ describe('drafts of the wars and Raid Weekends', () => {
       clan: { stars: 14, destruction: 97.66, attacks: 9 },
       opponent: { name: 'Les Gaulois ⚔️', tag: '#OPP', stars: 11 },
     });
+    // Average time per attack, told in the post (unknown for Fabio).
     expect(data.bestAttackers).toEqual([
-      { name: 'Elio', stars: 6, destruction: 100, attacks: 2 },
-      { name: 'Anna', stars: 6, destruction: 100, attacks: 2 },
-      { name: 'Fabio', stars: 6, destruction: 100, attacks: 2 },
+      { name: 'Elio', stars: 6, destruction: 100, attacks: 2, averageTime: 125 },
+      { name: 'Anna', stars: 6, destruction: 100, attacks: 2, averageTime: 145 },
+      { name: 'Fabio', stars: 6, destruction: 100, attacks: 2, averageTime: null },
     ]);
 
     // Corrected by the war log while still a draft: the figures follow.
@@ -593,7 +594,9 @@ describe('drafts of the wars and Raid Weekends', () => {
     expect(caption).toContain('🏆 **Vittoria contro Les Gaulois ⚔️!**');
     expect(caption).toContain('⭐ 14 stelle a 11 · 97,7% a 85,2%');
     expect(caption).toContain('🎯 Attacchi: 9 su 10');
-    expect(caption).toContain('🥇 **Elio** 6⭐ 100%');
+    expect(caption).toContain('👑 Migliori in attacco (a parità, il più veloce)');
+    expect(caption).toContain('🥇 **Elio** 6⭐ 100% ⏱️ 2:05 ad attacco');
+    expect(caption).toContain('🥉 **Fabio** 6⭐ 100%\n');
     expect(caption.split('\n').at(-1)).toBe('#Guerra #CrociataNera');
     expect(generatedCaption({ ...data, result: 'lose' }, 'en-US')).toContain('⚔️ **Defeat against Les Gaulois ⚔️**');
 

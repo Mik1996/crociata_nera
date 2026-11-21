@@ -143,9 +143,10 @@ export interface WarData extends ClanPart {
   opponent: WarSide & { tag: string };
   /**
    * Up to three attackers: the most stars, then the most destruction, then the least time spent
-   * attacking. Their stars, average destruction and attacks.
+   * attacking. Their stars, average destruction, attacks and average time per attack (seconds,
+   * `null` when no attack has its time; missing in drafts prepared before it was told).
    */
-  bestAttackers: { name: string; stars: number; destruction: number; attacks: number }[];
+  bestAttackers: { name: string; stars: number; destruction: number; attacks: number; averageTime?: number | null }[];
 }
 
 /** A Raid Weekend of a clan of the Crusade. */
@@ -410,12 +411,20 @@ export function buildWarData(war: SavedWar): WarData | null {
       attacks: m.attacks?.length ?? 0,
       // Seconds spent attacking; an attack without its time (saved before it was read) counts as the longest.
       time: (m.attacks ?? []).reduce((sum, a) => sum + (a.duration ?? MAX_ATTACK_SECONDS), 0),
+      timed: (m.attacks ?? []).flatMap((a) => (a.duration == null ? [] : [a.duration])),
     }))
     .filter((m) => m.attacks > 0)
     // Many attackers end with every star at 100%: the fastest of them come first.
     .sort((a, b) => b.stars - a.stars || b.destruction - a.destruction || a.time - b.time || a.name.localeCompare(b.name, 'it'))
     .slice(0, 3)
-    .map(({ name, stars, destruction, attacks }) => ({ name, stars, destruction: round(destruction / attacks, 1), attacks }));
+    .map(({ name, stars, destruction, attacks, timed }) => ({
+      name,
+      stars,
+      destruction: round(destruction / attacks, 1),
+      attacks,
+      // Told in the post: it is what ranks players with the same stars and destruction.
+      averageTime: timed.length ? Math.round(timed.reduce((sum, s) => sum + s, 0) / timed.length) : null,
+    }));
   return {
     kind: 'war',
     clanTag: war.clanTag,

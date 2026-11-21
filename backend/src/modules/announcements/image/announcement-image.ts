@@ -5,7 +5,7 @@ import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../a
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
 import { SvgText } from './svg-text';
-import { percent } from '../announcement-caption';
+import { attackTime, percent } from '../announcement-caption';
 
 /**
  * Pictures of the announcements, in the "iron" look of the PDFs: brushed iron, crimson vignette,
@@ -461,6 +461,9 @@ function podium(text: SvgText, t: AnnouncementTexts, top: number, rows: { name: 
     .join('');
 }
 
+/** Height of a row of the best attackers of a war (with its gap). */
+const ATTACKER_ROW = 66;
+
 /**
  * A war: the two clans face to face (their badges of the game, the clan's crest when its badge cannot
  * be read; names, stars and destruction), the attacks used and the best attackers.
@@ -504,15 +507,26 @@ async function warBody(text: SvgText, t: AnnouncementTexts, crest: string | null
     maxWidth: RIGHT - LEFT,
   });
   if (data.bestAttackers.length) {
-    const labelY = top + height + 118;
+    const labelY = top + height + 104;
     svg += text.draw(w.best.toUpperCase(), { font: 'title', size: 26, x: W / 2, y: labelY, fill: T.gold, anchor: 'middle' });
     svg += podium(
       text,
       t,
       labelY + 22,
-      data.bestAttackers.map((a) => ({ name: a.name, value: w.attacker(a.stars, t.number(a.destruction, 0)) })),
-      74,
+      data.bestAttackers.map((a) => ({ name: a.name, value: w.attacker(a.stars, t.number(a.destruction, 0), attackTime(a.averageTime)) })),
+      ATTACKER_ROW,
     );
+    // Why these three: many attackers often take every star at 100%.
+    svg += text.draw(w.tieBreak, {
+      font: 'regular',
+      size: 20,
+      x: W / 2,
+      y: labelY + 22 + data.bestAttackers.length * ATTACKER_ROW + 12,
+      fill: T.muted,
+      anchor: 'middle',
+      maxWidth: RIGHT - LEFT,
+      minSize: 16,
+    });
   }
   return svg;
 }

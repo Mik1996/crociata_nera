@@ -70,10 +70,18 @@ function warCaption(t: AnnouncementTexts, data: WarData): string {
   if (data.bestAttackers.length) {
     lines.push('', `👑 ${c.best}`);
     const medals = ['🥇', '🥈', '🥉'];
-    data.bestAttackers.forEach((a, i) => lines.push(`${medals[i]} ${c.attacker(a.name, a.stars, t.number(a.destruction, 0))}`));
+    data.bestAttackers.forEach((a, i) =>
+      lines.push(`${medals[i]} ${c.attacker(a.name, a.stars, t.number(a.destruction, 0), attackTime(a.averageTime))}`),
+    );
   }
   lines.push('', c.footer);
   return lines.join('\n');
+}
+
+/** Seconds as minutes and seconds (`125` -> `2:05`); `null` when unknown. */
+export function attackTime(seconds: number | null | undefined): string | null {
+  if (seconds == null) return null;
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
 /** A percentage with at most one decimal and no trailing zero: `100`, `98,7`. */
