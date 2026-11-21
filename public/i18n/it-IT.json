@@ -260,7 +260,19 @@
     "noticeTitle": "Dettaglio dei partecipanti non disponibile",
     "noticeText": "Per questa guerra è disponibile solo il riepilogo (stelle, distruzione, risultato): gli attacchi dei singoli giocatori non sono stati registrati.",
     "participationHint": "hanno attaccato almeno una volta",
-    "performance": "Performance individuali"
+    "performance": "Performance individuali",
+    "pdf": {
+      "title": "Resoconto di guerra",
+      "attack": "Attacco {{n}}",
+      "missed": "mancato",
+      "defense": "Difesa",
+      "total": "Totale",
+      "empty": "Nessun partecipante registrato.",
+      "legendTitle": "Come leggerlo",
+      "legendAttack": "Attacco: stelle, distruzione e, dopo la freccia, la posizione sulla mappa della base attaccata.",
+      "legendDefense": "Difesa: il miglior attacco subito dalla base del giocatore.",
+      "legendMissed": "In rosso gli attacchi non usati."
+    }
   },
   "history": {
     "subtitle": "Tutte le guerre concluse dal clan: seleziona una guerra per il dettaglio",
@@ -1094,9 +1106,15 @@
     }
   },
   "pdf": {
-    "download": "Scarica PDF",
-    "downloading": "Creo il PDF…",
-    "error": "Non è stato possibile creare il PDF. Riprova.",
+    "download": "Scarica",
+    "downloading": "Creo il file…",
+    "share": "Condividi",
+    "sharing": "Creo il file…",
+    "asPdf": "PDF",
+    "asImages": "Immagini (una per pagina)",
+    "ready": "File pronto",
+    "shareError": "Non è stato possibile condividere il file.",
+    "error": "Non è stato possibile creare il file. Riprova.",
     "generatedAt": "Generato il {{date}}",
     "page": "Pagina {{n}} di {{total}}",
     "fanContent": "Questo materiale non è ufficiale e non è approvato da Supercell. Per maggiori informazioni consulta la Fan Content Policy di Supercell: supercell.com/en/fan-content-policy"
@@ -1339,7 +1357,9 @@
         "period": "si chiude un mese, una CWL o una stagione di donazioni;",
         "record": "un clan della Crociata batte un record;",
         "league": "un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I);",
-        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo."
+        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo;",
+        "war": "finisce una guerra di un clan della Crociata;",
+        "raid": "si chiude un Raid Weekend (dopo gli encomi)."
       },
       "note": "I numeri di una bozza si aggiornano finché non la pubblichi."
     },
@@ -1364,7 +1384,9 @@
       "donations": "Donazioni",
       "record": "Record",
       "promotion": "Promozione",
-      "legendSeason": "Stagione Leggenda"
+      "legendSeason": "Stagione Leggenda",
+      "war": "Guerra",
+      "raid": "Raid Weekend"
     },
     "state": {
       "draft": "Bozza",
@@ -1400,6 +1422,12 @@
       "Legend": "Leggende",
       "Dragon": "Drago"
     },
-    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei"
+    "legendSeason": "{{player}} chiude la stagione Leggenda con {{trophies}} trofei",
+    "war": {
+      "win": "vittoria contro {{opponent}}",
+      "lose": "sconfitta contro {{opponent}}",
+      "tie": "pareggio contro {{opponent}}"
+    },
+    "raid": "Raid Weekend del {{day}}"
   }
 }

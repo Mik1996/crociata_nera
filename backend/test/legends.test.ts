@@ -115,7 +115,7 @@ describe('Legend League seasons', () => {
     const caption = generatedCaption(data, 'it-IT');
     expect(caption).toContain('🏆 **5.091** trofei');
     expect(caption).toContain('🇮🇹 **2°** in Italia');
-    expect(caption).toContain('🌍 **3752°** nel mondo');
+    expect(caption).toContain('🌍 **3.752°** nel mondo');
     expect(caption).toContain('Tra i migliori 10.000 giocatori del pianeta. Complimenti da tutti i clan della Crociata! ⚔️');
     expect(generatedCaption(data, 'en-US')).toContain('🇮🇹 **#2** in Italy');
   });

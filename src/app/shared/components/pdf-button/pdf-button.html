@@ -1,10 +1,45 @@
 <button
   mat-stroked-button
   type="button"
+  class="download"
   [disabled]="!pdf() || busy()"
-  [attr.aria-busy]="busy()"
-  (click)="download()"
+  [attr.aria-busy]="busy() === 'download'"
+  [matMenuTriggerFor]="downloadMenu"
 >
   <crn-icon matButtonIcon name="download" />
-  {{ (busy() ? 'pdf.downloading' : 'pdf.download') | translate }}
+  {{ (busy() === 'download' ? 'pdf.downloading' : 'pdf.download') | translate }}
 </button>
+<mat-menu #downloadMenu="matMenu">
+  <button mat-menu-item type="button" class="download-pdf" (click)="download('pdf')">
+    <crn-icon matMenuItemIcon name="picture_as_pdf" />
+    {{ 'pdf.asPdf' | translate }}
+  </button>
+  <button mat-menu-item type="button" class="download-images" (click)="download('images')">
+    <crn-icon matMenuItemIcon name="photo_library" />
+    {{ 'pdf.asImages' | translate }}
+  </button>
+</mat-menu>
+
+@if (canShare) {
+  <button
+    mat-stroked-button
+    type="button"
+    class="share"
+    [disabled]="!pdf() || busy()"
+    [attr.aria-busy]="busy() === 'share'"
+    [matMenuTriggerFor]="shareMenu"
+  >
+    <crn-icon matButtonIcon name="share" />
+    {{ (busy() === 'share' ? 'pdf.sharing' : 'pdf.share') | translate }}
+  </button>
+  <mat-menu #shareMenu="matMenu">
+    <button mat-menu-item type="button" class="share-pdf" (click)="share('pdf')">
+      <crn-icon matMenuItemIcon name="picture_as_pdf" />
+      {{ 'pdf.asPdf' | translate }}
+    </button>
+    <button mat-menu-item type="button" class="share-images" (click)="share('images')">
+      <crn-icon matMenuItemIcon name="photo_library" />
+      {{ 'pdf.asImages' | translate }}
+    </button>
+  </mat-menu>
+}

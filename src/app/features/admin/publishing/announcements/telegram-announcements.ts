@@ -55,6 +55,8 @@ const KIND_ICONS: Record<AnnouncementKind, IconName> = {
   record: 'local_fire_department',
   promotion: 'workspace_premium',
   legendSeason: 'emoji_events',
+  war: 'flag',
+  raid: 'castle',
 };
 
 const STATE_TONES: Record<Announcement['state'], TagTone> = {
@@ -100,7 +102,7 @@ export class TelegramAnnouncements {
 
   protected readonly limit = CAPTION_LIMIT;
   /** When the backend prepares a draft (`announcementsAdmin.intro.cases.*`). */
-  protected readonly introCases = ['period', 'record', 'league', 'legend'] as const;
+  protected readonly introCases = ['period', 'record', 'league', 'legend', 'war', 'raid'] as const;
   protected readonly kindIcons = KIND_ICONS;
   protected readonly stateTones = STATE_TONES;
 
@@ -140,6 +142,18 @@ export class TelegramAnnouncements {
 
   /** "Crociata Nera · Novembre 2026", "Crociata Rossa · Serie di vittorie: 57". */
   protected title(a: Announcement): string {
+    if (a.kind === 'war') {
+      const detail = this.language.t(`announcementsAdmin.war.${a.warResult ?? 'tie'}`, {
+        opponent: a.opponentName,
+      });
+      return `${a.clanName} · ${detail}`;
+    }
+    if (a.kind === 'raid') {
+      const detail = this.language.t('announcementsAdmin.raid', {
+        day: formatLocalDate(a.subject, 'd LLLL yyyy', this.language.current()),
+      });
+      return `${a.clanName} · ${detail}`;
+    }
     if (a.kind === 'legendSeason') {
       const detail = this.language.t('announcementsAdmin.legendSeason', {
         player: a.playerName,

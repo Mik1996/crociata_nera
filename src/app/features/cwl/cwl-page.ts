@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatTableModule } from '@angular/material/table';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -76,9 +76,18 @@ export class CwlPage {
     })),
   );
 
-  /** Season chosen in the selector; the most recent one until the user picks another. */
+  /** Season asked by the address (`?season=2026-11`, links of the Telegram announcements). */
+  readonly seasonParam = input<string | undefined>(undefined, { alias: 'season' });
+  /**
+   * Season chosen in the selector; until the user picks one, the season of the address (when the
+   * clan played it), otherwise the most recent one.
+   */
   private readonly chosen = signal<string | null>(null);
-  protected readonly selected = computed(() => this.chosen() ?? this.seasonList()[0]?.season);
+  protected readonly selected = computed(() => {
+    const asked = this.seasonParam();
+    const list = this.seasonList();
+    return this.chosen() ?? list.find((s) => s.season === asked)?.season ?? list[0]?.season;
+  });
 
   protected readonly data = rxResource({
     params: () => this.selected(),

@@ -121,7 +121,58 @@ export interface LegendSeasonData extends ClanPart {
   countryCode: string | null;
 }
 
-export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData | LegendSeasonData;
+/** One side of a war, as told by the announcement. */
+export interface WarSide {
+  name: string;
+  /** Clan badge (the opponent's, from the game's servers); `null` when unknown. */
+  badgeUrl: string | null;
+  stars: number;
+  destruction: number;
+  attacks: number;
+}
+
+/** The result of a war of a clan of the Crusade. */
+export interface WarData extends ClanPart {
+  kind: 'war';
+  warKey: string;
+  endTime: string;
+  result: 'win' | 'lose' | 'tie';
+  teamSize: number;
+  attacksPerMember: number;
+  clan: WarSide;
+  opponent: WarSide & { tag: string };
+  /**
+   * Up to three attackers: the most stars, then the most destruction, then the least time spent
+   * attacking. Their stars, average destruction, attacks and average time per attack (seconds,
+   * `null` when no attack has its time; missing in drafts prepared before it was told).
+   */
+  bestAttackers: { name: string; stars: number; destruction: number; attacks: number; averageTime?: number | null }[];
+}
+
+/** A Raid Weekend of a clan of the Crusade. */
+export interface RaidData extends ClanPart {
+  kind: 'raid';
+  startTime: string;
+  endTime: string;
+  capitalGold: number;
+  attacks: number;
+  /** Enemy districts destroyed and raids (whole capitals) completed. */
+  districts: number;
+  raids: number;
+  /**
+   * Rewards as the API gives them: raid medals per attack (`offensiveReward`, see {@link raidMedals})
+   * and for the defenses (`defensiveReward`, each member).
+   */
+  offensiveReward: number;
+  defensiveReward: number;
+  /** Members who attacked (`null`: the member list was never read). */
+  participants: number | null;
+  /** Up to three members who looted the most Capital Gold. */
+  topLooters: { name: string; gold: number; attacks: number }[];
+  honours: Honour[];
+}
+
+export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData | LegendSeasonData | WarData | RaidData;
 
 export function clanName(clanTag: string): string {
   return CRUSADE_CLAN_NAMES[clanTag] ?? clanTag;
@@ -305,5 +356,123 @@ export async function buildDonationsData(clanTag: string, season: string): Promi
     total: totals.reduce((sum, t) => sum + t.donations, 0),
     top: totals.slice(0, 5).map((t) => ({ name: t.playerName, donations: t.donations })),
     honours: await honoursOf([`donations:${season}`], new Set(totals.map((t) => t.playerTag))),
+  };
+}
+
+/** Attacks of a member in a Raid Weekend (and bonus ones aside): the API's offensive reward is per attack. */
+export const MAXIMUM_CAPITAL_RAIDS = 6;
+
+/** Raid medals a member who used every attack earns, from attacks and defenses (as the Raid Weekend page). */
+export function raidMedals(data: Pick<RaidData, 'offensiveReward' | 'defensiveReward'>): { offense: number; defense: number; total: number } {
+  const offense = MAXIMUM_CAPITAL_RAIDS * data.offensiveReward;
+  return { offense, defense: data.defensiveReward, total: offense + data.defensiveReward };
+}
+
+/** Length of a war attack (3 minutes): the time of an attack whose duration is unknown. */
+const MAX_ATTACK_SECONDS = 180;
+
+/** Saved war (`Wars`), as far as the announcement reads it. */
+interface SavedWar {
+  warKey: string;
+  clanTag: string;
+  endTime: Date;
+  result?: 'win' | 'lose' | 'tie' | null;
+  teamSize: number;
+  attacksPerMember: number;
+  clan: SavedWarSide;
+  opponent: SavedWarSide;
+}
+
+interface SavedWarSide {
+  tag: string;
+  name: string;
+  badgeUrl?: string | null;
+  attacks?: number | null;
+  stars: number;
+  destructionPercentage: number;
+  members?: { name: string; attacks?: { stars: number; destructionPercentage: number; duration?: number | null }[] }[];
+}
+
+/** The result of an ended war; `null` while its result is not known. */
+export function buildWarData(war: SavedWar): WarData | null {
+  if (!war.result) return null;
+  const side = (s: SavedWarSide): WarSide => ({
+    name: s.name,
+    badgeUrl: s.badgeUrl ?? null,
+    stars: s.stars,
+    destruction: round(s.destructionPercentage, 2),
+    attacks: s.attacks ?? 0,
+  });
+  const bestAttackers = (war.clan.members ?? [])
+    .map((m) => ({
+      name: m.name,
+      stars: (m.attacks ?? []).reduce((sum, a) => sum + a.stars, 0),
+      destruction: (m.attacks ?? []).reduce((sum, a) => sum + a.destructionPercentage, 0),
+      attacks: m.attacks?.length ?? 0,
+      // Seconds spent attacking; an attack without its time (saved before it was read) counts as the longest.
+      time: (m.attacks ?? []).reduce((sum, a) => sum + (a.duration ?? MAX_ATTACK_SECONDS), 0),
+      timed: (m.attacks ?? []).flatMap((a) => (a.duration == null ? [] : [a.duration])),
+    }))
+    .filter((m) => m.attacks > 0)
+    // Many attackers end with every star at 100%: the fastest of them come first.
+    .sort((a, b) => b.stars - a.stars || b.destruction - a.destruction || a.time - b.time || a.name.localeCompare(b.name, 'it'))
+    .slice(0, 3)
+    .map(({ name, stars, destruction, attacks, timed }) => ({
+      name,
+      stars,
+      destruction: round(destruction / attacks, 1),
+      attacks,
+      // Told in the post: it is what ranks players with the same stars and destruction.
+      averageTime: timed.length ? Math.round(timed.reduce((sum, s) => sum + s, 0) / timed.length) : null,
+    }));
+  return {
+    kind: 'war',
+    clanTag: war.clanTag,
+    clanName: clanName(war.clanTag),
+    warKey: war.warKey,
+    endTime: war.endTime.toISOString(),
+    result: war.result,
+    teamSize: war.teamSize,
+    attacksPerMember: war.attacksPerMember,
+    clan: side(war.clan),
+    opponent: { ...side(war.opponent), tag: war.opponent.tag },
+    bestAttackers,
+  };
+}
+
+/** A Raid Weekend as saved (`RaidSeasons`): the API's item in `season`. */
+interface SavedRaid {
+  clanTag: string;
+  startTime: Date;
+  endTime: Date;
+  hasMembers?: boolean | null;
+  season: unknown;
+}
+
+/** An ended Raid Weekend: totals, rewards, best looters and its commendations. */
+export async function buildRaidData(raid: SavedRaid): Promise<RaidData> {
+  const season = (raid.season ?? {}) as Record<string, unknown>;
+  const count = (key: string) => Number(season[key] ?? 0) || 0;
+  const members = ((season['members'] ?? []) as { name: string; attacks?: number; capitalResourcesLooted?: number }[]).filter(
+    (m) => (m.attacks ?? 0) > 0,
+  );
+  return {
+    kind: 'raid',
+    clanTag: raid.clanTag,
+    clanName: clanName(raid.clanTag),
+    startTime: raid.startTime.toISOString(),
+    endTime: raid.endTime.toISOString(),
+    capitalGold: count('capitalTotalLoot'),
+    attacks: count('totalAttacks'),
+    districts: count('enemyDistrictsDestroyed'),
+    raids: count('raidsCompleted'),
+    offensiveReward: count('offensiveReward'),
+    defensiveReward: count('defensiveReward'),
+    participants: raid.hasMembers ? members.length : null,
+    topLooters: [...members]
+      .sort((a, b) => (b.capitalResourcesLooted ?? 0) - (a.capitalResourcesLooted ?? 0) || a.name.localeCompare(b.name, 'it'))
+      .slice(0, 3)
+      .map((m) => ({ name: m.name, gold: m.capitalResourcesLooted ?? 0, attacks: m.attacks ?? 0 })),
+    honours: raid.hasMembers ? await honoursOf([`raid:${raid.startTime.toISOString()}${periodSuffix(raid.clanTag)}`]) : [],
   };
 }

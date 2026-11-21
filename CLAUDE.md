@@ -117,7 +117,12 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   with emoji or other scripts as pictures (browser fonts); `buildTablePdf` draws the pages. Every PDF has
   the "iron" look of the site (`shared/pdf/iron-pdf.ts`: brushed iron from `PdfToolkit.ironPlate`, double gold
   frame with studs, same header and footer on every page, colours `--cn-pdf-*` read as `PdfTheme`). Pictures must be same-origin: league badges are copied in
-  `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up and the Raid Weekend.
+  `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up, the Raid Weekend and the war report
+  (`features/wars/war-report-pdf.ts`). `<crn-pdf-button>` downloads the PDF or its pages as JPEG pictures
+  (`shared/pdf/pdf-pages.ts`: pdf.js, lazy chunk, worker copied to `assets/pdfjs/` by `angular.json`; several
+  pages in one ZIP, `shared/pdf/zip.ts`, as a click starts one download only). Where the device shares files
+  it adds "Share" with the same choice (Web Share API; a notice asks one more tap when the browser refuses a
+  share started too long after the tap).
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
   administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
@@ -196,13 +201,22 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   season, donation season, beaten record; perfect wars every 25, main clan only; a member's league
   never reached before, Electro 31 to Legend I, Legend I at every arrival, one draft per player,
   `PlayerLeagueBests`; large badges in `public/game/league-tiers/large/`; a member ending a Legend League
-  season in Legend League I among the first 10,000 of the world, from `modules/legends/`), published or
+  season in Legend League I among the first 10,000 of the world, from `modules/legends/`; every ended war and
+  every Raid Weekend once its commendations are awarded, only those ended after the kinds were added,
+  `AnnouncementBaselines.kindsSince`; opponent badges read from `api-assets.clashofclans.com` only), published or
   discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
-  a post goes out in it; a published one keeps its `language`. Pictures are
-  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
-  turned into paths with opentype.js (no system fonts in the image; its own text layout and
-  `toPathData` are broken, glyphs are placed by hand), files of `public/` read via `readSiteAsset`
+  a post goes out in it; a published one keeps its `language`. Captions end with hashtags (kind and clan,
+  base posts `#TH17`); `announcementLink` gives the page of the site an announcement leads to (main clan:
+  `/statistics?period=`, `/cwl?season=`, `/players/{tag}`…; sister clans: `/`; none without an `https` `APP_URL`):
+  the "crociatanera.it" of the caption links it, and a single picture gets an "Open on the site" button
+  (albums cannot have buttons). Pictures are
+  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`, kept equal by
+  `test/announcement-theme.test.ts`), text
+  turned into paths with opentype.js (its own text layout and `toPathData` are broken, glyphs are placed
+  by hand); what those fonts lack in names (emoji, other scripts) is drawn by Pango through `sharp` with
+  the system's Noto fonts (installed in `deploy/backend.Dockerfile`) as pictures, prepared ahead
+  (`SvgText.prepare`), files of `public/` read via `readSiteAsset`
   (copied to `/app/site-assets` by `deploy/backend.Dockerfile`). Only periods closed after a clan was
   first seen get drafts (`AnnouncementBaselines`). Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one

@@ -14,7 +14,8 @@ import {
   AnnouncementModel,
   AnnouncementState,
 } from './announcement.model';
-import { AnnouncementLanguage, DEFAULT_ANNOUNCEMENT_LANGUAGE } from './announcement-texts';
+import { announcementLink } from './announcement-link';
+import { AnnouncementLanguage, announcementTexts, DEFAULT_ANNOUNCEMENT_LANGUAGE } from './announcement-texts';
 import { announcementSvgs, renderAnnouncementImage, renderAnnouncementImages } from './image/announcement-image';
 
 /** Announcements already published or discarded listed after the drafts. */
@@ -35,6 +36,9 @@ export interface AnnouncementView {
   leagueName: string | null;
   /** Promotions and Legend seasons: the player. */
   playerName: string | null;
+  /** Wars: the opponent and the result. */
+  opponentName: string | null;
+  warResult: 'win' | 'lose' | 'tie' | null;
   /**
    * Caption that goes with the pictures (`**text**` is bold): the one written by an administrator,
    * or the generated one in the language asked.
@@ -104,6 +108,8 @@ async function toView(doc: AnnouncementDocument, usernames: Map<number, string>,
     leagueName:
       data.kind === 'record' ? (data.leagueName ?? null) : data.kind === 'promotion' ? data.league.name : null,
     playerName: data.kind === 'promotion' || data.kind === 'legendSeason' ? data.playerName : null,
+    opponentName: data.kind === 'war' ? data.opponent.name : null,
+    warResult: data.kind === 'war' ? data.result : null,
     caption: captionOf(doc, language),
     captionEdited: doc.caption !== null,
     pages: doc.messageIds.length || (await announcementSvgs(data, language)).length,
@@ -196,8 +202,11 @@ export async function publishAnnouncement(id: string, userId: string, language: 
 
   let messageIds: number[];
   try {
-    const images = await renderAnnouncementImages(doc.data as AnnouncementData, language);
-    messageIds = await sendPost(chat.chatId, images, captionToHtml(captionOf(doc, language)));
+    const data = doc.data as AnnouncementData;
+    const images = await renderAnnouncementImages(data, language);
+    const link = announcementLink(data);
+    const button = link ? { text: announcementTexts(language).caption.openSite, url: link } : null;
+    messageIds = await sendPost(chat.chatId, images, captionToHtml(captionOf(doc, language), link), button);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await AnnouncementModel.updateOne({ _id: doc._id }, { $set: { state: AnnouncementState.DRAFT, error: message.slice(0, 300) } });
@@ -225,14 +234,18 @@ export async function publishAnnouncement(id: string, userId: string, language: 
 
 const jpeg = (image: Buffer) => new Blob([new Uint8Array(image)], { type: 'image/jpeg' });
 
-/** Sends the pictures with the caption; returns the ids of the messages. */
-async function sendPost(chatId: number, images: Buffer[], caption: string): Promise<number[]> {
+/**
+ * Sends the pictures with the caption; returns the ids of the messages. A single picture gets the
+ * button to the site: Telegram allows no buttons on an album (its caption links the site instead).
+ */
+async function sendPost(chatId: number, images: Buffer[], caption: string, button: { text: string; url: string } | null): Promise<number[]> {
   const form = new FormData();
   form.append('chat_id', String(chatId));
   if (images.length === 1) {
     form.append('photo', jpeg(images[0]!), 'announcement.jpg');
     form.append('caption', caption);
     form.append('parse_mode', 'HTML');
+    if (button) form.append('reply_markup', JSON.stringify({ inline_keyboard: [[button]] }));
     const message = await telegramApi<{ message_id: number }>('sendPhoto', form);
     return [message.message_id];
   }

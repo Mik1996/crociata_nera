@@ -4,7 +4,8 @@ import { HydratedDocument, InferSchemaType, model, models, Model, Schema } from 
  * What an announcement tells: the month of a clan (wars, Raid Weekends and the commendations of the
  * month), a Clan War League season, the donations of a game season, a new record of the clan, or a
  * player promoted to a league never reached before (Electro League 31 and up), or a player who ended
- * a Legend League season in Legend League I (among the first 10,000 of the world).
+ * a Legend League season in Legend League I (among the first 10,000 of the world), the result of a
+ * war, a Raid Weekend.
  */
 export const AnnouncementKind = {
   MONTH: 'month',
@@ -13,6 +14,8 @@ export const AnnouncementKind = {
   RECORD: 'record',
   PROMOTION: 'promotion',
   LEGEND_SEASON: 'legendSeason',
+  WAR: 'war',
+  RAID: 'raid',
 } as const;
 export type AnnouncementKind = (typeof AnnouncementKind)[keyof typeof AnnouncementKind];
 export const ANNOUNCEMENT_KINDS = Object.values(AnnouncementKind);
@@ -40,12 +43,16 @@ const announcementSchema = new Schema(
     /**
      * Unique: `month:2026-11@#TAG`, `cwl:2026-11@#TAG`, `donations:2026-11@#TAG`; records carry their
      * value (`record:warWinStreak:57@#TAG`), which changes while the draft follows the record;
-     * promotions the player and the league (`promotion:#PLAYER:105000032`), same.
+     * promotions the player and the league (`promotion:#PLAYER:105000032`), same; wars their key
+     * (`war:20261119T213344-JPLL8YGG@#TAG`), Raid Weekends their start (`raid:2026-11-13T07:00:00.000Z@#TAG`).
      */
     key: { type: String, required: true, unique: true },
     kind: { type: String, enum: ANNOUNCEMENT_KINDS, required: true },
     clanTag: { type: String, required: true },
-    /** Period (`2026-11`), record name (`warWinStreak`) or player tag (promotions). */
+    /**
+     * Period (`2026-11`), record name (`warWinStreak`), player tag (promotions), war key (wars) or
+     * start of the weekend (Raid Weekends, ISO).
+     */
     subject: { type: String, required: true },
     state: { type: String, enum: ANNOUNCEMENT_STATES, required: true, default: AnnouncementState.DRAFT },
     /** Figures of the announcement (`AnnouncementData`), drawn in the pictures and the caption. */
@@ -97,6 +104,11 @@ const announcementBaselineSchema = new Schema(
   {
     clanTag: { type: String, required: true, unique: true },
     since: { type: Date, required: true },
+    /**
+     * Start of the kinds added later (`war`, `raid`), set the first time they are looked for: the
+     * wars and Raid Weekends ended before get no draft (`since` would bring back the whole past).
+     */
+    kindsSince: { type: Schema.Types.Mixed, default: null },
     /** Record name -> value (league id for `cwlLeague`). */
     records: { type: Schema.Types.Mixed, default: null },
   },

@@ -260,7 +260,19 @@
     "noticeTitle": "Participant details not available",
     "noticeText": "Only the summary is available for this war (stars, destruction, result): individual player attacks were not recorded.",
     "participationHint": "attacked at least once",
-    "performance": "Individual performance"
+    "performance": "Individual performance",
+    "pdf": {
+      "title": "War report",
+      "attack": "Attack {{n}}",
+      "missed": "missed",
+      "defense": "Defense",
+      "total": "Total",
+      "empty": "No participant recorded.",
+      "legendTitle": "How to read it",
+      "legendAttack": "Attack: stars, destruction and, after the arrow, the map position of the base attacked.",
+      "legendDefense": "Defense: the best attack taken by the player's base.",
+      "legendMissed": "Attacks not used are in red."
+    }
   },
   "history": {
     "subtitle": "All wars finished by the clan: select a war for details",
@@ -1094,9 +1106,15 @@
     }
   },
   "pdf": {
-    "download": "Download PDF",
-    "downloading": "Creating the PDF…",
-    "error": "The PDF could not be created. Please try again.",
+    "download": "Download",
+    "downloading": "Creating the file…",
+    "share": "Share",
+    "sharing": "Creating the file…",
+    "asPdf": "PDF",
+    "asImages": "Pictures (one per page)",
+    "ready": "File ready",
+    "shareError": "The file could not be shared.",
+    "error": "The file could not be created. Please try again.",
     "generatedAt": "Generated on {{date}}",
     "page": "Page {{n}} of {{total}}",
     "fanContent": "This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: supercell.com/en/fan-content-policy"
@@ -1339,7 +1357,9 @@
         "period": "a month, a CWL or a donation season closes;",
         "record": "a clan of the Crusade beats a record;",
         "league": "a player reaches a league never reached before (Electro 31 to Legend I);",
-        "legend": "a player ends the Legend season among the first 10,000 in the world."
+        "legend": "a player ends the Legend season among the first 10,000 in the world;",
+        "war": "a war of a clan of the Crusade ends;",
+        "raid": "a Raid Weekend closes (after its commendations)."
       },
       "note": "The figures of a draft stay up to date until you publish it."
     },
@@ -1364,7 +1384,9 @@
       "donations": "Donations",
       "record": "Record",
       "promotion": "Promotion",
-      "legendSeason": "Legend season"
+      "legendSeason": "Legend season",
+      "war": "War",
+      "raid": "Raid Weekend"
     },
     "state": {
       "draft": "Draft",
@@ -1400,6 +1422,12 @@
       "Legend": "Legend",
       "Dragon": "Dragon"
     },
-    "legendSeason": "{{player}} ends the Legend season with {{trophies}} trophies"
+    "legendSeason": "{{player}} ends the Legend season with {{trophies}} trophies",
+    "war": {
+      "win": "victory against {{opponent}}",
+      "lose": "defeat against {{opponent}}",
+      "tie": "draw against {{opponent}}"
+    },
+    "raid": "Raid Weekend of {{day}}"
   }
 }

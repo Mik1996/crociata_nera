@@ -351,7 +351,7 @@ export interface PublishingPendingCount {
 
 /** What an announcement tells (`GET /admin/announcements`). */
 export type AnnouncementKind =
-  'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason';
+  'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason' | 'war' | 'raid';
 export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
 
 /** An announcement for the Telegram announcements channel, prepared by the backend. */
@@ -361,14 +361,20 @@ export interface Announcement {
   state: AnnouncementState;
   clanTag: string;
   clanName: string;
-  /** Period `YYYY-MM`, or the record name for `record`. */
+  /**
+   * Period `YYYY-MM`, the record name (`record`), the player tag (promotions), the war key (`war`) or
+   * the start of the weekend (`raid`, ISO).
+   */
   subject: string;
   /** Records: the new value (league id for `cwlLeague`). */
   value: number | null;
   /** League reached, as the API names it (records `cwlLeague`, promotions). */
   leagueName: string | null;
-  /** Promotions: the player promoted. */
+  /** Promotions and Legend seasons: the player. */
   playerName: string | null;
+  /** Wars: the opponent clan and the result. */
+  opponentName: string | null;
+  warResult: 'win' | 'lose' | 'tie' | null;
   /** Caption of the post, `**text**` in bold. */
   caption: string;
   captionEdited: boolean;

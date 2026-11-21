@@ -1,7 +1,8 @@
 /**
  * Colours of the announcement pictures: the "iron" look of the PDFs. Copied from the `--cn-pdf-*`
  * tokens of `src/styles/_color-palette.scss` (the frontend's single source of colours, which the
- * backend cannot read): keep the two in step.
+ * backend does not read at run time, as it is not in its image): {@link PALETTE_TOKENS} names the
+ * token of each, and a test fails when the two drift apart.
  */
 export const IRON_THEME = {
   /** `--cn-pdf-iron-bg`: page. */
@@ -45,3 +46,25 @@ export const IRON_THEME = {
   divisionEdge: '#5c5853',
   divisionNumeral: '#f8efc2',
 } as const;
+
+/**
+ * Token of `src/styles/_color-palette.scss` each colour is copied from (`test/announcement-theme.test.ts`
+ * compares them). Colours of the pictures only (league shades, division tags) have none.
+ */
+export const PALETTE_TOKENS: Partial<Record<keyof typeof IRON_THEME, string>> = {
+  background: '--cn-pdf-iron-bg',
+  plate: '--cn-pdf-iron-plate',
+  stripe: '--cn-pdf-iron-stripe',
+  tile: '--cn-pdf-iron-tile',
+  edge: '--cn-pdf-iron-edge',
+  line: '--cn-pdf-iron-line',
+  text: '--cn-pdf-iron-text',
+  muted: '--cn-pdf-iron-muted',
+  ember: '--cn-pdf-iron-ember',
+  crimson: '--cn-pdf-iron-crimson',
+  gold: '--cn-pdf-gold',
+  goldText: '--cn-pdf-gold-text',
+  danger: '--cn-pdf-danger',
+  good: '--cn-pdf-reserve',
+  electro: '--cn-pdf-starter',
+};

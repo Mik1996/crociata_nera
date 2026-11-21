@@ -13,6 +13,9 @@ RUN npm run build
 FROM node:24.22.3-alpine3.24
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3001 HOSTNAME=0.0.0.0
+# System fonts for the pieces of names the announcement fonts lack (emoji, other scripts), drawn by
+# Pango through sharp (src/modules/announcements/image/svg-text.ts).
+RUN apk add --no-cache fontconfig font-noto font-noto-cjk font-noto-emoji
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 # Files of the site the announcement pictures are drawn with (src/lib/assets/site-assets.ts).

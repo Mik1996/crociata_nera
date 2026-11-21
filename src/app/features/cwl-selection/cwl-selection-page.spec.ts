@@ -218,7 +218,10 @@ describe('CwlSelectionPage', () => {
 
   it('downloads the 15 starters, the 3 reserves on page 2 and the rules on page 3 as a PDF', async () => {
     const { el, fixture, exporter } = await render();
-    el.querySelector<HTMLButtonElement>('crn-pdf-button button')!.click();
+    // "Download" opens its menu: the PDF.
+    el.querySelector<HTMLButtonElement>('crn-pdf-button button.download')!.click();
+    await fixture.whenStable();
+    document.querySelector<HTMLButtonElement>('.download-pdf')!.click();
     await fixture.whenStable();
     const pdf = exporter.download.mock.calls[0][0] as TablePdf<CwlSelectionPlayer>;
     // Named after the month of the next CWL (the last one was October).

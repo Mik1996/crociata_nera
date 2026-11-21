@@ -1,10 +1,11 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    linkedSignal,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -85,7 +86,12 @@ export class StatisticsPage {
     periodLabel(period, this.language.current(), this.language.t('statistics.allMonths'));
 
   // --- Data -----------------------------------------------------------------
-  protected readonly period = signal(ALL_PERIODS);
+  /** Month asked by the address (`?period=2026-10`, links of the Telegram announcements). */
+  readonly periodParam = input<string | undefined>(undefined, { alias: 'period' });
+  protected readonly period = linkedSignal(() => {
+    const asked = this.periodParam();
+    return asked && /^\d{4}-\d{2}$/.test(asked) ? asked : ALL_PERIODS;
+  });
   protected readonly months = rxResource({ stream: () => this.history.getMonths() });
   protected readonly data = rxResource({
     params: () => this.period(),

@@ -10,7 +10,8 @@ import { UserRole } from '@/lib/auth/user-role';
 import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
-import { buildCwlData, buildMonthData, MonthData, PromotionData } from '@/modules/announcements/announcement-data';
+import { announcementLink } from '@/modules/announcements/announcement-link';
+import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
@@ -19,6 +20,8 @@ import { UserModel } from '@/modules/auth/user.model';
 import { CommendationAwardModel, CommendationPeriodModel } from '@/modules/commendations/commendation-award.model';
 import { DonationTotalModel } from '@/modules/donations/donation.model';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
+import { WarModel } from '@/modules/wars/war.model';
+import { announcementSvgs, renderAnnouncementImages } from '@/modules/announcements/image/announcement-image';
 import { ClanRecordsModel } from '@/modules/records/clan-records.model';
 import { EMPTY_CLAN_RECORDS, INITIAL_CLAN_RECORDS, syncOtherClanRecords } from '@/modules/records/clan-records.service';
 import { TelegramChatModel } from '@/modules/telegram/telegram-chat.model';
@@ -91,6 +94,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  delete process.env.APP_URL;
   delete process.env.TELEGRAM_BOT_TOKEN;
   delete process.env.TELEGRAM_API_BASE_URL;
   resetEnvCache();
@@ -123,7 +127,8 @@ describe('drafts of the closed periods', () => {
     ]);
 
     const report = await syncAnnouncementDrafts(LATER);
-    expect(report.created.sort()).toEqual([`month:2026-11@${MAIN}`, `month:2026-11@${RED}`]);
+    // The Raid Weekend gets its own draft too.
+    expect(report.created.sort()).toEqual([`month:2026-11@${MAIN}`, `month:2026-11@${RED}`, `raid:2026-11-06T07:00:00.000Z@${RED}`]);
     expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
 
     const red = await AnnouncementModel.findOne({ key: `month:2026-11@${RED}` }).lean();
@@ -152,7 +157,8 @@ describe('drafts of the closed periods', () => {
     await RaidSeasonModel.updateOne({ _id: raid._id }, { $set: { state: 'ended' } });
     expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
     await closePeriod('raid:2026-11-27T07:00:00.000Z', LATER, [{ tag: '#A', name: 'Anna', type: 'capitalRaider', tier: 'gold' }]);
-    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`month:2026-11@${MAIN}`]);
+    // The month and the Raid Weekend's own draft, both with its commendations.
+    expect((await syncAnnouncementDrafts(LATER)).created.sort()).toEqual([`month:2026-11@${MAIN}`, `raid:2026-11-27T07:00:00.000Z@${MAIN}`]);
     const draft = await AnnouncementModel.findOne({ key: `month:2026-11@${MAIN}` }).lean();
     expect((draft!.data as MonthData).honours).toHaveLength(1);
   });
@@ -400,6 +406,40 @@ describe('records of the other clans', () => {
 });
 
 describe('captions', () => {
+  it('end with the hashtags of the kind and the clan, in the language', () => {
+    const data = { kind: 'cwl', clanTag: '#2RRYUGQYJ', clanName: "Crociata d'Oro", season: '2026-11', rank: 1, clans: 8, wins: 7, draws: 0, losses: 0, stars: 250, bestAttackers: null, honours: [] } as unknown as AnnouncementData;
+    expect(generatedCaption(data).split('\n').at(-1)).toBe('#CWL #CrociataDOro');
+    const month = { ...data, kind: 'month', month: '2026-10', wars: null, raids: null, mvp: null, clanTag: MAIN, clanName: 'Crociata Nera' } as unknown as AnnouncementData;
+    expect(generatedCaption(month, 'it-IT').split('\n').at(-1)).toBe('#Resoconto #CrociataNera');
+    expect(generatedCaption(month, 'en-US').split('\n').at(-1)).toBe('#Recap #CrociataNera');
+    expect(generatedCaption(month, 'es-ES').split('\n').at(-1)).toBe('#Resumen #CrociataNera');
+  });
+
+  it('link the name of the site to the page of the announcement', () => {
+    expect(captionToHtml('Tutto su crociatanera.it', 'https://crociatanera.it/cwl?season=2026-11&x="y"')).toBe(
+      'Tutto su <a href="https://crociatanera.it/cwl?season=2026-11&amp;x=&quot;y&quot;">crociatanera.it</a>',
+    );
+    expect(captionToHtml('Tutto su crociatanera.it', null)).toBe('Tutto su crociatanera.it');
+  });
+
+  it('lead to the page of the main clan the announcement tells about, the welcome page for the others', () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
+    const of = (data: object) => announcementLink({ clanTag: MAIN, clanName: 'Crociata Nera', ...data } as AnnouncementData);
+    expect(of({ kind: 'month', month: '2026-10' })).toBe('https://crociatanera.it/statistics?period=2026-10');
+    expect(of({ kind: 'cwl', season: '2026-11' })).toBe('https://crociatanera.it/cwl?season=2026-11');
+    expect(of({ kind: 'donations', season: '2026-11' })).toBe('https://crociatanera.it/players');
+    expect(of({ kind: 'record', record: 'localRank' })).toBe('https://crociatanera.it/');
+    expect(of({ kind: 'promotion', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'legendSeason', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'month', month: '2026-10', clanTag: '#2JU8RPR2G' })).toBe('https://crociatanera.it/');
+
+    // Telegram refuses buttons to other addresses than https (development).
+    delete process.env.APP_URL;
+    resetEnvCache();
+    expect(of({ kind: 'month', month: '2026-10' })).toBeNull();
+  });
+
   it('turns **text** into bold and escapes the rest', () => {
     expect(captionToHtml('**Anna <3** & co')).toBe('<b>Anna &lt;3</b> &amp; co');
     expect(captionLength('**ab** c')).toBe(4);
@@ -456,6 +496,177 @@ describe('captions', () => {
 
   it('builds the month even without wars', async () => {
     expect(await buildMonthData(MAIN, '2026-11')).toMatchObject({ wars: null, raids: null, mvp: null, honours: [] });
+  });
+});
+
+describe('pictures', () => {
+  it('show the missed attacks of the month only when there are none, as a boast', async () => {
+    const wars = { total: 10, victories: 8, draws: 1, defeats: 1, stars: 400, averageStars: 40, averageDestruction: 95, threeStarRate: 70, attacksUsed: 196, attacksMissed: 4 };
+    const month = { kind: 'month', clanTag: MAIN, clanName: 'Crociata Nera', month: '2026-10', wars, raids: null, mvp: null, honours: [] } as unknown as AnnouncementData;
+    // Tiles of figures (rounded 14).
+    const tiles = async (data: AnnouncementData) => ((await announcementSvgs(data))[0]!.match(/rx="14"/g) ?? []).length;
+    expect(await tiles(month)).toBe(4);
+    expect(await tiles({ ...month, wars: { ...wars, attacksMissed: 0 } } as AnnouncementData)).toBe(5);
+  });
+});
+
+describe('drafts of the wars and Raid Weekends', () => {
+  const member = (name: string, attacks: [number, number, number?][]) => ({
+    tag: `#${name.toUpperCase()}`,
+    name,
+    townhallLevel: 17,
+    mapPosition: 1,
+    attacks: attacks.map(([stars, destructionPercentage, duration], order) => ({
+      attackerTag: '#X',
+      defenderTag: '#Y',
+      stars,
+      destructionPercentage,
+      order,
+      duration: duration ?? null,
+    })),
+  });
+
+  async function war(endTime: Date, overrides: Record<string, unknown> = {}) {
+    const key = `${endTime.toISOString().replace(/[-:]/g, '').slice(0, 15)}-OPP`;
+    await WarModel.create({
+      warKey: key,
+      clanTag: MAIN,
+      state: 'warEnded',
+      stateRank: 2,
+      teamSize: 5,
+      attacksPerMember: 2,
+      preparationStartTime: new Date(endTime.getTime() - 48 * 3600_000),
+      startTime: new Date(endTime.getTime() - 24 * 3600_000),
+      endTime,
+      result: 'win',
+      clan: {
+        tag: MAIN,
+        name: 'Crociata Nera',
+        clanLevel: 20,
+        attacks: 9,
+        stars: 14,
+        destructionPercentage: 97.66,
+        members: [
+          // Anna and Elio both take every star at 100%: Elio is faster. Fabio's times are unknown.
+          member('Anna', [[3, 100, 150], [3, 100, 140]]),
+          member('Elio', [[3, 100, 120], [3, 100, 130]]),
+          member('Fabio', [[3, 100], [3, 100]]),
+          member('Bruno', [[3, 100], [2, 80]]),
+          member('Dario', []),
+        ],
+      },
+      opponent: { tag: '#OPP', name: 'Les Gaulois ⚔️', clanLevel: 15, badgeUrl: 'https://example.com/badge.png', stars: 11, destructionPercentage: 85.2 },
+      lastSyncedAt: endTime,
+      ...overrides,
+    });
+    return key;
+  }
+
+  it('prepares a draft for each war ended after they were first looked for, with its result and best attackers', async () => {
+    await war(new Date('2026-10-30T20:00:00Z'));
+    await syncAnnouncementDrafts(T0);
+    expect(await AnnouncementModel.countDocuments({ kind: 'war' })).toBe(0);
+
+    const key = await war(new Date('2026-11-20T20:00:00Z'));
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`war:${key}@${MAIN}`]);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    const draft = await AnnouncementModel.findOne({ kind: 'war' }).lean();
+    expect(draft!.subject).toBe(key);
+    const data = draft!.data as WarData;
+    expect(data).toMatchObject({
+      result: 'win',
+      teamSize: 5,
+      clan: { stars: 14, destruction: 97.66, attacks: 9 },
+      opponent: { name: 'Les Gaulois ⚔️', tag: '#OPP', stars: 11 },
+    });
+    // Average time per attack, told in the post (unknown for Fabio).
+    expect(data.bestAttackers).toEqual([
+      { name: 'Elio', stars: 6, destruction: 100, attacks: 2, averageTime: 125 },
+      { name: 'Anna', stars: 6, destruction: 100, attacks: 2, averageTime: 145 },
+      { name: 'Fabio', stars: 6, destruction: 100, attacks: 2, averageTime: null },
+    ]);
+
+    // Corrected by the war log while still a draft: the figures follow.
+    await WarModel.updateOne({ warKey: key }, { $set: { 'clan.stars': 15 } });
+    expect((await syncAnnouncementDrafts(LATER)).updated).toEqual([`war:${key}@${MAIN}`]);
+
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🏆 **Vittoria contro Les Gaulois ⚔️!**');
+    expect(caption).toContain('⭐ 14 stelle a 11 · 97,7% a 85,2%');
+    expect(caption).toContain('🎯 Attacchi: 9 su 10');
+    expect(caption).toContain('👑 Migliori in attacco (a parità, il più veloce)');
+    expect(caption).toContain('🥇 **Elio** 6⭐ 100% ⏱️ 2:05 ad attacco');
+    expect(caption).toContain('🥉 **Fabio** 6⭐ 100%\n');
+    expect(caption.split('\n').at(-1)).toBe('#Guerra #CrociataNera');
+    expect(generatedCaption({ ...data, result: 'lose' }, 'en-US')).toContain('⚔️ **Defeat against Les Gaulois ⚔️**');
+
+    // Badges are read from the game's servers only: the opponent's (another host) is left out.
+    const png = await sharp({ create: { width: 8, height: 8, channels: 4, background: '#ffffff' } }).png().toBuffer();
+    const fetch = vi.fn(async () => new Response(new Uint8Array(png)));
+    vi.stubGlobal('fetch', fetch);
+    const own = 'https://api-assets.clashofclans.com/badges/512/own.png';
+    const [image] = await renderAnnouncementImages({ ...data, clan: { ...data.clan, badgeUrl: own } });
+    expect((await sharp(image!).metadata()).format).toBe('jpeg');
+    expect(fetch.mock.calls.map((call) => String((call as unknown[])[0]))).toEqual([own]);
+  }, 30_000);
+
+  it('prepares a Raid Weekend once its commendations are awarded, with totals, medals and best raiders', async () => {
+    await syncAnnouncementDrafts(T0);
+    const startTime = new Date('2026-11-13T07:00:00Z');
+    await RaidSeasonModel.create({
+      clanTag: MAIN,
+      startTime,
+      endTime: new Date('2026-11-16T07:00:00Z'),
+      state: 'ended',
+      season: {
+        capitalTotalLoot: 812345,
+        totalAttacks: 280,
+        enemyDistrictsDestroyed: 41,
+        raidsCompleted: 5,
+        offensiveReward: 1460,
+        defensiveReward: 380,
+        members: [
+          { tag: '#A', name: 'Anna', attacks: 6, capitalResourcesLooted: 30000 },
+          { tag: '#B', name: 'Bruno', attacks: 5, capitalResourcesLooted: 42000 },
+          { tag: '#C', name: 'Carla', attacks: 6, capitalResourcesLooted: 28000 },
+          { tag: '#D', name: 'Dario', attacks: 2, capitalResourcesLooted: 9000 },
+        ],
+      },
+      hasMembers: true,
+      lastSyncedAt: LATER,
+    });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await closePeriod('raid:2026-11-13T07:00:00.000Z', LATER, [{ tag: '#B', name: 'Bruno', type: 'capitalRaider', tier: 'gold' }]);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`raid:2026-11-13T07:00:00.000Z@${MAIN}`]);
+
+    const draft = await AnnouncementModel.findOne({ kind: 'raid' }).lean();
+    expect(draft!.subject).toBe('2026-11-13T07:00:00.000Z');
+    const data = draft!.data as RaidData;
+    expect(data).toMatchObject({ capitalGold: 812345, attacks: 280, districts: 41, raids: 5, offensiveReward: 1460, defensiveReward: 380, participants: 4 });
+    expect(data.topLooters.map((p) => p.name)).toEqual(['Bruno', 'Anna', 'Carla']);
+    expect(data.honours).toHaveLength(1);
+
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🏰 **Crociata Nera · Raid Weekend**\nWeekend del 13 novembre 2026');
+    expect(caption).toContain('💰 812.345 di oro della capitale in 280 attacchi');
+    // 6 attacks × 1460 + 380, as the Raid Weekend page counts them.
+    expect(caption).toContain('🏅 9.140 medaglie raid a testa');
+    expect(caption).toContain('🥇 **Bruno**: 42.000');
+    expect(caption.split('\n').at(-1)).toBe('#RaidWeekend #CrociataNera');
+    // Summary and roll of honour.
+    expect(await renderAnnouncementImages(data)).toHaveLength(2);
+  }, 30_000);
+
+  it('lead to the war and to the Raid Weekend on the site', () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
+    const base = { clanTag: MAIN, clanName: 'Crociata Nera' };
+    expect(announcementLink({ ...base, kind: 'war', warKey: '20261119T213344-JPLL8YGG' } as AnnouncementData)).toBe(
+      'https://crociatanera.it/wars/20261119T213344-JPLL8YGG',
+    );
+    expect(announcementLink({ ...base, kind: 'raid', startTime: '2026-11-13T07:00:00.000Z' } as AnnouncementData)).toBe(
+      'https://crociatanera.it/raids?weekend=2026-11-13T07%3A00%3A00.000Z',
+    );
   });
 });
 
@@ -532,7 +743,9 @@ describe('administration', () => {
     expect(res.body.messages[0]!.key).toBe('ERROR.TELEGRAM_NO_ANNOUNCEMENTS_CHAT');
   });
 
-  it('publishes an album with the caption in HTML, once', async () => {
+  it('publishes an album with the caption in HTML, once (no button: Telegram allows none on albums)', async () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
     const telegram = mockTelegramApi({ sendMediaGroup: () => ({ result: [{ message_id: 41 }, { message_id: 42 }] }) });
     const id = await draft();
     await announcementsChannel();
@@ -550,6 +763,7 @@ describe('administration', () => {
       { type: 'photo', media: 'attach://page1' },
     ]);
     expect(sent!.params['page1']).toBeInstanceOf(Blob);
+    expect(sent!.params['reply_markup']).toBeUndefined();
     expect((await AnnouncementModel.findById(id).lean())!.messageIds).toEqual([41, 42]);
 
     const again = await call(publish, { token: admin, params: { id } });
@@ -557,7 +771,9 @@ describe('administration', () => {
     expect(again.body.messages[0]!.key).toBe('ERROR.ANNOUNCEMENT_NOT_DRAFT');
   }, 30_000);
 
-  it('publishes a single picture with sendPhoto, and settles the record', async () => {
+  it('publishes a single picture with sendPhoto and the button to the site, and settles the record', async () => {
+    process.env.APP_URL = 'https://crociatanera.it';
+    resetEnvCache();
     const telegram = mockTelegramApi();
     await records(MAIN);
     await syncAnnouncementDrafts(T0);
@@ -569,6 +785,10 @@ describe('administration', () => {
     expect(res.status).toBe(200);
     expect(telegram.of('sendPhoto')).toHaveLength(1);
     expect(String(telegram.of('sendPhoto')[0]!.params['caption'])).toContain('<b>20° posto</b>');
+    expect(String(telegram.of('sendPhoto')[0]!.params['caption'])).toContain('<a href="https://crociatanera.it/">crociatanera.it</a>');
+    expect(JSON.parse(String(telegram.of('sendPhoto')[0]!.params['reply_markup']))).toEqual({
+      inline_keyboard: [[{ text: '🌐 Apri sul sito', url: 'https://crociatanera.it/' }]],
+    });
     const baseline = await AnnouncementBaselineModel.findOne({ clanTag: MAIN }).lean();
     expect((baseline!.records as Record<string, number>)['localRank']).toBe(20);
   });

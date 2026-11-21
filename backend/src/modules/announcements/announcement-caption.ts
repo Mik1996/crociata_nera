@@ -7,7 +7,10 @@ import {
   LegendSeasonData,
   MonthData,
   PromotionData,
+  RaidData,
+  raidMedals,
   RecordData,
+  WarData,
 } from './announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from './announcement-texts';
 
@@ -26,9 +29,16 @@ const TOP_LEAGUE = 105000036;
 /** Legend League III and up. */
 const LEGEND_LEAGUES = 105000034;
 
-/** The caption of an announcement in a language (Italian, the channel's, by default). */
+/**
+ * The caption of an announcement in a language (Italian, the channel's, by default), ending with
+ * its hashtags.
+ */
 export function generatedCaption(data: AnnouncementData, language?: AnnouncementLanguage): string {
   const t = announcementTexts(language);
+  return `${captionBody(t, data)}\n\n${hashtags(t, data)}`;
+}
+
+function captionBody(t: AnnouncementTexts, data: AnnouncementData): string {
   switch (data.kind) {
     case 'month':
       return monthCaption(t, data);
@@ -42,7 +52,76 @@ export function generatedCaption(data: AnnouncementData, language?: Announcement
       return promotionCaption(t, data);
     case 'legendSeason':
       return legendSeasonCaption(t, data);
+    case 'war':
+      return warCaption(t, data);
+    case 'raid':
+      return raidCaption(t, data);
   }
+}
+
+function warCaption(t: AnnouncementTexts, data: WarData): string {
+  const c = t.caption.war;
+  const lines = [
+    c.title(data.result, data.opponent.name),
+    '',
+    c.score(data.clan.stars, data.opponent.stars, percent(t, data.clan.destruction), percent(t, data.opponent.destruction)),
+    c.attacks(data.clan.attacks, data.teamSize * data.attacksPerMember),
+  ];
+  if (data.bestAttackers.length) {
+    lines.push('', `👑 ${c.best}`);
+    const medals = ['🥇', '🥈', '🥉'];
+    data.bestAttackers.forEach((a, i) =>
+      lines.push(`${medals[i]} ${c.attacker(a.name, a.stars, t.number(a.destruction, 0), attackTime(a.averageTime))}`),
+    );
+  }
+  lines.push('', c.footer);
+  return lines.join('\n');
+}
+
+/** Seconds as minutes and seconds (`125` -> `2:05`); `null` when unknown. */
+export function attackTime(seconds: number | null | undefined): string | null {
+  if (seconds == null) return null;
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+/** A percentage with at most one decimal and no trailing zero: `100`, `98,7`. */
+export function percent(t: AnnouncementTexts, value: number): string {
+  return t.number(Math.round(value * 10) / 10);
+}
+
+function raidCaption(t: AnnouncementTexts, data: RaidData): string {
+  const c = t.caption.raid;
+  const lines = [
+    c.title(data.clanName, t.weekend(data.startTime)),
+    '',
+    c.gold(t.number(data.capitalGold), t.number(data.attacks)),
+    c.districts(data.districts, data.raids),
+    c.medals(t.number(raidMedals(data).total)),
+  ];
+  if (data.topLooters.length) {
+    lines.push('');
+    const medals = ['🥇', '🥈', '🥉'];
+    data.topLooters.forEach((p, i) => lines.push(`${medals[i]} **${p.name}**: ${t.number(p.gold)}`));
+  }
+  lines.push(...honourLines(t, data.honours), '', c.footer);
+  return lines.join('\n');
+}
+
+/**
+ * Hashtags of an announcement: its kind and its clan (`#CWL #CrociataNera`), so the members find
+ * them with the search of the channel.
+ */
+export function hashtags(t: AnnouncementTexts, data: AnnouncementData): string {
+  return `#${t.caption.hashtags[data.kind]} #${hashtagOf(data.clanName)}`;
+}
+
+/** A name as a hashtag: words joined, each with a capital (`Crociata d'Oro` -> `CrociataDOro`). */
+function hashtagOf(name: string): string {
+  return name
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .map((word) => word[0]!.toUpperCase() + word.slice(1))
+    .join('');
 }
 
 /** Flag emoji of a country (`IT` -> 🇮🇹). */
@@ -168,7 +247,14 @@ export function fitCaption(caption: string): string {
   return `${chars.join('')}…`;
 }
 
-/** Caption as Telegram HTML: text escaped, `**text**` in bold. */
-export function captionToHtml(caption: string): string {
-  return escapeHtml(caption).replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>');
+/** Name of the site in the captions: a link to the page of the announcement when one is given. */
+const SITE_NAME = /crociatanera\.it/gi;
+
+/**
+ * Caption as Telegram HTML: text escaped, `**text**` in bold, the name of the site a link to `link`
+ * (the page of the announcement).
+ */
+export function captionToHtml(caption: string, link?: string | null): string {
+  const html = escapeHtml(caption).replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>');
+  return link ? html.replace(SITE_NAME, (name) => `<a href="${escapeHtml(link).replace(/"/g, '&quot;')}">${name}</a>`) : html;
 }

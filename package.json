@@ -30,6 +30,7 @@
     "@ngx-translate/http-loader": "^18.1.0",
     "chart.js": "^4.6.1",
     "ng2-charts": "^11.0.0",
+    "pdfjs-dist": "^6.5.438",
     "pdfmake": "^0.3.14",
     "rxjs": "~7.8.0",
     "three": "^0.187.0",
