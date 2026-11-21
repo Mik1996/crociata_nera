@@ -190,11 +190,26 @@ async function syncPost(
       if (post.status !== BasePostStatus.SENT) return markSent(post, base, caption, channel.chatId, post.messageId!);
       return;
     }
-    const edited = sameImage
+    const edit = sameImage
       ? await editCaption(channel.chatId, post.messageId!, caption, base.layoutUrl, pacer)
       : await editPhoto(channel.chatId, post.messageId!, base, caption, pacer);
-    if (edited) return markSent(post, base, caption, channel.chatId, post.messageId!);
-    // The post was deleted by hand in the channel: sent again below.
+    if (edit === 'edited') return markSent(post, base, caption, channel.chatId, post.messageId!);
+    if (edit === 'locked') {
+      // Still in the channel, but Telegram no longer lets it change (an old post). A new post next to
+      // it would be a duplicate: only the text changed (a description, the caption's layout) and it
+      // stays as it is; a new picture or layout link needs a new post, once the old one is deleted.
+      if (sameImage && post.layoutUrl === base.layoutUrl) {
+        console.warn(`[telegram] post of base ${base._id.toString()} can no longer be edited: left as it is`);
+        return markSent(post, base, caption, channel.chatId, post.messageId!);
+      }
+      const { chatId, messageId } = post;
+      if ((await deleteMessage(post, pacer)) === 'kept') {
+        // Still in the channel: it stays the post of the base, so no run ever sends a duplicate.
+        post.set({ chatId, messageId });
+        throw new Error('the old post can no longer be edited nor deleted: delete it by hand in the channel');
+      }
+    }
+    // The post was deleted by hand in the channel (or just now): sent again below.
   }
   const messageId = await sendPhoto(channel.chatId, base, caption, pacer);
   return markSent(post, base, caption, channel.chatId, messageId);
@@ -264,8 +279,13 @@ async function sendPhoto(chatId: number, base: PublishedBase, caption: string, p
   return message.message_id;
 }
 
-/** `false` when the message no longer exists. */
-async function editPhoto(chatId: number, messageId: number, base: PublishedBase, caption: string, pacer: Pacer): Promise<boolean> {
+/**
+ * How an edit went: `edited` (or nothing to change), `gone` (the message no longer exists: deleted by
+ * hand), `locked` (it exists but Telegram refuses to change it, e.g. an old post).
+ */
+type EditResult = 'edited' | 'gone' | 'locked';
+
+async function editPhoto(chatId: number, messageId: number, base: PublishedBase, caption: string, pacer: Pacer): Promise<EditResult> {
   const form = new FormData();
   form.append('chat_id', String(chatId));
   form.append('message_id', String(messageId));
@@ -276,7 +296,7 @@ async function editPhoto(chatId: number, messageId: number, base: PublishedBase,
   return edited(() => inChat(chatId, () => telegramApi('editMessageMedia', form)));
 }
 
-async function editCaption(chatId: number, messageId: number, caption: string, layoutUrl: string, pacer: Pacer): Promise<boolean> {
+async function editCaption(chatId: number, messageId: number, caption: string, layoutUrl: string, pacer: Pacer): Promise<EditResult> {
   await pacer.wait();
   return edited(() =>
     inChat(chatId, () =>
@@ -291,36 +311,45 @@ async function editCaption(chatId: number, messageId: number, caption: string, l
   );
 }
 
-async function edited(edit: () => Promise<unknown>): Promise<boolean> {
+/**
+ * Only a message Telegram says is gone counts as gone: any other refusal leaves the post where it is
+ * (a new one would be a duplicate in the channel).
+ */
+async function edited(edit: () => Promise<unknown>): Promise<EditResult> {
   try {
     await edit();
-    return true;
+    return 'edited';
   } catch (error) {
     if (!(error instanceof TelegramApiError) || error.status !== 400) throw error;
-    if (/not modified/i.test(error.message)) return true;
-    if (/not found|can't be edited/i.test(error.message)) return false;
+    if (/not modified/i.test(error.message)) return 'edited';
+    if (/message to edit not found|MESSAGE_ID_INVALID/i.test(error.message)) return 'gone';
+    if (/can't be edited|EDIT_TIME_EXPIRED/i.test(error.message)) return 'locked';
     throw error;
   }
 }
 
 /**
- * Deletes the post of a base; one already gone (deleted by hand) counts as deleted. In a channel the
- * bot was removed from (403) the post cannot be deleted: it is left there and forgotten, so that the
- * base can still move to its new channel.
+ * Deletes the post of a base; one already gone (deleted by hand) counts as deleted. A post Telegram
+ * refuses to delete (the bot was removed from the channel, an old post) is left there and forgotten,
+ * so that the base can still move to its new channel: `kept` tells the caller.
  */
-async function deleteMessage(post: TelegramBasePostDocument, pacer: Pacer): Promise<void> {
+async function deleteMessage(post: TelegramBasePostDocument, pacer: Pacer): Promise<'deleted' | 'kept'> {
   const { chatId, messageId } = post;
-  if (chatId == null || messageId == null) return;
+  if (chatId == null || messageId == null) return 'deleted';
   await pacer.wait();
+  let result: 'deleted' | 'kept' = 'deleted';
   try {
     await inChat(chatId, () => telegramApi('deleteMessage', { chat_id: chatId, message_id: messageId }));
   } catch (error) {
     if (!(error instanceof TelegramApiError) || (error.status !== 400 && error.status !== 403)) throw error;
-    if (error.status === 403) {
+    // Gone already (deleted by hand) counts as deleted; any other refusal leaves it in the channel.
+    if (!/message to delete not found|MESSAGE_ID_INVALID/i.test(error.message)) {
+      result = 'kept';
       console.warn(`[telegram] post of base ${post.baseId.toString()} left in chat ${chatId}: ${error.message}`);
     }
   }
   post.set({ chatId: null, messageId: null });
+  return result;
 }
 
 /** A call that writes in a chat: refused there (403), the chat is marked as closed to the bot. */

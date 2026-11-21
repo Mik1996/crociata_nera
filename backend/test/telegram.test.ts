@@ -294,6 +294,50 @@ describe('posts of the bases', () => {
     expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, messageId: 101 });
   });
 
+  it('never sends a duplicate of an old post Telegram refuses to edit: only its text changed, it stays as it is', async () => {
+    const telegram = mockTelegramApi({
+      editMessageCaption: () => ({ error: 400, description: "Bad Request: message can't be edited" }),
+    });
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    const id = await create(admin);
+    telegram.reset();
+    // A new caption (a description changed, or the caption's layout after a deploy).
+    await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ description: 'Changed' }) });
+    await requestBasePostSync();
+    expect(telegram.calls.map((c) => c.method)).toEqual(['editMessageCaption']);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, messageId: 100 });
+    // Not tried again at the next run.
+    telegram.reset();
+    await requestBasePostSync();
+    expect(telegram.calls).toEqual([]);
+  });
+
+  it('replaces an old post that cannot be edited only after deleting it, when its picture changed', async () => {
+    let deletable = false;
+    const telegram = mockTelegramApi({
+      editMessageMedia: () => ({ error: 400, description: "Bad Request: message can't be edited" }),
+      deleteMessage: () => (deletable ? undefined : { error: 400, description: "Bad Request: message can't be deleted" }),
+    });
+    const admin = await adminToken();
+    await channel(TH18_CHANNEL, 18);
+    const id = await create(admin);
+    telegram.reset();
+    await call(updateBase, { token: admin, method: 'PATCH', params: { id }, body: form({ image: await png({ r: 200, g: 10, b: 10 }) }) });
+    await requestBasePostSync();
+    // Neither edited nor deleted: no new post next to the old one; the error waits for an administrator.
+    expect(telegram.calls.map((c) => c.method)).toEqual(['editMessageMedia', 'deleteMessage']);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.FAILED });
+
+    deletable = true;
+    await TelegramBasePostModel.updateMany({}, { $set: { retryAt: null } });
+    telegram.reset();
+    await requestBasePostSync();
+    // The old post is still known: deleted first, then the new one.
+    expect(telegram.calls.map((c) => c.method)).toEqual(['editMessageMedia', 'deleteMessage', 'sendPhoto']);
+    expect(await postOf(id)).toMatchObject({ status: BasePostStatus.SENT, messageId: 101 });
+  });
+
   it('deletes the posts of a channel that is unbound or removed: they wait for a new channel', async () => {
     const telegram = mockTelegramApi();
     const admin = await adminToken();
