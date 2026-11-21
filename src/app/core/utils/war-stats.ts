@@ -146,6 +146,10 @@ export function computePlayerStats(member: ClanMember, wars: War[]): PlayerStats
     .flatMap((p) => p.attacks);
   const attacksAvailable = history.reduce((s, a) => s + a.attacksAvailable, 0);
   const totalStars = attacks.reduce((s, a) => s + a.stars, 0);
+  // Defenses: the opponents' attacks against the player's base.
+  const received = wars
+    .flatMap((w) => w.opponent.members.flatMap((x) => x.attacks))
+    .filter((a) => a.defenderTag === member.tag);
 
   return {
     tag: member.tag,
@@ -163,6 +167,13 @@ export function computePlayerStats(member: ClanMember, wars: War[]): PlayerStats
     averageStars: round(average(attacks.map((a) => a.stars)), 2),
     threeStarRate: percentage(attacks.filter((a) => a.stars === 3).length, attacks.length),
     averageDestruction: round(average(attacks.map((a) => a.destructionPercentage))),
+    defenses: received.length,
+    averageStarsConceded: round(average(received.map((a) => a.stars)), 2),
+    threeStarsConcededRate: percentage(
+      received.filter((a) => a.stars === 3).length,
+      received.length,
+    ),
+    averageDestructionConceded: round(average(received.map((a) => a.destructionPercentage))),
     history,
   };
 }

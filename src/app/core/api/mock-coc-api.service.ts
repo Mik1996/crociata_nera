@@ -313,6 +313,10 @@ export class MockCocApiService extends CocApiService {
                 averageStars: mean(matching, 'averageStars'),
                 threeStarRate: mean(matching, 'threeStarRate'),
                 averageDestruction: mean(matching, 'averageDestruction'),
+                defenses: mean(matching, 'defenses'),
+                averageStarsConceded: mean(matching, 'averageStarsConceded'),
+                threeStarsConcededRate: mean(matching, 'threeStarsConcededRate'),
+                averageDestructionConceded: mean(matching, 'averageDestructionConceded'),
               }
             : null,
         }),

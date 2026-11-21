@@ -261,6 +261,49 @@ describe('GET /players and /players/{tag}/wars', () => {
     expect(none.body.result).toMatchObject({ total: 0, summary: { averages: null } });
   });
 
+  it("adds up the opponents' attacks against each member's base", async () => {
+    const auth = await memberToken('reader');
+    const attack = (attackerTag: string, defenderTag: string, stars: number, destructionPercentage: number, order: number) =>
+      ({ attackerTag, defenderTag, stars, destructionPercentage, order, duration: 100 });
+    const opponent = (tag: string, attacks: ReturnType<typeof attack>[]) => ({
+      ...cocWar().opponent,
+      tag,
+      name: `Opp ${tag}`,
+      members: [{ tag: '#BBB222', name: 'Eve', townhallLevel: 16, mapPosition: 1, opponentAttacks: 1, attacks }],
+    });
+    await saveWar({
+      state: 'warEnded',
+      preparationStartTime: '20261020T100000.000Z',
+      startTime: '20261020T100000.000Z',
+      endTime: '20261022T100000.000Z',
+      opponent: opponent('#OPP1', [attack('#BBB222', '#AAA111', 3, 100, 2), attack('#BBB222', '#AAA222', 1, 60, 3)]),
+    });
+    await saveWar({
+      state: 'warEnded',
+      preparationStartTime: '20261101T100000.000Z',
+      startTime: '20261101T100000.000Z',
+      endTime: '20261103T100000.000Z',
+      opponent: opponent('#OPP2', [attack('#BBB222', '#AAA111', 0, 40, 2)]),
+    });
+    mockCocApi({ [`/clans/${encodeURIComponent(NERA)}`]: { body: clan } });
+
+    const res = await call(players, request('/players?sort=defenses&order=desc', auth));
+    const [alice, bob, carl] = res.body.result.items;
+    expect(alice).toMatchObject({
+      name: 'Alice',
+      defenses: 2,
+      averageStarsConceded: 1.5,
+      threeStarsConcededRate: 50,
+      averageDestructionConceded: 70,
+    });
+    expect(bob).toMatchObject({ name: 'Bob', defenses: 1, averageStarsConceded: 1, threeStarsConcededRate: 0, averageDestructionConceded: 60 });
+    expect(carl).toMatchObject({ name: 'Carl', defenses: 0, averageStarsConceded: 0, threeStarsConcededRate: 0 });
+    expect(res.body.result.summary.averages.defenses).toBe(1);
+
+    const tripled = await call(players, request('/players?threeStarsConcededRateMin=1', auth));
+    expect(tripled.body.result.items.map((p: { name: string }) => p.name)).toEqual(['Alice']);
+  });
+
   it('falls back on the saved players when the API cannot be reached', async () => {
     const auth = await memberToken('reader');
     await PlayerModel.create({ tag: '#SAVED1', name: 'Saved', role: 'leader', townHallLevel: 17, trophies: 5000, clanTag: NERA, inClan: true });

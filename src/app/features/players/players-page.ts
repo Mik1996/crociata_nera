@@ -83,6 +83,10 @@ export class PlayersPage {
     'averageStars',
     'threeStarRate',
     'averageDestruction',
+    'defenses',
+    'averageStarsConceded',
+    'threeStarsConcededRate',
+    'averageDestructionConceded',
   ];
 
   /** No war with details available yet: individual statistics are still empty. */

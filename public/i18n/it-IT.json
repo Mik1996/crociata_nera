@@ -144,7 +144,11 @@
     "averageStarsPerAttack": "Ordina per media stelle per attacco",
     "starsConceded": "Ordina per stelle concesse in difesa",
     "league": "Ordina per lega",
-    "verified": "Ordina per email verificata"
+    "verified": "Ordina per email verificata",
+    "defenses": "Ordina per attacchi subiti",
+    "averageStarsConceded": "Ordina per media stelle subite",
+    "threeStarsConcededRate": "Ordina per percentuale di 3 stelle subite",
+    "averageDestructionConceded": "Ordina per distruzione media subita"
   },
   "paginator": {
     "itemsPerPage": "Righe per pagina:",
@@ -282,7 +286,11 @@
     "averageStars": "Media ★",
     "threeStarRate": "3★ %",
     "destructionRate": "Distr. %",
-    "league": "Lega"
+    "league": "Lega",
+    "defenses": "Difese",
+    "averageStarsConceded": "Media ★ subite",
+    "threeStarsConcededRate": "3★ subite %",
+    "destructionConceded": "Distr. subita %"
   },
   "player": {
     "subtitle": "{{role}} · {{tag}} · Municipio {{th}}",
