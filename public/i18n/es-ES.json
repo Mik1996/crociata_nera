@@ -260,7 +260,19 @@
     "noticeTitle": "Detalle de los participantes no disponible",
     "noticeText": "Para esta guerra solo está disponible el resumen (estrellas, destrucción, resultado): los ataques de cada jugador no se registraron.",
     "participationHint": "atacaron al menos una vez",
-    "performance": "Rendimiento individual"
+    "performance": "Rendimiento individual",
+    "pdf": {
+      "title": "Informe de guerra",
+      "attack": "Ataque {{n}}",
+      "missed": "perdido",
+      "defense": "Defensa",
+      "total": "Total",
+      "empty": "Ningún participante registrado.",
+      "legendTitle": "Cómo leerlo",
+      "legendAttack": "Ataque: estrellas, destrucción y, tras la flecha, la posición en el mapa de la base atacada.",
+      "legendDefense": "Defensa: el mejor ataque recibido por la base del jugador.",
+      "legendMissed": "En rojo, los ataques no usados."
+    }
   },
   "history": {
     "subtitle": "Todas las guerras terminadas por el clan: selecciona una guerra para ver el detalle",

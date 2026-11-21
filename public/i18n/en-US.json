@@ -260,7 +260,19 @@
     "noticeTitle": "Participant details not available",
     "noticeText": "Only the summary is available for this war (stars, destruction, result): individual player attacks were not recorded.",
     "participationHint": "attacked at least once",
-    "performance": "Individual performance"
+    "performance": "Individual performance",
+    "pdf": {
+      "title": "War report",
+      "attack": "Attack {{n}}",
+      "missed": "missed",
+      "defense": "Defense",
+      "total": "Total",
+      "empty": "No participant recorded.",
+      "legendTitle": "How to read it",
+      "legendAttack": "Attack: stars, destruction and, after the arrow, the map position of the base attacked.",
+      "legendDefense": "Defense: the best attack taken by the player's base.",
+      "legendMissed": "Attacks not used are in red."
+    }
   },
   "history": {
     "subtitle": "All wars finished by the clan: select a war for details",

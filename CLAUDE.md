@@ -117,7 +117,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   with emoji or other scripts as pictures (browser fonts); `buildTablePdf` draws the pages. Every PDF has
   the "iron" look of the site (`shared/pdf/iron-pdf.ts`: brushed iron from `PdfToolkit.ironPlate`, double gold
   frame with studs, same header and footer on every page, colours `--cn-pdf-*` read as `PdfTheme`). Pictures must be same-origin: league badges are copied in
-  `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up and the Raid Weekend.
+  `public/game/league-tiers/` (`leagueTierImage`). Used by the CWL line-up, the Raid Weekend and the war report
+  (`features/wars/war-report-pdf.ts`). Where the device shares files, `<crn-pdf-button>` adds "Share" (Web
+  Share API; a notice asks one more tap when the browser refuses a share started too long after the tap).
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
   administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
@@ -206,7 +208,8 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   `/statistics?period=`, `/cwl?season=`, `/players/{tag}`…; sister clans: `/`; none without an `https` `APP_URL`):
   the "crociatanera.it" of the caption links it, and a single picture gets an "Open on the site" button
   (albums cannot have buttons). Pictures are
-  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`), text
+  SVG drawn on the server in the PDFs' iron look (`image/`, colours copied from `--cn-pdf-*`, kept equal by
+  `test/announcement-theme.test.ts`), text
   turned into paths with opentype.js (its own text layout and `toPathData` are broken, glyphs are placed
   by hand); what those fonts lack in names (emoji, other scripts) is drawn by Pango through `sharp` with
   the system's Noto fonts (installed in `deploy/backend.Dockerfile`) as pictures, prepared ahead

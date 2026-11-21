@@ -13,6 +13,9 @@
     <a mat-stroked-button routerLink="/wars">
       <crn-icon matButtonIcon name="arrow_back" /> {{ 'warDetail.back' | translate }}
     </a>
+    @if (reportPdf(); as pdf) {
+      <crn-pdf-button [pdf]="pdf" />
+    }
   </crn-page-header>
 
   <div class="page__body">
