@@ -1,15 +1,32 @@
-<section class="panel cn-card" [attr.aria-labelledby]="'auth-heading'">
-  <header class="panel__banner">
-    <img class="panel__emblem" src="game/misc/clan-war.webp" alt="" width="72" height="72" />
-    <h1 id="auth-heading" class="panel__heading">{{ heading() }}</h1>
-  </header>
-  <div class="panel__body">
-    @if (subtitle()) {
-      <p class="panel__subtitle">{{ subtitle() }}</p>
-    }
-    <ng-content />
-  </div>
-  <footer class="panel__footer">
-    <ng-content select="[authFooter]" />
-  </footer>
-</section>
+<div class="stage" [class.stage--hero]="!!pose()">
+  @if (pose(); as heroPose) {
+    <div class="stage__hero">
+      <crn-crusader
+        class="crusader--soft"
+        [pose]="heroPose"
+        [priority]="true"
+        sizes="(min-width: 50rem) 16rem, 13rem"
+      />
+    </div>
+  }
+  <section class="panel cn-card" [attr.aria-labelledby]="'auth-heading'">
+    <header class="panel__banner">
+      <img class="panel__emblem" [src]="crest" alt="" width="351" height="512" />
+      <h1 id="auth-heading" class="panel__heading">{{ heading() }}</h1>
+    </header>
+    <div class="panel__body">
+      @if (subtitle()) {
+        <p class="panel__subtitle">{{ subtitle() }}</p>
+      }
+      <ng-content />
+    </div>
+    <footer class="panel__footer">
+      <ng-content select="[authFooter]" />
+    </footer>
+  </section>
+  @if (pose()) {
+    <div class="stage__hero stage__hero--right">
+      <crn-crusader class="crusader--soft" [pose]="rightPose()!" sizes="16rem" />
+    </div>
+  }
+</div>

@@ -3,13 +3,71 @@
 
 :host {
   display: block;
+  // The layout follows the room the page gives (container queries below).
+  container-type: inline-size;
+  margin: $space-l 0;
+}
+
+// Panel and Crusader. Narrow: one column, the Crusader rising behind the banner (in place of the
+// crest, too alike his helmet). Wide: the Crusader beside the panel, the crest back on the banner.
+.stage {
+  position: relative;
+  isolation: isolate;
   width: min(100%, 27.5rem);
-  margin: $space-xxl auto $space-l;
+  margin: 0 auto;
+  // Room above for the crest, which rises out of the banner.
+  padding-top: $space-xxxl;
+}
+
+.stage__hero {
+  display: none;
+}
+
+.stage--hero {
+  // Head and shoulders of the Crusader show above the panel.
+  padding-top: 7rem;
+
+  .stage__hero {
+    display: block;
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 50%;
+    width: 13rem;
+    translate: -50% 0;
+    animation: hero-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  // The second Crusader only stands on wide screens.
+  .stage__hero--right {
+    display: none;
+  }
+
+  .panel__emblem {
+    display: none;
+  }
+
+  .panel__banner {
+    padding-top: $space-l;
+  }
+}
+
+// No fog: its flat colour would show as a box on the page's gradient. The feet fade out instead.
+crn-crusader {
+  --crusader-fog: transparent;
+  mask-image: linear-gradient(180deg, var(--cn-ink) 78%, transparent 98%);
 }
 
 .panel {
   position: relative;
+  z-index: 1;
   overflow: visible;
+
+  // The corner studs of `.cn-card` stay above the banner (otherwise the later banner covers the first).
+  &::before,
+  &::after {
+    z-index: 1;
+  }
 }
 
 // Title banner: the gold header strip of the game's popups, with the emblem breaking out of it.
@@ -18,10 +76,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: $space-xxl $space-l $space-m;
+  padding: $space-xxxl $space-l $space-m;
   background: var(--cn-gold-fill);
-  border-bottom: 3px solid var(--cn-panel-border);
-  border-radius: $radius-l $radius-l 0 0;
+  border-bottom: 2px solid var(--cn-panel-border);
+  // Same curve as the card's inner edge, so no corner of the card shows between frame and banner.
+  border-radius: calc(var(--cn-card-radius) - var(--cn-card-border-width))
+    calc(var(--cn-card-radius) - var(--cn-card-border-width)) 0 0;
   box-shadow:
     inset 0 2px 0 palette.alpha(var(--cn-light), 50%),
     inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 15%);
@@ -29,9 +89,9 @@
 
 .panel__emblem {
   position: absolute;
-  top: -2.5rem;
-  width: 4.5rem;
-  height: 4.5rem;
+  top: (-$space-xxxl);
+  width: auto;
+  height: 6rem;
   object-fit: contain;
   filter: drop-shadow(0 0.1875rem 0 palette.alpha(var(--cn-shadow), 35%));
 }
@@ -73,5 +133,54 @@
 
   &:empty {
     display: none;
+  }
+}
+
+@container (min-width: 50rem) {
+  .stage--hero {
+    // A Crusader on each side keeps the panel in the middle of the page.
+    display: grid;
+    grid-template-columns: minmax(0, 16rem) 27.5rem minmax(0, 16rem);
+    gap: $space-l;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding-top: $space-xxxl;
+
+    .stage__hero {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      translate: none;
+    }
+
+    // Mirrored: both Crusaders face the panel.
+    .stage__hero--right {
+      display: block;
+      scale: -1 1;
+    }
+
+    .panel__emblem {
+      display: block;
+    }
+
+    .panel__banner {
+      padding-top: $space-xxxl;
+    }
+  }
+}
+
+// The Crusader comes up from the fog, once.
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage--hero .stage__hero {
+    animation: none;
   }
 }
