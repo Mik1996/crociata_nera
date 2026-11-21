@@ -72,16 +72,18 @@ export class PdfButton {
     } finally {
       this.busy.set(null);
     }
-    await this.send(files, pdf.title, true);
+    await this.send(files, true);
   }
 
   /**
    * Opens the share sheet. The browser allows it only right after a tap: when making the files took
    * too long (the first export loads the libraries and the fonts), a notice asks for one more tap.
    */
-  private async send(files: File[], title: string, firstTry: boolean): Promise<void> {
+  private async send(files: File[], firstTry: boolean): Promise<void> {
     try {
-      await navigator.share({ files, title });
+      // Files only: with a title, Safari on macOS hands WhatsApp the last file twice. The file names
+      // already tell what they are.
+      await navigator.share({ files });
     } catch (error) {
       const name = (error as DOMException | null)?.name;
       if (name === 'AbortError') return; // closed by the user
@@ -89,7 +91,7 @@ export class PdfButton {
         this.snackBar
           .open(this.language.t('pdf.ready'), this.language.t('pdf.share'), { duration: 10000 })
           .onAction()
-          .subscribe(() => void this.send(files, title, false));
+          .subscribe(() => void this.send(files, false));
         return;
       }
       console.error('[pdf] share failed', error);

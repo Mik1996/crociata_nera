@@ -138,13 +138,13 @@ describe('PdfButton', () => {
       expect(el.querySelector('button.share')!.textContent).toContain('Condividi');
       await pick('share', 'pdf');
       expect(exporter.file).toHaveBeenCalledWith(PDF);
-      expect(share).toHaveBeenCalledWith({ files: [FILE], title: 'Test' });
+      expect(share).toHaveBeenCalledWith({ files: [FILE] });
     });
 
     it('sends the pages as pictures', async () => {
       const { pick } = await create();
       await pick('share', 'images');
-      expect(share).toHaveBeenCalledWith({ files: PAGES, title: 'Test' });
+      expect(share).toHaveBeenCalledWith({ files: PAGES });
     });
 
     it('asks for one more tap when the browser refuses a share started too long after the tap', async () => {
