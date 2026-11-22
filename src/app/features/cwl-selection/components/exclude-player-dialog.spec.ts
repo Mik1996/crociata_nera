@@ -23,7 +23,7 @@ describe('ExcludePlayerDialog', () => {
   }
 
   it('excludes the player with the reason typed, and closes with the exclusion', async () => {
-    const exclusion = { reason: 'Away', excludedBy: 'boss', excludedAt: '' };
+    const exclusion = { reason: 'Away', untilRevoked: false, excludedBy: 'boss', excludedAt: '' };
     const exclude = vi.fn(() => of(exclusion));
     const { fixture, close, el } = render(exclude);
     await fixture.whenStable();
@@ -31,8 +31,19 @@ describe('ExcludePlayerDialog', () => {
     textarea.value = '  Away  ';
     textarea.dispatchEvent(new Event('input'));
     el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
-    expect(exclude).toHaveBeenCalledWith('#AAA', 'Away');
+    expect(exclude).toHaveBeenCalledWith('#AAA', 'Away', false);
     expect(close).toHaveBeenCalledWith(exclusion);
+  });
+
+  it('excludes until revoked when the box is ticked', async () => {
+    const exclude = vi.fn(() => of({ reason: null, untilRevoked: true, excludedBy: 'boss', excludedAt: '' }));
+    const { fixture, el } = render(exclude);
+    await fixture.whenStable();
+    el.querySelector<HTMLInputElement>('.until-revoked input[type="checkbox"]')!.click();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('finché un amministratore');
+    el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+    expect(exclude).toHaveBeenCalledWith('#AAA', null, true);
   });
 
   it('shows the errors of the backend and stays open', async () => {

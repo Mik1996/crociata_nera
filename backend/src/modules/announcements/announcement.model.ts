@@ -5,7 +5,7 @@ import { HydratedDocument, InferSchemaType, model, models, Model, Schema } from 
  * month), a Clan War League season, the donations of a game season, a new record of the clan, or a
  * player promoted to a league never reached before (Electro League 31 and up), or a player who ended
  * a Legend League season in Legend League I (among the first 10,000 of the world), the result of a
- * war, a Raid Weekend.
+ * war, a Raid Weekend, the Clan War League line-up of a season (when its selection is closed).
  */
 export const AnnouncementKind = {
   MONTH: 'month',
@@ -16,6 +16,7 @@ export const AnnouncementKind = {
   LEGEND_SEASON: 'legendSeason',
   WAR: 'war',
   RAID: 'raid',
+  LINEUP: 'lineup',
 } as const;
 export type AnnouncementKind = (typeof AnnouncementKind)[keyof typeof AnnouncementKind];
 export const ANNOUNCEMENT_KINDS = Object.values(AnnouncementKind);
@@ -44,14 +45,15 @@ const announcementSchema = new Schema(
      * Unique: `month:2026-11@#TAG`, `cwl:2026-11@#TAG`, `donations:2026-11@#TAG`; records carry their
      * value (`record:warWinStreak:57@#TAG`), which changes while the draft follows the record;
      * promotions the player and the league (`promotion:#PLAYER:105000032`), same; wars their key
-     * (`war:20261119T213344-JPLL8YGG@#TAG`), Raid Weekends their start (`raid:2026-11-13T07:00:00.000Z@#TAG`).
+     * (`war:20261119T213344-JPLL8YGG@#TAG`), Raid Weekends their start (`raid:2026-11-13T07:00:00.000Z@#TAG`),
+     * line-ups their season and closing (`lineup:2026-12:1764547200000@#TAG`: closed again after a reopening, a new one).
      */
     key: { type: String, required: true, unique: true },
     kind: { type: String, enum: ANNOUNCEMENT_KINDS, required: true },
     clanTag: { type: String, required: true },
     /**
-     * Period (`2026-11`), record name (`warWinStreak`), player tag (promotions), war key (wars) or
-     * start of the weekend (Raid Weekends, ISO).
+     * Period (`2026-11`, also the season of a line-up), record name (`warWinStreak`), player tag
+     * (promotions), war key (wars) or start of the weekend (Raid Weekends, ISO).
      */
     subject: { type: String, required: true },
     state: { type: String, enum: ANNOUNCEMENT_STATES, required: true, default: AnnouncementState.DRAFT },
@@ -142,3 +144,21 @@ const playerLeagueBestSchema = new Schema(
 export const PlayerLeagueBestModel: Model<InferSchemaType<typeof playerLeagueBestSchema>> =
   (models.PlayerLeagueBest as Model<InferSchemaType<typeof playerLeagueBestSchema>>) ??
   model('PlayerLeagueBest', playerLeagueBestSchema);
+
+/**
+ * Kinds of announcement whose drafts the backend prepares, set by the administrators (one document,
+ * `key: 'kinds'`). A kind missing from `kinds` is on. A kind turned off gets no new drafts, and what
+ * happens while it is off is not announced later: turned on again, it starts from `changedAt`.
+ */
+const announcementSettingsSchema = new Schema(
+  {
+    key: { type: String, required: true, unique: true },
+    /** Kind -> `{ enabled, changedAt }` (no default: kinds are set one by one, `kinds.<kind>`). */
+    kinds: { type: Schema.Types.Mixed },
+  },
+  { collection: 'AnnouncementSettings', versionKey: false },
+);
+
+export const AnnouncementSettingsModel: Model<InferSchemaType<typeof announcementSettingsSchema>> =
+  (models.AnnouncementSettings as Model<InferSchemaType<typeof announcementSettingsSchema>>) ??
+  model('AnnouncementSettings', announcementSettingsSchema);

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
 import { CWL_PLAYERS_TABLE } from '@/modules/cwl/cwl-players.table';
+import { selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
 import { CWL_SELECTION_TABLE } from '@/modules/cwl/cwl-selection.table';
 import { RAID_MEMBERS_TABLE } from '@/modules/raids/raid-members.table';
 import { PERIOD_WARS_TABLE, RANKING_TABLE, rankingOptionsSchema } from '@/modules/wars/history.tables';
@@ -146,12 +147,15 @@ export const TABLE_OPERATIONS: ApiOperation[] = [
     operationId: 'listCwlSelectionPlayers',
     tag: 'CWL',
     summary: 'Ranking of the CWL line-up',
-    description: `The players of \`GET /cwl/selection\` as a table. Best first by default. ${TABLE_NOTE}`,
+    description: `The players of \`GET /cwl/selection\` as a table (the open selection, or a closed one with \`season\`). Best first by default. ${TABLE_NOTE}`,
     access: 'leader',
     rateLimit: ApiName.TABLES_READ,
-    query: tableQueryPart(CWL_SELECTION_TABLE, 'Players'),
+    query: tableQueryPart(CWL_SELECTION_TABLE, 'Players', {
+      schema: CWL_SELECTION_TABLE.schema.extend(selectionQuerySchema.shape),
+      fields: { season: { description: 'Season of the selection, `YYYY-MM` (default: the open one).', example: '2026-12' } },
+    }),
     responses: { 200: { description: 'A page of the ranking.', result: SelectionPlayersPage } },
-    errors: { 400: [K.INVALID_FIELD] },
+    errors: { 400: [K.INVALID_FIELD, K.PERIOD_IS_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND] },
   },
   {
     method: 'GET',

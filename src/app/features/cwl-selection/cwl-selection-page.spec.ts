@@ -63,12 +63,28 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
     },
     exclusion:
       status === 'excluded'
-        ? { reason: 'Away all month', excludedBy: 'boss', excludedAt: '2026-11-13T10:00:00.000Z' }
+        ? {
+            reason: 'Away all month',
+            untilRevoked: rank === 1,
+            excludedBy: 'boss',
+            excludedAt: '2026-11-13T10:00:00.000Z',
+          }
         : null,
   };
 }
 
 const SELECTION: CwlSelection = {
+  season: '2026-12',
+  state: 'open',
+  signupStart: '2026-12-01T00:00:00.000Z',
+  closedAt: null,
+  closedBy: null,
+  closedAutomatically: false,
+  canReopen: false,
+  seasons: [
+    { season: '2026-12', state: 'open' },
+    { season: '2026-11', state: 'closed' },
+  ],
   generatedAt: '2026-11-14T10:00:00.000Z',
   starters: 15,
   reserves: 3,
@@ -93,15 +109,29 @@ const PLAYERS_PAGE = {
   limit: null,
 };
 
+const CLOSED: CwlSelection = {
+  ...SELECTION,
+  season: '2026-11',
+  state: 'closed',
+  signupStart: '2026-11-01T00:00:00.000Z',
+  closedAt: '2026-11-01T09:12:00.000Z',
+  closedBy: 'boss',
+  canReopen: true,
+};
+
 describe('CwlSelectionPage', () => {
+  afterEach(() => vi.useRealTimers());
+
   /** With mock data (the default of the tests) the actions are shown, as for administrators. */
   async function render() {
     const exporter = { download: vi.fn((_pdf: TablePdf<unknown>) => Promise.resolve()) };
     const service = {
-      get: vi.fn(() => of(SELECTION)),
+      get: vi.fn((season?: string) => of(season === '2026-11' ? CLOSED : SELECTION)),
       getPlayersTable: vi.fn(() => of(PLAYERS_PAGE)),
       exclude: vi.fn(),
       readmit: vi.fn(() => of(undefined)),
+      close: vi.fn(() => of(CLOSED)),
+      reopen: vi.fn(() => of(SELECTION)),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -197,6 +227,42 @@ describe('CwlSelectionPage', () => {
     expect(service.getPlayersTable).toHaveBeenCalledTimes(2);
   });
 
+  it('counts down to the sign-ups of the open selection, which administrators can close', async () => {
+    vi.useFakeTimers({ now: new Date('2026-11-22T10:30:00Z'), toFake: ['Date'] });
+    const { el } = await render();
+    const season = el.querySelector('.season')!;
+    expect(season.querySelector('.season__title')!.textContent).toContain(
+      'Selezioni aperte · CWL di Dicembre 2026',
+    );
+    expect(season.textContent).toContain('aprono il 1 dicembre: mancano 8 g 13 h 30 min');
+    expect(season.querySelector('.season__action')!.textContent).toContain('Chiudi selezioni');
+    // The exclusion until revoked says so.
+    const rows = el.querySelectorAll('tr.mat-mdc-row');
+    expect(rows[0].querySelector('.until-revoked')!.textContent).toContain('Fino a revoca');
+  });
+
+  it('shows a closed selection frozen, without exclusions, and lets administrators reopen it', async () => {
+    const { el, service, fixture } = await render();
+    // The selector lists the seasons.
+    el.querySelector<HTMLElement>('crn-select .mat-mdc-select-trigger, crn-select mat-select')!.click();
+    await fixture.whenStable();
+    const options = [...document.querySelectorAll<HTMLElement>('mat-option')];
+    expect(options.map((o) => o.textContent!.trim())).toEqual([
+      'Dicembre 2026 · aperta',
+      'Novembre 2026 · chiusa',
+    ]);
+    options[1].click();
+    await fixture.whenStable();
+    expect(service.get).toHaveBeenLastCalledWith('2026-11');
+    expect(service.getPlayersTable).toHaveBeenLastCalledWith(expect.anything(), '2026-11');
+    const season = el.querySelector('.season')!;
+    expect(season.classList).toContain('season--closed');
+    expect(season.textContent).toContain('Chiuse il');
+    expect(season.textContent).toContain('da boss');
+    expect(season.querySelector('.season__action')!.textContent).toContain('Riapri');
+    expect(el.querySelector('td.actions')).toBeNull();
+  });
+
   it('hides the actions from leaders who are not administrators', async () => {
     TestBed.configureTestingModule({
       providers: [
@@ -204,7 +270,7 @@ describe('CwlSelectionPage', () => {
         provideCocApiTest({ useMockApi: false }),
         {
           provide: CwlSelectionService,
-          useValue: { get: () => of(SELECTION), getPlayersTable: () => of(PLAYERS_PAGE) },
+          useValue: { get: () => of(SELECTION), getPlayersTable: () => of(PLAYERS_PAGE) }
         },
       ],
     });
@@ -214,6 +280,7 @@ describe('CwlSelectionPage', () => {
     expect(TestBed.inject(AuthService).isAdmin()).toBe(false);
     expect(el.querySelector('tr.mat-mdc-row')).not.toBeNull();
     expect(el.querySelector('td.actions')).toBeNull();
+    expect(el.querySelector('.season__action')).toBeNull();
   });
 
   it('downloads the 15 starters, the 3 reserves on page 2 and the rules on page 3 as a PDF', async () => {
@@ -224,8 +291,8 @@ describe('CwlSelectionPage', () => {
     document.querySelector<HTMLButtonElement>('.download-pdf')!.click();
     await fixture.whenStable();
     const pdf = exporter.download.mock.calls[0][0] as TablePdf<CwlSelectionPlayer>;
-    // Named after the month of the next CWL (the last one was October).
-    expect(pdf.fileName).toBe('selezioni-cwl-crociata-nera-novembre');
+    // Named after the month of the CWL of the selection.
+    expect(pdf.fileName).toBe('selezioni-cwl-crociata-nera-dicembre');
     expect(pdf.title).toBe('Formazione CWL');
     const [starters, reserves] = pdf.groups;
     expect(starters).toMatchObject({

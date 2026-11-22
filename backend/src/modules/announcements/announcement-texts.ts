@@ -100,6 +100,19 @@ export interface AnnouncementTexts {
       medals(medals: string): string;
       footer: string;
     };
+    lineup: {
+      title(clan: string, month: string): string;
+      intro: string;
+      starters: string;
+      reserves: string;
+      /** A player: place, name, town hall (when known) and clan (`null`: the clan of the CWL). */
+      player(place: number, name: string, townHall: number | null, clan: string | null): string;
+      /** Under the list when some players are in another clan of the Crusade. */
+      move: string;
+      /** Always: the players not selected who want to play the CWL go to this clan. */
+      others(clan: string): string;
+      footer: string;
+    };
     honours: string;
     andOthers(n: number): string;
     /** Label of the button that opens the page of the announcement on the site. */
@@ -182,6 +195,12 @@ export interface AnnouncementTexts {
       participants: string;
       participantsNote: string;
       looters: string;
+    };
+    lineup: {
+      title: string;
+      starters: string;
+      reserves: string;
+      empty: string;
     };
   };
 }
@@ -335,6 +354,16 @@ const ITALIAN: AnnouncementTexts = {
       medals: (medals) => `🏅 ${medals} medaglie raid a testa`,
       footer: `Tutti i dettagli su ${SITE}`,
     },
+    lineup: {
+      title: (clan, month) => `🛡️ **${clan} · Formazione CWL di ${month}**`,
+      intro: 'Ecco chi scende in campo nella Lega fra Clan di questo mese.',
+      starters: 'Titolari',
+      reserves: 'Riserve',
+      player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
+      move: '🔁 Chi, tra i titolari e le riserve si trova in un altro clan della Crociata, si sposti in tempo per la lega.',
+      others: (clan) => `Gli altri che vogliono partecipare alla CWL si spostino in ${clan}.`,
+      footer: `In bocca al lupo, guerrieri! Seguite la CWL su ${SITE}`,
+    },
     honours: 'Encomi',
     andOthers: (n) => ` e altri ${n}`,
     openSite: '🌐 Apri sul sito',
@@ -347,6 +376,7 @@ const ITALIAN: AnnouncementTexts = {
       legendSeason: 'Leggende',
       war: 'Guerra',
       raid: 'RaidWeekend',
+      lineup: 'FormazioneCWL',
     },
   },
   image: {
@@ -436,6 +466,12 @@ const ITALIAN: AnnouncementTexts = {
       participants: 'Partecipanti',
       participantsNote: 'membri che hanno attaccato',
       looters: 'Migliori razziatori',
+    },
+    lineup: {
+      title: 'Formazione CWL',
+      starters: 'Titolari',
+      reserves: 'Riserve',
+      empty: 'Nessun giocatore selezionato',
     },
   },
 };
@@ -548,6 +584,16 @@ const ENGLISH: AnnouncementTexts = {
       medals: (medals) => `🏅 ${medals} raid medals each`,
       footer: `All the details on ${SITE}`,
     },
+    lineup: {
+      title: (clan, month) => `🛡️ **${clan} · CWL line-up for ${month}**`,
+      intro: 'Here is who takes the field in this month’s Clan War League.',
+      starters: 'Starters',
+      reserves: 'Reserves',
+      player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
+      move: '🔁 Starters and reserves who are in another clan of the Crusade: move in time for the league.',
+      others: (clan) => `Everyone else who wants to play the CWL: move to ${clan}.`,
+      footer: `Good luck, warriors! Follow the CWL on ${SITE}`,
+    },
     honours: 'Commendations',
     andOthers: (n) => ` and ${n} more`,
     openSite: '🌐 Open on the site',
@@ -560,6 +606,7 @@ const ENGLISH: AnnouncementTexts = {
       legendSeason: 'Legends',
       war: 'War',
       raid: 'RaidWeekend',
+      lineup: 'CWLLineup',
     },
   },
   image: {
@@ -649,6 +696,12 @@ const ENGLISH: AnnouncementTexts = {
       participants: 'Participants',
       participantsNote: 'members who attacked',
       looters: 'Top raiders',
+    },
+    lineup: {
+      title: 'CWL line-up',
+      starters: 'Starters',
+      reserves: 'Reserves',
+      empty: 'No players selected',
     },
   },
 };
@@ -762,6 +815,16 @@ const SPANISH: AnnouncementTexts = {
       medals: (medals) => `🏅 ${medals} medallas de incursión cada uno`,
       footer: `Todos los detalles en ${SITE}`,
     },
+    lineup: {
+      title: (clan, month) => `🛡️ **${clan} · Alineación de la CWL de ${month}**`,
+      intro: 'Estos son los que salen al campo en la Liga de Guerra de Clanes de este mes.',
+      starters: 'Titulares',
+      reserves: 'Reservas',
+      player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
+      move: '🔁 Quien, entre titulares y reservas, esté en otro clan de la Cruzada, que se mueva a tiempo para la liga.',
+      others: (clan) => `Los demás que quieran participar en la CWL, que se muevan a ${clan}.`,
+      footer: `¡Suerte, guerreros! Seguid la CWL en ${SITE}`,
+    },
     honours: 'Encomios',
     andOthers: (n) => ` y ${n} más`,
     openSite: '🌐 Abrir en el sitio',
@@ -774,6 +837,7 @@ const SPANISH: AnnouncementTexts = {
       legendSeason: 'Leyendas',
       war: 'Guerra',
       raid: 'RaidWeekend',
+      lineup: 'AlineacionCWL',
     },
   },
   image: {
@@ -863,6 +927,12 @@ const SPANISH: AnnouncementTexts = {
       participants: 'Participantes',
       participantsNote: 'miembros que atacaron',
       looters: 'Mejores saqueadores',
+    },
+    lineup: {
+      title: 'Alineación CWL',
+      starters: 'Titulares',
+      reserves: 'Reservas',
+      empty: 'Ningún jugador seleccionado',
     },
   },
 };

@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { noCache } from '../http/http-cache';
 import { LanguageCode } from '../i18n/languages';
-import { Announcement, BaseResult } from './backend-api.types';
+import { Announcement, AnnouncementSettings, BaseResult } from './backend-api.types';
 
 /**
  * Announcements of the Telegram channel (ADMIN role): drafts prepared by the backend when a month
@@ -49,6 +49,20 @@ export class AnnouncementsAdminService {
   discard(id: string, lang: LanguageCode): Observable<Announcement> {
     return this.http
       .post<BaseResult<Announcement>>(`${this.url}/${id}/discard`, {}, { params: { lang } })
+      .pipe(map((response) => response.result!));
+  }
+
+  /** Kinds of announcement that get drafts. */
+  settings(): Observable<AnnouncementSettings> {
+    return this.http
+      .get<BaseResult<AnnouncementSettings>>(`${this.url}/settings`, { context: noCache() })
+      .pipe(map((response) => response.result!));
+  }
+
+  /** Turns kinds on or off (the others stay as they are); answers every kind. */
+  updateSettings(kinds: AnnouncementSettings['kinds']): Observable<AnnouncementSettings> {
+    return this.http
+      .put<BaseResult<AnnouncementSettings>>(`${this.url}/settings`, { kinds })
       .pipe(map((response) => response.result!));
   }
 }

@@ -1,0 +1,77 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+}
+
+h2 {
+  margin: 0 0 $space-xs;
+}
+
+.lead {
+  margin: 0 0 $space-m;
+}
+
+.kinds {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kind {
+  display: flex;
+  gap: $space-s;
+  align-items: center;
+  padding: $space-s 0;
+  border-bottom: 1px solid var(--cn-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.kind__icon {
+  flex: none;
+  color: var(--cn-gold);
+}
+
+.kind__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.kind__name {
+  font-weight: 600;
+}
+
+.kind__when {
+  font-size: var(--cn-fs-xs);
+  overflow-wrap: anywhere;
+}
+
+.kind__toggle {
+  flex: none;
+}
+
+.note {
+  margin: $space-m 0 0;
+  font-size: var(--cn-fs-xs);
+}
+
+.feedback {
+  margin-top: $space-m;
+
+  p {
+    margin: 0.1rem 0;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-s;
+  justify-content: flex-end;
+  margin-top: $space-m;
+}

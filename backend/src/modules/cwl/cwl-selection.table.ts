@@ -31,7 +31,7 @@ export const CWL_SELECTION_TABLE = defineTable<SelectionRow>(
   { sort: 'rank', order: 'asc' },
 );
 
-/** `GET /cwl/selection/players`: a page of the ranking of the line-up. */
-export async function listSelectionPlayers(query: TableQuery): Promise<TablePage<SelectionRow>> {
-  return queryTable((await getCwlSelection()).players, CWL_SELECTION_TABLE, query);
+/** `GET /cwl/selection/players`: a page of the ranking of a selection (the open one by default). */
+export async function listSelectionPlayers(query: TableQuery, season?: string): Promise<TablePage<SelectionRow>> {
+  return queryTable((await getCwlSelection(season)).players, CWL_SELECTION_TABLE, query);
 }

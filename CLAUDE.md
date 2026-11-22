@@ -204,7 +204,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   season in Legend League I among the first 10,000 of the world, from `modules/legends/`; every ended war and
   every Raid Weekend once its commendations are awarded, only those ended after the kinds were added,
   `AnnouncementBaselines.kindsSince`; opponent badges read from `api-assets.clashofclans.com` only), published or
-  discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons). Captions and
+  discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons),
+  where a switch per kind turns its drafts on or off (`AnnouncementSettings`, `announcement-settings.service.ts`:
+  what closes while a kind is off is not announced later, records beaten meanwhile become the baseline). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
   a post goes out in it; a published one keeps its `language`. Captions end with hashtags (kind and clan,
   base posts `#TH17`); `announcementLink` gives the page of the site an announcement leads to (main clan:
@@ -221,6 +223,11 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   first seen get drafts (`AnnouncementBaselines`). Updates of the bot: webhook `POST /telegram/webhook` with
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
+- CWL line-up selections (`backend/src/modules/cwl/cwl-selection.*`): one per season (`CwlSelections`), the open
+  one live (first month from now whose CWL has not started), closed by an administrator or by the scheduler when
+  the main clan's group of its season is saved: the ranking is frozen, a `lineup` announcement draft is prepared
+  and the next season opens; reopened while its CWL has not started. Exclusions are for one season or
+  `untilRevoked` (`season: null`).
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - Legend League seasons (`backend/src/modules/legends/`): tournaments of four weeks, ending on Monday at
   05:00 UTC, sometimes followed by a week of break. The one in progress starts at `currentLeagueSeasonId`

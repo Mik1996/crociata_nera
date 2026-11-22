@@ -28,30 +28,62 @@ const API_ROLES: Record<ClanMember['role'], string> = {
   member: 'member',
 };
 
+/** The ranking alone, without the season and its state. */
+type CwlRanking = Omit<
+  CwlSelection,
+  'season' | 'state' | 'signupStart' | 'closedAt' | 'closedBy' | 'closedAutomatically' | 'canReopen' | 'seasons'
+>;
+
+/** `2026-11` of a date (UTC) and the season after one. */
+const seasonOf = (date: Date) => date.toISOString().slice(0, 7);
+function nextSeason(season: string): string {
+  const [year = 0, month = 1] = season.split('-').map(Number);
+  return seasonOf(new Date(Date.UTC(year, month, 1)));
+}
+
 /**
- * Demo ranking for the CWL line-up, made up from the mock clan members, spread over the clans of
- * the Crusade (same ordering rules as the backend, random results). Exclusions are kept in memory until the page is reloaded.
+ * Demo selections for the CWL line-up, made up from the mock clan members, spread over the clans of
+ * the Crusade (same ordering rules as the backend, random results). The open season is next month's
+ * (this month's CWL has started); closing freezes it and opens the next one. Exclusions and closed
+ * selections are kept in memory until the page is reloaded.
  */
 @Injectable()
 export class MockCwlSelectionService extends CwlSelectionService {
   private readonly api = inject(CocApiService);
   private readonly config = inject(APP_CONFIG);
   private readonly exclusions = new Map<string, CwlExclusion>();
+  /** Closed selections by season, with their frozen ranking. */
+  private readonly closed = new Map<string, { ranking: CwlRanking; closedAt: string }>();
+  private openSeason = nextSeason(seasonOf(new Date()));
 
-  get(): Observable<CwlSelection> {
+  get(season?: string): Observable<CwlSelection> {
+    const wanted = season ?? this.openSeason;
+    const frozen = this.closed.get(wanted);
+    if (frozen) return of(this.view(wanted, frozen.ranking, frozen.closedAt));
     return this.api
       .getClan()
-      .pipe(map((clan) => mockSelection(clan.members, new Date(), this.exclusions)));
+      .pipe(
+        map((clan) =>
+          this.view(wanted, mockSelection(clan.members, new Date(), this.exclusions), null),
+        ),
+      );
   }
 
-  getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>> {
+  getPlayersTable(query: TableQuery, season?: string): Observable<TablePage<CwlSelectionPlayer>> {
     const names = crusadeClanNames({ tag: this.config.clanTag, name: this.config.clanName });
     const filters = selectionFilters((tag) => names.get(tag) ?? tag);
-    return this.get().pipe(map((selection) => applyTableQuery(selection.players, filters, query)));
+    return this.get(season).pipe(
+      map((selection) => applyTableQuery(selection.players, filters, query)),
+    );
   }
 
-  exclude(tag: string, reason: string | null): Observable<CwlExclusion> {
-    const exclusion = { reason, excludedBy: 'demo', excludedAt: new Date().toISOString() };
+  exclude(tag: string, reason: string | null, untilRevoked: boolean): Observable<CwlExclusion> {
+    const exclusion = {
+      reason,
+      untilRevoked,
+      excludedBy: 'demo',
+      excludedAt: new Date().toISOString(),
+    };
     this.exclusions.set(tag, exclusion);
     return of(exclusion).pipe(delay(200));
   }
@@ -59,6 +91,50 @@ export class MockCwlSelectionService extends CwlSelectionService {
   readmit(tag: string): Observable<void> {
     this.exclusions.delete(tag);
     return of(undefined).pipe(delay(200));
+  }
+
+  close(season: string): Observable<CwlSelection> {
+    return this.get(season).pipe(
+      map((selection) => {
+        const { players, generatedAt, starters, reserves, maxTownHall, minEligibleTownHall } =
+          selection;
+        const { cwlSeason, warWindow } = selection;
+        const ranking = { players, generatedAt, starters, reserves, maxTownHall, minEligibleTownHall, cwlSeason, warWindow };
+        this.closed.set(season, { ranking, closedAt: new Date().toISOString() });
+        // Exclusions for this season only end with it.
+        for (const [tag, exclusion] of this.exclusions) {
+          if (!exclusion.untilRevoked) this.exclusions.delete(tag);
+        }
+        this.openSeason = nextSeason(season);
+        return this.view(season, ranking, this.closed.get(season)!.closedAt);
+      }),
+      delay(300),
+    );
+  }
+
+  reopen(season: string): Observable<CwlSelection> {
+    this.closed.delete(season);
+    this.openSeason = season;
+    return this.get(season).pipe(delay(300));
+  }
+
+  private view(season: string, ranking: CwlRanking, closedAt: string | null): CwlSelection {
+    const [year = 0, month = 1] = season.split('-').map(Number);
+    const seasons = [
+      { season: this.openSeason, state: 'open' as const },
+      ...[...this.closed.keys()].map((s) => ({ season: s, state: 'closed' as const })),
+    ].sort((a, b) => b.season.localeCompare(a.season));
+    return {
+      ...ranking,
+      season,
+      state: closedAt ? 'closed' : 'open',
+      signupStart: new Date(Date.UTC(year, month - 1, 1)).toISOString(),
+      closedAt,
+      closedBy: closedAt ? 'demo' : null,
+      closedAutomatically: false,
+      canReopen: !!closedAt && season === [...this.closed.keys()].sort().at(-1),
+      seasons,
+    };
   }
 }
 
@@ -69,7 +145,7 @@ export function mockSelection(
   members: ClanMember[],
   now: Date,
   exclusions: ReadonlyMap<string, CwlExclusion> = new Map(),
-): CwlSelection {
+): CwlRanking {
   const random = new Random(2026);
   const maxTownHall = Math.max(...members.map((m) => m.townHall));
   const scored = members.map((m) => {
@@ -87,7 +163,8 @@ export function mockSelection(
     // Mostly in Crociata Nera, some in Crociata Rossa and d'Oro.
     const clanTag = random.chance(0.6) ? CWL_CLANS[0] : random.pick(CWL_CLANS.slice(1));
     const joinedAt = random.chance(0.1) ? new Date(now.getTime() - random.int(1, 13) * DAY) : null;
-    const newcomer = joinedAt !== null;
+    // Only members are new (elders and above may come back after a while).
+    const newcomer = joinedAt !== null && m.role === 'member';
 
     let cwl: CwlSelectionPlayer['cwl'] = null;
     if (inCwl) {

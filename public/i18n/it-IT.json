@@ -492,7 +492,10 @@
     "TELEGRAM_SYNC_STARTED": "Invii avviati: le basi partono a pochi secondi l'una dall'altra.",
     "ANNOUNCEMENT_UPDATED": "Didascalia salvata.",
     "ANNOUNCEMENT_PUBLISHED": "Annuncio pubblicato nel canale Telegram.",
-    "ANNOUNCEMENT_DISCARDED": "Annuncio scartato."
+    "ANNOUNCEMENT_DISCARDED": "Annuncio scartato.",
+    "ANNOUNCEMENT_SETTINGS_UPDATED": "Impostazioni delle bozze salvate.",
+    "CWL_SELECTION_CLOSED": "Selezioni chiuse: la bozza dell'annuncio è pronta.",
+    "CWL_SELECTION_REOPENED": "Selezioni riaperte."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -577,7 +580,11 @@
     "ANNOUNCEMENT_NOT_FOUND": "Annuncio non trovato.",
     "ANNOUNCEMENT_NOT_DRAFT": "L'annuncio è già stato pubblicato o scartato.",
     "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "Nessun canale annunci in cui il bot possa scrivere: impostalo nella pagina Telegram.",
-    "CAPTION_IS_TOO_LONG": "La didascalia supera i 1024 caratteri ammessi da Telegram."
+    "CAPTION_IS_TOO_LONG": "La didascalia supera i 1024 caratteri ammessi da Telegram.",
+    "CWL_SELECTION_NOT_FOUND": "Selezioni di questa stagione non trovate.",
+    "CWL_SELECTION_NOT_OPEN": "Le selezioni di questa stagione sono già chiuse.",
+    "CWL_SELECTION_NOT_CLOSED": "Le selezioni di questa stagione sono già aperte.",
+    "CWL_SELECTION_CANNOT_REOPEN": "Non si possono più riaprire: la lega è già iniziata o è stata chiusa una stagione successiva."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -1170,9 +1177,9 @@
       "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono i titolari (blu), i 3 successivi sono le riserve (verde).",
       "heroes": "Eroi (fino a 20 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
       "townHall": "Municipio: 10 punti a chi ha il municipio più alto tra i tre clan.",
-      "league": "Lega (fino a 5 punti): 1 punto in Lega Electro 31, 2 in Electro 32, 3 in Electro 33, 4 in Leggenda III, 5 in Leggenda II e I; nessun punto nelle leghe più basse.",
-      "penalties": "Penalità: 3 punti per ogni attacco saltato nell'ultima CWL (al massimo 15); 5 punti a chi è entrato nei clan della Crociata da meno di 14 giorni.",
-      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo.",
+      "league": "Lega (fino a 5 punti): 1 punto in Lega Elettro 31, 2 in Elettro 32, 3 in Elettro 33, 4 in Leggende III, 5 in Leggende II e I; nessun punto nelle leghe più basse.",
+      "penalties": "Penalità: 3 punti per ogni attacco saltato nell'ultima CWL (al massimo 15); 5 punti alle reclute entrate nei clan della Crociata da meno di 14 giorni: anziani, co-capi e capi che rientrano non sono penalizzati.",
+      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo. L'esclusione vale solo per la stagione in corso, a meno che non sia «fino a revoca».",
       "noCwl": "Chi non era nello schieramento dell'ultima CWL non perde i suoi 25 punti: passano alle guerre normali, che valgono fino a 65. Così anche senza CWL si può arrivare a 100."
     },
     "generatedAt": "Calcolata il {{date}}",
@@ -1222,7 +1229,10 @@
       "intro": "Il giocatore resta in classifica, segnato come escluso, e non occupa un posto tra i titolari e le riserve.",
       "reason": "Motivo (facoltativo)",
       "reasonHint": "Ad esempio: assente per tutta la stagione",
-      "confirm": "Escludi"
+      "confirm": "Escludi",
+      "untilRevoked": "Escludi fino a revoca",
+      "seasonHint": "Vale solo per le selezioni di questa stagione: dal mese dopo il giocatore torna in classifica da solo.",
+      "untilRevokedHint": "Vale anche per le stagioni successive, finché un amministratore non lo riammette."
     },
     "cwlCommendations": "Encomi dell'ultima CWL",
     "noCwlHint": "Non era nello schieramento dell'ultima CWL: i 25 punti della CWL passano alle guerre normali",
@@ -1240,7 +1250,38 @@
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} attacchi in {{wars}} guerre",
       "war": "Media guerre"
-    }
+    },
+    "season": "Stagione",
+    "state": {
+      "open": "aperta",
+      "closed": "chiusa",
+      "title": {
+        "open": "Selezioni aperte · CWL di {{season}}",
+        "closed": "Selezioni chiuse · CWL di {{season}}"
+      },
+      "countdown": "Le iscrizioni alla CWL aprono il {{date}}: mancano {{days}} g {{hours}} h {{minutes}} min.",
+      "signupOpen": "Le iscrizioni alla CWL sono aperte: se nessuno le chiude prima, le selezioni si chiudono da sole quando la lega inizia.",
+      "openNote": "Alla chiusura la classifica viene congelata, si prepara la bozza dell'annuncio della formazione e si aprono le selezioni del mese dopo.",
+      "closedBy": "Chiuse il {{date}} da {{name}}.",
+      "closedAuto": "Chiuse automaticamente all'inizio della lega, il {{date}}.",
+      "closedNote": "Questa è la classifica com'era alla chiusura: non cambia più.",
+      "close": "Chiudi selezioni",
+      "reopen": "Riapri"
+    },
+    "decision": {
+      "close": {
+        "title": "Chiudere le selezioni di {{season}}?",
+        "intro": "La classifica di adesso diventa la formazione della CWL di {{season}}: titolari e riserve non cambieranno più. Verrà preparata la bozza dell'annuncio (da pubblicare dalla pagina Pubblicazioni) e si apriranno le selezioni del mese successivo.",
+        "confirm": "Chiudi selezioni"
+      },
+      "reopen": {
+        "title": "Riaprire le selezioni di {{season}}?",
+        "intro": "La classifica torna a seguire i dati di ogni giorno. La bozza dell'annuncio non ancora pubblicata verrà eliminata e le selezioni del mese successivo aspetteranno la nuova chiusura.",
+        "confirm": "Riapri"
+      }
+    },
+    "untilRevoked": "Fino a revoca",
+    "thisSeason": "Solo per questa stagione"
   },
   "publishing": {
     "title": "Pubblicazioni",
@@ -1351,19 +1392,26 @@
     }
   },
   "announcementsAdmin": {
-    "intro": {
-      "lead": "Il sito prepara una bozza quando:",
-      "cases": {
-        "period": "si chiude un mese, una CWL o una stagione di donazioni;",
-        "record": "un clan della Crociata batte un record;",
-        "league": "un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggenda I);",
-        "legend": "un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo;",
-        "war": "finisce una guerra di un clan della Crociata;",
-        "raid": "si chiude un Raid Weekend (dopo gli encomi)."
+    "settings": {
+      "title": "Bozze automatiche",
+      "lead": "Scegli per quali eventi il sito prepara una bozza di annuncio.",
+      "when": {
+        "month": "Si chiude un mese: guerre, Raid Weekend ed encomi del mese.",
+        "cwl": "Finisce una stagione della CWL.",
+        "donations": "Si chiude una stagione di donazioni.",
+        "record": "Un clan della Crociata batte un record.",
+        "promotion": "Un giocatore sale in una lega mai raggiunta (da Elettro 31 a Leggende I).",
+        "legendSeason": "Un giocatore chiude la stagione Leggenda tra i primi 10.000 al mondo.",
+        "war": "Finisce una guerra di un clan della Crociata.",
+        "raid": "Si chiude un Raid Weekend (dopo gli encomi).",
+        "lineup": "Si chiudono le selezioni della CWL: la formazione del mese."
       },
-      "note": "I numeri di una bozza si aggiornano finché non la pubblichi."
+      "note": "Un tipo spento non riceve nuove bozze (quelle già pronte restano) e, quando lo riaccendi, ciò che è successo nel frattempo non viene recuperato: un record battuto mentre era spento diventa il nuovo punto di partenza.",
+      "save": "Salva",
+      "revert": "Annulla modifiche"
     },
     "drafts": "Bozze",
+    "draftsNote": "I numeri di una bozza si aggiornano finché non la pubblichi.",
     "noDrafts": "Nessuna bozza in attesa: la prossima arriverà alla chiusura del mese o con un nuovo record.",
     "history": "Pubblicati e scartati",
     "preparedAt": "Preparata il {{date}}",
@@ -1386,7 +1434,8 @@
       "promotion": "Promozione",
       "legendSeason": "Stagione Leggenda",
       "war": "Guerra",
-      "raid": "Raid Weekend"
+      "raid": "Raid Weekend",
+      "lineup": "Formazione CWL"
     },
     "state": {
       "draft": "Bozza",
@@ -1428,6 +1477,7 @@
       "lose": "sconfitta contro {{opponent}}",
       "tie": "pareggio contro {{opponent}}"
     },
-    "raid": "Raid Weekend del {{day}}"
+    "raid": "Raid Weekend del {{day}}",
+    "lineup": "Formazione CWL di {{month}}"
   }
 }

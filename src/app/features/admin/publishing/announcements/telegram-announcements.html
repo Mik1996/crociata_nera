@@ -6,6 +6,8 @@
   </crn-alert>
 }
 
+<crn-announcement-settings-form />
+
 <crn-load-state
   [loading]="announcements.isLoading() && !announcements.hasValue()"
   [error]="announcements.error()"
@@ -25,15 +27,7 @@
         {{ 'telegramAdmin.refresh' | translate }}
       </button>
     </div>
-    <div class="cn-muted intro">
-      <p>{{ 'announcementsAdmin.intro.lead' | translate }}</p>
-      <ul>
-        @for (c of introCases; track c) {
-          <li>{{ 'announcementsAdmin.intro.cases.' + c | translate }}</li>
-        }
-      </ul>
-      <p>{{ 'announcementsAdmin.intro.note' | translate }}</p>
-    </div>
+    <p class="cn-muted intro">{{ 'announcementsAdmin.draftsNote' | translate }}</p>
 
     <ul class="drafts">
       @for (a of drafts(); track a.id) {

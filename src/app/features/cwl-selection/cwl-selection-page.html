@@ -7,6 +7,16 @@
     [title]="'nav.cwlSelection' | translate"
     [subtitle]="'cwlSelection.subtitle' | translate"
   >
+    @if (seasonOptions().length > 1) {
+      <crn-select
+        class="season-selector"
+        icon="calendar_month"
+        [label]="'cwlSelection.season' | translate"
+        [options]="seasonOptions()"
+        [value]="selection()?.season"
+        (valueChange)="changeSeason($event!)"
+      />
+    }
     <crn-pdf-button [pdf]="lineupPdf()" />
   </crn-page-header>
 
@@ -20,6 +30,70 @@
       (retry)="resource.reload()"
     >
       @if (selection(); as s) {
+        <section
+          class="cn-card cn-section season"
+          [class.season--closed]="s.state === 'closed'"
+          aria-labelledby="season-title"
+        >
+          <crn-icon class="season__icon" [name]="s.state === 'open' ? 'schedule' : 'lock'" />
+          <div class="season__text">
+            <h2 id="season-title" class="season__title">
+              {{
+                'cwlSelection.state.title.' + s.state
+                  | translate: { season: seasonLabel(s.season) }
+              }}
+            </h2>
+            @if (s.state === 'open') {
+              @if (countdown(); as c) {
+                <p class="season__line">
+                  {{
+                    'cwlSelection.state.countdown'
+                      | translate
+                        : {
+                            date: signupDay(s),
+                            days: c.days,
+                            hours: c.hours,
+                            minutes: c.minutes,
+                          }
+                  }}
+                </p>
+              } @else {
+                <p class="season__line">{{ 'cwlSelection.state.signupOpen' | translate }}</p>
+              }
+              <p class="cn-muted season__note">{{ 'cwlSelection.state.openNote' | translate }}</p>
+            } @else {
+              <p class="season__line">
+                @if (s.closedAutomatically) {
+                  {{
+                    'cwlSelection.state.closedAuto'
+                      | translate: { date: (s.closedAt | localDate: 'dateTime') }
+                  }}
+                } @else {
+                  {{
+                    'cwlSelection.state.closedBy'
+                      | translate
+                        : { date: (s.closedAt | localDate: 'dateTime'), name: s.closedBy }
+                  }}
+                }
+              </p>
+              <p class="cn-muted season__note">{{ 'cwlSelection.state.closedNote' | translate }}</p>
+            }
+          </div>
+          @if (isAdmin()) {
+            @if (s.state === 'open') {
+              <button mat-flat-button type="button" class="season__action" (click)="decide(s, 'close')">
+                <crn-icon name="lock" matButtonIcon />
+                {{ 'cwlSelection.state.close' | translate }}
+              </button>
+            } @else if (s.canReopen) {
+              <button mat-stroked-button type="button" class="season__action" (click)="decide(s, 'reopen')">
+                <crn-icon name="lock_reset" matButtonIcon />
+                {{ 'cwlSelection.state.reopen' | translate }}
+              </button>
+            }
+          }
+        </section>
+
         <section class="cn-card cn-section summary" aria-labelledby="summary-title">
           <h2 id="summary-title" class="cn-visually-hidden">
             {{ 'cwlSelection.summary' | translate }}
@@ -175,6 +249,9 @@
                   >
                   @if (exclusion.reason) {
                     <div class="cn-muted meta reason">{{ exclusion.reason }}</div>
+                  }
+                  @if (exclusion.untilRevoked) {
+                    <div class="meta until-revoked">{{ 'cwlSelection.untilRevoked' | translate }}</div>
                   }
                 } @else {
                   <crn-tag

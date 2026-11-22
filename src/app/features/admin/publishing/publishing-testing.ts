@@ -59,7 +59,7 @@ export const ok = <T>(result: T, messages: unknown[] = []) => ({
 
 /**
  * Renders the Publications page on a tab, answering the status of the bot (and the announcements,
- * empty, on their tab; the proposals come from the mock data).
+ * empty, and their settings on their tab; the proposals come from the mock data).
  */
 export async function renderPublishingPage(tab?: string, initial: TelegramStatus = status) {
   TestBed.configureTestingModule({
@@ -77,6 +77,9 @@ export async function renderPublishingPage(tab?: string, initial: TelegramStatus
   fixture.detectChanges();
   httpMock.expectOne(STATUS_URL).flush(ok(initial));
   httpMock.match((r) => r.url === ANNOUNCEMENTS_URL).forEach((r) => r.flush(ok([])));
+  httpMock
+    .match((r) => r.url === `${ANNOUNCEMENTS_URL}/settings`)
+    .forEach((r) => r.flush(ok({ kinds: [{ kind: 'month', enabled: true }] })));
   await fixture.whenStable();
   return { fixture, httpMock, el: fixture.nativeElement as HTMLElement };
 }

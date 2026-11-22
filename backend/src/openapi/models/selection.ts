@@ -3,11 +3,16 @@ import { dateTime, model, month, nullableDateTime, tag } from './common';
 
 const points = (description: string) => z.number().describe(description);
 
+const untilRevoked = z
+  .boolean()
+  .describe('`true`: for every season until an administrator takes the player back; `false`: for the selection of one season.');
+
 export const CwlExclusion = model(
   'CwlExclusion',
   'Exclusion of a player from the CWL line-up, decided by an administrator.',
   z.strictObject({
     reason: z.string().nullable().describe('Why the player is excluded; `null` when not given.'),
+    untilRevoked,
     excludedBy: z.string().describe('Username of the administrator.'),
     excludedAt: dateTime('When the player was excluded.'),
   }),
@@ -19,6 +24,7 @@ export const CwlExclusionResult = model(
   z.strictObject({
     tag: tag('Player.'),
     reason: z.string().nullable().describe('Why the player is excluded; `null` when not given.'),
+    untilRevoked,
     excludedBy: z.string().describe('Username of the administrator.'),
     excludedAt: dateTime('When the player was excluded.'),
   }),
@@ -58,7 +64,7 @@ export const SelectionPlayer = model(
         townHall: points('10 for the highest town hall of the clans, else 0.'),
         league: points('Home village league, 0–5: Electro League 31 = 1, 32 = 2, 33 = 3, Legend III = 4, Legend II and I = 5, lower leagues 0.'),
         missedAttacks: points('Penalty for the league attacks missed in the last CWL, -15–0.'),
-        activity: points('Penalty for a new arrival in the clans of the Crusade (-5), else 0.'),
+        activity: points('Penalty for a new arrival in the clans of the Crusade with the `member` role (-5), else 0.'),
       })
       .describe('Parts of the score.'),
     war: z
@@ -94,7 +100,7 @@ export const SelectionPlayer = model(
     activity: z
       .strictObject({
         joinedAt: nullableDateTime('When the player joined the clans of the Crusade; `null` when unknown.'),
-        newcomer: z.boolean().describe('In the clans of the Crusade for less than 14 days.'),
+        newcomer: z.boolean().describe('A `member` (not an elder or above) in the clans of the Crusade for less than 14 days.'),
       })
       .describe('Activity.'),
     exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator; `null` when not excluded.'),
@@ -103,9 +109,19 @@ export const SelectionPlayer = model(
 
 export const CwlSelection = model(
   'CwlSelection',
-  'Ranking of the members of the clans of the Crusade for the Clan War League line-up, best first: players with an eligible town hall by score (ties: town hall, league, role), then the others.',
+  'The selection of a season for the Clan War League line-up: the ranking of the members of the clans of the Crusade, best first (players with an eligible town hall by score; ties: town hall, league, role; then the others), live while the selection is open, frozen once closed.',
   z.strictObject({
-    generatedAt: dateTime('When the ranking was computed.'),
+    season: month('Season of the CWL the selection is for, `YYYY-MM`.'),
+    state: z.enum(['open', 'closed']).describe('`open`: live ranking, administrators exclude players; `closed`: the ranking frozen when it was closed.'),
+    signupStart: dateTime('First day of the season (UTC): the CWL sign-ups open then, the selection should be closed by it.'),
+    closedAt: nullableDateTime('When it was closed; `null` while open.'),
+    closedBy: z.string().nullable().describe('Username of the administrator who closed it; `null` while open or when closed automatically.'),
+    closedAutomatically: z.boolean().describe('Closed by the backend when the CWL of the season started.'),
+    canReopen: z.boolean().describe('Closed, its CWL not started yet and no later season closed: an administrator can open it again.'),
+    seasons: z
+      .array(z.strictObject({ season: month('Season, `YYYY-MM`.'), state: z.enum(['open', 'closed']).describe('State of its selection.') }))
+      .describe('Every selection, most recent first.'),
+    generatedAt: dateTime('When the ranking was computed (closed: when it was closed).'),
     starters: z.number().int().describe('Players in the line-up (15).'),
     reserves: z.number().int().describe('Reserves (3).'),
     maxTownHall: z.number().int().nullable().describe('Highest town hall of the clans of the Crusade; `null` without members.'),

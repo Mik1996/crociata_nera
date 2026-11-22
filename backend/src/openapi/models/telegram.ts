@@ -72,7 +72,7 @@ export const Announcement = model(
     id: z.string().describe('Announcement id.'),
     kind: z
       .enum(ANNOUNCEMENT_KINDS)
-      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world. `war`: the result of a war. `raid`: a Raid Weekend.'),
+      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world. `war`: the result of a war. `raid`: a Raid Weekend. `lineup`: the Clan War League line-up of a season, prepared when its selection is closed.'),
     state: z
       .enum(ANNOUNCEMENT_STATES)
       .describe('`draft` (its figures follow the data until published), `publishing`, `published` (frozen) or `discarded`.'),
@@ -98,5 +98,22 @@ export const Announcement = model(
       .enum(ANNOUNCEMENT_LANGUAGES)
       .describe('Language of the caption and the pictures: the one it was published in, otherwise the one asked (`lang`).'),
     postUrl: z.string().nullable().describe('Link of the post in a public channel; `null` otherwise.'),
+  }),
+);
+
+export const AnnouncementSettings = model(
+  'AnnouncementSettings',
+  'Kinds of announcement whose drafts the backend prepares, set by the administrators.',
+  z.strictObject({
+    kinds: z
+      .array(
+        z.strictObject({
+          kind: z.enum(ANNOUNCEMENT_KINDS).describe('Kind of announcement (`Announcement.kind`).'),
+          enabled: z
+            .boolean()
+            .describe('Drafts of the kind are prepared. Off: none, and what closes while off is not announced later (records beaten meanwhile become the starting point).'),
+        }),
+      )
+      .describe('Every kind, on by default.'),
   }),
 );

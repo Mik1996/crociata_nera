@@ -5,13 +5,15 @@ import { GET as getImage } from '@/app/api/v1/admin/announcements/[id]/images/[p
 import { POST as publish } from '@/app/api/v1/admin/announcements/[id]/publish/route';
 import { PATCH as updateAnnouncement } from '@/app/api/v1/admin/announcements/[id]/route';
 import { GET as listAnnouncements } from '@/app/api/v1/admin/announcements/route';
+import { GET as getSettings, PUT as putSettings } from '@/app/api/v1/admin/announcements/settings/route';
+import { updateAnnouncementSettings } from '@/modules/announcements/announcement-settings.service';
 import { signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
 import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
 import { announcementLink } from '@/modules/announcements/announcement-link';
-import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
+import { AnnouncementData, buildCwlData, buildLineupData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
@@ -432,6 +434,7 @@ describe('captions', () => {
     expect(of({ kind: 'record', record: 'localRank' })).toBe('https://crociatanera.it/');
     expect(of({ kind: 'promotion', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
     expect(of({ kind: 'legendSeason', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'lineup', season: '2026-12' })).toBe('https://crociatanera.it/cwl');
     expect(of({ kind: 'month', month: '2026-10', clanTag: '#2JU8RPR2G' })).toBe('https://crociatanera.it/');
 
     // Telegram refuses buttons to other addresses than https (development).
@@ -507,6 +510,58 @@ describe('pictures', () => {
     const tiles = async (data: AnnouncementData) => ((await announcementSvgs(data))[0]!.match(/rx="14"/g) ?? []).length;
     expect(await tiles(month)).toBe(4);
     expect(await tiles({ ...month, wars: { ...wars, attacksMissed: 0 } } as AnnouncementData)).toBe(5);
+  });
+});
+
+describe('CWL line-ups', () => {
+  const RED = '#2JU8RPR2G';
+  const row = (i: number, status: string, clanTag = MAIN) => ({ name: `Player ${i}`, townHallLevel: 17 - (i % 2), clanTag, status });
+  const rows = [
+    row(1, 'starter', RED),
+    ...Array.from({ length: 14 }, (_, i) => row(i + 2, 'starter')),
+    row(16, 'excluded'),
+    ...Array.from({ length: 3 }, (_, i) => row(i + 17, 'reserve')),
+    row(20, 'bench'),
+    row(21, 'ineligible'),
+  ];
+
+  it('take the starters and the reserves of the selection, in order', () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    expect(data).toMatchObject({ kind: 'lineup', clanTag: MAIN, clanName: 'Crociata Nera', season: '2026-12' });
+    expect(data.starters).toHaveLength(15);
+    expect(data.starters[0]).toEqual({ name: 'Player 1', townHallLevel: 16, clanTag: RED });
+    expect(data.reserves.map((p) => p.name)).toEqual(['Player 17', 'Player 18', 'Player 19']);
+  });
+
+  it('list the players in the caption, with the clan of who is in another one', () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🛡️ **Crociata Nera · Formazione CWL di Dicembre 2026**');
+    expect(caption).toContain('1. **Player 1** (TH16 · Crociata Rossa)');
+    expect(caption).toContain('2. **Player 2** (TH17)');
+    expect(caption).toContain('16. **Player 17**');
+    expect(caption).toContain('Chi, tra i titolari e le riserve si trova in un altro clan della Crociata, si sposti in tempo per la lega.');
+    expect(caption).toContain('Gli altri che vogliono partecipare alla CWL si spostino in Crociata Rossa.');
+    expect(caption).toContain('Seguite la CWL su crociatanera.it');
+    expect(caption.split('\n').at(-1)).toBe('#FormazioneCWL #CrociataNera');
+    expect(captionLength(caption)).toBeLessThanOrEqual(1024);
+    expect(generatedCaption(data, 'en-US')).toContain('CWL line-up for December 2026');
+    expect(generatedCaption(data, 'es-ES')).toContain('#AlineacionCWL');
+    // Everyone in the clan of the CWL: no word about moving, the others still go to Crociata Rossa.
+    const home = generatedCaption(buildLineupData(MAIN, '2026-12', rows.slice(1)));
+    expect(home).not.toContain('tra i titolari e le riserve');
+    expect(home).toContain('si spostino in Crociata Rossa');
+  });
+
+  it('draw one page with every starter and reserve', async () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    const svgs = await announcementSvgs(data);
+    expect(svgs).toHaveLength(1);
+    // A rounded box per player (rx 12).
+    expect(svgs[0]!.match(/rx="12"/g)).toHaveLength(18);
+    const [jpeg] = await renderAnnouncementImages(data);
+    expect((await sharp(jpeg!).metadata()).format).toBe('jpeg');
+    expect(await announcementSvgs(buildLineupData(MAIN, '2026-12', []))).toHaveLength(1);
   });
 });
 
@@ -667,6 +722,79 @@ describe('drafts of the wars and Raid Weekends', () => {
     expect(announcementLink({ ...base, kind: 'raid', startTime: '2026-11-13T07:00:00.000Z' } as AnnouncementData)).toBe(
       'https://crociatanera.it/raids?weekend=2026-11-13T07%3A00%3A00.000Z',
     );
+  });
+});
+
+describe('kinds turned off', () => {
+  const OFF_AT = new Date('2026-11-10T00:00:00Z');
+  const ON_AT = new Date('2026-11-20T00:00:00Z');
+
+  it('can be read and changed by administrators only, every kind on by default', async () => {
+    const member = await memberToken();
+    expect((await call(getSettings, { token: member })).status).toBe(403);
+    expect((await call(putSettings, { method: 'PUT', token: member, body: { kinds: [] } })).status).toBe(403);
+
+    const admin = await adminToken();
+    const initial = await call(getSettings, { token: admin });
+    expect(initial.status).toBe(200);
+    expect(initial.body.result.kinds).toHaveLength(9);
+    expect(initial.body.result.kinds.every((k: { enabled: boolean }) => k.enabled)).toBe(true);
+
+    const changed = await call(putSettings, { method: 'PUT', token: admin, body: { kinds: [{ kind: 'war', enabled: false }] } });
+    expect(changed.status).toBe(200);
+    expect(changed.body.messages.map((m) => m.key)).toEqual(['SUCCESS.ANNOUNCEMENT_SETTINGS_UPDATED']);
+    expect(changed.body.result.kinds).toContainEqual({ kind: 'war', enabled: false });
+    expect((await call(getSettings, { token: admin })).body.result.kinds).toContainEqual({ kind: 'war', enabled: false });
+    // The others stay as they are.
+    expect(changed.body.result.kinds.filter((k: { enabled: boolean }) => !k.enabled)).toHaveLength(1);
+
+    const invalid = await call(putSettings, { method: 'PUT', token: admin, body: { kinds: [{ kind: 'nope', enabled: true }] } });
+    expect(invalid.status).toBe(400);
+  });
+
+  it('prepares no drafts of a kind turned off, nor later the periods closed while it was off', async () => {
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'month', enabled: false }], OFF_AT);
+    await closePeriod('month:2026-10', new Date('2026-11-15T00:00:00Z'));
+    await closePeriod('cwl:2026-11', new Date('2026-11-15T00:00:00Z'));
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`cwl:2026-11@${MAIN}`]);
+
+    await updateAnnouncementSettings([{ kind: 'month', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await closePeriod('month:2026-11', LATER);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`month:2026-11@${MAIN}`]);
+  });
+
+  it('records beaten while off become the starting point', async () => {
+    await records(MAIN);
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'record', enabled: false }], OFF_AT);
+    await records(MAIN, { warWinStreak: 51 });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+
+    await updateAnnouncementSettings([{ kind: 'record', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await records(MAIN, { warWinStreak: 52 });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`record:warWinStreak:52@${MAIN}`]);
+    expect((await AnnouncementModel.findOne({ kind: 'record' }).lean())!.data).toMatchObject({ value: 52, previous: 51 });
+  });
+
+  it('promotions while off are not announced, but the best league follows the player', async () => {
+    const promote = (id: number) =>
+      PlayerModel.updateOne(
+        { tag: '#A' },
+        { $set: { tag: '#A', name: 'Anna', inClan: true, clanTag: MAIN, league: { id, name: `League ${id}` } } },
+        { upsert: true },
+      );
+    await promote(105000031);
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'promotion', enabled: false }], OFF_AT);
+    await promote(105000032);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    expect((await PlayerLeagueBestModel.findOne({ playerTag: '#A' }).lean())!.leagueId).toBe(105000032);
+
+    await updateAnnouncementSettings([{ kind: 'promotion', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
   });
 });
 

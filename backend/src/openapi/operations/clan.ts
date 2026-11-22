@@ -6,9 +6,13 @@ import { listDonationSeasonsQuerySchema } from '@/modules/donations/donations.sc
 import { listRaidSeasonsQuerySchema } from '@/modules/raids/raids.schemas';
 import { ClanRecords, PlayerRecord } from '../models/players';
 import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, RaidSeason } from '../models/seasons';
-import { excludePlayerSchema } from '@/modules/cwl/cwl-selection.schemas';
+import { excludePlayerSchema, selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
 import { CwlExclusionResult, CwlSelection } from '../models/selection';
 import { ApiOperation, requestPart } from '../operation';
+
+const seasonPath = requestPart(z.object({ season: z.string() }), {
+  season: { description: 'Season of the selection, `YYYY-MM`.', example: '2026-12' },
+});
 
 const exclusionPath = requestPart(z.object({ tag: z.string() }), {
   tag: { description: 'Player tag without `#` (or with `#` encoded as `%23`).', example: 'ABC123' },
@@ -20,12 +24,46 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     path: '/cwl/selection',
     operationId: 'getCwlSelection',
     tag: 'CWL',
-    summary: 'Rank the members of the Crusade for the Clan War League line-up',
+    summary: 'Get the selection of the Clan War League line-up',
     description:
-      'Current members of every clan of the Crusade (Crociata Nera, Rossa and d\'Oro) ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher league, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clans, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 20); highest town hall (10); home village league (up to 5: Electro League 31 = 1 … Legend II and I = 5). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals (-5). Excluded players keep their place and take no slot.',
+      'The selection of a season (the open one by default): one per CWL season, open (live ranking, administrators exclude players) until an administrator closes it or the CWL of its season starts, then frozen; closing it opens the next season. Current members of every clan of the Crusade (Crociata Nera, Rossa and d\'Oro) ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher league, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clans, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 20); highest town hall (10); home village league (up to 5: Electro League 31 = 1 … Legend II and I = 5). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals with the `member` role (-5). Excluded players keep their place and take no slot.',
     access: 'leader',
     rateLimit: ApiName.WARS_READ,
-    responses: { 200: { description: 'The ranking.', result: CwlSelection } },
+    query: requestPart(selectionQuerySchema, { season: { description: 'Season of the selection, `YYYY-MM` (default: the open one).', example: '2026-12' } }),
+    responses: { 200: { description: 'The selection.', result: CwlSelection } },
+    errors: { 400: [K.PERIOD_IS_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND] },
+  },
+  {
+    method: 'POST',
+    path: '/cwl/selection/{season}/close',
+    operationId: 'closeCwlSelection',
+    tag: 'CWL',
+    summary: 'Close the selection of the CWL line-up',
+    description:
+      'Closes the open selection: its ranking is frozen as it is now, a draft of the line-up announcement is prepared (when that kind is on) and the selection of the next season opens. The backend closes it by itself when the CWL of the season starts.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    params: seasonPath,
+    responses: { 200: { description: 'The closed selection.', result: CwlSelection, messages: [K.CWL_SELECTION_CLOSED] } },
+    errors: { 400: [K.PERIOD_IS_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND], 409: [K.CWL_SELECTION_NOT_OPEN] },
+  },
+  {
+    method: 'POST',
+    path: '/cwl/selection/{season}/reopen',
+    operationId: 'reopenCwlSelection',
+    tag: 'CWL',
+    summary: 'Open a closed selection of the CWL line-up again',
+    description:
+      'Opens a closed selection again while its CWL has not started and no later season was closed: the frozen ranking goes, the selection of the next season waits (its exclusions are kept), the line-up drafts not published yet are dropped.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    params: seasonPath,
+    responses: { 200: { description: 'The selection, open again.', result: CwlSelection, messages: [K.CWL_SELECTION_REOPENED] } },
+    errors: {
+      400: [K.PERIOD_IS_NOT_VALID],
+      404: [K.CWL_SELECTION_NOT_FOUND],
+      409: [K.CWL_SELECTION_NOT_CLOSED, K.CWL_SELECTION_CANNOT_REOPEN],
+    },
   },
   {
     method: 'PUT',
@@ -34,11 +72,14 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Exclude a player from the CWL line-up',
     description:
-      'Excludes a current member of a clan of the Crusade from the Clan War League line-up, with an optional reason (excluding again replaces it). The player stays in the ranking, marked as excluded, and takes no slot.',
+      'Excludes a current member of a clan of the Crusade from the line-up of the open selection, or of every season until revoked, with an optional reason (excluding again replaces reason and duration). The player stays in the ranking, marked as excluded, and takes no slot.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: exclusionPath,
-    body: requestPart(excludePlayerSchema, { reason: { description: 'Why the player is excluded (at most 200 characters).', example: 'Away for the whole season' } }),
+    body: requestPart(excludePlayerSchema, {
+      reason: { description: 'Why the player is excluded (at most 200 characters).', example: 'Away for the whole season' },
+      untilRevoked: '`true`: excluded from every season until taken back; `false` (default): from the open selection only.',
+    }),
     responses: { 200: { description: 'The exclusion.', result: CwlExclusionResult, messages: [K.PLAYER_EXCLUDED] } },
     errors: { 400: [K.PLAYER_TAG_IS_NOT_VALID, K.EXCLUSION_REASON_IS_TOO_LONG], 404: [K.PLAYER_NOT_FOUND] },
   },
@@ -48,7 +89,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     operationId: 'readmitCwlPlayer',
     tag: 'CWL',
     summary: 'Take a player back into the CWL line-up',
-    description: 'Removes the exclusion of a player; nothing changes if the player was not excluded.',
+    description: 'Removes the exclusion of a player from the open selection (and the one until revoked); nothing changes if the player was not excluded.',
     access: 'admin',
     rateLimit: ApiName.ADMIN,
     params: exclusionPath,

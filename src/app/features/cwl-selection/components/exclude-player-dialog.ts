@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,15 +18,24 @@ export interface ExcludePlayerDialogData {
   name: string;
   /** Current reason, when the player is already excluded (the dialog then changes it). */
   reason: string | null;
+  /** Current duration, when the player is already excluded. */
+  untilRevoked?: boolean;
 }
 
 /**
- * Excludes a player from the CWL line-up, with an optional reason (administrators). Closes with
- * the saved exclusion.
+ * Excludes a player from the CWL line-up, with an optional reason (administrators): from the open
+ * selection only, or from every season until taken back. Closes with the saved exclusion.
  */
 @Component({
   selector: 'crn-exclude-player-dialog',
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, TranslatePipe, ConfirmDialog],
+  imports: [
+    FormsModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatInputModule,
+    TranslatePipe,
+    ConfirmDialog,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './exclude-player-dialog.html',
   styleUrl: './exclude-player-dialog.scss',
@@ -37,6 +47,7 @@ export class ExcludePlayerDialog {
 
   protected readonly maxReason = MAX_EXCLUSION_REASON_LENGTH;
   protected readonly reason = signal(this.data.reason ?? '');
+  protected readonly untilRevoked = signal(this.data.untilRevoked ?? false);
   protected readonly busy = signal(false);
   protected readonly errors = signal<BackendMessage[]>([]);
 
@@ -44,7 +55,8 @@ export class ExcludePlayerDialog {
     if (this.busy()) return;
     this.busy.set(true);
     this.errors.set([]);
-    this.service.exclude(this.data.tag, this.reason().trim() || null).subscribe({
+    const reason = this.reason().trim() || null;
+    this.service.exclude(this.data.tag, reason, this.untilRevoked()).subscribe({
       next: (exclusion) => this.ref.close(exclusion),
       error: (error: unknown) => {
         const { fields, general } = backendErrors(error);

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,6 +18,7 @@ import { AuthService } from '../../core/backend/auth.service';
 import {
   CwlExclusion,
   CwlScoreBreakdown,
+  CwlSelection,
   CwlSelectionPlayer,
   CwlSelectionStatus,
 } from '../../core/backend/backend-api.types';
@@ -18,8 +26,9 @@ import { backendErrors } from '../../core/backend/backend-errors';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { LanguageService } from '../../core/i18n/language.service';
-import { LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
+import { formatLocalDate, LocalDatePipe, LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { ClanRole } from '../../core/models';
+import { periodLabel } from '../../core/utils/monthly-history';
 import { Icon } from '../../shared/components/icon/icon';
 import { Legend } from '../../shared/components/legend/legend';
 import { LegendItem } from '../../shared/components/legend-item/legend-item';
@@ -28,6 +37,7 @@ import { Meter, MeterSegment } from '../../shared/components/meter/meter';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { PdfButton } from '../../shared/components/pdf-button/pdf-button';
 import { PlayerCell } from '../../shared/components/player-cell/player-cell';
+import { Select, SelectOption } from '../../shared/components/select/select';
 import { StarText } from '../../shared/components/star-text/star-text';
 import { crusadeClanNames, selectionFilters } from '../../shared/components/table/clan-tables';
 import { serverTable } from '../../shared/components/table/server-table';
@@ -39,6 +49,10 @@ import { TownHallIcon } from '../../shared/game/town-hall-icon';
 import { roleKey } from '../../shared/labels';
 import { TablePdf } from '../../shared/pdf/table-pdf';
 import { ExcludePlayerDialog, ExcludePlayerDialogData } from './components/exclude-player-dialog';
+import {
+  SelectionDecisionData,
+  SelectionDecisionDialog,
+} from './components/selection-decision-dialog';
 import { cwlLineupPdf } from './cwl-lineup-pdf';
 
 /** Roles as returned by the Clash of Clans API (`admin` is the elder). */
@@ -86,7 +100,9 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
  * line-up (administrators, leaders and co-leaders): always
  * sorted from the best, the 15 starters glow blue and the 3 reserves green. The backend computes
  * the scores; the page explains the rules. Administrators can exclude players, who stay in the
- * ranking marked as excluded.
+ * ranking marked as excluded. One selection per CWL season: the open one counts down to the
+ * sign-ups (first day of its month) until an administrator closes it (or its CWL starts), then its
+ * ranking is frozen and the next season opens; the selector shows the closed ones.
  */
 /** Colour of the line-up status tags (excluded players get their own, with the reason). */
 const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
@@ -120,6 +136,7 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
     LegendItem,
     PlayerCell,
     PdfButton,
+    Select,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page--fill' },
@@ -136,12 +153,46 @@ export class CwlSelectionPage {
   /** Only administrators exclude players (always with mock data, for the demo). */
   private readonly config = inject(APP_CONFIG);
   private readonly useMock = this.config.useMockApi;
-  protected readonly canExclude = computed(() => this.useMock || this.auth.isAdmin());
+  protected readonly isAdmin = computed(() => this.useMock || this.auth.isAdmin());
 
-  protected readonly resource = rxResource({ stream: () => this.service.get() });
+  /** Season picked in the selector; `null`: the open one. */
+  private readonly chosenSeason = signal<string | null>(null);
+  protected readonly resource = rxResource({
+    params: () => ({ season: this.chosenSeason() }),
+    stream: ({ params }) => this.service.get(params.season ?? undefined),
+  });
   protected readonly selection = computed(() =>
     this.resource.hasValue() ? this.resource.value() : null,
   );
+  protected readonly isOpen = computed(() => this.selection()?.state === 'open');
+  /** Exclusions only in the open selection (a closed one is frozen). */
+  protected readonly canExclude = computed(() => this.isAdmin() && this.isOpen());
+
+  protected readonly seasonLabel = (season: string) =>
+    periodLabel(season, this.language.current());
+  protected readonly seasonOptions = computed<SelectOption<string>[]>(() =>
+    (this.selection()?.seasons ?? []).map((s) => ({
+      value: s.season,
+      label: `${this.seasonLabel(s.season)} · ${this.language.t('cwlSelection.state.' + s.state)}`,
+    })),
+  );
+
+  /** Now, every 30 seconds: the countdown to the CWL sign-ups. */
+  private readonly now = signal(Date.now());
+  /** Time left before the sign-ups of the open selection's CWL; `null` once they opened. */
+  protected readonly countdown = computed(() => {
+    const selection = this.selection();
+    if (!selection || selection.state !== 'open') return null;
+    const left = new Date(selection.signupStart).getTime() - this.now();
+    if (left <= 0) return null;
+    const minutes = Math.floor(left / 60_000);
+    return { days: Math.floor(minutes / 1440), hours: Math.floor((minutes % 1440) / 60), minutes: minutes % 60 };
+  });
+
+  constructor() {
+    const timer = setInterval(() => this.now.set(Date.now()), 30_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+  }
   protected readonly rows = computed(() => this.selection()?.players ?? []);
   protected readonly counts = computed(() => {
     const counts: Record<CwlSelectionStatus, number> = {
@@ -176,7 +227,8 @@ export class CwlSelectionPage {
 
   /** The ranking as a table, filtered and paged by the backend. */
   protected readonly players = serverTable({
-    load: (query) => this.service.getPlayersTable(query),
+    params: () => ({ season: this.chosenSeason() }),
+    load: (query, params) => this.service.getPlayersTable(query, params.season ?? undefined),
   });
 
   /** The last CWL season, as month name (`ott 2026`); `null` if none. */
@@ -246,10 +298,42 @@ export class CwlSelectionPage {
     );
   }
 
-  /** Tooltip of the "excluded" label: reason, who and when. */
+  /** Tooltip of the "excluded" label: reason, who, and for how long. */
   protected exclusionText(exclusion: CwlExclusion): string {
     const by = this.language.t('cwlSelection.excludedBy', { name: exclusion.excludedBy });
-    return exclusion.reason ? `${exclusion.reason}\n${by}` : by;
+    const lasting = this.language.t(
+      exclusion.untilRevoked ? 'cwlSelection.untilRevoked' : 'cwlSelection.thisSeason',
+    );
+    return [exclusion.reason, by, lasting].filter(Boolean).join('\n');
+  }
+
+  /** The day the CWL sign-ups of a season open (`1 dicembre`). */
+  protected signupDay(selection: CwlSelection): string {
+    return formatLocalDate(selection.signupStart, 'd LLLL', this.language.current());
+  }
+
+  protected changeSeason(season: string): void {
+    this.chosenSeason.set(season);
+  }
+
+  /** Closes the open selection, or opens a closed one again (administrators), after a confirmation. */
+  protected decide(selection: CwlSelection, action: SelectionDecisionData['action']): void {
+    this.dialog
+      .open<SelectionDecisionDialog, SelectionDecisionData, CwlSelection>(SelectionDecisionDialog, {
+        width: '30rem',
+        maxWidth: 'calc(100vw - 2rem)',
+        data: { season: selection.season, label: this.seasonLabel(selection.season), action },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+        // The page stays on the season just closed or opened again.
+        this.chosenSeason.set(result.season);
+        this.reload();
+        this.notify(
+          action === 'close' ? 'SUCCESS.CWL_SELECTION_CLOSED' : 'SUCCESS.CWL_SELECTION_REOPENED',
+        );
+      });
   }
 
   protected open(row: CwlSelectionPlayer): void {
@@ -261,7 +345,12 @@ export class CwlSelectionPage {
       .open<ExcludePlayerDialog, ExcludePlayerDialogData, CwlExclusion>(ExcludePlayerDialog, {
         width: '30rem',
         maxWidth: 'calc(100vw - 2rem)',
-        data: { tag: row.tag, name: row.name, reason: row.exclusion?.reason ?? null },
+        data: {
+          tag: row.tag,
+          name: row.name,
+          reason: row.exclusion?.reason ?? null,
+          untilRevoked: row.exclusion?.untilRevoked ?? false,
+        },
       })
       .afterClosed()
       .subscribe((exclusion) => {

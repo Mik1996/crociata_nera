@@ -8,18 +8,34 @@ import { noCache } from '../http/http-cache';
 import { BaseResult, CwlExclusion, CwlSelection, CwlSelectionPlayer } from './backend-api.types';
 
 /**
- * Ranking of the clan members for the CWL line-up (leaders only); exclusions by administrators.
+ * Selections of the CWL line-up, one per season (leaders only): the open one follows the live
+ * ranking, closed ones are frozen. Administrators exclude players and close or reopen a selection.
  * Implementations: {@link HttpCwlSelectionService} (backend) and `MockCwlSelectionService` (demo
  * without backend), chosen by `provideCocApi`.
  */
 export abstract class CwlSelectionService {
-  abstract get(): Observable<CwlSelection>;
-  /** The players of the ranking as a table, filtered, sorted and paged by the backend. */
-  abstract getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>>;
-  /** Excludes a player from the line-up (administrators); excluding again replaces the reason. */
-  abstract exclude(tag: string, reason: string | null): Observable<CwlExclusion>;
+  /** The selection of a season; the open one when `season` is left out. */
+  abstract get(season?: string): Observable<CwlSelection>;
+  /** The players of a selection as a table, filtered, sorted and paged by the backend. */
+  abstract getPlayersTable(
+    query: TableQuery,
+    season?: string,
+  ): Observable<TablePage<CwlSelectionPlayer>>;
+  /**
+   * Excludes a player from the open selection, or from every season `untilRevoked`
+   * (administrators); excluding again replaces reason and duration.
+   */
+  abstract exclude(
+    tag: string,
+    reason: string | null,
+    untilRevoked: boolean,
+  ): Observable<CwlExclusion>;
   /** Takes an excluded player back into the line-up (administrators). */
   abstract readmit(tag: string): Observable<void>;
+  /** Closes the open selection: its ranking is frozen, the next season opens (administrators). */
+  abstract close(season: string): Observable<CwlSelection>;
+  /** Opens a closed selection again, while its CWL has not started (administrators). */
+  abstract reopen(season: string): Observable<CwlSelection>;
 }
 
 /** Most characters of the reason of an exclusion (same limit as the backend). */
@@ -30,25 +46,41 @@ export class HttpCwlSelectionService extends CwlSelectionService {
   private readonly http = inject(HttpClient);
   private readonly url = `${inject(APP_CONFIG).backendBaseUrl}/cwl/selection`;
 
-  get(): Observable<CwlSelection> {
+  get(season?: string): Observable<CwlSelection> {
     // Always fresh: the ranking follows the members, their town halls, the wars and the exclusions.
     return this.http
-      .get<BaseResult<CwlSelection>>(this.url, { context: noCache() })
-      .pipe(map((response) => response.result!));
-  }
-
-  getPlayersTable(query: TableQuery): Observable<TablePage<CwlSelectionPlayer>> {
-    return this.http
-      .get<BaseResult<TablePage<CwlSelectionPlayer>>>(`${this.url}/players`, {
-        params: tableQueryParams(query),
+      .get<BaseResult<CwlSelection>>(this.url, {
+        params: season ? { season } : {},
         context: noCache(),
       })
       .pipe(map((response) => response.result!));
   }
 
-  exclude(tag: string, reason: string | null): Observable<CwlExclusion> {
+  getPlayersTable(query: TableQuery, season?: string): Observable<TablePage<CwlSelectionPlayer>> {
+    const params = tableQueryParams(query);
     return this.http
-      .put<BaseResult<CwlExclusion>>(this.exclusionUrl(tag), { reason })
+      .get<BaseResult<TablePage<CwlSelectionPlayer>>>(`${this.url}/players`, {
+        params: season ? { ...params, season } : params,
+        context: noCache(),
+      })
+      .pipe(map((response) => response.result!));
+  }
+
+  exclude(tag: string, reason: string | null, untilRevoked: boolean): Observable<CwlExclusion> {
+    return this.http
+      .put<BaseResult<CwlExclusion>>(this.exclusionUrl(tag), { reason, untilRevoked })
+      .pipe(map((response) => response.result!));
+  }
+
+  close(season: string): Observable<CwlSelection> {
+    return this.http
+      .post<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/close`, {})
+      .pipe(map((response) => response.result!));
+  }
+
+  reopen(season: string): Observable<CwlSelection> {
+    return this.http
+      .post<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/reopen`, {})
       .pipe(map((response) => response.result!));
   }
 

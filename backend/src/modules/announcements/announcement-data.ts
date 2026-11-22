@@ -172,7 +172,32 @@ export interface RaidData extends ClanPart {
   honours: Honour[];
 }
 
-export type AnnouncementData = MonthData | CwlData | DonationsData | RecordData | PromotionData | LegendSeasonData | WarData | RaidData;
+/** A player of a CWL line-up. */
+export interface LineupPlayer {
+  name: string;
+  townHallLevel: number | null;
+  /** Clan of the Crusade the player is in now (they may have to move to the clan of the CWL). */
+  clanTag: string;
+}
+
+/** The Clan War League line-up of a season, as frozen when its selection was closed. */
+export interface LineupData extends ClanPart {
+  kind: 'lineup';
+  season: string;
+  starters: LineupPlayer[];
+  reserves: LineupPlayer[];
+}
+
+export type AnnouncementData =
+  | MonthData
+  | CwlData
+  | DonationsData
+  | RecordData
+  | PromotionData
+  | LegendSeasonData
+  | WarData
+  | RaidData
+  | LineupData;
 
 export function clanName(clanTag: string): string {
   return CRUSADE_CLAN_NAMES[clanTag] ?? clanTag;
@@ -475,4 +500,19 @@ export async function buildRaidData(raid: SavedRaid): Promise<RaidData> {
       .map((m) => ({ name: m.name, gold: m.capitalResourcesLooted ?? 0, attacks: m.attacks ?? 0 })),
     honours: raid.hasMembers ? await honoursOf([`raid:${raid.startTime.toISOString()}${periodSuffix(raid.clanTag)}`]) : [],
   };
+}
+
+/** A ranked player of a selection, as far as the line-up reads it (`SelectionRow`). */
+interface SelectionRowPart {
+  name: string;
+  townHallLevel: number | null;
+  clanTag: string;
+  status: string;
+}
+
+/** The line-up of a season from the ranking of its closed selection (starters and reserves, in order). */
+export function buildLineupData(clanTag: string, season: string, rows: SelectionRowPart[]): LineupData {
+  const pick = (status: string) =>
+    rows.filter((r) => r.status === status).map((r) => ({ name: r.name, townHallLevel: r.townHallLevel, clanTag: r.clanTag }));
+  return { kind: 'lineup', clanTag, clanName: clanName(clanTag), season, starters: pick('starter'), reserves: pick('reserve') };
 }

@@ -10,6 +10,7 @@ import {
   AnnouncementData,
   buildCwlData,
   buildDonationsData,
+  buildLineupData,
   buildMonthData,
   buildRaidData,
   buildWarData,
@@ -27,6 +28,7 @@ import {
   AnnouncementState,
   PlayerLeagueBestModel,
 } from './announcement.model';
+import { KindGate, kindGate, laterOf } from './announcement-settings.service';
 
 /**
  * Prepares the drafts of the announcements from what the syncs saved, for every clan of the Crusade:
@@ -39,10 +41,15 @@ import {
  * - a member who ended a Legend League season in Legend League I, among the first 10,000 of the world
  *   (one draft per player and season);
  * - an ended war (its result), per clan;
- * - an ended Raid Weekend, once its commendations are awarded, per clan.
+ * - an ended Raid Weekend, once its commendations are awarded, per clan;
+ * - the CWL line-up of a season, when its selection is closed ({@link createLineupDraft}, called by
+ *   the selection, not by the sync).
  *
  * Reads the saved state rather than reacting to events, so nothing is missed while the server is down.
  * Only periods closed after the clan was first seen get a draft (no drafts for the past). Idempotent.
+ * A kind turned off by the administrators (`announcement-settings.service.ts`) gets no drafts, and
+ * what closed while it was off is not announced once it is on again (records beaten meanwhile become
+ * the new starting point).
  */
 
 /** Leagues whose promotions are announced (`leagueTier` ids): Electro League 31 … Legend League I. */
@@ -73,40 +80,48 @@ export async function syncAnnouncementDrafts(now = new Date()): Promise<DraftSyn
     { $set: { state: AnnouncementState.DRAFT, interrupted: true } },
   );
 
+  const gate = await kindGate();
   for (const clanTag of crusadeClanTags()) {
     const baseline = await AnnouncementBaselineModel.findOneAndUpdate(
       { clanTag },
       { $setOnInsert: { clanTag, since: now, records: null } },
       { upsert: true, returnDocument: 'after' },
     ).lean();
-    await periodDrafts(clanTag, baseline.since, report);
-    await recordDrafts(clanTag, (baseline.records as RecordValues | null) ?? null, report);
+    await periodDrafts(clanTag, baseline.since, gate, report);
+    await recordDrafts(clanTag, (baseline.records as RecordValues | null) ?? null, gate, report);
     const kindsSince = await sinceOfLaterKinds(clanTag, (baseline.kindsSince as Partial<Record<LaterKind, Date>> | null) ?? {}, now);
-    await warDrafts(clanTag, kindsSince.war, report);
-    await raidDrafts(clanTag, kindsSince.raid, report);
+    if (gate.enabled(AnnouncementKind.WAR)) {
+      await warDrafts(clanTag, laterOf(kindsSince.war, gate.since(AnnouncementKind.WAR)), report);
+    }
+    if (gate.enabled(AnnouncementKind.RAID)) {
+      await raidDrafts(clanTag, laterOf(kindsSince.raid, gate.since(AnnouncementKind.RAID)), report);
+    }
   }
-  await promotionDrafts(now, report);
-  await legendSeasonDrafts(report);
+  await promotionDrafts(now, gate, report);
+  if (gate.enabled(AnnouncementKind.LEGEND_SEASON)) await legendSeasonDrafts(gate, report);
   await refreshDrafts(report);
   return report;
 }
 
 // --- periods -----------------------------------------------------------------
 
-async function periodDrafts(clanTag: string, since: Date, report: DraftSyncReport): Promise<void> {
+async function periodDrafts(clanTag: string, since: Date, gate: KindGate, report: DraftSyncReport): Promise<void> {
   const suffix = periodSuffix(clanTag);
   const periods = await CommendationPeriodModel.find({
     processedAt: { $gte: since },
     periodKey: { $regex: /^(month|cwl|donations):/ },
   })
-    .select('periodKey')
+    .select('periodKey processedAt')
     .lean();
-  for (const { periodKey } of periods) {
+  for (const { periodKey, processedAt } of periods) {
     const match = /^(month|cwl|donations):(\d{4}-\d{2})(@.+)?$/.exec(periodKey);
     if (!match) continue;
     const [, kind, period] = match as unknown as [string, 'month' | 'cwl' | 'donations', string];
     // Months and CWL seasons are per clan (suffix of the clan); donations are for the whole Crusade.
     if (kind !== 'donations' && (match[3] ?? '') !== suffix) continue;
+    if (!gate.enabled(kind)) continue;
+    const start = gate.since(kind);
+    if (start && processedAt && processedAt < start) continue;
     const key = `${kind}:${period}@${clanTag}`;
     if (await AnnouncementModel.exists({ key })) continue;
     // A month waits for its Raid Weekends (one may start on the last days and end in the next month).
@@ -239,7 +254,7 @@ async function raidDrafts(clanTag: string, since: Date, report: DraftSyncReport)
  * Legend League I, the top of the game, is celebrated at every arrival, even when reached before.
  * Demotions and leagues held change nothing.
  */
-async function promotionDrafts(now: Date, report: DraftSyncReport): Promise<void> {
+async function promotionDrafts(now: Date, gate: KindGate, report: DraftSyncReport): Promise<void> {
   const players = await PlayerModel.find({ inClan: true, 'league.id': { $ne: null } })
     .select('tag name clanTag league')
     .lean();
@@ -283,6 +298,8 @@ async function promotionDrafts(now: Date, report: DraftSyncReport): Promise<void
     if (write.modifiedCount !== 1) continue;
     const announced = league.id >= PROMOTION_LEAGUES.first && league.id <= PROMOTION_LEAGUES.last;
     if (!((raised && announced) || backToTop)) continue;
+    // Turned off: the best league follows the player all the same, the promotion is just not news.
+    if (!gate.enabled(AnnouncementKind.PROMOTION)) continue;
 
     const clanTag = player.clanTag ?? primaryClanTag()!;
     // Every arrival at the top is its own announcement: the key carries the time.
@@ -311,8 +328,9 @@ async function promotionDrafts(now: Date, report: DraftSyncReport): Promise<void
 // --- Legend League seasons ---------------------------------------------------
 
 /** The members of the Legend League seasons processed since their clan was first seen. */
-async function legendSeasonDrafts(report: DraftSyncReport): Promise<void> {
-  const baselines = new Map((await AnnouncementBaselineModel.find().lean()).map((b) => [b.clanTag, b.since]));
+async function legendSeasonDrafts(gate: KindGate, report: DraftSyncReport): Promise<void> {
+  const start = gate.since(AnnouncementKind.LEGEND_SEASON);
+  const baselines = new Map((await AnnouncementBaselineModel.find().lean()).map((b) => [b.clanTag, laterOf(b.since, start)]));
   const seasons = await LegendSeasonModel.find({ processedAt: { $ne: null }, 'results.0': { $exists: true } }).lean();
   for (const season of seasons) {
     for (const result of season.results) {
@@ -340,7 +358,7 @@ async function legendSeasonDrafts(report: DraftSyncReport): Promise<void> {
 
 // --- records -----------------------------------------------------------------
 
-async function recordDrafts(clanTag: string, baseline: RecordValues | null, report: DraftSyncReport): Promise<void> {
+async function recordDrafts(clanTag: string, baseline: RecordValues | null, gate: KindGate, report: DraftSyncReport): Promise<void> {
   const records = await ClanRecordsModel.findOne({ clanTag }).lean();
   // Not read from the API yet (the other clans start from nothing): nothing to compare.
   if (!records?.lastSyncedAt) return;
@@ -362,6 +380,11 @@ async function recordDrafts(clanTag: string, baseline: RecordValues | null, repo
   for (const record of RECORD_NAMES) {
     const open = await AnnouncementModel.findOne({ kind: AnnouncementKind.RECORD, clanTag, subject: record, state: AnnouncementState.DRAFT });
     const value = announceable(record, clanTag, current) ? newRecordValue(record, current[record], baseline[record]) : null;
+    if (!gate.enabled(AnnouncementKind.RECORD)) {
+      // Turned off: a record beaten meanwhile becomes the starting point (an open draft stays as it is).
+      if (value !== null && !open) await settleRecord(recordData(clanTag, record, value, baseline, current));
+      continue;
+    }
     if (value === null) {
       // A draft that is no longer news (prepared under older rules, e.g. "Unranked"): it goes away.
       if (open && (await AnnouncementModel.deleteOne({ _id: open._id, state: AnnouncementState.DRAFT })).deletedCount) {
@@ -369,22 +392,7 @@ async function recordDrafts(clanTag: string, baseline: RecordValues | null, repo
       }
       continue;
     }
-    const previous = baseline[record] ?? null;
-    const data: RecordData = {
-      kind: 'record',
-      clanTag,
-      clanName: clanName(clanTag),
-      record,
-      value,
-      previous: previous === 0 ? null : previous,
-      ...(record === 'cwlLeague'
-        ? {
-            leagueName: current.cwlLeagueName ?? '',
-            // No league before (first read of the clan, or "Unranked"): nothing to compare with.
-            previousLeagueName: baseline.cwlLeagueName && !UNRANKED.test(baseline.cwlLeagueName) ? baseline.cwlLeagueName : null,
-          }
-        : {}),
-    };
+    const data = recordData(clanTag, record, value, baseline, current);
     const key = `record:${record}:${value}@${clanTag}`;
     if (!open) {
       if (await createDraft(key, AnnouncementKind.RECORD, clanTag, record, data)) report.created.push(key);
@@ -393,6 +401,25 @@ async function recordDrafts(clanTag: string, baseline: RecordValues | null, repo
       report.updated.push(key);
     }
   }
+}
+
+function recordData(clanTag: string, record: RecordName, value: number, baseline: RecordValues, current: RecordValues): RecordData {
+  const previous = baseline[record] ?? null;
+  return {
+    kind: 'record',
+    clanTag,
+    clanName: clanName(clanTag),
+    record,
+    value,
+    previous: previous === 0 ? null : previous,
+    ...(record === 'cwlLeague'
+      ? {
+          leagueName: current.cwlLeagueName ?? '',
+          // No league before (first read of the clan, or "Unranked"): nothing to compare with.
+          previousLeagueName: baseline.cwlLeagueName && !UNRANKED.test(baseline.cwlLeagueName) ? baseline.cwlLeagueName : null,
+        }
+      : {}),
+  };
 }
 
 /**
@@ -430,4 +457,28 @@ export async function settleRecord(data: RecordData): Promise<void> {
   const set: Record<string, unknown> = { [`records.${data.record}`]: data.value };
   if (data.record === 'cwlLeague') set['records.cwlLeagueName'] = data.leagueName ?? '';
   await AnnouncementBaselineModel.updateOne({ clanTag: data.clanTag }, { $set: set });
+}
+
+// --- CWL line-ups ------------------------------------------------------------
+
+/**
+ * The draft of the line-up of a season's CWL, from the ranking of its selection just closed (main
+ * clan, the clan of the CWL). Every closing gets its own draft. Returns its key; `null` when the kind
+ * is turned off or the clan is not configured.
+ */
+export async function createLineupDraft(
+  season: string,
+  rows: Parameters<typeof buildLineupData>[2],
+  closedAt: Date,
+): Promise<string | null> {
+  const clanTag = primaryClanTag();
+  if (!clanTag || !(await kindGate()).enabled(AnnouncementKind.LINEUP)) return null;
+  const key = `lineup:${season}:${closedAt.getTime()}@${clanTag}`;
+  const created = await createDraft(key, AnnouncementKind.LINEUP, clanTag, season, buildLineupData(clanTag, season, rows));
+  return created ? key : null;
+}
+
+/** The line-up drafts of a season not published yet are dropped (its selection was opened again). */
+export async function dropLineupDrafts(season: string): Promise<void> {
+  await AnnouncementModel.deleteMany({ kind: AnnouncementKind.LINEUP, subject: season, state: AnnouncementState.DRAFT });
 }
