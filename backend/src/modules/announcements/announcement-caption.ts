@@ -1,3 +1,4 @@
+import { CRUSADE_CLAN_TAGS } from '@/lib/coc/crusade-clans';
 import { escapeHtml } from '@/lib/telegram/telegram-client';
 import {
   AnnouncementData,
@@ -63,6 +64,9 @@ function captionBody(t: AnnouncementTexts, data: AnnouncementData): string {
   }
 }
 
+/** Clan where the players not picked for the line-up play the CWL (Crociata Rossa). */
+const LINEUP_OTHERS_CLAN = CRUSADE_CLAN_TAGS[1]!;
+
 function lineupCaption(t: AnnouncementTexts, data: LineupData): string {
   const c = t.caption.lineup;
   const clanOf = (tag: string) => (tag === data.clanTag ? null : clanName(tag));
@@ -74,8 +78,10 @@ function lineupCaption(t: AnnouncementTexts, data: LineupData): string {
   };
   list(c.starters, '⚔️', data.starters, 1);
   list(c.reserves, '🪑', data.reserves, data.starters.length + 1);
-  if ([...data.starters, ...data.reserves].some((p) => p.clanTag !== data.clanTag)) lines.push('', c.move);
-  lines.push('', c.footer);
+  lines.push('');
+  if ([...data.starters, ...data.reserves].some((p) => p.clanTag !== data.clanTag)) lines.push(c.move);
+  // Who was not picked plays the CWL in the second clan of the Crusade.
+  lines.push(c.others(clanName(LINEUP_OTHERS_CLAN)), '', c.footer);
   return lines.join('\n');
 }
 

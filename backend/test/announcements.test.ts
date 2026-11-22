@@ -540,13 +540,17 @@ describe('CWL line-ups', () => {
     expect(caption).toContain('1. **Player 1** (TH16 · Crociata Rossa)');
     expect(caption).toContain('2. **Player 2** (TH17)');
     expect(caption).toContain('16. **Player 17**');
-    expect(caption).toContain('Chi è in un altro clan della Crociata');
+    expect(caption).toContain('Chi, tra i titolari e le riserve si trova in un altro clan della Crociata, si sposti in tempo per la lega.');
+    expect(caption).toContain('Gli altri che vogliono partecipare alla CWL si spostino in Crociata Rossa.');
+    expect(caption).toContain('Seguite la CWL su crociatanera.it');
     expect(caption.split('\n').at(-1)).toBe('#FormazioneCWL #CrociataNera');
     expect(captionLength(caption)).toBeLessThanOrEqual(1024);
     expect(generatedCaption(data, 'en-US')).toContain('CWL line-up for December 2026');
     expect(generatedCaption(data, 'es-ES')).toContain('#AlineacionCWL');
-    // Everyone in the clan of the CWL: no word about moving.
-    expect(generatedCaption(buildLineupData(MAIN, '2026-12', rows.slice(1)))).not.toContain('Crociata Rossa');
+    // Everyone in the clan of the CWL: no word about moving, the others still go to Crociata Rossa.
+    const home = generatedCaption(buildLineupData(MAIN, '2026-12', rows.slice(1)));
+    expect(home).not.toContain('tra i titolari e le riserve');
+    expect(home).toContain('si spostino in Crociata Rossa');
   });
 
   it('draw one page with every starter and reserve', async () => {

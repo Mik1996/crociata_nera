@@ -109,6 +109,8 @@ export interface AnnouncementTexts {
       player(place: number, name: string, townHall: number | null, clan: string | null): string;
       /** Under the list when some players are in another clan of the Crusade. */
       move: string;
+      /** Always: the players not selected who want to play the CWL go to this clan. */
+      others(clan: string): string;
       footer: string;
     };
     honours: string;
@@ -358,8 +360,9 @@ const ITALIAN: AnnouncementTexts = {
       starters: 'Titolari',
       reserves: 'Riserve',
       player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
-      move: '🔁 Chi è in un altro clan della Crociata si sposti in tempo per la lega.',
-      footer: `In bocca al lupo, guerrieri! Segui la lega su ${SITE}`,
+      move: '🔁 Chi, tra i titolari e le riserve si trova in un altro clan della Crociata, si sposti in tempo per la lega.',
+      others: (clan) => `Gli altri che vogliono partecipare alla CWL si spostino in ${clan}.`,
+      footer: `In bocca al lupo, guerrieri! Seguite la CWL su ${SITE}`,
     },
     honours: 'Encomi',
     andOthers: (n) => ` e altri ${n}`,
@@ -587,8 +590,9 @@ const ENGLISH: AnnouncementTexts = {
       starters: 'Starters',
       reserves: 'Reserves',
       player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
-      move: '🔁 Players in another clan of the Crusade: move in time for the league.',
-      footer: `Good luck, warriors! Follow the league on ${SITE}`,
+      move: '🔁 Starters and reserves who are in another clan of the Crusade: move in time for the league.',
+      others: (clan) => `Everyone else who wants to play the CWL: move to ${clan}.`,
+      footer: `Good luck, warriors! Follow the CWL on ${SITE}`,
     },
     honours: 'Commendations',
     andOthers: (n) => ` and ${n} more`,
@@ -817,8 +821,9 @@ const SPANISH: AnnouncementTexts = {
       starters: 'Titulares',
       reserves: 'Reservas',
       player: (place, name, th, clan) => `${place}. **${name}**${th ? ` (TH${th}${clan ? ` · ${clan}` : ''})` : clan ? ` (${clan})` : ''}`,
-      move: '🔁 Quien esté en otro clan de la Cruzada, que se mueva a tiempo para la liga.',
-      footer: `¡Suerte, guerreros! Sigue la liga en ${SITE}`,
+      move: '🔁 Quien, entre titulares y reservas, esté en otro clan de la Cruzada, que se mueva a tiempo para la liga.',
+      others: (clan) => `Los demás que quieran participar en la CWL, que se muevan a ${clan}.`,
+      footer: `¡Suerte, guerreros! Seguid la CWL en ${SITE}`,
     },
     honours: 'Encomios',
     andOthers: (n) => ` y ${n} más`,
