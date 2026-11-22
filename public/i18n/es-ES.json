@@ -492,7 +492,8 @@
     "TELEGRAM_SYNC_STARTED": "Envíos iniciados: las bases salen con unos segundos de diferencia.",
     "ANNOUNCEMENT_UPDATED": "Texto guardado.",
     "ANNOUNCEMENT_PUBLISHED": "Anuncio publicado en el canal de Telegram.",
-    "ANNOUNCEMENT_DISCARDED": "Anuncio descartado."
+    "ANNOUNCEMENT_DISCARDED": "Anuncio descartado.",
+    "ANNOUNCEMENT_SETTINGS_UPDATED": "Ajustes de los borradores guardados."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -1351,19 +1352,25 @@
     }
   },
   "announcementsAdmin": {
-    "intro": {
-      "lead": "El sitio prepara un borrador cuando:",
-      "cases": {
-        "period": "se cierra un mes, una CWL o una temporada de donaciones;",
-        "record": "un clan de la Cruzada bate un récord;",
-        "league": "un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I);",
-        "legend": "un jugador cierra la temporada Leyenda entre los 10.000 primeros del mundo;",
-        "war": "termina una guerra de un clan de la Cruzada;",
-        "raid": "se cierra un Raid Weekend (tras las distinciones)."
+    "settings": {
+      "title": "Borradores automáticos",
+      "lead": "Elige para qué eventos el sitio prepara un borrador de anuncio.",
+      "when": {
+        "month": "Se cierra un mes: guerras, Raid Weekends y distinciones del mes.",
+        "cwl": "Termina una temporada de la CWL.",
+        "donations": "Se cierra una temporada de donaciones.",
+        "record": "Un clan de la Cruzada bate un récord.",
+        "promotion": "Un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I).",
+        "legendSeason": "Un jugador termina la temporada Leyenda entre los 10.000 primeros del mundo.",
+        "war": "Termina una guerra de un clan de la Cruzada.",
+        "raid": "Se cierra un Raid Weekend (tras las distinciones)."
       },
-      "note": "Las cifras de un borrador se actualizan hasta que lo publicas."
+      "note": "Un tipo desactivado no recibe nuevos borradores (los ya preparados se quedan) y, al volver a activarlo, lo ocurrido mientras tanto no se recupera: un récord batido mientras estaba desactivado pasa a ser el nuevo punto de partida.",
+      "save": "Guardar",
+      "revert": "Descartar cambios"
     },
     "drafts": "Borradores",
+    "draftsNote": "Las cifras de un borrador se actualizan hasta que lo publicas.",
     "noDrafts": "No hay borradores pendientes: el próximo llegará al cerrarse el mes o con un nuevo récord.",
     "history": "Publicados y descartados",
     "preparedAt": "Preparado el {{date}}",

@@ -142,3 +142,21 @@ const playerLeagueBestSchema = new Schema(
 export const PlayerLeagueBestModel: Model<InferSchemaType<typeof playerLeagueBestSchema>> =
   (models.PlayerLeagueBest as Model<InferSchemaType<typeof playerLeagueBestSchema>>) ??
   model('PlayerLeagueBest', playerLeagueBestSchema);
+
+/**
+ * Kinds of announcement whose drafts the backend prepares, set by the administrators (one document,
+ * `key: 'kinds'`). A kind missing from `kinds` is on. A kind turned off gets no new drafts, and what
+ * happens while it is off is not announced later: turned on again, it starts from `changedAt`.
+ */
+const announcementSettingsSchema = new Schema(
+  {
+    key: { type: String, required: true, unique: true },
+    /** Kind -> `{ enabled, changedAt }` (no default: kinds are set one by one, `kinds.<kind>`). */
+    kinds: { type: Schema.Types.Mixed },
+  },
+  { collection: 'AnnouncementSettings', versionKey: false },
+);
+
+export const AnnouncementSettingsModel: Model<InferSchemaType<typeof announcementSettingsSchema>> =
+  (models.AnnouncementSettings as Model<InferSchemaType<typeof announcementSettingsSchema>>) ??
+  model('AnnouncementSettings', announcementSettingsSchema);

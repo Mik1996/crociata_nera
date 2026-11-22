@@ -13,11 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AnnouncementsAdminService } from '../../../../core/backend/announcements-admin.service';
-import {
-  Announcement,
-  AnnouncementKind,
-  BackendMessage,
-} from '../../../../core/backend/backend-api.types';
+import { Announcement, BackendMessage } from '../../../../core/backend/backend-api.types';
 import { backendErrors } from '../../../../core/backend/backend-errors';
 import { PendingPublications } from '../../../../core/backend/pending-publications';
 import { LanguageService } from '../../../../core/i18n/language.service';
@@ -28,7 +24,6 @@ import {
 } from '../../../../core/i18n/locale-pipes';
 import { Alert } from '../../../../shared/components/alert/alert';
 import { Icon } from '../../../../shared/components/icon/icon';
-import { IconName } from '../../../../shared/components/icon/icon-names';
 import { LoadState } from '../../../../shared/components/load-state/load-state';
 import { Tag, TagTone } from '../../../../shared/components/tag/tag';
 import {
@@ -36,6 +31,8 @@ import {
   AnnouncementDecisionData,
 } from './announcement-decision-dialog';
 import { AnnouncementImages } from './announcement-images';
+import { KIND_ICONS } from './announcement-kinds';
+import { AnnouncementSettingsForm } from './announcement-settings-form';
 
 /** Telegram's limit for the caption of a picture (visible characters). */
 export const CAPTION_LIMIT = 1024;
@@ -47,17 +44,6 @@ export const CAPTION_LIMIT = 1024;
 export function captionLength(caption: string): number {
   return caption.replace(/\*\*(.+?)\*\*/gs, '$1').length;
 }
-
-const KIND_ICONS: Record<AnnouncementKind, IconName> = {
-  month: 'calendar_month',
-  cwl: 'emoji_events',
-  donations: 'volunteer_activism',
-  record: 'local_fire_department',
-  promotion: 'workspace_premium',
-  legendSeason: 'emoji_events',
-  war: 'flag',
-  raid: 'castle',
-};
 
 const STATE_TONES: Record<Announcement['state'], TagTone> = {
   draft: 'gold',
@@ -74,8 +60,9 @@ const DIALOG_CONFIG = {
 
 /**
  * Announcements tab of the Publications page (administrators). The backend prepares a draft when a month
- * closes, a Clan War League or game season ends, or a record of a clan of the Crusade falls; here
- * the drafts are looked at (pictures and caption), the caption changed, then published or discarded.
+ * closes, a Clan War League or game season ends, or a record of a clan of the Crusade falls (the kinds
+ * turned on in the form at the top); here the drafts are looked at (pictures and caption), the caption
+ * changed, then published or discarded.
  */
 @Component({
   selector: 'crn-telegram-announcements',
@@ -86,6 +73,7 @@ const DIALOG_CONFIG = {
     TranslatePipe,
     Alert,
     AnnouncementImages,
+    AnnouncementSettingsForm,
     Icon,
     LoadState,
     LocalDatePipe,
@@ -101,8 +89,6 @@ export class TelegramAnnouncements {
   private readonly dialog = inject(MatDialog);
 
   protected readonly limit = CAPTION_LIMIT;
-  /** When the backend prepares a draft (`announcementsAdmin.intro.cases.*`). */
-  protected readonly introCases = ['period', 'record', 'league', 'legend', 'war', 'raid'] as const;
   protected readonly kindIcons = KIND_ICONS;
   protected readonly stateTones = STATE_TONES;
 

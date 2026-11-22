@@ -76,6 +76,9 @@ describe('TelegramAnnouncements', () => {
     const fixture = TestBed.createComponent(TelegramAnnouncements);
     fixture.detectChanges();
     expectOne(URL_BASE).flush(ok(list));
+    httpMock
+      .expectOne(`${URL_BASE}/settings`)
+      .flush(ok({ kinds: [{ kind: 'month', enabled: true }] }));
     TestBed.tick();
     for (const a of list.filter((x) => x.state === 'draft')) await flushImages(a);
     await fixture.whenStable();

@@ -204,7 +204,9 @@ cannot be moved to `develop`: a rebase resets it to `master`.
   season in Legend League I among the first 10,000 of the world, from `modules/legends/`; every ended war and
   every Raid Weekend once its commendations are awarded, only those ended after the kinds were added,
   `AnnouncementBaselines.kindsSince`; opponent badges read from `api-assets.clashofclans.com` only), published or
-  discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons). Captions and
+  discarded by administrators in the Announcements tab of `/admin/publishing` (site only, no Telegram buttons),
+  where a switch per kind turns its drafts on or off (`AnnouncementSettings`, `announcement-settings.service.ts`:
+  what closes while a kind is off is not announced later, records beaten meanwhile become the baseline). Captions and
   pictures come in the language of the page (`?lang=`, words in `announcement-texts.ts` for it/en/es) and
   a post goes out in it; a published one keeps its `language`. Captions end with hashtags (kind and clan,
   base posts `#TH17`); `announcementLink` gives the page of the site an announcement leads to (main clan:

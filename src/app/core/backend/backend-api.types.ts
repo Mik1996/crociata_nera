@@ -354,6 +354,12 @@ export type AnnouncementKind =
   'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason' | 'war' | 'raid';
 export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
 
+/** Kinds of announcement whose drafts the backend prepares (`GET /admin/announcements/settings`). */
+export interface AnnouncementSettings {
+  /** Every kind, on by default. */
+  kinds: { kind: AnnouncementKind; enabled: boolean }[];
+}
+
 /** An announcement for the Telegram announcements channel, prepared by the backend. */
 export interface Announcement {
   id: string;

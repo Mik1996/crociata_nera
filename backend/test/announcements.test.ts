@@ -5,6 +5,8 @@ import { GET as getImage } from '@/app/api/v1/admin/announcements/[id]/images/[p
 import { POST as publish } from '@/app/api/v1/admin/announcements/[id]/publish/route';
 import { PATCH as updateAnnouncement } from '@/app/api/v1/admin/announcements/[id]/route';
 import { GET as listAnnouncements } from '@/app/api/v1/admin/announcements/route';
+import { GET as getSettings, PUT as putSettings } from '@/app/api/v1/admin/announcements/settings/route';
+import { updateAnnouncementSettings } from '@/modules/announcements/announcement-settings.service';
 import { signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
 import { resetEnvCache } from '@/lib/config/env';
@@ -667,6 +669,79 @@ describe('drafts of the wars and Raid Weekends', () => {
     expect(announcementLink({ ...base, kind: 'raid', startTime: '2026-11-13T07:00:00.000Z' } as AnnouncementData)).toBe(
       'https://crociatanera.it/raids?weekend=2026-11-13T07%3A00%3A00.000Z',
     );
+  });
+});
+
+describe('kinds turned off', () => {
+  const OFF_AT = new Date('2026-11-10T00:00:00Z');
+  const ON_AT = new Date('2026-11-20T00:00:00Z');
+
+  it('can be read and changed by administrators only, every kind on by default', async () => {
+    const member = await memberToken();
+    expect((await call(getSettings, { token: member })).status).toBe(403);
+    expect((await call(putSettings, { method: 'PUT', token: member, body: { kinds: [] } })).status).toBe(403);
+
+    const admin = await adminToken();
+    const initial = await call(getSettings, { token: admin });
+    expect(initial.status).toBe(200);
+    expect(initial.body.result.kinds).toHaveLength(8);
+    expect(initial.body.result.kinds.every((k: { enabled: boolean }) => k.enabled)).toBe(true);
+
+    const changed = await call(putSettings, { method: 'PUT', token: admin, body: { kinds: [{ kind: 'war', enabled: false }] } });
+    expect(changed.status).toBe(200);
+    expect(changed.body.messages.map((m) => m.key)).toEqual(['SUCCESS.ANNOUNCEMENT_SETTINGS_UPDATED']);
+    expect(changed.body.result.kinds).toContainEqual({ kind: 'war', enabled: false });
+    expect((await call(getSettings, { token: admin })).body.result.kinds).toContainEqual({ kind: 'war', enabled: false });
+    // The others stay as they are.
+    expect(changed.body.result.kinds.filter((k: { enabled: boolean }) => !k.enabled)).toHaveLength(1);
+
+    const invalid = await call(putSettings, { method: 'PUT', token: admin, body: { kinds: [{ kind: 'nope', enabled: true }] } });
+    expect(invalid.status).toBe(400);
+  });
+
+  it('prepares no drafts of a kind turned off, nor later the periods closed while it was off', async () => {
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'month', enabled: false }], OFF_AT);
+    await closePeriod('month:2026-10', new Date('2026-11-15T00:00:00Z'));
+    await closePeriod('cwl:2026-11', new Date('2026-11-15T00:00:00Z'));
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`cwl:2026-11@${MAIN}`]);
+
+    await updateAnnouncementSettings([{ kind: 'month', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await closePeriod('month:2026-11', LATER);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`month:2026-11@${MAIN}`]);
+  });
+
+  it('records beaten while off become the starting point', async () => {
+    await records(MAIN);
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'record', enabled: false }], OFF_AT);
+    await records(MAIN, { warWinStreak: 51 });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+
+    await updateAnnouncementSettings([{ kind: 'record', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    await records(MAIN, { warWinStreak: 52 });
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([`record:warWinStreak:52@${MAIN}`]);
+    expect((await AnnouncementModel.findOne({ kind: 'record' }).lean())!.data).toMatchObject({ value: 52, previous: 51 });
+  });
+
+  it('promotions while off are not announced, but the best league follows the player', async () => {
+    const promote = (id: number) =>
+      PlayerModel.updateOne(
+        { tag: '#A' },
+        { $set: { tag: '#A', name: 'Anna', inClan: true, clanTag: MAIN, league: { id, name: `League ${id}` } } },
+        { upsert: true },
+      );
+    await promote(105000031);
+    await syncAnnouncementDrafts(T0);
+    await updateAnnouncementSettings([{ kind: 'promotion', enabled: false }], OFF_AT);
+    await promote(105000032);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
+    expect((await PlayerLeagueBestModel.findOne({ playerTag: '#A' }).lean())!.leagueId).toBe(105000032);
+
+    await updateAnnouncementSettings([{ kind: 'promotion', enabled: true }], ON_AT);
+    expect((await syncAnnouncementDrafts(LATER)).created).toEqual([]);
   });
 });
 

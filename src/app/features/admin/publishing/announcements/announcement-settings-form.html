@@ -1,0 +1,57 @@
+<section class="cn-card cn-section" aria-labelledby="draft-kinds-title">
+  <h2 id="draft-kinds-title">{{ 'announcementsAdmin.settings.title' | translate }}</h2>
+  <p class="cn-muted lead">{{ 'announcementsAdmin.settings.lead' | translate }}</p>
+
+  <crn-load-state
+    [loading]="settings.isLoading() && !settings.hasValue()"
+    [error]="settings.error()"
+    [empty]="false"
+    (retry)="settings.reload()"
+  >
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <ul class="kinds">
+        @for (kind of kinds(); track kind) {
+          <li class="kind">
+            <crn-icon class="kind__icon" [name]="kindIcons[kind]" />
+            <div class="kind__text">
+              <span class="kind__name" [id]="'draft-kind-' + kind">{{
+                'announcementsAdmin.kind.' + kind | translate
+              }}</span>
+              <span class="cn-muted kind__when" [id]="'draft-kind-when-' + kind">{{
+                'announcementsAdmin.settings.when.' + kind | translate
+              }}</span>
+            </div>
+            <mat-slide-toggle
+              class="kind__toggle"
+              [formControlName]="kind"
+              [attr.aria-labelledby]="'draft-kind-' + kind"
+              [attr.aria-describedby]="'draft-kind-when-' + kind"
+            />
+          </li>
+        }
+      </ul>
+
+      <p class="cn-muted note">{{ 'announcementsAdmin.settings.note' | translate }}</p>
+
+      @if (feedback(); as f) {
+        <crn-alert class="feedback" [tone]="f.kind">
+          @for (m of f.messages; track $index) {
+            <p>{{ m.key | translate: m.params }}</p>
+          }
+        </crn-alert>
+      }
+
+      <div class="actions">
+        @if (form.dirty) {
+          <button mat-button type="button" [disabled]="saving()" (click)="revert()">
+            {{ 'announcementsAdmin.settings.revert' | translate }}
+          </button>
+        }
+        <button mat-flat-button type="submit" [disabled]="saving() || !form.dirty">
+          <crn-icon matButtonIcon name="check" />
+          {{ 'announcementsAdmin.settings.save' | translate }}
+        </button>
+      </div>
+    </form>
+  </crn-load-state>
+</section>

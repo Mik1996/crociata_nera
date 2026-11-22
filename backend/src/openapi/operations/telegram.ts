@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { ApiName } from '@/lib/http/api-name';
 import { MessageKey as K } from '@/lib/http/message-key';
-import { languageQuerySchema, updateAnnouncementSchema } from '@/modules/announcements/announcements.schemas';
+import { languageQuerySchema, updateAnnouncementSchema, updateAnnouncementSettingsSchema } from '@/modules/announcements/announcements.schemas';
 import { addChatSchema, updateChatSchema } from '@/modules/telegram/telegram.schemas';
-import { Announcement, TelegramChat, TelegramStatus } from '../models/telegram';
+import { Announcement, AnnouncementSettings, TelegramChat, TelegramStatus } from '../models/telegram';
 import { ApiOperation, requestPart } from '../operation';
 
 const languageQuery = requestPart(languageQuerySchema, {
@@ -128,6 +128,34 @@ export const TELEGRAM_OPERATIONS: ApiOperation[] = [
     rateLimit: ApiName.ADMIN,
     query: languageQuery,
     responses: { 200: { description: 'The announcements.', result: z.array(Announcement) } },
+  },
+  {
+    method: 'GET',
+    path: '/admin/announcements/settings',
+    operationId: 'getAnnouncementSettings',
+    tag: 'Admin',
+    summary: 'Kinds of announcement that get drafts',
+    description: 'Which kinds of announcement the backend prepares drafts for (every kind is on until turned off).',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    responses: { 200: { description: 'The kinds and whether they are on.', result: AnnouncementSettings } },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/announcements/settings',
+    operationId: 'updateAnnouncementSettings',
+    tag: 'Admin',
+    summary: 'Turn kinds of announcement on or off',
+    description:
+      'Turns the drafts of the kinds listed on or off (the kinds left out stay as they are). A kind turned off gets no new drafts (those already prepared stay); what closes while it is off is not announced once it is on again, and a record beaten meanwhile becomes the starting point.',
+    access: 'admin',
+    rateLimit: ApiName.ADMIN,
+    body: requestPart(updateAnnouncementSettingsSchema, {
+      kinds: { description: 'Kinds to change: `{ kind, enabled }`.', example: [{ kind: 'war', enabled: false }] },
+    }),
+    responses: {
+      200: { description: 'Every kind and whether it is on.', result: AnnouncementSettings, messages: [K.ANNOUNCEMENT_SETTINGS_UPDATED] },
+    },
   },
   {
     method: 'PATCH',

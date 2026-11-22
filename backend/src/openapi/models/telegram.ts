@@ -100,3 +100,20 @@ export const Announcement = model(
     postUrl: z.string().nullable().describe('Link of the post in a public channel; `null` otherwise.'),
   }),
 );
+
+export const AnnouncementSettings = model(
+  'AnnouncementSettings',
+  'Kinds of announcement whose drafts the backend prepares, set by the administrators.',
+  z.strictObject({
+    kinds: z
+      .array(
+        z.strictObject({
+          kind: z.enum(ANNOUNCEMENT_KINDS).describe('Kind of announcement (`Announcement.kind`).'),
+          enabled: z
+            .boolean()
+            .describe('Drafts of the kind are prepared. Off: none, and what closes while off is not announced later (records beaten meanwhile become the starting point).'),
+        }),
+      )
+      .describe('Every kind, on by default.'),
+  }),
+);
