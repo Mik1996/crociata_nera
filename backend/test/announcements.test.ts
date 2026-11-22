@@ -13,7 +13,7 @@ import { resetEnvCache } from '@/lib/config/env';
 import { resetTelegramBot } from '@/lib/telegram/telegram-client';
 import { captionLength, captionToHtml, fitCaption, generatedCaption } from '@/modules/announcements/announcement-caption';
 import { announcementLink } from '@/modules/announcements/announcement-link';
-import { AnnouncementData, buildCwlData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
+import { AnnouncementData, buildCwlData, buildLineupData, buildMonthData, MonthData, PromotionData, RaidData, WarData } from '@/modules/announcements/announcement-data';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
 import { newRecordValue, syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { AnnouncementBaselineModel, AnnouncementModel, PlayerLeagueBestModel } from '@/modules/announcements/announcement.model';
@@ -434,6 +434,7 @@ describe('captions', () => {
     expect(of({ kind: 'record', record: 'localRank' })).toBe('https://crociatanera.it/');
     expect(of({ kind: 'promotion', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
     expect(of({ kind: 'legendSeason', playerTag: '#ABC' })).toBe('https://crociatanera.it/players/%23ABC');
+    expect(of({ kind: 'lineup', season: '2026-12' })).toBe('https://crociatanera.it/cwl');
     expect(of({ kind: 'month', month: '2026-10', clanTag: '#2JU8RPR2G' })).toBe('https://crociatanera.it/');
 
     // Telegram refuses buttons to other addresses than https (development).
@@ -509,6 +510,54 @@ describe('pictures', () => {
     const tiles = async (data: AnnouncementData) => ((await announcementSvgs(data))[0]!.match(/rx="14"/g) ?? []).length;
     expect(await tiles(month)).toBe(4);
     expect(await tiles({ ...month, wars: { ...wars, attacksMissed: 0 } } as AnnouncementData)).toBe(5);
+  });
+});
+
+describe('CWL line-ups', () => {
+  const RED = '#2JU8RPR2G';
+  const row = (i: number, status: string, clanTag = MAIN) => ({ name: `Player ${i}`, townHallLevel: 17 - (i % 2), clanTag, status });
+  const rows = [
+    row(1, 'starter', RED),
+    ...Array.from({ length: 14 }, (_, i) => row(i + 2, 'starter')),
+    row(16, 'excluded'),
+    ...Array.from({ length: 3 }, (_, i) => row(i + 17, 'reserve')),
+    row(20, 'bench'),
+    row(21, 'ineligible'),
+  ];
+
+  it('take the starters and the reserves of the selection, in order', () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    expect(data).toMatchObject({ kind: 'lineup', clanTag: MAIN, clanName: 'Crociata Nera', season: '2026-12' });
+    expect(data.starters).toHaveLength(15);
+    expect(data.starters[0]).toEqual({ name: 'Player 1', townHallLevel: 16, clanTag: RED });
+    expect(data.reserves.map((p) => p.name)).toEqual(['Player 17', 'Player 18', 'Player 19']);
+  });
+
+  it('list the players in the caption, with the clan of who is in another one', () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    const caption = generatedCaption(data);
+    expect(caption).toContain('🛡️ **Crociata Nera · Formazione CWL di Dicembre 2026**');
+    expect(caption).toContain('1. **Player 1** (TH16 · Crociata Rossa)');
+    expect(caption).toContain('2. **Player 2** (TH17)');
+    expect(caption).toContain('16. **Player 17**');
+    expect(caption).toContain('Chi è in un altro clan della Crociata');
+    expect(caption.split('\n').at(-1)).toBe('#FormazioneCWL #CrociataNera');
+    expect(captionLength(caption)).toBeLessThanOrEqual(1024);
+    expect(generatedCaption(data, 'en-US')).toContain('CWL line-up for December 2026');
+    expect(generatedCaption(data, 'es-ES')).toContain('#AlineacionCWL');
+    // Everyone in the clan of the CWL: no word about moving.
+    expect(generatedCaption(buildLineupData(MAIN, '2026-12', rows.slice(1)))).not.toContain('Crociata Rossa');
+  });
+
+  it('draw one page with every starter and reserve', async () => {
+    const data = buildLineupData(MAIN, '2026-12', rows);
+    const svgs = await announcementSvgs(data);
+    expect(svgs).toHaveLength(1);
+    // A rounded box per player (rx 12).
+    expect(svgs[0]!.match(/rx="12"/g)).toHaveLength(18);
+    const [jpeg] = await renderAnnouncementImages(data);
+    expect((await sharp(jpeg!).metadata()).format).toBe('jpeg');
+    expect(await announcementSvgs(buildLineupData(MAIN, '2026-12', []))).toHaveLength(1);
   });
 });
 
@@ -684,7 +733,7 @@ describe('kinds turned off', () => {
     const admin = await adminToken();
     const initial = await call(getSettings, { token: admin });
     expect(initial.status).toBe(200);
-    expect(initial.body.result.kinds).toHaveLength(8);
+    expect(initial.body.result.kinds).toHaveLength(9);
     expect(initial.body.result.kinds.every((k: { enabled: boolean }) => k.enabled)).toBe(true);
 
     const changed = await call(putSettings, { method: 'PUT', token: admin, body: { kinds: [{ kind: 'war', enabled: false }] } });

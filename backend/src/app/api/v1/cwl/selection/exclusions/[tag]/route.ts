@@ -13,19 +13,19 @@ const pathSchema = z.object({ tag: playerTagParam });
 
 /**
  * `PUT /api/v1/cwl/selection/exclusions/{tag}` (tag without `#`, ADMIN only): excludes a current
- * member from the CWL line-up, with an optional reason. The player stays in the ranking, marked
- * as excluded, and takes no slot.
+ * member from the line-up of the open selection (or of every season, `untilRevoked`), with an
+ * optional reason. The player stays in the ranking, marked as excluded, and takes no slot.
  */
 export const PUT = apiHandler<{ tag: string }, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },
   async ({ request, params, user }) => {
     const { tag } = validate(pathSchema, params);
-    const { reason } = await parseBody(request, excludePlayerSchema);
-    return { result: await excludePlayer(tag, reason, user.id), messages: [{ key: MessageKey.PLAYER_EXCLUDED }] };
+    const options = await parseBody(request, excludePlayerSchema);
+    return { result: await excludePlayer(tag, options, user.id), messages: [{ key: MessageKey.PLAYER_EXCLUDED }] };
   },
 );
 
-/** `DELETE /api/v1/cwl/selection/exclusions/{tag}` (ADMIN only): takes the player back into the line-up. */
+/** `DELETE /api/v1/cwl/selection/exclusions/{tag}` (ADMIN only): takes the player back into the line-up of the open selection. */
 export const DELETE = apiHandler<{ tag: string }, unknown, true>(
   { apiName: ApiName.ADMIN, roles: [UserRole.ADMIN] },
   async ({ params }) => {

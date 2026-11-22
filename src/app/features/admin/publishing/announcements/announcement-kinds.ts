@@ -11,4 +11,5 @@ export const KIND_ICONS: Record<AnnouncementKind, IconName> = {
   legendSeason: 'emoji_events',
   war: 'flag',
   raid: 'castle',
+  lineup: 'groups',
 };

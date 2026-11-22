@@ -493,7 +493,9 @@
     "ANNOUNCEMENT_UPDATED": "Texto guardado.",
     "ANNOUNCEMENT_PUBLISHED": "Anuncio publicado en el canal de Telegram.",
     "ANNOUNCEMENT_DISCARDED": "Anuncio descartado.",
-    "ANNOUNCEMENT_SETTINGS_UPDATED": "Ajustes de los borradores guardados."
+    "ANNOUNCEMENT_SETTINGS_UPDATED": "Ajustes de los borradores guardados.",
+    "CWL_SELECTION_CLOSED": "Selección cerrada: el borrador del anuncio está listo.",
+    "CWL_SELECTION_REOPENED": "Selección reabierta."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -578,7 +580,11 @@
     "ANNOUNCEMENT_NOT_FOUND": "Anuncio no encontrado.",
     "ANNOUNCEMENT_NOT_DRAFT": "El anuncio ya fue publicado o descartado.",
     "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "No hay un canal de anuncios donde el bot pueda publicar: configúralo en la página de Telegram.",
-    "CAPTION_IS_TOO_LONG": "El texto supera los 1024 caracteres que admite Telegram."
+    "CAPTION_IS_TOO_LONG": "El texto supera los 1024 caracteres que admite Telegram.",
+    "CWL_SELECTION_NOT_FOUND": "No se encontró la selección de esta temporada.",
+    "CWL_SELECTION_NOT_OPEN": "La selección de esta temporada ya está cerrada.",
+    "CWL_SELECTION_NOT_CLOSED": "La selección de esta temporada ya está abierta.",
+    "CWL_SELECTION_CANNOT_REOPEN": "Ya no se puede reabrir: la liga ya empezó o se cerró una temporada posterior."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -1173,7 +1179,7 @@
       "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto de los tres clanes.",
       "league": "Liga (hasta 5 puntos): 1 punto en Liga Electro 31, 2 en Electro 32, 3 en Electro 33, 4 en Leyenda III, 5 en Leyenda II y I; ningún punto en las ligas más bajas.",
       "penalties": "Penalizaciones: 3 puntos por cada ataque perdido en la última CWL (como máximo 15); 5 puntos a quien entró en los clanes de la Cruzada hace menos de 14 días.",
-      "exclusions": "Los administradores pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza pasa al siguiente.",
+      "exclusions": "Los administradores pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza en el equipo pasa al siguiente. La exclusión vale solo para la temporada en curso, salvo que sea «hasta revocación».",
       "noCwl": "Quien no estaba en la alineación de la última CWL no pierde sus 25 puntos: pasan a las guerras normales, que valen hasta 65. Así también sin CWL se puede llegar a 100."
     },
     "generatedAt": "Calculada el {{date}}",
@@ -1223,7 +1229,10 @@
       "intro": "El jugador sigue en la clasificación, marcado como excluido, y no ocupa plaza entre los titulares y las reservas.",
       "reason": "Motivo (opcional)",
       "reasonHint": "Por ejemplo: ausente toda la temporada",
-      "confirm": "Excluir"
+      "confirm": "Excluir",
+      "untilRevoked": "Excluir hasta revocación",
+      "seasonHint": "Solo para la selección de esta temporada: desde el mes siguiente el jugador vuelve solo a la clasificación.",
+      "untilRevokedHint": "También para las temporadas siguientes, hasta que un administrador lo readmita."
     },
     "cwlCommendations": "Encomios de la última CWL",
     "noCwlHint": "No estaba en la alineación de la última CWL: los 25 puntos de la CWL pasan a las guerras normales",
@@ -1241,7 +1250,38 @@
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} ataques en {{wars}} guerras",
       "war": "Media de guerras"
-    }
+    },
+    "season": "Temporada",
+    "state": {
+      "open": "abierta",
+      "closed": "cerrada",
+      "title": {
+        "open": "Selección abierta · CWL de {{season}}",
+        "closed": "Selección cerrada · CWL de {{season}}"
+      },
+      "countdown": "Las inscripciones a la CWL abren el {{date}}: faltan {{days}} d {{hours}} h {{minutes}} min.",
+      "signupOpen": "Las inscripciones a la CWL están abiertas: si nadie la cierra antes, la selección se cierra sola cuando empieza la liga.",
+      "openNote": "Al cerrarla, la clasificación se congela, se prepara el borrador del anuncio de la alineación y se abre la selección del mes siguiente.",
+      "closedBy": "Cerrada el {{date}} por {{name}}.",
+      "closedAuto": "Cerrada automáticamente al empezar la liga, el {{date}}.",
+      "closedNote": "Esta es la clasificación tal como estaba al cerrarla: ya no cambia.",
+      "close": "Cerrar selección",
+      "reopen": "Reabrir"
+    },
+    "decision": {
+      "close": {
+        "title": "¿Cerrar la selección de {{season}}?",
+        "intro": "La clasificación actual pasa a ser la alineación de la CWL de {{season}}: titulares y reservas ya no cambiarán. Se preparará el borrador del anuncio (para publicar desde la página Publicaciones) y se abrirá la selección del mes siguiente.",
+        "confirm": "Cerrar selección"
+      },
+      "reopen": {
+        "title": "¿Reabrir la selección de {{season}}?",
+        "intro": "La clasificación vuelve a seguir los datos de cada día. El borrador del anuncio aún no publicado se eliminará y la selección del mes siguiente esperará al nuevo cierre.",
+        "confirm": "Reabrir"
+      }
+    },
+    "untilRevoked": "Hasta revocación",
+    "thisSeason": "Solo esta temporada"
   },
   "publishing": {
     "title": "Publicaciones",
@@ -1363,7 +1403,8 @@
         "promotion": "Un jugador sube a una liga nunca alcanzada (de Electro 31 a Leyenda I).",
         "legendSeason": "Un jugador termina la temporada Leyenda entre los 10.000 primeros del mundo.",
         "war": "Termina una guerra de un clan de la Cruzada.",
-        "raid": "Se cierra un Raid Weekend (tras las distinciones)."
+        "raid": "Se cierra un Raid Weekend (tras las distinciones).",
+        "lineup": "Se cierra la selección de la CWL: la alineación del mes."
       },
       "note": "Un tipo desactivado no recibe nuevos borradores (los ya preparados se quedan) y, al volver a activarlo, lo ocurrido mientras tanto no se recupera: un récord batido mientras estaba desactivado pasa a ser el nuevo punto de partida.",
       "save": "Guardar",
@@ -1393,7 +1434,8 @@
       "promotion": "Ascenso",
       "legendSeason": "Temporada Leyenda",
       "war": "Guerra",
-      "raid": "Raid Weekend"
+      "raid": "Raid Weekend",
+      "lineup": "Alineación CWL"
     },
     "state": {
       "draft": "Borrador",
@@ -1435,6 +1477,7 @@
       "lose": "derrota contra {{opponent}}",
       "tie": "empate contra {{opponent}}"
     },
-    "raid": "Raid Weekend del {{day}}"
+    "raid": "Raid Weekend del {{day}}",
+    "lineup": "Alineación de la CWL de {{month}}"
   }
 }

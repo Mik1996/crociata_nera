@@ -493,7 +493,9 @@
     "ANNOUNCEMENT_UPDATED": "Caption saved.",
     "ANNOUNCEMENT_PUBLISHED": "Announcement published in the Telegram channel.",
     "ANNOUNCEMENT_DISCARDED": "Announcement discarded.",
-    "ANNOUNCEMENT_SETTINGS_UPDATED": "Draft settings saved."
+    "ANNOUNCEMENT_SETTINGS_UPDATED": "Draft settings saved.",
+    "CWL_SELECTION_CLOSED": "Selection closed: the announcement draft is ready.",
+    "CWL_SELECTION_REOPENED": "Selection reopened."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -578,7 +580,11 @@
     "ANNOUNCEMENT_NOT_FOUND": "Announcement not found.",
     "ANNOUNCEMENT_NOT_DRAFT": "The announcement was already published or discarded.",
     "TELEGRAM_NO_ANNOUNCEMENTS_CHAT": "No announcements channel the bot can post in: set it on the Telegram page.",
-    "CAPTION_IS_TOO_LONG": "The caption is longer than the 1024 characters Telegram allows."
+    "CAPTION_IS_TOO_LONG": "The caption is longer than the 1024 characters Telegram allows.",
+    "CWL_SELECTION_NOT_FOUND": "No selection found for this season.",
+    "CWL_SELECTION_NOT_OPEN": "The selection of this season is already closed.",
+    "CWL_SELECTION_NOT_CLOSED": "The selection of this season is already open.",
+    "CWL_SELECTION_CANNOT_REOPEN": "It can no longer be reopened: the league has started or a later season was closed."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -1173,7 +1179,7 @@
       "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
       "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
       "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for those who joined the clans of the Crusade less than 14 days ago.",
-      "exclusions": "Administrators can exclude a player (for example for an announced absence): the player keeps their place in the ranking, marked as excluded, and their slot goes to the next one.",
+      "exclusions": "Administrators can exclude a player (for example for an announced absence): they keep their place in the ranking, marked as excluded, and their slot in the team goes to the next one. An exclusion lasts for the current season only, unless it is \"until revoked\".",
       "noCwl": "Who was not in the line-up of the last CWL keeps its 25 points: they move to the regular wars, worth up to 65. So 100 can be reached without the CWL too."
     },
     "generatedAt": "Computed on {{date}}",
@@ -1223,7 +1229,10 @@
       "intro": "The player stays in the ranking, marked as excluded, and takes no slot among the starters and the reserves.",
       "reason": "Reason (optional)",
       "reasonHint": "For example: away for the whole season",
-      "confirm": "Exclude"
+      "confirm": "Exclude",
+      "untilRevoked": "Exclude until revoked",
+      "seasonHint": "Only for this season's selection: from next month the player is back in the ranking by themselves.",
+      "untilRevokedHint": "Also for the following seasons, until an administrator takes the player back."
     },
     "cwlCommendations": "Commendations of the last CWL",
     "noCwlHint": "Not in the line-up of the last CWL: the 25 CWL points move to the regular wars",
@@ -1241,7 +1250,38 @@
       "cwl": "CWL average",
       "cwlAttacks": "{{attacks}} attacks in {{wars}} wars",
       "war": "War average"
-    }
+    },
+    "season": "Season",
+    "state": {
+      "open": "open",
+      "closed": "closed",
+      "title": {
+        "open": "Selection open · {{season}} CWL",
+        "closed": "Selection closed · {{season}} CWL"
+      },
+      "countdown": "CWL sign-ups open on {{date}}: {{days}} d {{hours}} h {{minutes}} min to go.",
+      "signupOpen": "CWL sign-ups are open: unless someone closes it first, the selection closes by itself when the league starts.",
+      "openNote": "Closing freezes the ranking, prepares the draft of the line-up announcement and opens the selection of the next month.",
+      "closedBy": "Closed on {{date}} by {{name}}.",
+      "closedAuto": "Closed automatically when the league started, on {{date}}.",
+      "closedNote": "This is the ranking as it was when closed: it no longer changes.",
+      "close": "Close selection",
+      "reopen": "Reopen"
+    },
+    "decision": {
+      "close": {
+        "title": "Close the {{season}} selection?",
+        "intro": "The ranking as it is now becomes the line-up of the {{season}} CWL: starters and reserves will no longer change. A draft of the announcement will be prepared (to publish from the Publishing page) and the selection of the next month will open.",
+        "confirm": "Close selection"
+      },
+      "reopen": {
+        "title": "Reopen the {{season}} selection?",
+        "intro": "The ranking follows the daily data again. The announcement draft not published yet will be deleted, and the selection of the next month will wait for the new closing.",
+        "confirm": "Reopen"
+      }
+    },
+    "untilRevoked": "Until revoked",
+    "thisSeason": "This season only"
   },
   "publishing": {
     "title": "Publications",
@@ -1363,7 +1403,8 @@
         "promotion": "A player reaches a league never reached before (Electro 31 to Legend I).",
         "legendSeason": "A player ends the Legend season among the top 10,000 in the world.",
         "war": "A war of a clan of the Crusade ends.",
-        "raid": "A Raid Weekend closes (after the commendations)."
+        "raid": "A Raid Weekend closes (after the commendations).",
+        "lineup": "The CWL selection closes: the line-up of the month."
       },
       "note": "A kind turned off gets no new drafts (those already prepared stay) and, when you turn it on again, what happened meanwhile is not recovered: a record beaten while it was off becomes the new starting point.",
       "save": "Save",
@@ -1393,7 +1434,8 @@
       "promotion": "Promotion",
       "legendSeason": "Legend season",
       "war": "War",
-      "raid": "Raid Weekend"
+      "raid": "Raid Weekend",
+      "lineup": "CWL line-up"
     },
     "state": {
       "draft": "Draft",
@@ -1435,6 +1477,7 @@
       "lose": "defeat against {{opponent}}",
       "tie": "draw against {{opponent}}"
     },
-    "raid": "Raid Weekend of {{day}}"
+    "raid": "Raid Weekend of {{day}}",
+    "lineup": "CWL line-up for {{month}}"
   }
 }

@@ -4,6 +4,7 @@ import { connectToDatabase } from '../db/mongoose';
 import { syncCommendations, syncMembers } from '@/modules/commendations/commendation-sync.service';
 import { syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import { syncCwl } from '@/modules/cwl/cwl-sync.service';
+import { syncCwlSelections } from '@/modules/cwl/cwl-selection.service';
 import { syncRaids } from '@/modules/raids/raid-sync.service';
 import { syncAnnouncementDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { syncLegendSeason } from '@/modules/legends/legend-season.service';
@@ -113,6 +114,8 @@ export async function runWarSync(): Promise<WarSyncReport | null> {
     logReport(report);
     await runOtherClansWarSync(report);
     await runCwlSync();
+    // A CWL just started closes the selection of its line-up.
+    await runSelectionSync();
     await runRaidSync();
     await runRecordSync();
     // Commendations of the periods closed by the syncs above.
@@ -208,6 +211,16 @@ async function runCwlSync(): Promise<void> {
     }
   }
   track('cwl', ok);
+}
+
+/** Selections of the CWL line-up: the one whose CWL started is closed, a selection is always open. */
+async function runSelectionSync(): Promise<void> {
+  try {
+    const closed = await syncCwlSelections();
+    if (closed.length) console.info(`[cwl-selection] closed as their CWL started: ${closed.join(', ')}`);
+  } catch (error) {
+    console.error('[cwl-selection] run failed:', error);
+  }
 }
 
 /** Raid Weekends of every clan (members are only listed while the weekend is in progress). */

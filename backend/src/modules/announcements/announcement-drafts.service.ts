@@ -10,6 +10,7 @@ import {
   AnnouncementData,
   buildCwlData,
   buildDonationsData,
+  buildLineupData,
   buildMonthData,
   buildRaidData,
   buildWarData,
@@ -40,7 +41,9 @@ import { KindGate, kindGate, laterOf } from './announcement-settings.service';
  * - a member who ended a Legend League season in Legend League I, among the first 10,000 of the world
  *   (one draft per player and season);
  * - an ended war (its result), per clan;
- * - an ended Raid Weekend, once its commendations are awarded, per clan.
+ * - an ended Raid Weekend, once its commendations are awarded, per clan;
+ * - the CWL line-up of a season, when its selection is closed ({@link createLineupDraft}, called by
+ *   the selection, not by the sync).
  *
  * Reads the saved state rather than reacting to events, so nothing is missed while the server is down.
  * Only periods closed after the clan was first seen get a draft (no drafts for the past). Idempotent.
@@ -454,4 +457,28 @@ export async function settleRecord(data: RecordData): Promise<void> {
   const set: Record<string, unknown> = { [`records.${data.record}`]: data.value };
   if (data.record === 'cwlLeague') set['records.cwlLeagueName'] = data.leagueName ?? '';
   await AnnouncementBaselineModel.updateOne({ clanTag: data.clanTag }, { $set: set });
+}
+
+// --- CWL line-ups ------------------------------------------------------------
+
+/**
+ * The draft of the line-up of a season's CWL, from the ranking of its selection just closed (main
+ * clan, the clan of the CWL). Every closing gets its own draft. Returns its key; `null` when the kind
+ * is turned off or the clan is not configured.
+ */
+export async function createLineupDraft(
+  season: string,
+  rows: Parameters<typeof buildLineupData>[2],
+  closedAt: Date,
+): Promise<string | null> {
+  const clanTag = primaryClanTag();
+  if (!clanTag || !(await kindGate()).enabled(AnnouncementKind.LINEUP)) return null;
+  const key = `lineup:${season}:${closedAt.getTime()}@${clanTag}`;
+  const created = await createDraft(key, AnnouncementKind.LINEUP, clanTag, season, buildLineupData(clanTag, season, rows));
+  return created ? key : null;
+}
+
+/** The line-up drafts of a season not published yet are dropped (its selection was opened again). */
+export async function dropLineupDrafts(season: string): Promise<void> {
+  await AnnouncementModel.deleteMany({ kind: AnnouncementKind.LINEUP, subject: season, state: AnnouncementState.DRAFT });
 }

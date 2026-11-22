@@ -1,6 +1,61 @@
 @use 'color-palette' as palette;
 @use 'variables' as *;
 
+// --- Season of the selection: open (countdown) or closed ---
+.season {
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-m;
+  border-left: 3px solid var(--cn-gold);
+}
+
+.season--closed {
+  border-left-color: var(--cn-text-muted);
+}
+
+.season__icon {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  color: var(--cn-gold-light);
+
+  .season--closed & {
+    color: var(--cn-text-muted);
+  }
+}
+
+.season__text {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.season__title {
+  margin: 0;
+  color: var(--cn-gold-light);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-lg);
+}
+
+.season__line {
+  margin: $space-xs 0 0;
+  font-weight: 600;
+}
+
+.season__note {
+  margin: $space-xs 0 0;
+  font-size: var(--cn-fs-xs);
+}
+
+.season__action {
+  flex: none;
+}
+
+.season-selector {
+  min-width: 17rem;
+}
+
 // --- Summary: legend, facts, rules ---
 .summary {
   display: flex;
@@ -79,6 +134,10 @@
 .reason {
   max-width: 14rem;
   white-space: normal;
+}
+
+.until-revoked {
+  color: var(--cn-red-text);
 }
 
 // New arrival / no recent war attack.

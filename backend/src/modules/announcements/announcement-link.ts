@@ -4,7 +4,7 @@ import { AnnouncementData } from './announcement-data';
 
 /**
  * Page of the site an announcement leads to (its button and the "crociatanera.it" of its caption):
- * the month in the statistics, the CWL season, the player's profile, the war, the Raid Weekend... The pages show the main
+ * the month in the statistics, the CWL season, the player's profile, the war, the Raid Weekend, the CWL (line-ups)... The pages show the main
  * clan only: the sister clans' announcements lead to the welcome page, which lists every clan.
  * `null` when the site has no public `https` address (development): Telegram refuses the buttons
  * of other addresses.
@@ -29,5 +29,7 @@ export function announcementLink(data: AnnouncementData): string | null {
       return `${base}/wars/${encodeURIComponent(data.warKey)}`;
     case 'raid':
       return `${base}/raids?weekend=${encodeURIComponent(data.startTime)}`;
+    case 'lineup':
+      return `${base}/cwl`;
   }
 }

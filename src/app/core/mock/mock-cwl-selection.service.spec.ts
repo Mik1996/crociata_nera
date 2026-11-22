@@ -35,7 +35,12 @@ describe('mockSelection', () => {
     const members = Array.from({ length: 40 }, (_, i) => member(i));
     const now = new Date('2026-11-14T00:00:00Z');
     const first = mockSelection(members, now).players[0];
-    const exclusion = { reason: 'Away', excludedBy: 'demo', excludedAt: now.toISOString() };
+    const exclusion = {
+      reason: 'Away',
+      untilRevoked: false,
+      excludedBy: 'demo',
+      excludedAt: now.toISOString(),
+    };
     const players = mockSelection(members, now, new Map([[first.tag, exclusion]])).players;
     expect(players[0]).toMatchObject({
       tag: first.tag,

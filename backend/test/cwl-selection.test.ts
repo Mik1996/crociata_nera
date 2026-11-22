@@ -1,7 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GET as me } from '@/app/api/v1/auth/me/route';
+import { POST as closeRoute } from '@/app/api/v1/cwl/selection/[season]/close/route';
+import { POST as reopenRoute } from '@/app/api/v1/cwl/selection/[season]/reopen/route';
 import { DELETE as readmit, PUT as exclude } from '@/app/api/v1/cwl/selection/exclusions/[tag]/route';
+import { GET as selectionPlayers } from '@/app/api/v1/cwl/selection/players/route';
 import { GET as getSelection } from '@/app/api/v1/cwl/selection/route';
+import { AnnouncementModel } from '@/modules/announcements/announcement.model';
+import { updateAnnouncementSettings } from '@/modules/announcements/announcement-settings.service';
+import { CwlExclusionModel } from '@/modules/cwl/cwl-exclusion.model';
+import { CwlSelectionModel } from '@/modules/cwl/cwl-selection.model';
+import {
+  closeSelection,
+  ensureOpenSelection,
+  excludePlayer,
+  getCwlSelection,
+  nextSeason,
+  seasonOf,
+  syncCwlSelections,
+} from '@/modules/cwl/cwl-selection.service';
 import { signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
 import { crusadeLeaderTags, resetClanAccessCache } from '@/modules/access/clan-access.service';
@@ -224,7 +240,7 @@ describe('CWL line-up scores', () => {
   });
 
   it('picks 15 starters and 3 reserves among the highest town halls, skipping the excluded players', () => {
-    const exclusion = { reason: 'Away', excludedBy: 'boss', excludedAt: NOW.toISOString() };
+    const exclusion = { reason: 'Away', untilRevoked: false, excludedBy: 'boss', excludedAt: NOW.toISOString() };
     const candidates = [
       candidate('#OLD', 15, { cwl: lastCwl(), war: FLAWLESS_WAR }),
       candidate('#BEST', 17, { cwl: lastCwl(), war: FLAWLESS_WAR, exclusion }),
@@ -446,7 +462,7 @@ describe('exclusions from the CWL line-up', () => {
 
     const excluded = await call(exclude, { token, params: { tag: 'aaa111' }, body });
     expect(excluded.status).toBe(200);
-    expect(excluded.body.result).toMatchObject({ tag: '#AAA111', reason: 'Away all month', excludedBy: 'boss' });
+    expect(excluded.body.result).toMatchObject({ tag: '#AAA111', reason: 'Away all month', untilRevoked: false, excludedBy: 'boss' });
     expect(excluded.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_EXCLUDED' }]);
 
     let ranking = (await call(getSelection, { token: leader })).body.result.players;
@@ -481,6 +497,182 @@ describe('exclusions from the CWL line-up', () => {
     const long = await call(exclude, { token, params: { tag: 'AAA111' }, body: { reason: 'x'.repeat(201) } });
     expect(long.status).toBe(400);
     expect(long.body.messages).toContainEqual(expect.objectContaining({ key: 'ERROR.EXCLUSION_REASON_IS_TOO_LONG' }));
+  });
+});
+
+describe('selections by season', () => {
+  /** Players for a line-up: 18 of town hall 17 in Nera (16 starters + reserves), one in Rossa. */
+  async function seedPlayers() {
+    await PlayerModel.create([
+      ...Array.from({ length: 18 }, (_, i) => ({
+        tag: `#P${String(i).padStart(3, '0')}`,
+        name: `Player ${i}`,
+        clanTag: NERA,
+        townHallLevel: 17,
+        inClan: true,
+      })),
+      { tag: '#RED001', name: 'Red', clanTag: ROSSA, townHallLevel: 17, inClan: true, ...MAXED_HEROES },
+    ]);
+  }
+
+  it('opens the season after the last CWL started, and moves on when it is closed', async () => {
+    const now = new Date('2026-11-22T10:00:00Z');
+    expect(seasonOf(now)).toBe('2026-11');
+    expect(nextSeason('2026-12')).toBe('2027-01');
+    // No CWL of November yet: November is open.
+    expect(await ensureOpenSelection(now)).toBe('2026-11');
+    // November's CWL started: its selection is closed by the scheduler and December opens.
+    await CwlSeasonModel.create({ season: '2026-11', clanTag: NERA, state: 'inWar', lastSyncedAt: now });
+    expect(await syncCwlSelections(now)).toEqual(['2026-11']);
+    const november = await CwlSelectionModel.findOne({ season: '2026-11' }).lean();
+    expect(november).toMatchObject({ state: 'closed', closedBy: null, closedAutomatically: true });
+    expect(await ensureOpenSelection(now)).toBe('2026-12');
+    // Nothing else to close.
+    expect(await syncCwlSelections(now)).toEqual([]);
+
+    const december = await getCwlSelection(undefined, now);
+    expect(december).toMatchObject({
+      season: '2026-12',
+      state: 'open',
+      signupStart: '2026-12-01T00:00:00.000Z',
+      closedAt: null,
+      canReopen: false,
+      seasons: [
+        { season: '2026-12', state: 'open' },
+        { season: '2026-11', state: 'closed' },
+      ],
+    });
+  });
+
+  it('never makes selections for the seasons before the first one', async () => {
+    const now = new Date('2026-11-22T10:00:00Z');
+    await CwlSeasonModel.create([
+      { season: '2026-10', clanTag: NERA, state: 'ended', lastSyncedAt: now },
+      { season: '2026-11', clanTag: NERA, state: 'ended', lastSyncedAt: now },
+    ]);
+    expect(await syncCwlSelections(now)).toEqual([]);
+    expect((await CwlSelectionModel.find().lean()).map((s) => [s.season, s.state])).toEqual([['2026-12', 'open']]);
+    // An open selection whose CWL never came (no sign-up) is dropped when its month is over.
+    expect(await ensureOpenSelection(new Date('2027-01-05T10:00:00Z'))).toBe('2027-01');
+    expect((await CwlSelectionModel.find().lean()).map((s) => s.season)).toEqual(['2027-01']);
+  });
+
+  it('closes by an administrator: the ranking is frozen, the line-up drafted, the next season opened', async () => {
+    await seedCrusadeRosters([], ['#LEADER']);
+    const leader = await register('leader', ['#LEADER']);
+    const token = await admin();
+    await seedPlayers();
+    const season = (await call(getSelection, { token: leader })).body.result.season as string;
+
+    expect((await call(closeRoute, { token: leader, params: { season } })).status).toBe(403);
+    expect((await call(closeRoute, { token, params: { season: 'nope' } })).status).toBe(400);
+    expect((await call(closeRoute, { token, params: { season: '2020-01' } })).status).toBe(404);
+
+    const closed = await call(closeRoute, { token, params: { season } });
+    expect(closed.status).toBe(200);
+    expect(closed.body.messages).toEqual([{ key: 'SUCCESS.CWL_SELECTION_CLOSED' }]);
+    expect(closed.body.result).toMatchObject({ season, state: 'closed', closedBy: 'boss', closedAutomatically: false, canReopen: true });
+    expect(closed.body.result.players).toHaveLength(19);
+    const again = await call(closeRoute, { token, params: { season } });
+    expect(again.status).toBe(409);
+    expect(again.body.messages).toEqual([{ key: 'ERROR.CWL_SELECTION_NOT_OPEN' }]);
+
+    // The next season is open now; the closed one keeps its ranking.
+    await PlayerModel.create({ tag: '#NEW001', name: 'Newcomer', clanTag: NERA, townHallLevel: 17, inClan: true });
+    const open = (await call(getSelection, { token: leader })).body.result;
+    expect(open).toMatchObject({ season: nextSeason(season), state: 'open' });
+    expect(open.players).toHaveLength(20);
+    const frozen = await call(getSelection, { token: leader, path: `/api/v1/cwl/selection?season=${season}` });
+    expect(frozen.body.result).toMatchObject({ season, state: 'closed' });
+    expect(frozen.body.result.players).toHaveLength(19);
+    const reserves = await call(selectionPlayers, { token: leader, path: `/api/v1/cwl/selection/players?season=${season}&status=reserve` });
+    expect(reserves.status).toBe(200);
+    expect(reserves.body.result.items).toHaveLength(3);
+    expect((await call(getSelection, { token: leader, path: '/api/v1/cwl/selection?season=2020-01' })).status).toBe(404);
+
+    // The draft of the announcement: the 15 starters and 3 reserves, Red from Crociata Rossa among them.
+    const draft = await AnnouncementModel.findOne({ kind: 'lineup' }).lean();
+    expect(draft).toMatchObject({ state: 'draft', clanTag: NERA, subject: season });
+    const data = draft!.data as { starters: { name: string; clanTag: string; townHallLevel: number }[]; reserves: unknown[]; season: string };
+    expect(data.season).toBe(season);
+    expect(data.starters).toHaveLength(15);
+    expect(data.reserves).toHaveLength(3);
+    expect(data.starters[0]).toEqual({ name: 'Red', townHallLevel: 17, clanTag: ROSSA });
+  });
+
+  it('opens a closed selection again until its CWL starts', async () => {
+    await seedCrusadeRosters([], []);
+    const token = await admin();
+    await seedPlayers();
+    const now = new Date();
+    const season = await ensureOpenSelection(now);
+    await closeSelection(season, null, now);
+    expect(await AnnouncementModel.countDocuments({ kind: 'lineup', state: 'draft' })).toBe(1);
+
+    const back = await call(reopenRoute, { token, params: { season } });
+    expect(back.status).toBe(200);
+    expect(back.body.messages).toEqual([{ key: 'SUCCESS.CWL_SELECTION_REOPENED' }]);
+    expect(back.body.result).toMatchObject({ season, state: 'open', closedAt: null });
+    // The next season waits; the unpublished draft goes.
+    expect(await CwlSelectionModel.exists({ season: nextSeason(season) })).toBeNull();
+    expect(await AnnouncementModel.countDocuments({ kind: 'lineup' })).toBe(0);
+    const notClosed = await call(reopenRoute, { token, params: { season } });
+    expect(notClosed.status).toBe(409);
+    expect(notClosed.body.messages).toEqual([{ key: 'ERROR.CWL_SELECTION_NOT_CLOSED' }]);
+
+    // Closed again (a new draft), then its CWL starts: no way back.
+    await closeSelection(season, null, new Date(now.getTime() + 1000));
+    expect(await AnnouncementModel.countDocuments({ kind: 'lineup', state: 'draft' })).toBe(1);
+    await CwlSeasonModel.create({ season, clanTag: NERA, state: 'preparation', lastSyncedAt: now });
+    const late = await call(reopenRoute, { token, params: { season } });
+    expect(late.status).toBe(409);
+    expect(late.body.messages).toEqual([{ key: 'ERROR.CWL_SELECTION_CANNOT_REOPEN' }]);
+    expect((await getCwlSelection(season)).canReopen).toBe(false);
+  });
+
+  it('prepares no draft while the line-up announcements are turned off', async () => {
+    await seedPlayers();
+    await updateAnnouncementSettings([{ kind: 'lineup', enabled: false }]);
+    const now = new Date();
+    await closeSelection(await ensureOpenSelection(now), null, now);
+    expect(await AnnouncementModel.countDocuments({ kind: 'lineup' })).toBe(0);
+  });
+
+  it('keeps an exclusion for its season only, unless it lasts until revoked', async () => {
+    await seedPlayers();
+    const adminUser = await UserModel.create({
+      email: 'boss@x.io',
+      username: 'boss',
+      usernameKey: 'boss',
+      passwordHash: 'x',
+      roles: [UserRole.USER, UserRole.ADMIN],
+    });
+    const now = new Date('2026-11-22T10:00:00Z');
+    const season = await ensureOpenSelection(now);
+    const id = adminUser._id.toString();
+    await excludePlayer('#P000', { reason: 'Away', untilRevoked: false }, id, now);
+    await excludePlayer('#P001', { reason: 'Alt account', untilRevoked: true }, id, now);
+    // An exclusion saved before selections had seasons lasts until revoked.
+    await CwlExclusionModel.create({ playerTag: '#P002', reason: null, excludedBy: 'old', excludedAt: now });
+    const status = async (s?: string) =>
+      Object.fromEntries((await getCwlSelection(s, now)).players.map((p) => [p.tag, [p.status, p.exclusion?.untilRevoked ?? null]]));
+
+    let open = await status();
+    expect(open['#P000']).toEqual(['excluded', false]);
+    expect(open['#P001']).toEqual(['excluded', true]);
+    expect(open['#P002']).toEqual(['excluded', true]);
+
+    await closeSelection(season, null, now);
+    open = await status();
+    expect(open['#P000']![0]).not.toBe('excluded');
+    expect(open['#P001']![0]).toBe('excluded');
+    // The closed selection keeps them as they were.
+    expect((await status(season))['#P000']).toEqual(['excluded', false]);
+
+    // Changing the duration replaces the exclusion.
+    await excludePlayer('#P001', { reason: null, untilRevoked: false }, id, now);
+    expect(await CwlExclusionModel.countDocuments({ playerTag: '#P001' })).toBe(1);
+    expect((await status())['#P001']).toEqual(['excluded', false]);
   });
 });
 

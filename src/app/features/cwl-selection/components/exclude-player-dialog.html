@@ -20,4 +20,18 @@
     ></textarea>
     <mat-hint align="end" class="cn-num">{{ reason().length }}/{{ maxReason }}</mat-hint>
   </mat-form-field>
+
+  <mat-checkbox
+    class="until-revoked"
+    [disabled]="busy()"
+    [checked]="untilRevoked()"
+    (change)="untilRevoked.set($event.checked)"
+    >{{ 'cwlSelection.exclude.untilRevoked' | translate }}</mat-checkbox
+  >
+  <p class="cn-muted hint">
+    {{
+      (untilRevoked() ? 'cwlSelection.exclude.untilRevokedHint' : 'cwlSelection.exclude.seasonHint')
+        | translate
+    }}
+  </p>
 </crn-confirm-dialog>

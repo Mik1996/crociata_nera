@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
-import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, MonthData, PromotionData, RaidData, raidMedals, RecordData, WarData } from '../announcement-data';
+import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, LineupData, MonthData, PromotionData, RaidData, raidMedals, RecordData, WarData } from '../announcement-data';
 import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../announcement-texts';
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
@@ -198,6 +198,8 @@ export async function announcementSvgs(data: AnnouncementData, language?: Announ
         )),
       ].slice(0, MAX_PAGES);
     }
+    case 'lineup':
+      return [page({ kicker: data.clanName, title: t.image.lineup.title, subtitle: t.month(data.season) }, await lineupBody(text, t, data))];
   }
 }
 
@@ -549,6 +551,64 @@ function raidBody(text: SvgText, t: AnnouncementTexts, data: RaidData): string {
     text.draw(r.looters.toUpperCase(), { font: 'title', size: 26, x: W / 2, y: labelY, fill: T.gold, anchor: 'middle' }) +
     podium(text, t, labelY + 22, data.topLooters.map((p) => ({ name: p.name, value: t.number(p.gold) })), 86)
   );
+}
+
+/** Height of a row of a line-up (with its gap) and the gap between columns. */
+const LINEUP_ROW = 64;
+const LINEUP_GAP = 24;
+
+/**
+ * A CWL line-up: the starters in two columns (numbered down each column), the reserves in a row
+ * below. Each player with the town hall, and the crest of the clan when it is not the CWL's.
+ */
+async function lineupBody(text: SvgText, t: AnnouncementTexts, data: LineupData): Promise<string> {
+  const l = t.image.lineup;
+  if (!data.starters.length && !data.reserves.length) return emptyNote(text, l.empty);
+  const crests = new Map<string, string | null>();
+  for (const p of [...data.starters, ...data.reserves]) {
+    if (p.clanTag !== data.clanTag && !crests.has(p.clanTag)) crests.set(p.clanTag, await picture(CREST_OF[p.clanTag] ?? DEFAULT_CREST, 80));
+  }
+  const cell = (p: LineupData['starters'][number], place: number, x: number, y: number, width: number) => {
+    const height = LINEUP_ROW - 14;
+    const middle = y + height / 2;
+    const townHall = p.townHallLevel ? `TH${p.townHallLevel}` : '';
+    const crest = crests.get(p.clanTag) ?? null;
+    const right = x + width - 16;
+    const crestSize = 34;
+    const nameRight = right - (townHall ? 64 : 0) - (crest ? crestSize + 10 : 0);
+    return [
+      `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="12" fill="${place % 2 ? T.tile : T.plate}" fill-opacity="0.85" stroke="${T.edge}" stroke-width="2"/>`,
+      text.draw(String(place), { font: 'title', size: 26, x: x + 36, y: middle + 9, fill: T.gold, anchor: 'middle' }),
+      text.draw(p.name, { font: 'semibold', size: 28, x: x + 64, y: middle + 10, fill: T.text, maxWidth: nameRight - x - 72, minSize: 16 }),
+      townHall ? text.draw(townHall, { font: 'semibold', size: 22, x: right, y: middle + 8, fill: T.muted, anchor: 'end' }) : '',
+      crest ? image(crest, right - (townHall ? 64 : 0) - crestSize, middle - crestSize / 2, crestSize) : '',
+    ].join('');
+  };
+
+  let svg = '';
+  let y = CONTENT_TOP + 44;
+  if (data.starters.length) {
+    svg += text.draw(l.starters.toUpperCase(), { font: 'title', size: 26, x: W / 2, y, fill: T.gold, anchor: 'middle' });
+    y += 22;
+    const rows = Math.ceil(data.starters.length / 2);
+    const width = (RIGHT - LEFT - LINEUP_GAP) / 2;
+    data.starters.forEach((p, i) => {
+      const column = Math.floor(i / rows);
+      svg += cell(p, i + 1, LEFT + column * (width + LINEUP_GAP), y + (i % rows) * LINEUP_ROW, width);
+    });
+    y += rows * LINEUP_ROW + 30;
+  }
+  if (data.reserves.length) {
+    svg += text.draw(l.reserves.toUpperCase(), { font: 'title', size: 26, x: W / 2, y, fill: T.gold, anchor: 'middle' });
+    y += 22;
+    const columns = Math.max(3, data.reserves.length);
+    const width = (RIGHT - LEFT - (columns - 1) * LINEUP_GAP) / columns;
+    const first = LEFT + ((columns - data.reserves.length) * (width + LINEUP_GAP)) / 2;
+    data.reserves.forEach((p, i) => {
+      svg += cell(p, data.starters.length + i + 1, first + i * (width + LINEUP_GAP), y, width);
+    });
+  }
+  return svg;
 }
 
 /**

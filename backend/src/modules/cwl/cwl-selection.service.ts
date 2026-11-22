@@ -1,5 +1,5 @@
-import { crusadeClanTags, periodSuffix } from '@/lib/coc/crusade-clans';
-import { throwException } from '@/lib/http/api-error';
+import { crusadeClanTags, periodSuffix, primaryClanTag } from '@/lib/coc/crusade-clans';
+import { ApiError, throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { UserModel } from '@/modules/auth/user.model';
 import { CommendationAwardModel } from '@/modules/commendations/commendation-award.model';
@@ -7,7 +7,9 @@ import { CommendationTier } from '@/modules/commendations/commendation-rules';
 import { PlayerModel } from '@/modules/commendations/player.model';
 import { toHistoryWar } from '@/modules/wars/history.service';
 import { WarModel } from '@/modules/wars/war.model';
+import { createLineupDraft, dropLineupDrafts } from '@/modules/announcements/announcement-drafts.service';
 import { CwlExclusionModel } from './cwl-exclusion.model';
+import { CwlSelectionModel, SelectionState } from './cwl-selection.model';
 import {
   Exclusion,
   LastCwl,
@@ -22,7 +24,8 @@ import {
 } from './cwl-selection.rules';
 import { CwlSeasonModel } from './cwl.model';
 
-export interface CwlSelection {
+/** The ranking for the line-up, live (open selection) or frozen at the closing. */
+export interface CwlRanking {
   generatedAt: string;
   starters: number;
   reserves: number;
@@ -37,6 +40,23 @@ export interface CwlSelection {
   players: SelectionRow[];
 }
 
+/** The selection of a season: its ranking, whether it is closed, and the other seasons. */
+export interface CwlSelection extends CwlRanking {
+  /** Season of the CWL the selection is for (`YYYY-MM`). */
+  season: string;
+  state: SelectionState;
+  /** First day of the season (UTC): the CWL sign-ups open then, the selection should be closed by it. */
+  signupStart: string;
+  closedAt: string | null;
+  /** Username of the administrator who closed it; `null` while open or when closed automatically. */
+  closedBy: string | null;
+  closedAutomatically: boolean;
+  /** Closed, its CWL not started yet and no later season closed: an administrator can open it again. */
+  canReopen: boolean;
+  /** Every selection, most recent first. */
+  seasons: { season: string; state: SelectionState }[];
+}
+
 const DAY_MS = 86_400_000;
 const NO_WAR: WarTotals = { wars: 0, attacksUsed: 0, attacksAvailable: 0, stars: 0, totalDestruction: 0 };
 
@@ -45,8 +65,11 @@ function crusadeMemberFilter() {
   return { inClan: true, clanTag: { $in: [...crusadeClanTags(), null] } };
 }
 
-/** Ranking of the current members of every clan of the Crusade for the Clan War League line-up. */
-export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
+/**
+ * Live ranking of the current members of every clan of the Crusade for the line-up of a season's
+ * Clan War League (exclusions of that season and those until revoked).
+ */
+export async function computeRanking(season: string, now = new Date()): Promise<CwlRanking> {
   const from = new Date(now.getTime() - WAR_WINDOW_DAYS * DAY_MS);
   // The main clan comes first.
   const primary = crusadeClanTags()[0]!;
@@ -56,7 +79,7 @@ export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
       .lean(),
     lastCwlSeason(),
     regularWarStats(from),
-    CwlExclusionModel.find().lean(),
+    CwlExclusionModel.find({ season: { $in: [season, null] } }).lean(),
   ]);
   const excluded = new Map(exclusions.map((e) => [e.playerTag, e]));
 
@@ -97,28 +120,182 @@ export async function getCwlSelection(now = new Date()): Promise<CwlSelection> {
 }
 
 /**
- * Excludes a current member of the clans of the Crusade from the CWL line-up (administrators).
- * Excluding again updates the reason. 404 for a player that is not in any of them.
+ * Excludes a current member of the clans of the Crusade from the line-up of the open selection, or
+ * from every season until revoked (administrators). Excluding again updates the reason and the
+ * duration. 404 for a player that is not in any of them.
  */
-export async function excludePlayer(tag: string, reason: string | null, adminId: string): Promise<Exclusion & { tag: string }> {
+export async function excludePlayer(
+  tag: string,
+  options: { reason: string | null; untilRevoked: boolean },
+  adminId: string,
+  now = new Date(),
+): Promise<Exclusion & { tag: string }> {
   const playerTag = tag.toUpperCase();
   if (!(await PlayerModel.exists({ tag: playerTag, ...crusadeMemberFilter() }))) throwException(404, MessageKey.PLAYER_NOT_FOUND);
+  const season = await ensureOpenSelection(now);
   const admin = await UserModel.findById(adminId).select('username').lean();
+  const kept = options.untilRevoked ? null : season;
   const saved = await CwlExclusionModel.findOneAndUpdate(
-    { playerTag },
-    { $set: { reason: reason || null, excludedBy: admin?.username ?? '?', excludedAt: new Date() } },
+    { playerTag, season: kept },
+    { $set: { reason: options.reason || null, excludedBy: admin?.username ?? '?', excludedAt: now } },
     { upsert: true, returnDocument: 'after' },
   ).lean();
+  // One exclusion per player: the other duration goes.
+  await CwlExclusionModel.deleteOne({ playerTag, season: options.untilRevoked ? season : null });
   return { tag: playerTag, ...toExclusion(saved!) };
 }
 
-/** Takes a player back into the CWL line-up (administrators); nothing to do if not excluded. */
-export async function readmitPlayer(tag: string): Promise<void> {
-  await CwlExclusionModel.deleteOne({ playerTag: tag.toUpperCase() });
+/** Takes a player back into the line-up of the open selection and the next ones (administrators). */
+export async function readmitPlayer(tag: string, now = new Date()): Promise<void> {
+  const season = await ensureOpenSelection(now);
+  await CwlExclusionModel.deleteMany({ playerTag: tag.toUpperCase(), season: { $in: [season, null] } });
 }
 
-function toExclusion(e: { reason?: string | null; excludedBy: string; excludedAt: Date }): Exclusion {
-  return { reason: e.reason ?? null, excludedBy: e.excludedBy, excludedAt: e.excludedAt.toISOString() };
+function toExclusion(e: { reason?: string | null; season?: string | null; excludedBy: string; excludedAt: Date }): Exclusion {
+  return { reason: e.reason ?? null, untilRevoked: !e.season, excludedBy: e.excludedBy, excludedAt: e.excludedAt.toISOString() };
+}
+
+// --- seasons of the selection ------------------------------------------------
+
+/** `2026-11` of a moment (UTC). */
+export function seasonOf(date: Date): string {
+  return date.toISOString().slice(0, 7);
+}
+
+/** The season after `season` (`2026-12` -> `2027-01`). */
+export function nextSeason(season: string): string {
+  const [year = 0, month = 1] = season.split('-').map(Number);
+  return seasonOf(new Date(Date.UTC(year, month, 1)));
+}
+
+/** The CWL of a season started: the main clan's group of that season was saved. */
+async function cwlStarted(season: string): Promise<boolean> {
+  const clanTag = primaryClanTag();
+  return !!clanTag && !!(await CwlSeasonModel.exists({ clanTag, season }));
+}
+
+/**
+ * The season of the open selection, created when missing: the first season from the current month
+ * whose CWL has not started and whose selection was not closed. An open selection left behind (its
+ * CWL never came: the clan did not sign up) is dropped. Returns the season.
+ */
+export async function ensureOpenSelection(now = new Date()): Promise<string> {
+  let season = seasonOf(now);
+  for (let i = 0; i < 24; i++) {
+    const doc = await CwlSelectionModel.findOne({ season }).select('state').lean();
+    if (doc?.state === SelectionState.OPEN) break;
+    if (!doc && !(await cwlStarted(season))) break;
+    season = nextSeason(season);
+  }
+  await CwlSelectionModel.updateOne({ season }, { $setOnInsert: { season, state: SelectionState.OPEN } }, { upsert: true });
+  await CwlSelectionModel.deleteMany({ state: SelectionState.OPEN, season: { $lt: season } });
+  return season;
+}
+
+/**
+ * Closes the open selection of `season`: the ranking of now is frozen, the draft of the line-up
+ * announcement is prepared and the next season opens. `adminId` `null`: closed by the scheduler.
+ * 404 for an unknown season, 409 when it is not open.
+ */
+export async function closeSelection(season: string, adminId: string | null, now = new Date()): Promise<CwlSelection> {
+  await ensureOpenSelection(now);
+  const doc = await CwlSelectionModel.findOne({ season }).select('state').lean();
+  if (!doc) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
+  if (doc.state !== SelectionState.OPEN) throwException(409, MessageKey.CWL_SELECTION_NOT_OPEN);
+  const ranking = await computeRanking(season, now);
+  const admin = adminId ? await UserModel.findById(adminId).select('username').lean() : null;
+  const closed = await CwlSelectionModel.findOneAndUpdate(
+    { season, state: SelectionState.OPEN },
+    {
+      $set: {
+        state: SelectionState.CLOSED,
+        closedAt: now,
+        closedBy: adminId ? (admin?.username ?? '?') : null,
+        closedAutomatically: !adminId,
+        ranking,
+      },
+    },
+    { returnDocument: 'after' },
+  ).lean();
+  // Closed meanwhile by someone else.
+  if (!closed) throwException(409, MessageKey.CWL_SELECTION_NOT_OPEN);
+  try {
+    await createLineupDraft(season, ranking.players, now);
+  } catch (error) {
+    console.error(`[cwl-selection] draft of the ${season} line-up not prepared:`, error);
+  }
+  await ensureOpenSelection(now);
+  return getCwlSelection(season, now);
+}
+
+/**
+ * Opens a closed selection again (administrators), while its CWL has not started and no later
+ * season was closed: the frozen ranking goes, the next season's selection waits (its exclusions are
+ * kept), the line-up drafts not published yet are dropped.
+ */
+export async function reopenSelection(season: string, now = new Date()): Promise<CwlSelection> {
+  const doc = await CwlSelectionModel.findOne({ season }).lean();
+  if (!doc) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
+  if (doc.state !== SelectionState.CLOSED) throwException(409, MessageKey.CWL_SELECTION_NOT_CLOSED);
+  if (!(await canReopen(season))) throwException(409, MessageKey.CWL_SELECTION_CANNOT_REOPEN);
+  await CwlSelectionModel.updateOne(
+    { season, state: SelectionState.CLOSED },
+    { $set: { state: SelectionState.OPEN, closedAt: null, closedBy: null, closedAutomatically: false, ranking: null } },
+  );
+  await CwlSelectionModel.deleteMany({ state: SelectionState.OPEN, season: { $gt: season } });
+  await dropLineupDrafts(season);
+  return getCwlSelection(season, now);
+}
+
+async function canReopen(season: string): Promise<boolean> {
+  if (await cwlStarted(season)) return false;
+  return !(await CwlSelectionModel.exists({ state: SelectionState.CLOSED, season: { $gt: season } }));
+}
+
+/**
+ * Scheduler: closes the open selection whose CWL started (its group was saved) and makes sure a
+ * selection is open. Returns the seasons closed.
+ */
+export async function syncCwlSelections(now = new Date()): Promise<string[]> {
+  const closed: string[] = [];
+  for (const doc of await CwlSelectionModel.find({ state: SelectionState.OPEN }).select('season').lean()) {
+    if (!(await cwlStarted(doc.season))) continue;
+    try {
+      await closeSelection(doc.season, null, now);
+      closed.push(doc.season);
+    } catch (error) {
+      // Closed meanwhile by an administrator.
+      if (!(error instanceof ApiError && error.statusCode === 409)) throw error;
+    }
+  }
+  await ensureOpenSelection(now);
+  return closed;
+}
+
+/**
+ * The selection of a season (the open one by default): live while open, frozen once closed.
+ * 404 for a season without a selection.
+ */
+export async function getCwlSelection(season?: string, now = new Date()): Promise<CwlSelection> {
+  const open = await ensureOpenSelection(now);
+  const wanted = season ?? open;
+  const doc = await CwlSelectionModel.findOne({ season: wanted }).lean();
+  if (!doc) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
+  const closed = doc.state === SelectionState.CLOSED && doc.ranking;
+  const ranking = closed ? (doc.ranking as CwlRanking) : await computeRanking(wanted, now);
+  const seasons = await CwlSelectionModel.find().select('season state').sort({ season: -1 }).lean();
+  const [year = 0, month = 1] = wanted.split('-').map(Number);
+  return {
+    ...ranking,
+    season: wanted,
+    state: closed ? SelectionState.CLOSED : SelectionState.OPEN,
+    signupStart: new Date(Date.UTC(year, month - 1, 1)).toISOString(),
+    closedAt: closed ? (doc.closedAt?.toISOString() ?? null) : null,
+    closedBy: closed ? (doc.closedBy ?? null) : null,
+    closedAutomatically: closed ? !!doc.closedAutomatically : false,
+    canReopen: closed ? await canReopen(wanted) : false,
+    seasons: seasons.map((s) => ({ season: s.season, state: s.state as SelectionState })),
+  };
 }
 
 interface LeagueWarMember {

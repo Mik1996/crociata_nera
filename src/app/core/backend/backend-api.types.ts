@@ -212,6 +212,8 @@ export type CwlSelectionStatus = 'starter' | 'reserve' | 'bench' | 'ineligible' 
 /** Exclusion of a player from the CWL line-up, decided by an administrator. */
 export interface CwlExclusion {
   reason: string | null;
+  /** For every season until an administrator takes the player back; else for one selection only. */
+  untilRevoked: boolean;
   /** Username of the administrator. */
   excludedBy: string;
   excludedAt: string;
@@ -284,8 +286,27 @@ export interface CwlSelectionPlayer {
   exclusion: CwlExclusion | null;
 }
 
-/** Ranking of the members of the clans of the Crusade for the CWL line-up, best first. */
+/** `open`: live ranking, administrators exclude players; `closed`: frozen when it was closed. */
+export type CwlSelectionState = 'open' | 'closed';
+
+/**
+ * The selection of a season for the CWL line-up: the ranking of the members of the clans of the
+ * Crusade, best first, live while open and frozen once closed.
+ */
 export interface CwlSelection {
+  /** Season of the CWL the selection is for (`YYYY-MM`). */
+  season: string;
+  state: CwlSelectionState;
+  /** First day of the season: the CWL sign-ups open then. */
+  signupStart: string;
+  closedAt: string | null;
+  /** Administrator who closed it; `null` while open or when closed automatically. */
+  closedBy: string | null;
+  closedAutomatically: boolean;
+  /** An administrator can open it again (its CWL has not started). */
+  canReopen: boolean;
+  /** Every selection, most recent first. */
+  seasons: { season: string; state: CwlSelectionState }[];
   generatedAt: string;
   starters: number;
   reserves: number;
@@ -351,7 +372,15 @@ export interface PublishingPendingCount {
 
 /** What an announcement tells (`GET /admin/announcements`). */
 export type AnnouncementKind =
-  'month' | 'cwl' | 'donations' | 'record' | 'promotion' | 'legendSeason' | 'war' | 'raid';
+  | 'month'
+  | 'cwl'
+  | 'donations'
+  | 'record'
+  | 'promotion'
+  | 'legendSeason'
+  | 'war'
+  | 'raid'
+  | 'lineup';
 export type AnnouncementState = 'draft' | 'publishing' | 'published' | 'discarded';
 
 /** Kinds of announcement whose drafts the backend prepares (`GET /admin/announcements/settings`). */

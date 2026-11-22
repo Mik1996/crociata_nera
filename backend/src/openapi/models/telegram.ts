@@ -72,7 +72,7 @@ export const Announcement = model(
     id: z.string().describe('Announcement id.'),
     kind: z
       .enum(ANNOUNCEMENT_KINDS)
-      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world. `war`: the result of a war. `raid`: a Raid Weekend.'),
+      .describe('`month`: wars, Raid Weekends and commendations of a month. `cwl`: a Clan War League season. `donations`: a game season. `record`: a new record of the clan. `promotion`: a player in a league never reached before (Electro League 31 up to Legend League I). `legendSeason`: a member who ended a Legend League season in Legend League I, among the first 10,000 of the world. `war`: the result of a war. `raid`: a Raid Weekend. `lineup`: the Clan War League line-up of a season, prepared when its selection is closed.'),
     state: z
       .enum(ANNOUNCEMENT_STATES)
       .describe('`draft` (its figures follow the data until published), `publishing`, `published` (frozen) or `discarded`.'),

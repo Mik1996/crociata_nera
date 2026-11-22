@@ -100,6 +100,8 @@ export interface Level {
 
 export interface Exclusion {
   reason: string | null;
+  /** For every season until an administrator takes the player back; else for this selection only. */
+  untilRevoked: boolean;
   excludedBy: string;
   excludedAt: string;
 }

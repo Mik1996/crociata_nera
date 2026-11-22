@@ -1,10 +1,12 @@
 import { escapeHtml } from '@/lib/telegram/telegram-client';
 import {
   AnnouncementData,
+  clanName,
   CwlData,
   DonationsData,
   Honour,
   LegendSeasonData,
+  LineupData,
   MonthData,
   PromotionData,
   RaidData,
@@ -56,7 +58,25 @@ function captionBody(t: AnnouncementTexts, data: AnnouncementData): string {
       return warCaption(t, data);
     case 'raid':
       return raidCaption(t, data);
+    case 'lineup':
+      return lineupCaption(t, data);
   }
+}
+
+function lineupCaption(t: AnnouncementTexts, data: LineupData): string {
+  const c = t.caption.lineup;
+  const clanOf = (tag: string) => (tag === data.clanTag ? null : clanName(tag));
+  const lines = [c.title(data.clanName, t.month(data.season)), '', c.intro];
+  const list = (label: string, icon: string, players: LineupData['starters'], first: number) => {
+    if (!players.length) return;
+    lines.push('', `${icon} **${label}**`);
+    players.forEach((p, i) => lines.push(c.player(first + i, p.name, p.townHallLevel, clanOf(p.clanTag))));
+  };
+  list(c.starters, '⚔️', data.starters, 1);
+  list(c.reserves, '🪑', data.reserves, data.starters.length + 1);
+  if ([...data.starters, ...data.reserves].some((p) => p.clanTag !== data.clanTag)) lines.push('', c.move);
+  lines.push('', c.footer);
+  return lines.join('\n');
 }
 
 function warCaption(t: AnnouncementTexts, data: WarData): string {

@@ -1,0 +1,11 @@
+<crn-confirm-dialog
+  [title]="'cwlSelection.decision.' + data.action + '.title' | translate: { season: data.label }"
+  [confirmLabel]="'cwlSelection.decision.' + data.action + '.confirm' | translate"
+  [busy]="busy()"
+  [errors]="errors()"
+  (confirm)="submit()"
+>
+  <p class="intro">
+    {{ 'cwlSelection.decision.' + data.action + '.intro' | translate: { season: data.label } }}
+  </p>
+</crn-confirm-dialog>

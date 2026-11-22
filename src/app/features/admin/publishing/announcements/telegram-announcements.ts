@@ -140,6 +140,12 @@ export class TelegramAnnouncements {
       });
       return `${a.clanName} · ${detail}`;
     }
+    if (a.kind === 'lineup') {
+      const detail = this.language.t('announcementsAdmin.lineup', {
+        month: this.monthLabel(a.subject),
+      });
+      return `${a.clanName} · ${detail}`;
+    }
     if (a.kind === 'legendSeason') {
       const detail = this.language.t('announcementsAdmin.legendSeason', {
         player: a.playerName,

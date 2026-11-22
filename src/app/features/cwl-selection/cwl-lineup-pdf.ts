@@ -31,20 +31,13 @@ const RULES = [
 /** Side of the town hall and league pictures in the table, in points. */
 const PICTURE_SIZE = 20;
 
-/**
- * Month of the CWL the line-up is for: the one after the last ended season (the next CWL), or the
- * month of the ranking when no season ended yet.
- */
+/** Month of the CWL the line-up is for: the season of the selection. */
 export function lineupMonth(selection: CwlSelection): Date {
-  if (selection.cwlSeason) {
-    const [year, month] = selection.cwlSeason.split('-').map(Number);
-    return new Date(Date.UTC(year, month, 1));
-  }
-  const generated = new Date(selection.generatedAt);
-  return new Date(Date.UTC(generated.getUTCFullYear(), generated.getUTCMonth(), 1));
+  const [year, month] = selection.season.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, 1));
 }
 
-/** `selezioni-cwl-crociata-nera-dicembre`: the month of the next CWL, in Italian like the name. */
+/** `selezioni-cwl-crociata-nera-dicembre`: the month of the CWL, in Italian like the name. */
 export function lineupFileName(selection: CwlSelection): string {
   const month = new Intl.DateTimeFormat('it-IT', { month: 'long', timeZone: 'UTC' })
     .format(lineupMonth(selection))
