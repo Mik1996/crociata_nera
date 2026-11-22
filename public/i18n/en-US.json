@@ -1178,7 +1178,7 @@
       "heroes": "Heroes (up to 20 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
       "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
       "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
-      "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for those who joined the clans of the Crusade less than 14 days ago.",
+      "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for recruits (member role) who joined the clans of the Crusade less than 14 days ago: elders, co-leaders and leaders coming back are not penalised.",
       "exclusions": "Administrators can exclude a player (for example for an announced absence): they keep their place in the ranking, marked as excluded, and their slot in the team goes to the next one. An exclusion lasts for the current season only, unless it is \"until revoked\".",
       "noCwl": "Who was not in the line-up of the last CWL keeps its 25 points: they move to the regular wars, worth up to 65. So 100 can be reached without the CWL too."
     },

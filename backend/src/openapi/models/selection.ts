@@ -64,7 +64,7 @@ export const SelectionPlayer = model(
         townHall: points('10 for the highest town hall of the clans, else 0.'),
         league: points('Home village league, 0–5: Electro League 31 = 1, 32 = 2, 33 = 3, Legend III = 4, Legend II and I = 5, lower leagues 0.'),
         missedAttacks: points('Penalty for the league attacks missed in the last CWL, -15–0.'),
-        activity: points('Penalty for a new arrival in the clans of the Crusade (-5), else 0.'),
+        activity: points('Penalty for a new arrival in the clans of the Crusade with the `member` role (-5), else 0.'),
       })
       .describe('Parts of the score.'),
     war: z
@@ -100,7 +100,7 @@ export const SelectionPlayer = model(
     activity: z
       .strictObject({
         joinedAt: nullableDateTime('When the player joined the clans of the Crusade; `null` when unknown.'),
-        newcomer: z.boolean().describe('In the clans of the Crusade for less than 14 days.'),
+        newcomer: z.boolean().describe('A `member` (not an elder or above) in the clans of the Crusade for less than 14 days.'),
       })
       .describe('Activity.'),
     exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator; `null` when not excluded.'),

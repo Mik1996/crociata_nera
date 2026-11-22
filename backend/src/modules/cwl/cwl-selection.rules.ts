@@ -14,7 +14,8 @@ import { CommendationTier } from '@/modules/commendations/commendation-rules';
  * - heroes: hero levels and equipped hero equipment against the highest levels of the game;
  * - town hall: a bonus for the highest town hall of the clans;
  * - league: the home village league, from Electro League 31 (1 point) to Legend II and I (5);
- * - penalties: league attacks missed in the last CWL, new arrivals.
+ * - penalties: league attacks missed in the last CWL, new arrivals (members only: elders, co-leaders
+ *   and leaders who come back are not new).
  *
  * On equal score: higher town hall first, then the higher league (`leagueTier`), then the higher role
  * (leader, co-leader, elder, member).
@@ -66,7 +67,7 @@ const HERO_LEVELS_SHARE = 2 / 3;
 /** Points lost for each league attack missed in the last CWL, and the most lost this way. */
 export const MISSED_ATTACK_PENALTY = 3;
 export const MISSED_ATTACKS_MAX_PENALTY = 15;
-/** New arrival: in the clans of the Crusade for fewer days than this. */
+/** New arrival: a member (not an elder or above) in the clans of the Crusade for fewer days than this. */
 export const NEWCOMER_DAYS = 14;
 export const NEWCOMER_PENALTY = 5;
 
@@ -274,8 +275,12 @@ export function leagueScore(league: League | null): number {
   return Math.max(0, Math.min(POINTS.league, league.id - LEAGUE_ZERO_ID));
 }
 
-/** In the clans of the Crusade for fewer than {@link NEWCOMER_DAYS} days. */
+/**
+ * A member (role `member`) in the clans of the Crusade for fewer than {@link NEWCOMER_DAYS} days.
+ * Elders, co-leaders and leaders are never new: they may leave for a while and come back.
+ */
 export function isNewcomer(c: SelectionCandidate, now: Date): boolean {
+  if (c.role !== 'member') return false;
   return !!c.joinedAt && now.getTime() - c.joinedAt.getTime() < NEWCOMER_DAYS * DAY_MS;
 }
 

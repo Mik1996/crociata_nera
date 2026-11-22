@@ -163,7 +163,8 @@ export function mockSelection(
     // Mostly in Crociata Nera, some in Crociata Rossa and d'Oro.
     const clanTag = random.chance(0.6) ? CWL_CLANS[0] : random.pick(CWL_CLANS.slice(1));
     const joinedAt = random.chance(0.1) ? new Date(now.getTime() - random.int(1, 13) * DAY) : null;
-    const newcomer = joinedAt !== null;
+    // Only members are new (elders and above may come back after a while).
+    const newcomer = joinedAt !== null && m.role === 'member';
 
     let cwl: CwlSelectionPlayer['cwl'] = null;
     if (inCwl) {

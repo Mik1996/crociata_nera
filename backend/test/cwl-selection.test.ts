@@ -194,6 +194,9 @@ describe('CWL line-up scores', () => {
         candidate('#LOW', 16),
         candidate('#NEW', 17, { joinedAt: new Date(NOW.getTime() - 3 * DAY) }),
         candidate('#OLD', 17, { joinedAt: new Date(NOW.getTime() - 100 * DAY) }),
+        // Elders and above who come back are not new.
+        candidate('#CO', 17, { role: 'coLeader', joinedAt: new Date(NOW.getTime() - 3 * DAY) }),
+        candidate('#ELD', 17, { role: 'admin', joinedAt: new Date(NOW.getTime() - 3 * DAY) }),
       ],
       CONTEXT,
     );
@@ -203,6 +206,10 @@ describe('CWL line-up scores', () => {
     expect(byTag.get('#NEW')!.activity).toMatchObject({ newcomer: true });
     expect(byTag.get('#NEW')!.breakdown.activity).toBe(-5);
     expect(byTag.get('#OLD')!.breakdown.activity).toBe(0);
+    for (const tag of ['#CO', '#ELD']) {
+      expect(byTag.get(tag)!.activity).toMatchObject({ newcomer: false });
+      expect(byTag.get(tag)!.breakdown.activity).toBe(0);
+    }
   });
 
   it('breaks an exact tie with the league, then the role', () => {
