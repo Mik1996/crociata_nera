@@ -17,6 +17,8 @@ export interface HistoryAttack {
   destruction: number;
   defenderTownHall: number | null;
   defenderPosition: number | null;
+  /** Order of the attack in the war (both clans), to replay the war. */
+  order: number;
 }
 
 export interface HistoryWarPlayer {
@@ -162,6 +164,7 @@ export function toHistoryWar(war: HistorySource): HistoryWar | null {
             destruction: a.destructionPercentage,
             defenderTownHall: defender?.townhallLevel ?? null,
             defenderPosition: defender?.mapPosition ?? null,
+            order: a.order,
           };
         }),
         opponentAttacks: m.opponentAttacks ?? 0,
@@ -273,6 +276,7 @@ const HISTORY_PROJECTION = {
   'clan.members.attacks.defenderTag': 1,
   'clan.members.attacks.stars': 1,
   'clan.members.attacks.destructionPercentage': 1,
+  'clan.members.attacks.order': 1,
   'clan.members.opponentAttacks': 1,
   'clan.members.bestOpponentAttack.stars': 1,
   'opponent.name': 1,

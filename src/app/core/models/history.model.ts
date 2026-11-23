@@ -11,6 +11,8 @@ export interface HistoryAttack {
   destruction: number;
   defenderTownHall: number | null;
   defenderPosition: number | null;
+  /** Order of the attack in the war (both clans), to replay the war. */
+  order: number;
 }
 
 /** A player's performance in a history war. */
