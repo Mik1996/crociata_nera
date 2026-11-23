@@ -1,7 +1,6 @@
 import { messageKeys } from '../../support/api';
 import { expect, test } from '../../support/fixtures';
 import { t } from '../../support/i18n';
-import { knownBug } from '../../support/known-bugs';
 import { expectFieldError, ProfilePage, Shell } from '../../support/pages';
 import { stack, TEST_EMAIL_DOMAIN } from '../../support/stack';
 import { strongPassword, uniqueName } from '../../support/users';
@@ -179,15 +178,11 @@ test.describe('Password change', () => {
     ).toBe(200);
   });
 
-  test('another device coming back after a password change signs out the device that changed it (BUG-01) @P0 @known-bug', async ({
+  test('the device that changed the password stays signed in when another device comes back @P0', async ({
     page,
     users,
     signIn,
   }) => {
-    const bug = knownBug(
-      'BUG-01',
-      'a refresh with a session closed by the password change is treated as token theft and closes every session of the user, the current one included',
-    );
     const user = await users.create();
     const shell = new Shell(page);
     const liveSessions = async () =>
@@ -210,11 +205,10 @@ test.describe('Password change', () => {
     expect(comeback.status).toBe(401);
     expect(messageKeys(comeback)).toContain('ERROR.INVALID_REFRESH_TOKEN');
 
-    // Correct behaviour: this device's session stays alive and it stays signed in after a reload.
-    // Today (BUG-01) the refusal closed every session of the user, this device's included:
-    expect(await liveSessions(), bug('no session of the user is left alive')).toBe(0);
+    // …without closing this device's session (BUG-01, fixed): still signed in after a reload.
+    expect(await liveSessions(), 'this device keeps its session').toBe(1);
     await page.reload();
-    await expect(shell.signInLink(), bug('this device is signed out')).toBeVisible();
-    await expect(shell.accountButton(user.username)).toBeHidden();
+    await expect(shell.accountButton(user.username)).toBeVisible();
+    await expect(shell.signInLink()).toBeHidden();
   });
 });

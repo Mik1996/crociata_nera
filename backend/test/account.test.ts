@@ -257,6 +257,24 @@ describe('profile', () => {
     expect((await call(refresh, { body: {}, cookie: other.refreshCookie })).status).toBe(401);
     expect((await call(signIn, { body: { identifier: 'knight', password: 'better456' } })).status).toBe(200);
   });
+
+  it('keeps the current session when a device signed out by the password change comes back first', async () => {
+    const first = await register();
+    const other = await call(signIn, { body: { identifier: 'knight', password: 'secret123' } });
+    const ok = await call(changePassword, {
+      body: { currentPassword: 'secret123', password: 'better456', repeatPassword: 'better456' },
+      token: first.token,
+      cookie: first.cookie,
+    });
+    expect(ok.status).toBe(200);
+
+    // The other device opens the site before this one refreshes: its session was closed…
+    const back = await call(refresh, { body: {}, cookie: other.refreshCookie });
+    expect(back.status).toBe(401);
+    expect(back.body.messages).toEqual([{ key: 'ERROR.INVALID_REFRESH_TOKEN' }]);
+    // …and that does not sign out the device that changed the password.
+    expect((await call(refresh, { body: {}, cookie: first.cookie })).status).toBe(200);
+  });
 });
 
 describe('password reset', () => {
@@ -284,6 +302,21 @@ describe('password reset', () => {
     const reused = await call(resetPassword, { body: { token, password: 'another12', repeatPassword: 'another12' } });
     expect(reused.status).toBe(400);
     expect(reused.body.messages).toEqual([{ key: 'ERROR.INVALID_OR_EXPIRED_RESET_TOKEN' }]);
+  });
+
+  it('keeps the session opened after the reset when a device signed out by it comes back', async () => {
+    const { cookie } = await register();
+    sent.length = 0;
+    await call(forgotPassword, { body: { email: 'knight@crociata.it', language: 'it-IT' } });
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    const token = decodeURIComponent(tokenFrom(sent[0]!.text));
+    expect((await call(resetPassword, { body: { token, password: 'brandnew9', repeatPassword: 'brandnew9' } })).status).toBe(200);
+    const fresh = await call(signIn, { body: { identifier: 'knight', password: 'brandnew9' } });
+
+    // The old device comes back with the session the reset closed: refused…
+    expect((await call(refresh, { body: {}, cookie })).status).toBe(401);
+    // …without closing the session just opened with the new password.
+    expect((await call(refresh, { body: {}, cookie: fresh.refreshCookie })).status).toBe(200);
   });
 
   it('gives the same answer for unknown addresses and sends nothing', async () => {

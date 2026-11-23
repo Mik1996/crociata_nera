@@ -94,6 +94,8 @@ export async function signIn(input: SignInInput, client: ClientInfo): Promise<Au
  * ({@link REFRESH_REUSE_GRACE_MS}) or, once, when its successor was never used (the browser never got
  * it, see {@link recoverLostRotation}). Otherwise two clients are using the same chain:
  * the token leaked, every session of that user is revoked and they must sign in again.
+ * A session closed on purpose (signed out, or by a password change, a reset, a role change) is just
+ * refused: its owner's other, newer sessions are left alone.
  */
 export async function refresh(refreshToken: string | null, client: ClientInfo): Promise<AuthSession> {
   if (!refreshToken) throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
@@ -109,6 +111,13 @@ export async function refresh(refreshToken: string | null, client: ClientInfo): 
   }
 
   if (session.revokedAt) {
+    // Closed on purpose (signed out, or every session closed by a password change, a reset, a role
+    // change or an earlier theft detection): simply no longer valid. Only a rotated chain used by two
+    // clients is theft; treating these as theft would close the sessions opened since, e.g. sign out
+    // the device that just changed the password when another of the user's devices comes back.
+    if (session.revokedReason === 'signedOut' || session.revokedReason === 'revoked') {
+      throwException(401, MessageKey.INVALID_REFRESH_TOKEN);
+    }
     // Same token sent twice by the same browser (two tabs, a retried request): a new session.
     if (await isRecentRotation(session)) return startSession(user, client);
     // The response with the new cookie never reached the browser: its successor is retired.

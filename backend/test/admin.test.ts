@@ -4,6 +4,7 @@ import { POST as linkUserPlayers } from '@/app/api/v1/admin/users/[id]/players/r
 import { DELETE as deleteUser, PATCH as updateUser } from '@/app/api/v1/admin/users/[id]/route';
 import { GET as listUsers } from '@/app/api/v1/admin/users/route';
 import { POST as refresh } from '@/app/api/v1/auth/refresh/route';
+import { POST as signIn } from '@/app/api/v1/auth/sign-in/route';
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { resetEnvCache } from '@/lib/config/env';
 import { SessionModel } from '@/modules/auth/session.model';
@@ -179,6 +180,26 @@ describe('administration', () => {
     });
     expect(selfDemotion.status).toBe(409);
     expect(selfDemotion.body.messages).toEqual([{ key: 'ERROR.CANNOT_REMOVE_OWN_ADMIN' }]);
+  });
+
+  it('keeps the session opened after a role change when a device signed out by it comes back', async () => {
+    const boss = await registerAdmin();
+    const member = await register('member', '10.0.0.3');
+    const promoted = await call(updateUser, {
+      method: 'PATCH',
+      body: { roles: ['ADMIN'] },
+      token: boss.token,
+      params: { id: member.user.id },
+    });
+    expect(promoted.status).toBe(200);
+    // The member signs in again (the new session carries the new role)…
+    const fresh = await call(signIn, { body: { identifier: 'member', password: 'secret123' }, ip: '10.0.0.4' });
+    expect(fresh.body.result.user.roles).toEqual(['USER', 'ADMIN']);
+
+    // …then another device of theirs comes back with a session closed by the change: refused,
+    // without closing the new one.
+    expect((await call(refresh, { body: {}, cookie: member.cookie })).status).toBe(401);
+    expect((await call(refresh, { body: {}, cookie: fresh.refreshCookie })).status).toBe(200);
   });
 
   it('links several accounts to a user without the in-game token', async () => {
