@@ -93,7 +93,7 @@ tests, `sharp` of the backend (test pictures), `scripts/serve-prod.mjs` (now acc
 
 89 tests (45 P0 · 26 P1 · 15 P2 · 3 P3): security 36, auth 19, clan data 11, admin 8, account 6,
 experience 5, bases 4. 11 of them also run on Firefox and WebKit (`@cross`), 1 on a phone viewport
-(`@mobile`), 3 pin known bugs (`@known-bug`). ✔ = covered, — = not applicable.
+(`@mobile`); no known bug is pinned at the moment (`@known-bug`). ✔ = covered, — = not applicable.
 
 | Feature | Happy path | Negative / validation | Permissions | Persistence checked | Spec |
 |---|---|---|---|---|---|
@@ -103,7 +103,7 @@ experience 5, bases 4. 11 of them also run on Firefox and WebKit (`@cross`), 1 o
 | Sign-out | ✔ UI, protected page left | ✔ stolen copy of the cookie refused; rotated and current tokens both dead | — | ✔ | `auth/session` |
 | Email confirmation | ✔ link from the email, single use | ✔ forged token, old link after "send again", already confirmed | — | ✔ `emailVerified` | `auth/account-recovery` |
 | Password reset | ✔ email link → new password, every device signed out | ✔ single use, same answer for unknown addresses and no email sent | — | ✔ old password refused, new accepted | `auth/account-recovery` |
-| Password change | ✔ this device kept, others signed out | ✔ wrong current password; **BUG-01** pinned | — | ✔ live sessions counted | `auth/account-recovery` |
+| Password change | ✔ this device kept, others signed out | ✔ wrong current password; another device coming back does not sign this one out (BUG-01, fixed) | — | ✔ live sessions counted | `auth/account-recovery` |
 | Game accounts | ✔ link with token from the profile opens the clans' pages at once; unlink closes them | ✔ wrong token, unknown tag, invalid tag, game API unavailable, account outside the Crusade, account verified by another user | ✔ nobody unlinks someone else's account | ✔ | `account/linked-accounts` |
 | Authorization (API) | ✔ every operation, for each allowed caller: exact answer of a probe that changes nothing | ✔ all 80 operations × 6 callers (anonymous, outsider, member, sister clan member, leader, administrator): exact 401/403 with the level's message key and no data | ✔ against `access-spec.ts`; the API's operations and documented levels must equal it | — | `security/authorization-matrix` |
 | Authorization (pages) | ✔ each level reaches its pages | ✔ redirects of signed-out users (with `returnUrl`), outsiders, members, leaders | ✔ sister clans | — | `security/route-guards` |
@@ -121,8 +121,8 @@ experience 5, bases 4. 11 of them also run on Firefox and WebKit (`@cross`), 1 o
 | CWL selections | ✔ leader sees the ranking | — | ✔ (route guards, matrix) | — | `clan/clan-data` |
 | Base proposals | ✔ propose with a real screenshot → approve → visible with its copy link | ✔ empty rejection reason, invalid/builder link, missing or broken picture, duplicate layout (each with its message key) | ✔ other members cannot edit/withdraw (404) or moderate (403) | ✔ | `bases/base-proposals` |
 | Rejection | ✔ reason shown to the author, withdraw | — | — | ✔ | `bases/base-proposals` |
-| Users administration | ✔ grant/remove ADMIN (applies at once, sessions closed), link accounts without token, delete with typed confirmation | ✔ wrong confirmation, own row protected (UI and API); **BUG-02** pinned | ✔ | ✔ user and sessions gone | `admin/users-admin`, `security/api-hardening` |
-| Publications | ✔ draft kinds switched and kept, restored to the value found | ✔ Telegram not configured; **BUG-02** pinned | ✔ | ✔ | `admin/publishing` |
+| Users administration | ✔ grant/remove ADMIN (applies at once, sessions closed), link accounts without token, delete with typed confirmation | ✔ wrong confirmation, own row protected (UI and API); switch named after its user (BUG-02, fixed) | ✔ | ✔ user and sessions gone | `admin/users-admin`, `security/api-hardening` |
+| Publications | ✔ draft kinds switched and kept, restored to the value found | ✔ Telegram not configured; switches named and described (BUG-02, fixed) | ✔ | ✔ | `admin/publishing` |
 | Resilience | ✔ "Retry" after a game API failure; offline banner | — | — | — | `experience/experience` |
 | Language, PDF, phone | ✔ Italian kept after reload; Raid Weekend PDF (valid file); navigation drawer | — | — | — | `experience/experience` |
 
@@ -131,11 +131,11 @@ and logs) and on an outbound connection attempted by the stack.
 
 ## 5. Bugs found in the application
 
-Each one has a `@known-bug` test that asserts the exact wrong behaviour of today (README,
-"Conventions"): it passes while the bug is there and fails, with a message saying so, as soon as
-the bug is fixed. None is fixed by this work.
+While open, each bug had a `@known-bug` test asserting the exact wrong behaviour (README,
+"Conventions"). BUG-01 and BUG-02 are **fixed** (November 2026): their tests now check the correct
+behaviour, and backend and frontend regression tests failed before the fix and pass after it.
 
-### BUG-01 — Another device coming back after a password change signs out the device that changed it
+### BUG-01 — Another device coming back after a password change signs out the device that changed it (fixed)
 
 **Severity: medium** (sessions; visible to users, frequent; fails safe — it signs users out, it
 never lets anyone in). **Priority to fix: high**, it hits every user with two devices.
@@ -149,19 +149,19 @@ exactly the ones just signed out, present their old cookie at their next page lo
 session the password change (or the reset, or the new role) had just opened or kept. The same
 happens when a `signedOut` session is presented again.
 
-Pinned by `auth/account-recovery.spec.ts` "another device coming back after a password change signs
-out the device that changed it (BUG-01)": after the change the device has exactly one live session
-(asserted), the old device's refresh is refused (401, as it should), then zero live sessions remain
-and the device is signed out at its next load (the bug). Backend log:
-`[auth] every session of user … revoked: reuse of a revoked refresh token`.
+Seen end to end: after the change the device had one live session, the old device's refresh was
+refused (401, as it should), then no live session remained and the device was signed out at its
+next load. Backend log: `[auth] every session of user … revoked: reuse of a revoked refresh token`.
 
-Recommended fix (backend, `auth.service.ts`): when the presented session was closed with reason
-`revoked` or `signedOut`, answer 401 `INVALID_REFRESH_TOKEN` without closing the other sessions;
-keep the theft response for reused `rotated`/`retired` tokens outside their grace rules. Add a
-backend test in `test/auth.test.ts`, then turn the e2e test into the correct expectation (written
-next to its assertions).
+**Fix** (`auth.service.ts`, `refresh()`): a session closed with reason `revoked` or `signedOut` is
+answered 401 `INVALID_REFRESH_TOKEN` without closing the other sessions; the theft response stays
+for reused `rotated`/`retired` tokens outside their grace rules (all the existing theft tests
+still pass). Regression tests, failing before the fix: backend `auth.test.ts` (signed-out session
+presented again), `account.test.ts` (password change, reset), `admin.test.ts` (role change); e2e
+`auth/account-recovery.spec.ts` "the device that changed the password stays signed in when another
+device comes back".
 
-### BUG-02 — Unnamed switches in the administration
+### BUG-02 — Unnamed switches in the administration (fixed)
 
 **Severity: low–medium** (accessibility, WCAG 4.1.2 "Name, Role, Value"; administrators only).
 
@@ -184,12 +184,13 @@ Instances:
    cannot be told apart. Not covered end to end: the stack runs without Telegram, so no chat is
    listed.
 
-Pinned by `admin/users-admin.spec.ts` and `admin/publishing.spec.ts` "… have no accessible name
-(BUG-02)" (empty name, intended label absent from the row; empty description).
-
-Recommended fix: use Material's inputs — `[aria-label]`, `[aria-labelledby]`, `[aria-describedby]`
-— which reach the button, in the three templates; then turn the two tests into checks of the
-intended names (and description).
+**Fix**: Material's inputs `[aria-label]`, `[aria-labelledby]`, `[aria-describedby]` in the three
+templates (they reach the button). Regression tests, failing before the fix: frontend
+`admin-page.spec.ts`, `announcement-settings-form.spec.ts`, `telegram-bot.spec.ts` (the switch
+button carries the name/description; this also covers instance 3, which the e2e stack cannot show);
+e2e `admin/users-admin.spec.ts` and `admin/publishing.spec.ts` find the switches by their names.
+Not changed: the tooltip descriptions of the admin and lock switches (`matTooltip` on the host)
+still stay on the host element — a separate, minor point.
 
 ### OBS-01 — Users table once showed rows contradicting its filter (not reproduced)
 
@@ -255,8 +256,7 @@ made again.
 
 ## 8. Recommendations
 
-1. Fix BUG-01 (frequent, visible) and BUG-02 (accessibility, three templates); turn their tests into
-   checks of the correct behaviour.
+1. ~~Fix BUG-01 and BUG-02~~ — done.
 2. Keep `E2E` among the required checks of the "Protect master" ruleset, with source "GitHub
    Actions".
 3. Add an automated accessibility scan (e.g. axe) to the main pages: BUG-02 shows the value.
