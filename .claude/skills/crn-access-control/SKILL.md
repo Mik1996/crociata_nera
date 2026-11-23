@@ -54,6 +54,9 @@ on `playerTags`), max 10, proven with the in-game API token (`POST /players/{tag
    — but the backend must refuse them anyway.
 5. Tests: 401 without token, 403 with the wrong level (`CLAN_ACCESS_REQUIRED`, `LEADER_ACCESS_REQUIRED`,
    `FORBIDDEN`), success with the right one; for ADMIN, a demoted admin loses access immediately.
+   Write the level in `e2e/tests/security/access-spec.ts` too (with a probe that changes nothing): it is
+   the committed security requirement, and the end-to-end authorization matrix fails while the API, its
+   documentation and that file disagree, so every change of who may call what shows up in review.
 6. Service worker: a private GET must not join a cached group unless it is cleared at sign-out
    (`core/pwa/offline-data.ts`, `PRIVATE_DATA_GROUP`).
 

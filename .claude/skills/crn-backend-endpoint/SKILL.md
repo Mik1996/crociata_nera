@@ -62,7 +62,9 @@ keys against the document (`test/contract.ts`).
    - a new operations file must be added to `API_OPERATIONS` in `operations/index.ts`.
    Check it at `http://localhost:3001/api/v1/docs` when the backend runs.
 7. **Tests** in `backend/test/<area>.test.ts` via `call()`: success, each documented error, access levels
-   (`crn-testing-strategy`). Removing a route: delete its operation and tests too.
+   (`crn-testing-strategy`). Removing a route: delete its operation and tests too. Add (or remove) the
+   operation in `e2e/tests/security/access-spec.ts`, with its level and a probe that changes nothing
+   (an id that does not exist, or an invalid body): the e2e authorization matrix fails until it is there.
 8. **Frontend**:
    - types in `src/app/core/backend/backend-api.types.ts`;
    - method on the service of the area (`core/backend/*.service.ts`, or `CocApiService` for clan data) and

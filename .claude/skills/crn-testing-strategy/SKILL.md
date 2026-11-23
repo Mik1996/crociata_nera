@@ -62,11 +62,26 @@ then one route test proving it is wired).
 
 ## 4. End-to-end
 
-There is **no e2e framework** in the repo (no Playwright/Cypress). Do not add one without the user's
-decision. End-to-end confidence comes from: backend route tests (real handler + DB + contract), page specs
-with mock services, and a manual check in a real browser (`npm run start:mock`, or `npm start` +
-`npm run backend` for signed-in pages; browser tools such as the Safari MCP can drive it). Say explicitly in
-the report which flows were only checked by hand.
+Playwright suite in `e2e/` (guide `e2e/README.md`, coverage and known gaps `e2e/STRATEGY.md`): production
+builds of both apps against an isolated stack (MongoDB in memory, fake Clash of Clans API, SMTP sink,
+Telegram off; its servers can open no outbound connection), started by Playwright. Run
+`npm run typecheck:e2e`, `npm run e2e:build && npm run test:e2e` (CI job `E2E` gates the deploy);
+`npm run test:e2e:cross` for Firefox/WebKit.
+
+- Add an e2e test for a **user journey across browser, backend and database** (a new page flow, a new
+  access rule, a new form): `e2e/tests/<area>/*.spec.ts`, fixtures from `e2e/support/fixtures.ts`
+  (`users.create({ access })`, `signIn`, `pageAs`, `stack.find`), locators by role + `t('i18n.key')`,
+  priority tag `@P0`–`@P3`. Rules and edge cases stay in the backend/frontend unit tests.
+- A new, changed or removed `/api/v1` route needs its line in `e2e/tests/security/access-spec.ts` (level +
+  a probe that changes nothing): the authorization matrix fails until the API, its OpenAPI `x-access` and
+  that file agree.
+- A bug found by an e2e test and not fixed now: a `@known-bug` test that asserts the exact wrong behaviour
+  with `knownBug()` (`e2e/support/known-bugs.ts`; never `test.fail()`, which any failure satisfies) +
+  entry in STRATEGY.md "Bugs found".
+- Not covered end to end (see STRATEGY.md §6): flows needing time travel (theft after the grace period,
+  token expiry), the CWL selection lifecycle, announcements/Telegram, the service worker, Caddy. For those,
+  a manual check in a real browser (`npm run start:mock`, or `npm start` + `npm run backend`; browser tools
+  such as the Safari MCP can drive it): say explicitly in the report which flows were only checked by hand.
 
 ## 5. Reliability
 
@@ -80,4 +95,5 @@ the report which flows were only checked by hand.
 
 Run the suites of the touched side(s); full set (as CI does) when shared code changed:
 `cd backend && npm run typecheck && npm test`, `npx tsc -p tsconfig.app.json --noEmit`,
-`npx ng test --watch=false`, `npm run lint:colors`, `npm run lint:units`. Report failures with their output.
+`npx ng test --watch=false`, `npm run lint:colors`, `npm run lint:units`; and `npm run e2e:build &&
+npm run test:e2e` when a page flow, a route's access or the auth changed. Report failures with their output.

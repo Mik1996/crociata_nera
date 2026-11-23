@@ -29,6 +29,9 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# End-to-end tests: reports, traces, videos, logs of the stack
+/e2e/.artifacts
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/

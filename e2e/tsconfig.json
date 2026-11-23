@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["./**/*.ts", "./**/*.mjs", "../playwright.config.ts"],
+  "exclude": ["./.artifacts"]
+}

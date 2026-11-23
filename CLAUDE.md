@@ -34,10 +34,16 @@ npx tsc -p tsconfig.app.json --noEmit              # frontend type check
 npm run lint:colors                                # colours only from the palette
 npm run lint:units                                 # sizes in rem, no hard-coded pixels
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
+
+npm run typecheck:e2e                              # e2e type check (tests, support, stack scripts)
+npm run e2e:build && npm run test:e2e              # end-to-end (Playwright) on an isolated stack: production
+                                                   # builds, MongoDB in memory, fake CoC API, SMTP sink, no
+                                                   # outbound network (e2e/README.md)
+npm run test:e2e:cross                             # the @cross journeys on Firefox and WebKit (local only)
 ```
 
-CI (`.github/workflows/deploy.yml`) runs all of the above on every pull request and every push to `master`;
-a push to `master` that passes is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which
+CI (`.github/workflows/deploy.yml`) runs all of the above but `test:e2e:cross` (end-to-end: Chromium desktop
+and phone, job `E2E`) on every pull request and every push to `master`; a push to `master` that passes is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which
 restarts the backend and rolls back to the previous images if the containers do not become healthy (manual:
 `deploy/rollback.sh`).
 
