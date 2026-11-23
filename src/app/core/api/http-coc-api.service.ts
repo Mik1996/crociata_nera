@@ -7,6 +7,7 @@ import { BaseResult } from '../backend/backend-api.types';
 import { APP_CONFIG } from '../config/app-config';
 import { cacheFor, noCache } from '../http/http-cache';
 import {
+  LatestLegendSeason,
     Clan,
     ClanRanks,
     ClanRecords,
@@ -213,6 +214,11 @@ export class HttpCocApiService extends CocApiService {
       params: { limit: String(limit) },
       context: CACHE.archive,
     });
+  }
+
+  /** Only the backend has them: the final world ranking is read when a season ends. */
+  getLatestLegendSeason(): Observable<LatestLegendSeason | null> {
+    return this.get<LatestLegendSeason | null>('/legends/seasons/latest', { context: CACHE.archive });
   }
 
   /**

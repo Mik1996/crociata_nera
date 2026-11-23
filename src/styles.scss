@@ -1090,11 +1090,14 @@ img.cn-img-missing {
     --cn-medal-dark: var(--cn-medal-silver-dark);
   }
 
-  // Legendary: crimson border and halo (the display case stays dark, as for the other medals).
-  &--legendary {
-    --cn-medal-light: var(--cn-medal-legendary-light);
-    --cn-medal: var(--cn-medal-legendary);
-    --cn-medal-dark: var(--cn-medal-legendary-dark);
+  // One-off medals: border and halo in their own colour (the display case stays dark, as for the
+  // other medals).
+  @each $style in $single-medal-styles {
+    &--#{"" + $style} {
+      --cn-medal-light: var(--cn-medal-#{$style}-light);
+      --cn-medal: var(--cn-medal-#{$style});
+      --cn-medal-dark: var(--cn-medal-#{$style}-dark);
+    }
   }
 
   // Not earned yet: the dark grey of the locked medal.

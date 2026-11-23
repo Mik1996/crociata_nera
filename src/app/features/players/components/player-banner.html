@@ -47,10 +47,8 @@
       <ul class="banner__medals cn-hscroll" [attr.aria-label]="'commendations.title' | translate">
         @for (m of medals(); track m.type) {
           @let name =
-            ('commendations.' + m.type + '.' + m.tier | translate) +
-            ' (' +
-            ('commendations.tiers.' + m.tier | translate) +
-            ')';
+            (m.nameKey | translate) +
+            (m.tier ? ' (' + ('commendations.tiers.' + m.tier | translate) + ')' : '');
           @let description =
             'commendations.' + m.type + '.description'
               | translate: { n: (m.threshold | localNumber) };
@@ -72,7 +70,7 @@
             >
               <crn-medal-3d-image
                 [svgUrl]="'commendations/' + m.emblem + '.svg'"
-                [finish]="m.tier"
+                [finish]="m.style"
                 [size]="medalSize"
               />
             </button>

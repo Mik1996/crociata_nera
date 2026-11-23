@@ -26,8 +26,11 @@ export interface MedalFinishSpec {
   accent?: string;
 }
 
-/** Built-in finishes; any other medal (another colour, a single medal) passes its own spec. */
-export type MedalFinishName = 'bronze' | 'silver' | 'gold' | 'legendary';
+/**
+ * Built-in finishes: the metals of the tiers and the colours of the one-off commendations
+ * (`MedalStyle`); any other medal passes its own spec.
+ */
+export type MedalFinishName = 'bronze' | 'silver' | 'gold' | 'crimson' | 'sapphire' | 'emerald' | 'pearl' | 'obsidian';
 
 export type MedalFinish = MedalFinishName | MedalFinishSpec;
 
@@ -57,16 +60,55 @@ export const MEDAL_FINISHES: Readonly<Record<MedalFinishName, MedalFinishSpec>> 
     clearcoatRoughness: 0.06,
     envMapIntensity: 1.05,
   },
-  // Candy crimson metal under a mirror varnish, with gold decorations as in the flat medal: the
-  // one-off medals of the highest merit.
-  legendary: {
-    color: '--cn-medal-legendary',
+  // Candy crimson metal under a mirror varnish, with gold decorations as in the flat medal.
+  crimson: {
+    color: '--cn-medal-crimson',
     accent: '--cn-medal-3d-gold',
     metalness: 1,
     roughness: 0.16,
     clearcoat: 1,
     clearcoatRoughness: 0.04,
     envMapIntensity: 1.15,
+  },
+  // Deep sapphire blue under a mirror varnish, with gold decorations as in the flat medal.
+  sapphire: {
+    color: '--cn-medal-sapphire',
+    accent: '--cn-medal-3d-gold',
+    metalness: 1,
+    roughness: 0.16,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    envMapIntensity: 1.15,
+  },
+  // Emerald green under a mirror varnish, with gold decorations.
+  emerald: {
+    color: '--cn-medal-emerald',
+    accent: '--cn-medal-3d-gold',
+    metalness: 1,
+    roughness: 0.16,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    envMapIntensity: 1.15,
+  },
+  // Pearl: a soft white, little metal and a satin sheen under the varnish, with gold decorations.
+  pearl: {
+    color: '--cn-medal-pearl',
+    accent: '--cn-medal-3d-gold',
+    metalness: 0.25,
+    roughness: 0.3,
+    clearcoat: 1,
+    clearcoatRoughness: 0.08,
+    envMapIntensity: 1.1,
+  },
+  // Obsidian: black volcanic glass, mirror-smooth, with gold decorations.
+  obsidian: {
+    color: '--cn-medal-obsidian',
+    accent: '--cn-medal-3d-gold',
+    metalness: 0.6,
+    roughness: 0.08,
+    clearcoat: 1,
+    clearcoatRoughness: 0.02,
+    envMapIntensity: 1.2,
   },
 };
 

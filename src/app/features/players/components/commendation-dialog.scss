@@ -14,7 +14,7 @@
   }
 }
 
-// Name centred over the medal, tier on its own line just below, on the left.
+// Name centred over the medal, tier (graded commendations only) on its own line just below, on the left.
 .title__name {
   text-align: center;
 }
@@ -37,10 +37,6 @@
 
 .tier--gold {
   color: var(--cn-gold-light);
-}
-
-.tier--legendary {
-  color: var(--cn-medal-legendary-light);
 }
 
 .content {

@@ -4,12 +4,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import {
-    Commendation,
-    CommendationType,
-    PlayerCommendations,
-    PlayerProfile,
+  Commendation,
+  CommendationType,
+  PlayerCommendations,
+  PlayerProfile,
 } from '../../../core/models';
-import { COMMENDATION_THRESHOLDS, emblemOf } from '../../../core/utils/commendations';
+import { emblemOf, nameKeyOf, styleOf, thresholdOf } from '../../../core/utils/commendations';
 import { periodLabel } from '../../../core/utils/monthly-history';
 import { Icon } from '../../../shared/components/icon/icon';
 import { Tag } from '../../../shared/components/tag/tag';
@@ -55,14 +55,25 @@ export class PlayerBanner {
         ? `${day.format(new Date(c.raidWeekend.startTime))} – ${day.format(new Date(c.raidWeekend.endTime))}`
         : undefined,
       cwlStriker: c.cwlSeason ? `CWL ${periodLabel(c.cwlSeason, locale)}` : undefined,
+      cwlAllAttacks: c.cwlSeason ? `CWL ${periodLabel(c.cwlSeason, locale)}` : undefined,
+      legendTop: c.legendSeason
+        ? this.language.t('commendations.legendSeasonPeriod', {
+            date: day.format(new Date(c.legendSeason.endTime)),
+          })
+        : undefined,
       donor: c.donationSeason ? periodLabel(c.donationSeason, locale) : undefined,
     };
     const month = periodLabel(c.month, locale);
     return c.items.map((item) => ({
       ...item,
       emblem: emblemOf(item),
-      threshold: COMMENDATION_THRESHOLDS[item.type][item.tier],
-      period: periods[item.type] ?? month,
+      nameKey: nameKeyOf(item),
+      style: styleOf(item),
+      threshold: thresholdOf(item),
+      // One-off war commendations: the month they were last earned in (last month or this one).
+      period:
+        periods[item.type] ??
+        (c.warMonths?.[item.type] ? periodLabel(c.warMonths[item.type]!, locale) : month),
     }));
   });
   protected readonly roleKey = roleKey;

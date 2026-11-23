@@ -50,15 +50,22 @@ describe('CommendationDialogOpener', () => {
     return config.panelClass as string[];
   }
 
-  it('dresses the dialog in the crimson of a legendary commendation', async () => {
-    expect(await panelClassOf({ type: 'cwlAllAttacks', tier: 'legendary', count: 1 })).toEqual([
+  it('dresses the dialog in the crimson of Certezza di Lega', async () => {
+    expect(await panelClassOf({ type: 'cwlAllAttacks', tier: null, count: 1 })).toEqual([
       'cn-medal-dialog',
-      'cn-medal-dialog--legendary',
+      'cn-medal-dialog--crimson',
+    ]);
+  });
+
+  it('dresses the dialog in the sapphire of Cacciatore di Capi', async () => {
+    expect(await panelClassOf({ type: 'chiefHunter', tier: null, count: 1 })).toEqual([
+      'cn-medal-dialog',
+      'cn-medal-dialog--sapphire',
     ]);
   });
 
   it('keeps the grey of a medal not earned yet, whatever its tier', async () => {
-    expect(await panelClassOf({ type: 'cwlAllAttacks', tier: 'legendary', count: 0 })).toEqual([
+    expect(await panelClassOf({ type: 'cwlAllAttacks', tier: null, count: 0 })).toEqual([
       'cn-medal-dialog',
       'cn-medal-dialog--locked',
     ]);

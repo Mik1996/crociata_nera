@@ -960,15 +960,31 @@
     "title": "Commendations",
     "short": "Last month's commendations",
     "dialogUnavailable": "The medal cannot be opened: check your connection and try again.",
+    "legendSeasonPeriod": "Legend League, {{date}}",
     "tiers": {
       "gold": "Gold",
       "silver": "Silver",
-      "bronze": "Bronze",
-      "legendary": "Legendary"
+      "bronze": "Bronze"
     },
     "cwlAllAttacks": {
-      "legendary": "League Certainty",
+      "name": "League Certainty",
       "description": "Every attack used in the last CWL, in the line-up for at least {{n}} days."
+    },
+    "chiefHunter": {
+      "name": "Chief Hunter",
+      "description": "3 stars on the enemy number 1 in a war. If it was already destroyed, it counts only once every star of the war has been taken."
+    },
+    "fortress": {
+      "name": "Impregnable Fortress",
+      "description": "In a war, attacked at least {{n}} times without ever giving up 3 stars."
+    },
+    "perfectWar": {
+      "name": "Perfect War",
+      "description": "3 stars with every attack in a war won with every star."
+    },
+    "legendTop": {
+      "name": "Among the Ten Thousand",
+      "description": "A Legend League season finished among the top {{n}} in the world."
     },
     "champion": {
       "bronze": "Valiant",

@@ -5,15 +5,24 @@ import {
   CommendationType,
   CwlSeason,
   DonationSeason,
+  GradedCommendationType,
   HistoryPeriod,
   HistoryPlayerStats,
+  HistoryWar,
+  LatestLegendSeason,
+  MedalStyle,
   RaidSeason,
+  SingleCommendationType,
 } from '../models';
 import { compareForRanking, monthOf } from './monthly-history';
 
 /** Display order of the types, from the most prestigious. */
 export const COMMENDATION_TYPES: readonly CommendationType[] = [
+  'legendTop',
   'cwlAllAttacks',
+  'perfectWar',
+  'chiefHunter',
+  'fortress',
   'champion',
   'perfect',
   'giantSlayer',
@@ -26,12 +35,10 @@ export const COMMENDATION_TYPES: readonly CommendationType[] = [
 ];
 
 /** From the most valuable. */
-export const COMMENDATION_TIERS: readonly CommendationTier[] = ['legendary', 'gold', 'silver', 'bronze'];
+export const COMMENDATION_TIERS: readonly CommendationTier[] = ['gold', 'silver', 'bronze'];
 
 /**
- * Requirement of each tier a commendation has (also shown in the descriptions as `{{n}}`):
- * - cwlAllAttacks (single, legendary tier): the attack of every day in the line-up of the last
- *   ended Clan War League, with at least this many days;
+ * Requirement of each tier of the graded commendations (also shown in the descriptions as `{{n}}`):
  * - champion: position in the monthly ranking (players with at least {@link MIN_WARS} wars);
  * - perfect: average stars per attack, with at least {@link PERFECT_MIN_ATTACKS} attacks;
  * - giantSlayer: 3-star attacks against a higher Town Hall;
@@ -43,8 +50,7 @@ export const COMMENDATION_TIERS: readonly CommendationTier[] = ['legendary', 'go
  * - donor: troops donated in the game season, as counted by the backend; awarded as soon as a
  *   tier is reached (one per season, raised to the higher tiers).
  */
-export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly<Partial<Record<CommendationTier, number>>>>> = {
-  cwlAllAttacks: { legendary: 3 },
+export const COMMENDATION_THRESHOLDS: Readonly<Record<GradedCommendationType, Readonly<Record<CommendationTier, number>>>> = {
   champion: { bronze: 3, silver: 2, gold: 1 },
   perfect: { bronze: 2.5, silver: 2.8, gold: 3 },
   giantSlayer: { bronze: 2, silver: 5, gold: 10 },
@@ -54,6 +60,25 @@ export const COMMENDATION_THRESHOLDS: Readonly<Record<CommendationType, Readonly
   cwlStriker: { bronze: 2.5, silver: 2.75, gold: 3 },
   capitalRaider: { bronze: 25_000, silver: 27_500, gold: 30_000 },
   donor: { bronze: 5_000, silver: 7_500, gold: 10_000 },
+};
+
+/**
+ * The one-off commendations: a single medal with its own colour, no tiers. `threshold` is shown in
+ * the description as `{{n}}`:
+ * - cwlAllAttacks: the attack of every day in the line-up of the last ended Clan War League, with at
+ *   least this many days;
+ * - chiefHunter: three stars on the enemy number 1 in an ended war, see {@link awardWarCommendations};
+ * - fortress: in an ended war, attacked at least this many times and never three-starred;
+ * - perfectWar: at least this many attacks, all three-star, in a war won with every star;
+ * - legendTop: a Legend League season ended within this world position (saved by the backend only:
+ *   the frontend has no Legend League results, so it never awards it itself).
+ */
+export const SINGLE_COMMENDATIONS: Readonly<Record<SingleCommendationType, { threshold: number; style: MedalStyle }>> = {
+  cwlAllAttacks: { threshold: 3, style: 'crimson' },
+  chiefHunter: { threshold: 1, style: 'sapphire' },
+  fortress: { threshold: 2, style: 'emerald' },
+  perfectWar: { threshold: 1, style: 'pearl' },
+  legendTop: { threshold: 10_000, style: 'obsidian' },
 };
 
 /** `cwlStriker` needs at least this many attacks (one per war). */
@@ -69,17 +94,36 @@ const LOWER_IS_BETTER: ReadonlySet<CommendationType> = new Set(['champion', 'wal
 /** The value must exceed the threshold ("more than"), not just reach it. */
 const STRICTLY_ABOVE: ReadonlySet<CommendationType> = new Set(['capitalRaider']);
 
-/** Tiers of a commendation, most valuable first (`legendary` alone for a one-off commendation). */
-export function tiersOf(type: CommendationType): CommendationTier[] {
-  return COMMENDATION_TIERS.filter((tier) => COMMENDATION_THRESHOLDS[type][tier] !== undefined);
+export function isSingle(type: CommendationType): type is SingleCommendationType {
+  return type in SINGLE_COMMENDATIONS;
+}
+
+/** The medals of a commendation, most valuable first: one for a one-off commendation. */
+export function medalsOf(type: CommendationType): Commendation[] {
+  return isSingle(type) ? [{ type, tier: null }] : COMMENDATION_TIERS.map((tier) => ({ type, tier }));
+}
+
+/** Requirement of a medal (`{{n}}` of its description). */
+export function thresholdOf(c: Commendation): number | undefined {
+  if (isSingle(c.type)) return SINGLE_COMMENDATIONS[c.type].threshold;
+  return c.tier ? COMMENDATION_THRESHOLDS[c.type][c.tier] : undefined;
+}
+
+/** Look of a medal: the metal of its tier, or the colour of a one-off commendation. */
+export function styleOf(c: Commendation): MedalStyle {
+  return isSingle(c.type) ? SINGLE_COMMENDATIONS[c.type].style : (c.tier ?? 'gold');
+}
+
+/** Translation key of the name of a medal. */
+export function nameKeyOf(c: { type: string; tier: string | null }): string {
+  return `commendations.${c.type}.${c.tier ?? 'name'}`;
 }
 
 /** Highest tier reached by a value; `null` when not even the lowest one. */
-export function tierFor(type: CommendationType, value: number): CommendationTier | null {
+export function tierFor(type: GradedCommendationType, value: number): CommendationTier | null {
   const thresholds = COMMENDATION_THRESHOLDS[type];
   const reached = (tier: CommendationTier) => {
     const threshold = thresholds[tier];
-    if (threshold === undefined) return false;
     return LOWER_IS_BETTER.has(type)
       ? value <= threshold
       : STRICTLY_ABOVE.has(type)
@@ -89,16 +133,14 @@ export function tierFor(type: CommendationType, value: number): CommendationTier
   return COMMENDATION_TIERS.find(reached) ?? null;
 }
 
-/** Most valuable first: gold before silver before bronze, then by type. */
+/** Most valuable first: one-off medals, then gold before silver before bronze, then by type. */
 export function compareCommendations(a: Commendation, b: Commendation): number {
-  return (
-    COMMENDATION_TIERS.indexOf(a.tier) - COMMENDATION_TIERS.indexOf(b.tier) ||
-    COMMENDATION_TYPES.indexOf(a.type) - COMMENDATION_TYPES.indexOf(b.type)
-  );
+  const rank = (c: Commendation) => (c.tier ? 1 + COMMENDATION_TIERS.indexOf(c.tier) : 0);
+  return rank(a) - rank(b) || COMMENDATION_TYPES.indexOf(a.type) - COMMENDATION_TYPES.indexOf(b.type);
 }
 
 export function emblemOf(c: Commendation): CommendationEmblem {
-  return `${c.type}-${c.tier}`;
+  return (c.tier ? `${c.type}-${c.tier}` : c.type) as CommendationEmblem;
 }
 
 /**
@@ -107,7 +149,7 @@ export function emblemOf(c: Commendation): CommendationEmblem {
  */
 export function awardCommendations(period: HistoryPeriod): Map<string, Commendation[]> {
   const awards = new Map<string, Commendation[]>();
-  const give = (tag: string, type: CommendationType, value: number) => {
+  const give = (tag: string, type: GradedCommendationType, value: number) => {
     const tier = tierFor(type, value);
     if (tier) awards.set(tag, [...(awards.get(tag) ?? []), { type, tier }]);
   };
@@ -145,6 +187,90 @@ export function awardCommendations(period: HistoryPeriod): Map<string, Commendat
   return awards;
 }
 
+/** Map position of the enemy number 1, the top of the war map (`chiefHunter`). */
+export const CHIEF_POSITION = 1;
+
+/**
+ * One-off commendations of an ended war, one of each per player:
+ * - `chiefHunter`: three stars on the enemy number 1 ({@link CHIEF_POSITION}). The clan's attacks are
+ *   replayed in order: the first three-star on it always earns the medal; a later one only when the
+ *   clan already had every star of the war (`teamSize × 3`) before it, so a repeat hit counts once
+ *   nothing else was left to take, never when it wasted an attack;
+ * - `fortress`: attacked at least twice and never three-starred;
+ * - `perfectWar`: in a war won with every star, the players who three-starred with every attack they made.
+ */
+export function awardWarCommendations(war: HistoryWar): Map<string, Commendation[]> {
+  const awards = new Map<string, Commendation[]>();
+  const give = (tag: string, type: SingleCommendationType) => {
+    const items = awards.get(tag) ?? [];
+    if (!items.some((c) => c.type === type)) awards.set(tag, [...items, { type, tier: null }]);
+  };
+
+  const attacks = war.players
+    .flatMap((p) => p.attacks.map((a) => ({ ...a, tag: p.tag })))
+    .sort((a, b) => a.order - b.order);
+  const best = new Map<number, number>();
+  let stars = 0;
+  for (const a of attacks) {
+    if (a.defenderPosition === null) continue;
+    const before = best.get(a.defenderPosition) ?? 0;
+    const chief = a.defenderPosition === CHIEF_POSITION && a.stars === 3;
+    if (chief && (before < 3 || stars >= war.teamSize * 3)) give(a.tag, 'chiefHunter');
+    if (a.stars > before) {
+      stars += a.stars - before;
+      best.set(a.defenderPosition, a.stars);
+    }
+  }
+
+  const perfect = war.result === 'victory' && war.stars >= war.teamSize * 3;
+  for (const p of war.players) {
+    if (p.opponentAttacks >= SINGLE_COMMENDATIONS.fortress.threshold && p.starsConceded < 3) give(p.tag, 'fortress');
+    const flawless = p.attacks.length >= SINGLE_COMMENDATIONS.perfectWar.threshold && p.attacks.every((a) => a.stars === 3);
+    if (perfect && flawless) give(p.tag, 'perfectWar');
+  }
+  return awards;
+}
+
+/** The one-off commendations of some months of wars, with the month each one was last earned in. */
+export interface RecentWarCommendations {
+  /** Per player, each kind once. */
+  awards: Map<string, Commendation[]>;
+  /** Per player, the month (`YYYY-MM`) of the last war that earned each kind. */
+  months: Map<string, Partial<Record<CommendationType, string>>>;
+}
+
+/**
+ * The one-off commendations of the wars of some months (the last completed one and the one in
+ * progress), once per player and kind, with the most recent month each one was earned in
+ * ({@link awardWarCommendations} counts every war). Months missing (`null`) are skipped.
+ */
+export function recentWarCommendations(periods: readonly (HistoryPeriod | null)[]): RecentWarCommendations {
+  const awards = new Map<string, Commendation[]>();
+  const months = new Map<string, Partial<Record<CommendationType, string>>>();
+  const ordered = periods.filter((p): p is HistoryPeriod => p !== null).sort((a, b) => a.period.localeCompare(b.period));
+  for (const period of ordered) {
+    for (const war of period.wars) {
+      for (const [tag, items] of awardWarCommendations(war)) {
+        const known = awards.get(tag) ?? [];
+        awards.set(tag, [...known, ...items.filter((c) => !known.some((k) => k.type === c.type))]);
+        const earned = months.get(tag) ?? {};
+        for (const c of items) earned[c.type] = period.period;
+        months.set(tag, earned);
+      }
+    }
+  }
+  return { awards, months };
+}
+
+/** `legendTop` of the last Legend League season: its members among the first 10,000 of the world. */
+export function awardLegendCommendations(season: LatestLegendSeason): Map<string, Commendation[]> {
+  const awards = new Map<string, Commendation[]>();
+  for (const r of season.results) {
+    if (r.rank <= SINGLE_COMMENDATIONS.legendTop.threshold) awards.set(r.tag, [{ type: 'legendTop', tier: null }]);
+  }
+  return awards;
+}
+
 /** Commendations of a Raid Weekend (`capitalRaider`), by Capital Gold looted. */
 export function awardRaidCommendations(season: RaidSeason): Map<string, Commendation[]> {
   const awards = new Map<string, Commendation[]>();
@@ -163,8 +289,9 @@ export function awardCwlCommendations(season: CwlSeason): Map<string, Commendati
   const awards = new Map<string, Commendation[]>();
   for (const p of season.players) {
     const items: Commendation[] = [];
-    const allAttacks = p.attacks >= p.wars ? tierFor('cwlAllAttacks', p.wars) : null;
-    if (allAttacks) items.push({ type: 'cwlAllAttacks', tier: allAttacks });
+    if (p.attacks >= p.wars && p.wars >= SINGLE_COMMENDATIONS.cwlAllAttacks.threshold) {
+      items.push({ type: 'cwlAllAttacks', tier: null });
+    }
     const striker = p.attacks >= CWL_MIN_ATTACKS ? tierFor('cwlStriker', p.stars / p.attacks) : null;
     if (striker) items.push({ type: 'cwlStriker', tier: striker });
     if (items.length) awards.set(p.tag, items);
@@ -192,7 +319,7 @@ export function mergeCommendations(...maps: Map<string, Commendation[]>[]): Map<
   return merged;
 }
 
-/** How many times each player earned each medal (`<type>-<tier>`), over several periods. */
+/** How many times each player earned each medal ({@link emblemOf}), over several periods. */
 export type CommendationCounts = Map<string, Map<CommendationEmblem, number>>;
 
 /** Sums the commendations of several periods (each map: commendations per player tag). */

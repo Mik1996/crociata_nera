@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { reloadForChunkLoadError } from '../../../core/pwa/chunk-load-error';
+import { styleOf } from '../../../core/utils/commendations';
 import type { CommendationDialogData } from './commendation-dialog';
 
 /**
@@ -51,7 +52,7 @@ export class CommendationDialogOpener {
       return;
     }
     // The border takes the colour of the medal (grey when not earned yet).
-    const metal = data.count === 0 ? 'locked' : data.tier;
+    const metal = data.count === 0 ? 'locked' : styleOf(data);
     this.dialog.open(component, {
       data,
       width: '27.5rem',

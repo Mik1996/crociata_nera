@@ -93,15 +93,16 @@ export interface SignInRequest {
 
 /**
  * A commendation earned, as saved by the backend. Translated from `type` and `tier`
- * (`commendations.<type>.<tier>`).
+ * (`commendations.<type>.<tier>`, `commendations.<type>.name` when `tier` is `null`).
  */
 export interface EarnedCommendation {
   /** Unique id of the commendation (backend catalogue, e.g. `95000015`). */
   id: string;
-  /** `<type>-<tier>`, e.g. `capitalRaider-gold` (also the name of the medal image). */
+  /** `<type>-<tier>` (e.g. `capitalRaider-gold`), the type alone for a one-off commendation (also the name of the medal image). */
   name: string;
   type: string;
-  tier: string;
+  /** `null` for a one-off commendation. */
+  tier: string | null;
   quantity: number;
 }
 

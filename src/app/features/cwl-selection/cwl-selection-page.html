@@ -323,9 +323,9 @@
                       [attr.aria-label]="'cwlSelection.cwlCommendations' | translate"
                     >
                       @if (cwl.allAttacks) {
-                        @let allName = 'commendations.cwlAllAttacks.legendary' | translate;
+                        @let allName = 'commendations.cwlAllAttacks.name' | translate;
                         <li [matTooltip]="allName" [attr.aria-label]="allName">
-                          <crn-commendation-medal emblem="cwlAllAttacks-legendary" />
+                          <crn-commendation-medal emblem="cwlAllAttacks" />
                         </li>
                       }
                       @if (cwl.striker === 'gold') {

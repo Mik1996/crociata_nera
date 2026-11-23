@@ -26,6 +26,7 @@ export async function register(): Promise<void> {
   const { migrateBaseStatus } = await import('./modules/bases/defense-base.model');
   const { migrateSecondaryClanJoins } = await import('./modules/commendations/player.model');
   const { migrateCwlExclusionIndex } = await import('./modules/cwl/cwl-exclusion.model');
+  const { migrateSingleCommendations } = await import('./modules/commendations/commendation-sync.service');
   connectToDatabase()
     .then(migrateLinkedPlayers)
     .catch((error: unknown) => console.error('[migrations] linked players:', (error as Error).message));
@@ -41,4 +42,7 @@ export async function register(): Promise<void> {
   connectToDatabase()
     .then(migrateCwlExclusionIndex)
     .catch((error: unknown) => console.error('[migrations] CWL exclusion index:', (error as Error).message));
+  connectToDatabase()
+    .then(migrateSingleCommendations)
+    .catch((error: unknown) => console.error('[migrations] one-off commendations:', (error as Error).message));
 }

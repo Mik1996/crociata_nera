@@ -1,7 +1,9 @@
 @let name = nameKey | translate;
 <h2 mat-dialog-title class="title">
   <span class="title__name">{{ name }}</span>
-  <span class="title__tier tier--{{ data.tier }}">{{ 'commendations.tiers.' + data.tier | translate }}</span>
+  @if (data.tier) {
+    <span class="title__tier tier--{{ data.tier }}">{{ 'commendations.tiers.' + data.tier | translate }}</span>
+  }
 </h2>
 
 <mat-dialog-content class="content">

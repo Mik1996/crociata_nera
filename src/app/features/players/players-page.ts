@@ -11,7 +11,7 @@ import { LocalNumberPipe } from '../../core/i18n/locale-pipes';
 import { MemberStatsRow } from '../../core/models';
 import { CommendationService } from '../../core/services/commendation.service';
 import { PlayerService } from '../../core/services/player.service';
-import { emblemOf } from '../../core/utils/commendations';
+import { emblemOf, nameKeyOf } from '../../core/utils/commendations';
 import { Icon } from '../../shared/components/icon/icon';
 import { LoadState } from '../../shared/components/load-state/load-state';
 import { Meter } from '../../shared/components/meter/meter';
@@ -71,6 +71,7 @@ export class PlayersPage {
   );
   protected readonly roleKey = roleKey;
   protected readonly emblemOf = emblemOf;
+  protected readonly nameKeyOf = nameKeyOf;
   protected readonly columns = [
     'league',
     'townHall',

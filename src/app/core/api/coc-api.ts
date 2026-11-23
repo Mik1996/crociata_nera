@@ -2,6 +2,7 @@ import { Observable } from 'rxjs';
 import { TableQuery } from '../../shared/components/table/table-filters';
 import { TablePage } from '../../shared/components/table/table-page';
 import {
+  LatestLegendSeason,
   Clan,
   ClanRecords,
   CwlPlayerRow,
@@ -85,6 +86,12 @@ export abstract class CocApiService {
    * the donations made before leaving the clan), most recent first, the one in progress included.
    */
   abstract getDonationSeasons(limit?: number): Observable<DonationSeason[]>;
+
+  /**
+   * The last processed Legend League season with the members among the first 10,000 of the world
+   * (saved by the backend); `null` before the first one.
+   */
+  abstract getLatestLegendSeason(): Observable<LatestLegendSeason | null>;
 
   /** Full profile of a clan member (heroes, troops, achievements…); `null` if not a member. */
   abstract getPlayer(tag: string): Observable<PlayerProfile | null>;

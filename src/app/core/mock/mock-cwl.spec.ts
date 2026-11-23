@@ -38,9 +38,9 @@ describe('mock Clan War League and Raid Weekends', () => {
       expect(tiers.has('silver') || tiers.has('bronze')).toBe(true);
     });
 
-    it('Templare Nero never misses an attack (legendary cwlAllAttacks); some players do', () => {
+    it('Templare Nero never misses an attack (one-off cwlAllAttacks); some players do', () => {
       const awards = awardCwlCommendations(seasons[1]);
-      expect(awards.get(leader.tag)).toContainEqual({ type: 'cwlAllAttacks', tier: 'legendary' });
+      expect(awards.get(leader.tag)).toContainEqual({ type: 'cwlAllAttacks', tier: null });
       const allAttacks = (tag: string) => awards.get(tag)?.some((c) => c.type === 'cwlAllAttacks') ?? false;
       const lineUp = seasons[1].players.filter((p) => p.wars >= 3);
       expect(lineUp.some((p) => allAttacks(p.tag))).toBe(true);

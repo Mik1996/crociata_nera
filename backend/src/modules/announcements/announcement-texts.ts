@@ -1,11 +1,16 @@
-import { CommendationTier, CommendationType } from '@/modules/commendations/commendation-rules';
+import {
+  Commendation,
+  CommendationTier,
+  GradedCommendationType,
+  SingleCommendationType,
+} from '@/modules/commendations/commendation-rules';
 import type { RecordName } from './announcement-data';
 import type { AnnouncementKind } from './announcement.model';
 
 /**
  * Words of the announcements (captions and pictures) in the languages of the site: they follow the
  * language the administrator is looking at, and the post goes out in it. Names of the commendations
- * and records as in `public/i18n/*.json` (`commendations.<type>.<tier>`, `welcome.records.*`): keep
+ * and records as in `public/i18n/*.json` (`commendations.<type>.<tier>` or `.name`, `welcome.records.*`): keep
  * them in step.
  */
 
@@ -14,7 +19,15 @@ export type AnnouncementLanguage = (typeof ANNOUNCEMENT_LANGUAGES)[number];
 /** The language of the channel when none is given. */
 export const DEFAULT_ANNOUNCEMENT_LANGUAGE: AnnouncementLanguage = 'it-IT';
 
-type CommendationLabels = Readonly<Record<CommendationType, Partial<Record<CommendationTier, string>>>>;
+/** A name per tier for the graded commendations, one name for the one-off ones. */
+type CommendationLabels = Readonly<Record<GradedCommendationType, Readonly<Record<CommendationTier, string>>>> &
+  Readonly<Record<SingleCommendationType, string>>;
+
+/** Name of a medal in the language of the texts. */
+export function commendationLabel(t: AnnouncementTexts, c: Commendation): string {
+  const label: string | Readonly<Record<CommendationTier, string>> = t.commendations[c.type];
+  return typeof label === 'string' ? label : c.tier ? label[c.tier] : c.type;
+}
 
 /** Everything an announcement writes, in one language. */
 export interface AnnouncementTexts {
@@ -248,7 +261,11 @@ function days(locale: string) {
 const ITALIAN: AnnouncementTexts = {
   language: 'it-IT',
   commendations: {
-    cwlAllAttacks: { legendary: 'Certezza di Lega' },
+    cwlAllAttacks: 'Certezza di Lega',
+    chiefHunter: 'Cacciatore di Capi',
+    fortress: 'Fortezza Inespugnabile',
+    perfectWar: 'Guerra Perfetta',
+    legendTop: 'Tra i Diecimila',
     champion: { bronze: 'Valoroso', silver: 'Condottiero', gold: 'Signore della Guerra' },
     perfect: { bronze: 'Mano Ferma', silver: 'Spada Implacabile', gold: 'Lama Infallibile' },
     giantSlayer: { bronze: 'Temerario', silver: 'Cacciatore di Giganti', gold: 'Flagello dei Titani' },
@@ -259,7 +276,7 @@ const ITALIAN: AnnouncementTexts = {
     tireless: { bronze: 'Soldato Fedele', silver: 'Veterano Instancabile', gold: 'Braccio Indomito' },
     present: { bronze: "Presente all'Appello", silver: 'Pilastro del Clan', gold: 'Sempre in Prima Linea' },
   },
-  tiers: { legendary: 'Leggendario', gold: 'Oro', silver: 'Argento', bronze: 'Bronzo' },
+  tiers: { gold: 'Oro', silver: 'Argento', bronze: 'Bronzo' },
   records: {
     perfectWars: 'Guerre perfette',
     warWinStreak: 'Serie di vittorie in guerra',
@@ -479,7 +496,11 @@ const ITALIAN: AnnouncementTexts = {
 const ENGLISH: AnnouncementTexts = {
   language: 'en-US',
   commendations: {
-    cwlAllAttacks: { legendary: 'League Certainty' },
+    cwlAllAttacks: 'League Certainty',
+    chiefHunter: 'Chief Hunter',
+    fortress: 'Impregnable Fortress',
+    perfectWar: 'Perfect War',
+    legendTop: 'Among the Ten Thousand',
     champion: { bronze: 'Valiant', silver: 'Commander', gold: 'Warlord' },
     perfect: { bronze: 'Steady Hand', silver: 'Relentless Sword', gold: 'Unerring Blade' },
     giantSlayer: { bronze: 'Daring', silver: 'Giant Hunter', gold: 'Bane of Titans' },
@@ -490,7 +511,7 @@ const ENGLISH: AnnouncementTexts = {
     tireless: { bronze: 'Loyal Soldier', silver: 'Tireless Veteran', gold: 'Indomitable Arm' },
     present: { bronze: 'At Roll Call', silver: 'Pillar of the Clan', gold: 'Always on the Front Line' },
   },
-  tiers: { legendary: 'Legendary', gold: 'Gold', silver: 'Silver', bronze: 'Bronze' },
+  tiers: { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' },
   records: {
     perfectWars: 'Perfect wars',
     warWinStreak: 'War win streak',
@@ -709,7 +730,11 @@ const ENGLISH: AnnouncementTexts = {
 const SPANISH: AnnouncementTexts = {
   language: 'es-ES',
   commendations: {
-    cwlAllAttacks: { legendary: 'Certeza de Liga' },
+    cwlAllAttacks: 'Certeza de Liga',
+    chiefHunter: 'Cazador de Jefes',
+    fortress: 'Fortaleza Inexpugnable',
+    perfectWar: 'Guerra Perfecta',
+    legendTop: 'Entre los Diez Mil',
     champion: { bronze: 'Valeroso', silver: 'Caudillo', gold: 'Señor de la Guerra' },
     perfect: { bronze: 'Mano Firme', silver: 'Espada Implacable', gold: 'Hoja Infalible' },
     giantSlayer: { bronze: 'Temerario', silver: 'Cazador de Gigantes', gold: 'Azote de Titanes' },
@@ -720,7 +745,7 @@ const SPANISH: AnnouncementTexts = {
     tireless: { bronze: 'Soldado Fiel', silver: 'Veterano Incansable', gold: 'Brazo Indómito' },
     present: { bronze: 'Presente en la Llamada', silver: 'Pilar del Clan', gold: 'Siempre en Primera Línea' },
   },
-  tiers: { legendary: 'Legendario', gold: 'Oro', silver: 'Plata', bronze: 'Bronce' },
+  tiers: { gold: 'Oro', silver: 'Plata', bronze: 'Bronce' },
   records: {
     perfectWars: 'Guerras perfectas',
     warWinStreak: 'Racha de victorias en guerra',

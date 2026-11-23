@@ -3,20 +3,27 @@ import {
   awardCommendations,
   awardCwlCommendations,
   awardDonationCommendations,
+  awardLegendCommendations,
   awardRaidCommendations,
+  awardWarCommendations,
   compareCommendations,
   countCommendations,
   mergeCommendations,
   previousMonth,
+  recentWarCommendations,
   tierFor,
-  tiersOf,
+  emblemOf,
+  medalsOf,
+  nameKeyOf,
+  styleOf,
+  thresholdOf,
 } from './commendations';
 import { aggregateHistoryPlayers } from './monthly-history';
 
 type PlayerSpec = Partial<HistoryWarPlayer> & { tag: string; stars?: number[] };
 
 function attack(stars: number, defenderTownHall = 16): HistoryAttack {
-  return { stars, destruction: stars === 3 ? 100 : 60, defenderTownHall, defenderPosition: 1 };
+  return { stars, destruction: stars === 3 ? 100 : 60, defenderTownHall, defenderPosition: 1, order: 0 };
 }
 
 function war(day: number, players: PlayerSpec[]): HistoryWar {
@@ -50,7 +57,7 @@ function period(wars: HistoryWar[]): HistoryPeriod {
 }
 
 /** Tier earned by each player for a type (`undefined` when none). */
-function tierOf(wars: HistoryWar[], tag: string, type: CommendationType): CommendationTier | undefined {
+function tierOf(wars: HistoryWar[], tag: string, type: CommendationType): CommendationTier | null | undefined {
   return awardCommendations(period(wars)).get(tag)?.find((c) => c.type === type)?.tier;
 }
 
@@ -204,28 +211,26 @@ describe('Raid Weekend, CWL and donation commendations', () => {
     expect(striker('#GOOD')).toEqual([{ type: 'cwlStriker', tier: 'silver' }]);
   });
 
-  it('awards the legendary cwlAllAttacks to who attacked every day in the line-up, with at least 3 days', () => {
+  it('awards the one-off cwlAllAttacks to who attacked every day in the line-up, with at least 3 days', () => {
     const player = (tag: string, wars: number, attacks: number) =>
       ({ tag, name: tag, townHall: 16, wars, attacks, stars: attacks, threeStars: 0, averageStars: 0, averageDestruction: 0 });
     const season = {
       players: [player('#ALL7', 7, 7), player('#ALL3', 3, 3), player('#TWO', 2, 2), player('#MISSED', 7, 6)],
     } as CwlSeason;
     const awards = awardCwlCommendations(season);
-    const legendary = { type: 'cwlAllAttacks', tier: 'legendary' };
-    expect(awards.get('#ALL7')).toContainEqual(legendary);
-    expect(awards.get('#ALL3')).toContainEqual(legendary);
+    const allAttacks = { type: 'cwlAllAttacks', tier: null };
+    expect(awards.get('#ALL7')).toContainEqual(allAttacks);
+    expect(awards.get('#ALL3')).toContainEqual(allAttacks);
     expect(awards.has('#TWO')).toBe(false);
-    expect(awards.get('#MISSED') ?? []).not.toContainEqual(legendary);
-    expect(tiersOf('cwlAllAttacks')).toEqual(['legendary']);
-    expect(tiersOf('donor')).toEqual(['gold', 'silver', 'bronze']);
+    expect(awards.get('#MISSED') ?? []).not.toContainEqual(allAttacks);
   });
 
-  it('a legendary commendation comes before any gold one', () => {
+  it('a one-off commendation comes before any gold one', () => {
     const merged = mergeCommendations(
       new Map([['#A', [{ type: 'champion' as const, tier: 'gold' as const }]]]),
-      new Map([['#A', [{ type: 'cwlAllAttacks' as const, tier: 'legendary' as const }]]]),
+      new Map([['#A', [{ type: 'cwlAllAttacks' as const, tier: null }]]]),
     );
-    expect(merged.get('#A')!.map((c) => c.tier)).toEqual(['legendary', 'gold']);
+    expect(merged.get('#A')!.map((c) => c.type)).toEqual(['cwlAllAttacks', 'champion']);
   });
 
   it('donors need at least 5 000, 7 500 and 10 000 troops', () => {
@@ -256,6 +261,119 @@ describe('Raid Weekend, CWL and donation commendations', () => {
       { type: 'cwlStriker', tier: 'silver' },
       { type: 'present', tier: 'silver' },
     ]);
+  });
+});
+
+describe('chiefHunter (three stars on the enemy number 1)', () => {
+  /** A 2v2 war (6 stars) from attacks `[attacker, defender position, stars]` in order. */
+  function chiefWar(...attacks: [string, number, number][]): HistoryWar {
+    return war(4, [{ tag: '#A' }, { tag: '#B' }].map((p) => ({
+      ...p,
+      attacks: attacks.flatMap(([attacker, defenderPosition, stars], order) =>
+        attacker === p.tag ? [{ ...attack(stars), defenderPosition, order: order + 1 }] : [],
+      ),
+    })));
+  }
+  const hunters = (w: HistoryWar) => [...awardWarCommendations(w)].map(([tag, items]) => [tag, items]);
+  const medal = [{ type: 'chiefHunter', tier: null }];
+
+  it('goes to the first three stars on the number 1', () => {
+    expect(hunters(chiefWar(['#A', 1, 2], ['#B', 1, 3]))).toEqual([['#B', medal]]);
+    expect(hunters(chiefWar(['#A', 2, 3], ['#A', 1, 2]))).toEqual([]);
+    expect(medalsOf('chiefHunter')).toEqual([{ type: 'chiefHunter', tier: null }]);
+  });
+
+  it('a repeat three stars on the number 1 only once every star of the war was taken', () => {
+    expect(hunters(chiefWar(['#A', 1, 3], ['#B', 1, 3], ['#B', 2, 3]))).toEqual([['#A', medal]]);
+    expect(hunters(chiefWar(['#A', 1, 3], ['#A', 2, 3], ['#B', 1, 3]))).toEqual([['#A', medal], ['#B', medal]]);
+  });
+
+  it('replays the attacks in war order, one medal per player and war', () => {
+    expect(hunters(chiefWar(['#B', 1, 3], ['#A', 1, 3]))).toEqual([['#B', medal]]);
+    expect(hunters(chiefWar(['#A', 1, 3], ['#B', 2, 3], ['#A', 1, 3]))).toEqual([['#A', medal]]);
+  });
+
+  it('lists it once in the recent months, however many wars earned it', () => {
+    const month = period([chiefWar(['#A', 1, 3]), chiefWar(['#A', 1, 3])]);
+    expect([...recentWarCommendations([month]).awards]).toEqual([['#A', medal]]);
+  });
+});
+
+describe('fortress and perfectWar (one-off medals of a war)', () => {
+  // The fixtures' attacks hit the enemy number 1 (they also earn chiefHunter): only these two kinds are looked at.
+  const kinds = (items: { type: string }[]) => items.map((c) => c.type).filter((type) => type !== 'chiefHunter');
+  const typesOf = (w: HistoryWar, tag: string) => kinds(awardWarCommendations(w).get(tag) ?? []);
+
+  it('fortress: attacked at least twice and never three-starred', () => {
+    const w = war(4, [
+      { tag: '#WALL', opponentAttacks: 2, starsConceded: 2 },
+      { tag: '#FALLEN', opponentAttacks: 3, starsConceded: 3 },
+      { tag: '#QUIET', opponentAttacks: 1, starsConceded: 0 },
+    ]);
+    expect(typesOf(w, '#WALL')).toEqual(['fortress']);
+    expect(typesOf(w, '#FALLEN')).toEqual([]);
+    expect(typesOf(w, '#QUIET')).toEqual([]);
+  });
+
+  it('perfectWar: three stars with every attack, in a war won with every star', () => {
+    const players = [
+      { tag: '#IN', stars: [3, 3], opponentAttacks: 0 },
+      { tag: '#OUT', opponentAttacks: 0 },
+      { tag: '#SHORT', stars: [3, 2], opponentAttacks: 0 },
+    ];
+    const perfect = { ...war(4, players), stars: 9 };
+    expect(typesOf(perfect, '#IN')).toEqual(['perfectWar']);
+    expect(typesOf(perfect, '#OUT')).toEqual([]);
+    expect(typesOf(perfect, '#SHORT')).toEqual([]);
+    expect(typesOf({ ...perfect, stars: 8 }, '#IN')).toEqual([]);
+    expect(typesOf({ ...perfect, result: 'draw' }, '#IN')).toEqual([]);
+  });
+
+  it('the recent months list each kind once per player, keeping every kind earned', () => {
+    const fortress = war(4, [{ tag: '#A', opponentAttacks: 2, starsConceded: 1 }]);
+    const perfect = { ...war(5, [{ tag: '#A', stars: [3], opponentAttacks: 0 }]), stars: 3 };
+    const month = period([fortress, perfect, fortress]);
+    expect(kinds(recentWarCommendations([month]).awards.get('#A')!)).toEqual(['fortress', 'perfectWar']);
+  });
+
+  it('the last completed month and the one in progress, each kind with the last month it was earned in', () => {
+    const fortress = war(4, [{ tag: '#A', opponentAttacks: 2, starsConceded: 1 }]);
+    const october = period([fortress]);
+    const november = { ...period([fortress]), period: '2026-11' };
+    // Given in any order; a month without wars (null) is skipped.
+    const recent = recentWarCommendations([november, null, october]);
+    expect(kinds(recent.awards.get('#A')!)).toEqual(['fortress']);
+    expect(recent.months.get('#A')!.fortress).toBe('2026-11');
+    expect(recentWarCommendations([october]).months.get('#A')!.fortress).toBe('2026-10');
+  });
+
+  it('legendTop: the members of the last Legend League season among the first 10,000', () => {
+    const season = {
+      seasonId: 'v2-2026-10-26T05:00:00Z',
+      endTime: '2026-10-26T05:00:00.000Z',
+      results: [{ tag: '#TOP', name: 'Top', clanTag: '#C', rank: 812 }],
+    };
+    expect([...awardLegendCommendations(season)]).toEqual([['#TOP', [{ type: 'legendTop', tier: null }]]]);
+  });
+});
+
+describe('medals and their look', () => {
+  it('a graded commendation has bronze, silver and gold in the metal of each tier', () => {
+    expect(medalsOf('donor').map((m) => m.tier)).toEqual(['gold', 'silver', 'bronze']);
+    expect(medalsOf('donor').map(styleOf)).toEqual(['gold', 'silver', 'bronze']);
+    expect(emblemOf({ type: 'donor', tier: 'gold' })).toBe('donor-gold');
+    expect(nameKeyOf({ type: 'donor', tier: 'gold' })).toBe('commendations.donor.gold');
+    expect(thresholdOf({ type: 'donor', tier: 'silver' })).toBe(7_500);
+  });
+
+  it('a one-off commendation has one medal, no tier, its own colour', () => {
+    const allAttacks = { type: 'cwlAllAttacks' as const, tier: null };
+    const hunter = { type: 'chiefHunter' as const, tier: null };
+    expect(medalsOf('cwlAllAttacks')).toEqual([allAttacks]);
+    expect([styleOf(allAttacks), styleOf(hunter)]).toEqual(['crimson', 'sapphire']);
+    expect([emblemOf(allAttacks), emblemOf(hunter)]).toEqual(['cwlAllAttacks', 'chiefHunter']);
+    expect(nameKeyOf(hunter)).toBe('commendations.chiefHunter.name');
+    expect(thresholdOf(allAttacks)).toBe(3);
   });
 });
 

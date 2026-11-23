@@ -28,6 +28,15 @@ describe('CommendationDialog', () => {
     expect(fallback.classList).not.toContain('fallback--locked');
   });
 
+  it('shows a one-off commendation with its name and requirement, and no tier', async () => {
+    const el = await render({ type: 'chiefHunter', tier: null, count: 2 });
+
+    expect(el.querySelector('.title')!.textContent).toContain('Cacciatore di Capi');
+    expect(el.querySelector('.title__tier')).toBeNull();
+    expect(el.querySelector('.description')!.textContent).toContain('numero 1 avversario');
+    expect(el.querySelector('crn-medal-3d-viewer img.fallback')!.getAttribute('src')).toBe('commendations/chiefHunter.svg');
+  });
+
   it('shows a medal never earned as locked', async () => {
     const el = await render({ type: 'wall', tier: 'bronze', count: 0 });
 
