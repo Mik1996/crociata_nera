@@ -194,6 +194,7 @@ const HistoryAttack = model(
     destruction: percentage('Destruction, 0–100.'),
     defenderTownHall: z.number().int().nullable().describe('Town hall level of the defender; `null` when unknown.'),
     defenderPosition: z.number().int().nullable().describe('Map position of the defender; `null` when unknown.'),
+    order: z.number().int().describe('Order of the attack in the war, counting the attacks of both clans.'),
   }),
 );
 

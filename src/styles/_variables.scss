@@ -28,3 +28,7 @@ $radius-xl: 1rem; // 16px: large panels and dialogs
 // Fully rounded shapes. A circle (square box) is `border-radius: 50%`. A pill (wider than tall)
 // needs a radius longer than its short side instead: 50% would turn it into an ellipse.
 $radius-pill: 50rem;
+
+// Colours of the one-off commendations (`MedalStyle` minus the tiers): each one has its palette tokens
+// `--cn-medal-<style>`, `-light`, `-dark` and `--cn-commendation-<style>-panel`.
+$single-medal-styles: crimson, sapphire, emerald, pearl, obsidian; // color-lint: allow (names of medal styles, not colour values)

@@ -29,8 +29,8 @@ describe('CommendationService history', () => {
     // weekend one more would be in progress, not counted yet) and ended CWL seasons.
     expect(counts.get('capitalRaider-gold')).toBe(8);
     expect(counts.get('cwlStriker-gold')).toBe(2);
-    // The leader never misses a CWL attack: the legendary medal of every ended season.
-    expect(counts.get('cwlAllAttacks-legendary')).toBe(2);
+    // The leader never misses a CWL attack: the one-off medal of every ended season.
+    expect(counts.get('cwlAllAttacks')).toBe(2);
     // Five ended game seasons; November counts too, but on the 4th the leader has not reached a tier yet.
     expect(counts.get('donor-gold')).toBe(5);
   });
@@ -55,6 +55,22 @@ describe('CommendationService history', () => {
     // Season almost over: the leader has donated past the gold threshold.
     const late = await leaderMedals('2026-11-30T20:00:00Z');
     expect(late.items).toContainEqual({ type: 'donor', tier: 'gold' });
+  });
+
+  it('shows the one-off medals of the last Legend League season and of the wars of this month too', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-20T12:00:00Z'));
+    TestBed.configureTestingModule({ providers: [provideCocApiTest()] });
+    const clan = await firstValueFrom(TestBed.inject(CocApiService).getClan());
+    const leader = clan.members.find((m) => m.name === 'Templare Nero')!;
+
+    const medals = await firstValueFrom(TestBed.inject(CommendationService).forPlayer(leader.tag));
+    // The mock leader ended the last Legend League season (Monday 16 November) among the first 10,000.
+    expect(medals.items).toContainEqual({ type: 'legendTop', tier: null });
+    expect(medals.legendSeason?.endTime).toBe('2026-11-16T05:00:00.000Z');
+    // The leader holds the enemy number 1 every month: the medal is dated with the month in progress.
+    expect(medals.items).toContainEqual({ type: 'chiefHunter', tier: null });
+    expect(medals.warMonths?.chiefHunter).toBe('2026-11');
   });
 
   it('with the backend, reads the commendations saved for the player (frozen when awarded)', async () => {

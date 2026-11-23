@@ -1,10 +1,11 @@
 import { CRUSADE_CLAN_NAMES, periodSuffix, primaryClanTag } from '@/lib/coc/crusade-clans';
 import { CommendationAwardModel } from '@/modules/commendations/commendation-award.model';
 import {
-  COMMENDATION_TIERS,
   COMMENDATION_TYPES,
+  commendationName,
   CommendationTier,
   CommendationType,
+  medalsOf,
   MIN_WARS,
 } from '@/modules/commendations/commendation-rules';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
@@ -15,7 +16,8 @@ import { compareForRanking, getPeriod, HistoryPeriod, monthBounds } from '@/modu
 /** Players awarded one commendation in the period (`times` > 1: earned in more Raid Weekends). */
 export interface Honour {
   type: CommendationType;
-  tier: CommendationTier;
+  /** `null` for a one-off commendation. */
+  tier: CommendationTier | null;
   players: { name: string; times: number }[];
 }
 
@@ -212,7 +214,7 @@ async function honoursOf(periodKeys: string[], playerTags?: ReadonlySet<string>)
   const groups = new Map<string, Map<string, { name: string; times: number }>>();
   for (const award of awards) {
     if (playerTags && !playerTags.has(award.playerTag)) continue;
-    const id = `${award.type}-${award.tier}`;
+    const id = commendationName({ type: award.type as CommendationType, tier: (award.tier ?? null) as CommendationTier | null });
     const players = groups.get(id) ?? new Map<string, { name: string; times: number }>();
     const player = players.get(award.playerTag) ?? { name: award.playerName, times: 0 };
     player.name = award.playerName;
@@ -222,12 +224,11 @@ async function honoursOf(periodKeys: string[], playerTags?: ReadonlySet<string>)
   }
   const honours: Honour[] = [];
   for (const type of COMMENDATION_TYPES) {
-    for (const tier of COMMENDATION_TIERS) {
-      const players = groups.get(`${type}-${tier}`);
+    for (const medal of medalsOf(type)) {
+      const players = groups.get(commendationName(medal));
       if (!players?.size) continue;
       honours.push({
-        type,
-        tier,
+        ...medal,
         players: [...players.values()].sort((a, b) => b.times - a.times || a.name.localeCompare(b.name, 'it')),
       });
     }
@@ -237,7 +238,7 @@ async function honoursOf(periodKeys: string[], playerTags?: ReadonlySet<string>)
 
 const round = (value: number, decimals = 1) => Math.round(value * 10 ** decimals) / 10 ** decimals;
 
-/** The month of a clan: wars, Raid Weekends started in it, commendations of both. */
+/** The month of a clan: wars, Raid Weekends started in it, commendations of the month, its wars and its Raid Weekends. */
 export async function buildMonthData(clanTag: string, month: string): Promise<MonthData> {
   const suffix = periodSuffix(clanTag);
   let period: HistoryPeriod | null = null;
@@ -282,7 +283,11 @@ export async function buildMonthData(clanTag: string, month: string): Promise<Mo
       }
     : null;
 
-  const keys = [`month:${month}${suffix}`, ...raids.map((r) => `raid:${r.startTime.toISOString()}${suffix}`)];
+  const keys = [
+    `month:${month}${suffix}`,
+    ...(period?.wars ?? []).map((w) => `war:${w.id}${suffix}`),
+    ...raids.map((r) => `raid:${r.startTime.toISOString()}${suffix}`),
+  ];
   return {
     kind: 'month',
     clanTag,

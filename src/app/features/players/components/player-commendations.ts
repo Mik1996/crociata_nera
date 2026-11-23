@@ -4,16 +4,25 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { CommendationTier, CommendationType } from '../../../core/models';
+import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
-import { COMMENDATION_THRESHOLDS, COMMENDATION_TYPES, emblemOf, tiersOf } from '../../../core/utils/commendations';
+import {
+  COMMENDATION_TYPES,
+  emblemOf,
+  isSingle,
+  medalsOf,
+  nameKeyOf,
+  styleOf,
+  thresholdOf,
+} from '../../../core/utils/commendations';
 import { LoadState } from '../../../shared/components/load-state/load-state';
 import { Medal3dImage } from '../../../shared/medal-3d/medal-3d-image';
 import { CommendationDialogOpener } from './open-commendation-dialog';
 
 /**
  * "Commendations" tab of the player page: every medal (bronze, silver and gold of each
- * commendation, or its single legendary medal) with how many times the player earned it;
- * medals never earned are shown in greyscale.
+ * commendation, or the single medal of a one-off one, in its own colour) with how many times the
+ * player earned it; medals never earned are shown in greyscale.
  */
 @Component({
   selector: 'crn-player-commendations',
@@ -40,19 +49,23 @@ export class PlayerCommendations {
 
   /**
    * One row per commendation, bronze → gold (read from left to right), with the count of each
-   * medal. A one-off commendation has a single, legendary medal.
+   * medal. A one-off commendation has a single medal, on a panel of its colour (`style`).
    */
   protected readonly rows = computed(() => {
-    const counts = new Map(this.earned().map((c) => [`${c.type}-${c.tier}`, c.quantity]));
+    const counts = new Map(this.earned().map((c) => [medalName(c), c.quantity]));
     return COMMENDATION_TYPES.map((type) => ({
       type,
-      legendary: tiersOf(type).includes('legendary'),
-      medals: tiersOf(type).reverse().map((tier) => ({
-        tier,
-        emblem: emblemOf({ type, tier }),
-        threshold: COMMENDATION_THRESHOLDS[type][tier],
-        count: counts.get(emblemOf({ type, tier })) ?? 0,
-      })),
+      style: isSingle(type) ? styleOf({ type, tier: null }) : null,
+      medals: medalsOf(type)
+        .reverse()
+        .map((medal) => ({
+          tier: medal.tier,
+          emblem: emblemOf(medal),
+          nameKey: nameKeyOf(medal),
+          style: styleOf(medal),
+          threshold: thresholdOf(medal),
+          count: counts.get(emblemOf(medal)) ?? 0,
+        })),
     }));
   });
 
@@ -63,13 +76,20 @@ export class PlayerCommendations {
    */
   protected readonly others = computed(() => {
     const known = new Set(this.rows().flatMap((r) => r.medals.map((m) => m.emblem as string)));
-    return this.earned().filter((c) => !known.has(`${c.type}-${c.tier}`));
+    return this.earned().filter((c) => !known.has(medalName(c)));
   });
+
+  protected readonly nameKeyOf = nameKeyOf;
 
   protected readonly total = computed(() => this.earned().reduce((sum, c) => sum + c.quantity, 0));
 
   /** Opens the medal in 3D. */
-  protected open3d(type: CommendationType, tier: CommendationTier, count: number): Promise<void> {
+  protected open3d(type: CommendationType, tier: CommendationTier | null, count: number): Promise<void> {
     return this.medalDialog.open({ type, tier, count });
   }
+}
+
+/** Name of a saved medal (its image): `<type>-<tier>`, the type alone for a one-off commendation. */
+function medalName(c: EarnedCommendation): string {
+  return c.tier ? `${c.type}-${c.tier}` : c.type;
 }

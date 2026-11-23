@@ -960,15 +960,31 @@
     "title": "Encomi",
     "short": "Encomi del mese scorso",
     "dialogUnavailable": "Impossibile aprire la medaglia: controlla la connessione e riprova.",
+    "legendSeasonPeriod": "Lega Leggenda, {{date}}",
     "tiers": {
       "gold": "Oro",
       "silver": "Argento",
-      "bronze": "Bronzo",
-      "legendary": "Leggendario"
+      "bronze": "Bronzo"
     },
     "cwlAllAttacks": {
-      "legendary": "Certezza di Lega",
+      "name": "Certezza di Lega",
       "description": "Tutti gli attacchi eseguiti nell'ultima CWL, schierato in almeno {{n}} giornate."
+    },
+    "chiefHunter": {
+      "name": "Cacciatore di Capi",
+      "description": "3 stelle sul numero 1 avversario in una guerra. Se era già stato distrutto, vale solo dopo aver preso tutte le stelle della guerra."
+    },
+    "fortress": {
+      "name": "Fortezza Inespugnabile",
+      "description": "In una guerra, attaccato almeno {{n}} volte senza mai concedere 3 stelle."
+    },
+    "perfectWar": {
+      "name": "Guerra Perfetta",
+      "description": "3 stelle con ogni attacco in una guerra vinta con tutte le stelle."
+    },
+    "legendTop": {
+      "name": "Tra i Diecimila",
+      "description": "Stagione della Lega Leggenda conclusa tra i primi {{n}} del mondo."
     },
     "champion": {
       "bronze": "Valoroso",

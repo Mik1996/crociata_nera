@@ -111,6 +111,7 @@ export const ACCESS_SPEC: Record<string, Rule> = {
   'GET /raids/seasons': { access: 'clan', probe: ok },
   'GET /raids/seasons/{startTime}/members': { access: 'clan', probe: ok },
   'GET /donations/seasons': { access: 'clan', probe: ok },
+  'GET /legends/seasons/latest': { access: 'clan', probe: ok },
   'GET /bases': { access: 'clan', probe: ok },
   'GET /bases/{id}': { access: 'clan', probe: { path: `/bases/${NO_ID}`, status: 404 } },
   'POST /base-proposals': { access: 'clan', probe: invalid() },

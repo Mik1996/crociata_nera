@@ -1,7 +1,8 @@
 import sharp from 'sharp';
 import { readSiteAsset } from '@/lib/assets/site-assets';
 import { AnnouncementData, CwlData, DonationsData, Honour, LegendSeasonData, LineupData, MonthData, PromotionData, RaidData, raidMedals, RecordData, WarData } from '../announcement-data';
-import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from '../announcement-texts';
+import { commendationName } from '@/modules/commendations/commendation-rules';
+import { AnnouncementLanguage, AnnouncementTexts, announcementTexts, commendationLabel } from '../announcement-texts';
 import { promotionLook, seededRandom } from './promotion-look';
 import { IRON_THEME as T } from './announcement-theme';
 import { SvgText } from './svg-text';
@@ -612,7 +613,7 @@ async function lineupBody(text: SvgText, t: AnnouncementTexts, data: LineupData)
 }
 
 /**
- * The commendations, one row each (medal, name, tier, players), on as many pages as needed.
+ * The commendations, one row each (medal, name, tier if graded, players), on as many pages as needed.
  * `page(n)` draws the frame of the n-th page (1-based); the rows are added to it.
  */
 async function honourPages(text: SvgText, t: AnnouncementTexts, honours: Honour[], page: (n: number) => string): Promise<string[]> {
@@ -631,12 +632,12 @@ async function honourPages(text: SvgText, t: AnnouncementTexts, honours: Honour[
       pages.push([]);
       y = CONTENT_TOP + 20;
     }
-    const medal = await picture(`commendations/${honour.type}-${honour.tier}.svg`, 2 * medalSize);
+    const medal = await picture(`commendations/${commendationName(honour)}.svg`, 2 * medalSize);
     const rows = pages.at(-1)!;
     rows.push(
       [
         image(medal, LEFT, y, medalSize),
-        text.draw(t.commendations[honour.type][honour.tier] ?? honour.type, {
+        text.draw(commendationLabel(t, honour), {
           font: 'title',
           size: 34,
           x: namesLeft,
@@ -645,7 +646,8 @@ async function honourPages(text: SvgText, t: AnnouncementTexts, honours: Honour[
           maxWidth: namesWidth - 170,
           minSize: 24,
         }),
-        text.draw(t.tiers[honour.tier].toUpperCase(), { font: 'semibold', size: 20, x: RIGHT - 16, y: y + 34, fill: T.muted, anchor: 'end' }),
+        // One-off commendations have no tier: no label.
+        honour.tier ? text.draw(t.tiers[honour.tier].toUpperCase(), { font: 'semibold', size: 20, x: RIGHT - 16, y: y + 34, fill: T.muted, anchor: 'end' }) : '',
         ...lines.map((line, i) =>
           text.draw(line, { font: 'regular', size: 28, x: namesLeft, y: y + 80 + i * lineHeight, fill: T.text }),
         ),

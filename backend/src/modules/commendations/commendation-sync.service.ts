@@ -3,17 +3,22 @@ import { env } from '@/lib/config/env';
 import { CocApiError, fetchClan } from '@/lib/coc/coc-client';
 import { crusadeClanTags, periodSuffix } from '@/lib/coc/crusade-clans';
 import { CwlSeasonModel } from '@/modules/cwl/cwl.model';
+import { LegendSeasonModel } from '@/modules/legends/legend-season.model';
 import { DonationSeasonRecord, endedSeasons, ongoingSeason, recordDonations } from '@/modules/donations/donation.service';
 import { RaidSeasonModel } from '@/modules/raids/raid.model';
-import { getPeriod, listMonths, monthOf } from '@/modules/wars/history.service';
+import { getPeriod, listMonths, monthOf, toHistoryWar } from '@/modules/wars/history.service';
 import { WarModel } from '@/modules/wars/war.model';
+import { AnnouncementModel } from '@/modules/announcements/announcement.model';
 import { CommendationAwardModel, CommendationPeriodModel } from './commendation-award.model';
 import {
   awardCwlCommendations,
   awardDonationCommendations,
+  awardLegendCommendations,
   awardMonthCommendations,
   awardRaidCommendations,
+  awardWarCommendations,
   Commendation,
+  WAR_COMMENDATION_TYPES,
   commendationId,
   commendationName,
   commendationOf,
@@ -39,6 +44,10 @@ interface ClosedPeriod {
   awards: Map<string, Commendation[]>;
   /** Player names, for players that are not current members anymore. */
   names: Map<string, string>;
+  /** War periods: every kind the war is now checked for (a war closed before may be checked again for new kinds only). */
+  kinds?: readonly string[];
+  /** Closed before and checked again (its data came later): its date and count are brought up to date. */
+  recheck?: boolean;
 }
 
 const memberSchema = z
@@ -73,7 +82,8 @@ export function previousMonth(now: Date): string {
 /**
  * 1. Updates the Clash of Clans data of the current members of the clans of the Crusade (`Players`).
  * 2. Awards the commendations of every period closed since the last run, in every clan of the
- *    Crusade (completed months, ended Raid Weekends with their members, ended CWL seasons), once: the period is then
+ *    Crusade (ended wars, completed months, ended Raid Weekends with their members, ended CWL seasons;
+ *    processed Legend League seasons for the whole Crusade), once: the period is then
  *    marked as processed and never recomputed, so the history survives rule changes.
  * 3. Awards `donor` during the game season, as soon as a tier is reached (raised later to the
  *    higher tiers); an ended season is frozen after one last pass.
@@ -96,6 +106,8 @@ export async function syncCommendations(now = new Date()): Promise<CommendationS
   }
 
   await migrateToCatalogueIds();
+  // Also at startup; here too, so awards saved by an older version still running are fixed.
+  await migrateSingleCommendations();
 
   const processed = new Set((await CommendationPeriodModel.find().select('periodKey')).map((p) => p.periodKey));
   for (const period of await closedPeriods(now, processed)) {
@@ -130,8 +142,9 @@ async function migrateToCatalogueIds(): Promise<void> {
   const legacy = await CommendationAwardModel.find({ type: { $exists: false } }).lean();
   const tags = new Set<string>();
   for (const award of legacy) {
-    const [type, tier] = award.commendationId.split('-') as [Commendation['type'], Commendation['tier']];
-    const commendation = commendationOf(award.commendationId) ?? { type, tier };
+    const [type, tier] = award.commendationId.split('-') as [Commendation['type'], string | undefined];
+    const graded = tier === 'bronze' || tier === 'silver' || tier === 'gold' ? tier : null;
+    const commendation = commendationOf(award.commendationId) ?? { type, tier: graded };
     await CommendationAwardModel.updateOne(
       { _id: award._id },
       { $set: { commendationId: commendationId(commendation), type: commendation.type, tier: commendation.tier }, $unset: { name: '' } },
@@ -235,6 +248,29 @@ export async function syncMembers(now = new Date()): Promise<MembersSyncResult> 
 async function closedPeriods(now: Date, processed: Set<string>): Promise<ClosedPeriod[]> {
   const periods: ClosedPeriod[] = [];
   for (const clanTag of crusadeClanTags()) periods.push(...(await closedPeriodsOf(clanTag, now, processed)));
+
+  // Processed Legend League seasons (`legendTop`), for the whole Crusade: the results list the
+  // members of every clan who ended among the first 10,000 of the world.
+  // A season closed before its results were read (`resultsReadLateAt`) is checked again: awards are
+  // unique, so none is doubled.
+  const legendClosedAt = new Map(
+    (await CommendationPeriodModel.find({ periodKey: { $regex: /^legends:/ } }).select('periodKey processedAt').lean()).map((p) => [
+      p.periodKey,
+      p.processedAt,
+    ]),
+  );
+  for (const season of await LegendSeasonModel.find({ processedAt: { $ne: null } }).select('seasonId results resultsReadLateAt').lean()) {
+    const key = `legends:${season.seasonId}`;
+    const closedAt = legendClosedAt.get(key);
+    const recheck = !!closedAt && !!season.resultsReadLateAt && season.resultsReadLateAt > closedAt;
+    if (processed.has(key) && !recheck) continue;
+    periods.push({
+      key,
+      awards: awardLegendCommendations(season.results),
+      names: new Map(season.results.map((r) => [r.tag, r.name])),
+      recheck,
+    });
+  }
   return periods;
 }
 
@@ -262,6 +298,38 @@ async function closedPeriodsOf(clanTag: string, now: Date, processed: Set<string
     periods.push({ key, awards: awardMonthCommendations(period), names: new Map(period.players.map((p) => [p.tag, p.name])) });
   }
 
+  // Ended wars, each its own period. A war closed before a kind existed is checked again for the new
+  // kinds only (`kinds` of its period): every saved war gets the medals it deserves, and the ones
+  // already awarded stay as they are. A war saved without its members awards nothing.
+  const checked = new Map(
+    (await CommendationPeriodModel.find({ periodKey: { $regex: /^war:/ } }).select('periodKey kinds').lean()).map((p) => [
+      p.periodKey,
+      // Closed when chiefHunter was the only war commendation.
+      new Set<string>(p.kinds ?? ['chiefHunter']),
+    ]),
+  );
+  const missingOf = (warKey: string) => {
+    const done = checked.get(`war:${warKey}${suffix}`);
+    return WAR_COMMENDATION_TYPES.filter((kind) => !done?.has(kind));
+  };
+  const endedWars = await WarModel.find({ clanTag, state: 'warEnded' }).select('warKey').lean();
+  const toCheck = endedWars.map((w) => w.warKey).filter((warKey) => missingOf(warKey).length);
+  for (const war of toCheck.length ? await WarModel.find({ clanTag, warKey: { $in: toCheck } }).lean() : []) {
+    const missing = new Set<string>(missingOf(war.warKey));
+    const history = toHistoryWar(war);
+    const awards = new Map<string, Commendation[]>();
+    for (const [tag, items] of history ? awardWarCommendations(history) : []) {
+      const fresh = items.filter((c) => missing.has(c.type));
+      if (fresh.length) awards.set(tag, fresh);
+    }
+    periods.push({
+      key: `war:${war.warKey}${suffix}`,
+      awards,
+      names: new Map(war.clan.members.map((m) => [m.tag, m.name])),
+      kinds: WAR_COMMENDATION_TYPES,
+    });
+  }
+
   // Ended Raid Weekends whose members were saved.
   for (const raid of await RaidSeasonModel.find({ clanTag, state: 'ended', hasMembers: true })) {
     const key = `raid:${raid.startTime.toISOString()}${suffix}`;
@@ -286,7 +354,7 @@ async function closedPeriodsOf(clanTag: string, now: Date, processed: Set<string
 }
 
 const donationPeriodKey = (season: string) => `donations:${season}`;
-const TIER_RANK: Record<CommendationTier, number> = { bronze: 1, silver: 2, gold: 3, legendary: 4 };
+const TIER_RANK: Record<CommendationTier, number> = { bronze: 1, silver: 2, gold: 3 };
 
 /**
  * `donor` of a game season from the troops donated so far: one award per player and season,
@@ -298,10 +366,10 @@ async function awardDonorTiers(season: DonationSeasonRecord, now: Date): Promise
   const names = new Map(season.players.map((p) => [p.tag, p.name]));
   let changed = 0;
   for (const [playerTag, [award]] of awardDonationCommendations(season.players)) {
-    if (!award) continue;
+    if (!award?.tier) continue;
     const filter = { periodKey, playerTag, type: award.type };
     const current = await CommendationAwardModel.findOne(filter).select('tier').lean();
-    if (current && TIER_RANK[current.tier as CommendationTier] >= TIER_RANK[award.tier]) continue;
+    if (current?.tier && TIER_RANK[current.tier as CommendationTier] >= TIER_RANK[award.tier]) continue;
     await CommendationAwardModel.updateOne(
       filter,
       {
@@ -341,6 +409,25 @@ async function awardPeriod(period: ClosedPeriod, now: Date): Promise<number> {
   }
 
   for (const tag of period.awards.keys()) await recountPlayer(tag, period.names.get(tag) ?? tag);
+  if (period.kinds) {
+    // A war period may be checked again for new kinds: it keeps its first date, counts all its awards.
+    await CommendationPeriodModel.updateOne(
+      { periodKey: period.key },
+      {
+        $setOnInsert: { periodKey: period.key, processedAt: now },
+        $set: { kinds: [...period.kinds], awards: await CommendationAwardModel.countDocuments({ periodKey: period.key }) },
+      },
+      { upsert: true },
+    );
+    return docs.length;
+  }
+  if (period.recheck) {
+    await CommendationPeriodModel.updateOne(
+      { periodKey: period.key },
+      { $set: { processedAt: now, awards: await CommendationAwardModel.countDocuments({ periodKey: period.key }) } },
+    );
+    return docs.length;
+  }
   await CommendationPeriodModel.updateOne(
     { periodKey: period.key },
     { $setOnInsert: { periodKey: period.key, awards: docs.length, processedAt: now } },
@@ -376,6 +463,24 @@ async function recountPlayer(tag: string, name: string): Promise<void> {
       $setOnInsert: { tag, name },
     },
     { upsert: true },
+  );
+}
+
+/**
+ * One-off commendations were saved with the tier `legendary` while they were a tier of their own:
+ * now they have no tier. Fixes the awards, the players' totals (name `cwlAllAttacks-legendary` →
+ * `cwlAllAttacks`) and the honours kept in the announcements. Counts and ids never change. No-op
+ * once done; called at startup.
+ */
+export async function migrateSingleCommendations(): Promise<void> {
+  await CommendationAwardModel.updateMany({ tier: 'legendary' }, { $set: { tier: null } });
+  for (const player of await PlayerModel.find({ 'commendations.tier': 'legendary' }).select('tag name').lean()) {
+    await recountPlayer(player.tag, player.name);
+  }
+  await AnnouncementModel.updateMany(
+    { 'data.honours.tier': 'legendary' },
+    { $set: { 'data.honours.$[honour].tier': null } },
+    { arrayFilters: [{ 'honour.tier': 'legendary' }] },
   );
 }
 

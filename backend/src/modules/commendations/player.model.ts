@@ -2,16 +2,16 @@ import { HydratedDocument, InferSchemaType, model, models, Model, Schema } from 
 
 /**
  * A commendation earned by the player, with how many times. The frontend translates it from
- * `type` and `tier`.
+ * `type` and `tier` (`null` for a one-off commendation).
  */
 const earnedSchema = new Schema(
   {
-    /** Unique id of the commendation (catalogue `COMMENDATION_IDS`). */
+    /** Unique id of the commendation (catalogue `COMMENDATION_IDS`, `SINGLE_COMMENDATIONS`). */
     id: { type: String, required: true },
-    /** `<type>-<tier>`, e.g. `champion-gold` (also the name of the medal image). */
+    /** `<type>-<tier>` (e.g. `champion-gold`), the type alone for a one-off commendation (also the name of the medal image). */
     name: { type: String, required: true },
     type: { type: String, required: true },
-    tier: { type: String, required: true },
+    tier: { type: String, default: null },
     quantity: { type: Number, required: true },
   },
   { _id: false },

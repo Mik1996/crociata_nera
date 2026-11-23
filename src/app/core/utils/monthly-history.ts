@@ -67,6 +67,7 @@ export function toHistoryWar(w: War): HistoryWar | null {
           destruction: a.destructionPercentage,
           defenderTownHall: d?.townHall ?? null,
           defenderPosition: d?.mapPosition ?? null,
+          order: a.order,
         };
       }),
       opponentAttacks: p.opponentAttacks,

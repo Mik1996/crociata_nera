@@ -648,14 +648,32 @@
   --cn-xp: #3a8ee6;
   --cn-xp-dark: #1d57a8;
 
-  // --- Commendations (legendary = one-off medal of the highest merit, crimson) ---
-  --cn-commendation-legendary-panel: linear-gradient(160deg, #5a0d1c, #2a0710);
+  // --- Commendations: panels of the one-off medals, one per colour (`$single-medal-styles`) ---
+  --cn-commendation-crimson-panel: linear-gradient(160deg, #5a0d1c, #2a0710);
+  --cn-commendation-sapphire-panel: linear-gradient(160deg, #10285c, #060f2b);
+  --cn-commendation-emerald-panel: linear-gradient(160deg, #0f4a2c, #05200f);
+  --cn-commendation-pearl-panel: linear-gradient(160deg, #4a4538, #1f1c15);
+  --cn-commendation-obsidian-panel: linear-gradient(160deg, #2a2f39, #0b0d11);
 
   // --- Medals (extends the medal metals above) ---
   --cn-medal-bronze-text: #d08a5a; // "Bronze" tier label (silver label uses --cn-medal-silver)
-  --cn-medal-legendary: #e8364f; // crimson metal of the legendary medals (3D finish, row glow)
-  --cn-medal-legendary-light: #ff6b7d; // legendary tier label and the light of the legendary panel
-  --cn-medal-legendary-dark: #7a0f22; // dark end of the legendary border (3D medal dialog)
+  // One-off medal colours (3D finish, row glow; light: the light of the panel; dark: dark end of
+  // the border of the 3D medal dialog). A new colour: base, light, dark and a panel above.
+  --cn-medal-crimson: #e8364f;
+  --cn-medal-crimson-light: #ff6b7d;
+  --cn-medal-crimson-dark: #7a0f22;
+  --cn-medal-sapphire: #3d7bff;
+  --cn-medal-sapphire-light: #8fb4ff;
+  --cn-medal-sapphire-dark: #0d2b6b;
+  --cn-medal-emerald: #2ecc71;
+  --cn-medal-emerald-light: #8be3ad;
+  --cn-medal-emerald-dark: #0b4626;
+  --cn-medal-pearl: #efe9dc;
+  --cn-medal-pearl-light: #ffffff;
+  --cn-medal-pearl-dark: #8f8574;
+  --cn-medal-obsidian: #3a404c;
+  --cn-medal-obsidian-light: #9aa3b2;
+  --cn-medal-obsidian-dark: #0b0d11;
   --cn-medal-3d-bronze: #c47a4c; // 3D metal colours (the colour of the reflections)
   --cn-medal-3d-silver: #e8ebf0;
   --cn-medal-3d-gold: #f7c552; // (locked 3D medal: --cn-medal-locked-dark)

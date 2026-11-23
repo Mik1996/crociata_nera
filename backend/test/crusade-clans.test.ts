@@ -163,13 +163,13 @@ describe('commendations of the other clans', () => {
     const report = await syncCommendations(new Date('2026-11-14T12:00:00Z'));
     expect(report.periodsProcessed).toEqual(expect.arrayContaining(['cwl:2026-10', `cwl:2026-10@${ROSSA}`, `cwl:2026-10@${ORO}`]));
     const awards = await CommendationAwardModel.find().lean();
-    const of = (tag: string) => awards.filter((a) => a.playerTag === tag).map((a) => `${a.periodKey} ${a.type}-${a.tier}`).sort();
-    expect(of('#BLACK1')).toEqual(['cwl:2026-10 cwlAllAttacks-legendary', 'cwl:2026-10 cwlStriker-gold']);
-    expect(of('#RED1')).toEqual([`cwl:2026-10@${ROSSA} cwlAllAttacks-legendary`, `cwl:2026-10@${ROSSA} cwlStriker-gold`]);
+    const of = (tag: string) => awards.filter((a) => a.playerTag === tag).map((a) => `${a.periodKey} ${a.tier ? `${a.type}-${a.tier}` : a.type}`).sort();
+    expect(of('#BLACK1')).toEqual(['cwl:2026-10 cwlAllAttacks', 'cwl:2026-10 cwlStriker-gold']);
+    expect(of('#RED1')).toEqual([`cwl:2026-10@${ROSSA} cwlAllAttacks`, `cwl:2026-10@${ROSSA} cwlStriker-gold`]);
     // Gold attacked 2 of 3 days: no Certezza di Lega, and fewer than 3 attacks for the striker.
     expect(of('#GOLD1')).toEqual([]);
     expect((await PlayerModel.findOne({ tag: '#RED1' }).lean())!.commendations.map((c) => c.name).sort()).toEqual([
-      'cwlAllAttacks-legendary',
+      'cwlAllAttacks',
       'cwlStriker-gold',
     ]);
   });

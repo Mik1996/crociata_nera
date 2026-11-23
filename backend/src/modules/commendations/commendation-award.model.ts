@@ -6,14 +6,15 @@ import { InferSchemaType, model, models, Model, Schema } from 'mongoose';
  */
 const commendationAwardSchema = new Schema(
   {
-    /** `month:2026-10`, `raid:2026-10-30T07:00:00.000Z`, `cwl:2026-10` or `donations:2026-10`. */
+    /** `war:<warKey>`, `month:2026-10`, `raid:2026-10-30T07:00:00.000Z`, `cwl:2026-10` or `donations:2026-10`. */
     periodKey: { type: String, required: true },
     playerTag: { type: String, required: true },
     playerName: { type: String, required: true },
-    /** Unique id of the commendation (catalogue `COMMENDATION_IDS`). */
+    /** Unique id of the commendation (catalogue `COMMENDATION_IDS`, `SINGLE_COMMENDATIONS`). */
     commendationId: { type: String, required: true },
     type: { type: String, required: true },
-    tier: { type: String, required: true },
+    /** `bronze`, `silver` or `gold`; `null` for a one-off commendation. */
+    tier: { type: String, default: null },
     awardedAt: { type: Date, required: true },
   },
   { collection: 'CommendationAwards', versionKey: false },
@@ -27,6 +28,11 @@ const commendationPeriodSchema = new Schema(
     periodKey: { type: String, required: true, unique: true },
     awards: { type: Number, required: true },
     processedAt: { type: Date, required: true },
+    /**
+     * War periods only: the kinds the war was checked for (`WAR_COMMENDATION_TYPES` at that time).
+     * Missing on the war periods closed when `chiefHunter` was the only one.
+     */
+    kinds: { type: [String], default: undefined },
   },
   { collection: 'CommendationPeriods', versionKey: false },
 );

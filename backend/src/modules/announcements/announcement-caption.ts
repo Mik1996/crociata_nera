@@ -15,7 +15,7 @@ import {
   RecordData,
   WarData,
 } from './announcement-data';
-import { AnnouncementLanguage, AnnouncementTexts, announcementTexts } from './announcement-texts';
+import { AnnouncementLanguage, AnnouncementTexts, announcementTexts, commendationLabel } from './announcement-texts';
 
 /**
  * Captions of the announcements. They are plain text, where `**text**` is bold: what the
@@ -242,7 +242,7 @@ function honourLines(t: AnnouncementTexts, honours: Honour[]): string[] {
     const names = honour.players.map((p) => (p.times > 1 ? `${p.name} ×${p.times}` : p.name));
     const shown = names.slice(0, MAX_NAMES).join(', ');
     const more = names.length > MAX_NAMES ? t.caption.andOthers(names.length - MAX_NAMES) : '';
-    lines.push(`• ${t.commendations[honour.type][honour.tier]}: ${shown}${more}`);
+    lines.push(`• ${commendationLabel(t, honour)}: ${shown}${more}`);
   }
   return lines;
 }

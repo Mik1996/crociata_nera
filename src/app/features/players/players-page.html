@@ -85,10 +85,8 @@
                     <ul class="medals" [attr.aria-label]="'commendations.short' | translate">
                       @for (c of items; track c.type) {
                         @let name =
-                          ('commendations.' + c.type + '.' + c.tier | translate) +
-                          ' (' +
-                          ('commendations.tiers.' + c.tier | translate) +
-                          ')';
+                          (nameKeyOf(c) | translate) +
+                          (c.tier ? ' (' + ('commendations.tiers.' + c.tier | translate) + ')' : '');
                         <li [matTooltip]="name" [attr.aria-label]="name">
                           <crn-commendation-medal [emblem]="emblemOf(c)" />
                         </li>

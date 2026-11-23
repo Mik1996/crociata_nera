@@ -13,7 +13,7 @@ export interface PlayerRecord {
   inClan: boolean;
   lastSeenAt: string | null;
   /** Commendations earned: catalogue id, `<type>-<tier>`, type, tier, how many times. */
-  commendations: { id: string; name: string; type: string; tier: string; quantity: number }[];
+  commendations: { id: string; name: string; type: string; tier: string | null; quantity: number }[];
 }
 
 /** A saved player (current or former member) with the commendations earned. */
@@ -31,6 +31,6 @@ export async function getPlayer(tag: string): Promise<PlayerRecord> {
     league: p.league ? { id: p.league.id!, name: p.league.name!, iconUrl: p.league.iconUrl ?? undefined } : null,
     inClan: p.inClan,
     lastSeenAt: p.lastSeenAt?.toISOString() ?? null,
-    commendations: p.commendations.map((c) => ({ id: c.id, name: c.name, type: c.type, tier: c.tier, quantity: c.quantity })),
+    commendations: p.commendations.map((c) => ({ id: c.id, name: c.name, type: c.type, tier: c.tier ?? null, quantity: c.quantity })),
   };
 }

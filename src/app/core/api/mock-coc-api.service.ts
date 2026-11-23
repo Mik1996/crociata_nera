@@ -1,63 +1,64 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import {
-    CWL_PLAYER_FILTERS,
-    memberStatsFilters,
-    memberStatsSortKey,
-    participantFilters,
-    participantSortKey,
-    PERIOD_WARS_FILTERS,
-    periodWarsSortKey,
-    PLAYER_WARS_FILTERS,
-    RAID_MEMBER_FILTERS,
-    RANKING_FILTERS,
-    WAR_HISTORY_FILTERS,
+  CWL_PLAYER_FILTERS,
+  memberStatsFilters,
+  memberStatsSortKey,
+  participantFilters,
+  participantSortKey,
+  PERIOD_WARS_FILTERS,
+  periodWarsSortKey,
+  PLAYER_WARS_FILTERS,
+  RAID_MEMBER_FILTERS,
+  RANKING_FILTERS,
+  WAR_HISTORY_FILTERS,
 } from '../../shared/components/table/clan-tables';
 import { TableQuery } from '../../shared/components/table/table-filters';
 import { applyTableQuery, TablePage } from '../../shared/components/table/table-page';
 import { APP_CONFIG } from '../config/app-config';
 import { SISTER_CLANS, SisterClan } from '../config/sister-clans';
 import {
-    generateMockCwlSeasons,
-    generateMockDonationSeasons,
-    generateMockRaidSeasons,
+  generateMockCwlSeasons,
+  generateMockDonationSeasons,
+  generateMockRaidSeasons,
 } from '../mock/mock-cwl';
 import { generateMockData, MockDataset } from '../mock/mock-data';
 import { mockPlayer } from '../mock/mock-player';
 import {
-    Clan,
-    ClanRecords,
-    CwlPlayerRow,
-    CwlSeason,
-    CwlSeasonSummary,
-    DonationSeason,
-    HistoryPeriod,
-    HistoryWar,
-    Membership,
-    MemberStatsAverages,
-    MemberStatsRow,
-    MemberStatsSummary,
-    MonthSummary,
-    ParticipantsSummary,
-    PeriodWarRow,
-    PlayerProfile,
-    PublicClansData,
-    RaidMemberRow,
-    RaidMembersSummary,
-    RaidSeason,
-    RankingOptions,
-    RankingRow,
-    War,
-    WarHistoryRow,
-    WarHistorySummary,
-    WarPerformance,
+  LatestLegendSeason,
+  Clan,
+  ClanRecords,
+  CwlPlayerRow,
+  CwlSeason,
+  CwlSeasonSummary,
+  DonationSeason,
+  HistoryPeriod,
+  HistoryWar,
+  Membership,
+  MemberStatsAverages,
+  MemberStatsRow,
+  MemberStatsSummary,
+  MonthSummary,
+  ParticipantsSummary,
+  PeriodWarRow,
+  PlayerProfile,
+  PublicClansData,
+  RaidMemberRow,
+  RaidMembersSummary,
+  RaidSeason,
+  RankingOptions,
+  RankingRow,
+  War,
+  WarHistoryRow,
+  WarHistorySummary,
+  WarPerformance,
 } from '../models';
 import { buildCwlSeason, mapRaidSeason } from '../utils/cwl';
 import {
-    compareForRanking,
-    historyPeriod,
-    monthSummaries,
-    toHistoryWar,
+  compareForRanking,
+  historyPeriod,
+  monthSummaries,
+  toHistoryWar,
 } from '../utils/monthly-history';
 import { computePlayerStats, ParticipantRow, participantRows, warResult } from '../utils/war-stats';
 import { CocApiService } from './coc-api';
@@ -222,6 +223,22 @@ export class MockCocApiService extends CocApiService {
 
   getDonationSeasons(limit = 12): Observable<DonationSeason[]> {
     return this.respond(this.donationSeasons.slice(0, limit));
+  }
+
+  /** The leader and an elder ended the last season (the Monday before today) in the world top 10,000. */
+  getLatestLegendSeason(): Observable<LatestLegendSeason | null> {
+    const end = new Date();
+    end.setUTCHours(5, 0, 0, 0);
+    end.setUTCDate(end.getUTCDate() - ((end.getUTCDay() + 6) % 7 || 7));
+    const [leader, , , , elder] = this.data.clan.members;
+    const results = [
+      { member: leader, rank: 812 },
+      { member: elder, rank: 7_342 },
+    ].flatMap(({ member, rank }) =>
+      member ? [{ tag: member.tag, name: member.name, clanTag: this.data.clan.tag, rank }] : [],
+    );
+    const seasonId = `v2-${end.toISOString().replace('.000', '')}`;
+    return this.respond({ seasonId, endTime: end.toISOString(), results });
   }
 
   getPlayer(tag: string): Observable<PlayerProfile | null> {

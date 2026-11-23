@@ -21,18 +21,18 @@ describe('PlayerCommendations', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
-    expect(medals).toHaveLength(28);
+    expect(medals).toHaveLength(32);
     const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
-    expect(el.querySelectorAll('li.medal--none')).toHaveLength(26);
+    expect(el.querySelectorAll('li.medal--none')).toHaveLength(30);
     expect(el.querySelector('.summary__total')!.textContent).toContain('4');
   });
 
-  it('shows a one-off commendation as a single legendary medal, with its requirement', async () => {
+  it('shows a one-off commendation as a single medal on a panel of its colour, with its requirement', async () => {
     const counts: EarnedCommendation[] = [
-      { id: '95000028', name: 'cwlAllAttacks-legendary', type: 'cwlAllAttacks', tier: 'legendary', quantity: 2 },
+      { id: '95000028', name: 'cwlAllAttacks', type: 'cwlAllAttacks', tier: null, quantity: 2 },
     ];
     TestBed.configureTestingModule({
       providers: [{ provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } }],
@@ -42,11 +42,26 @@ describe('PlayerCommendations', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
 
-    const legendary = el.querySelectorAll('.commendation-row--legendary');
-    expect(legendary).toHaveLength(1);
-    const medals = legendary[0].querySelectorAll('li.medal');
+    // A row per one-off commendation, in its colour (the medals never earned in greyscale).
+    // Order: Tra i Diecimila, Certezza di Lega, Guerra Perfetta, Cacciatore di Capi, Fortezza Inespugnabile.
+    const single = Array.from(el.querySelectorAll('.commendation-row--single'));
+    expect(single.map((row) => [...row.classList].find((c) => /--(?!single)/.test(c)))).toEqual([
+      'commendation-row--obsidian',
+      'commendation-row--crimson',
+      'commendation-row--pearl',
+      'commendation-row--sapphire',
+      'commendation-row--emerald',
+    ]);
+    const hunter = single[3].querySelectorAll('li.medal');
+    expect(hunter).toHaveLength(1);
+    expect(hunter[0].classList).toContain('medal--none');
+    expect(hunter[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/chiefHunter.svg');
+    expect(hunter[0].querySelector('.medal__name')!.textContent).toContain('Cacciatore di Capi');
+    const medals = single[1].querySelectorAll('li.medal');
     expect(medals).toHaveLength(1);
-    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks-legendary.svg');
+    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks.svg');
+    // No tier for a one-off commendation.
+    expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toMatch(/^Certezza di Lega: /);
     expect(medals[0].querySelector('.medal__name')!.textContent).toContain('Certezza di Lega');
     expect(medals[0].querySelector('.medal__count')!.textContent).toContain('2');
     expect(medals[0].querySelector('.medal__description')!.textContent).toContain('almeno 3 giornate');

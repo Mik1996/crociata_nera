@@ -7,9 +7,9 @@ export const EarnedCommendation = model(
   'A commendation earned by a player. Awarded once per closed period (month, Raid Weekend, CWL season, game season) and frozen: later rule changes do not alter it.',
   z.strictObject({
     id: z.string().describe('Unique id in the catalogue, e.g. `95000003`.'),
-    name: z.string().describe('`<type>-<tier>`, e.g. `champion-gold` (also the name of the medal image).'),
+    name: z.string().describe('`<type>-<tier>` (e.g. `champion-gold`), the type alone for a one-off commendation (also the name of the medal image).'),
     type: z.enum(COMMENDATION_TYPES as [string, ...string[]]).describe('Kind of commendation.'),
-    tier: z.enum(COMMENDATION_TIERS as [string, ...string[]]).describe('Tier; `legendary` for one-off commendations.'),
+    tier: z.enum(COMMENDATION_TIERS as [string, ...string[]]).nullable().describe('Tier; `null` for a one-off commendation (single medal with its own colour).'),
     quantity: z.number().int().min(1).describe('Times earned.'),
   }),
 );

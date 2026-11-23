@@ -960,15 +960,31 @@
     "title": "Distinciones",
     "short": "Distinciones del mes pasado",
     "dialogUnavailable": "No se puede abrir la medalla: comprueba la conexión y vuelve a intentarlo.",
+    "legendSeasonPeriod": "Liga Leyenda, {{date}}",
     "tiers": {
       "gold": "Oro",
       "silver": "Plata",
-      "bronze": "Bronce",
-      "legendary": "Legendario"
+      "bronze": "Bronce"
     },
     "cwlAllAttacks": {
-      "legendary": "Certeza de Liga",
+      "name": "Certeza de Liga",
       "description": "Todos los ataques realizados en la última CWL, en la alineación al menos {{n}} jornadas."
+    },
+    "chiefHunter": {
+      "name": "Cazador de Jefes",
+      "description": "3 estrellas al número 1 rival en una guerra. Si ya había sido destruido, solo cuenta tras conseguir todas las estrellas de la guerra."
+    },
+    "fortress": {
+      "name": "Fortaleza Inexpugnable",
+      "description": "En una guerra, atacado al menos {{n}} veces sin conceder nunca 3 estrellas."
+    },
+    "perfectWar": {
+      "name": "Guerra Perfecta",
+      "description": "3 estrellas con cada ataque en una guerra ganada con todas las estrellas."
+    },
+    "legendTop": {
+      "name": "Entre los Diez Mil",
+      "description": "Temporada de Liga Leyenda terminada entre los primeros {{n}} del mundo."
     },
     "champion": {
       "bronze": "Valeroso",

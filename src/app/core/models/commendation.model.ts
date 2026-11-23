@@ -1,6 +1,10 @@
 /** Monthly honours shown in the player banner (rules in `utils/commendations.ts`). */
 export type CommendationType =
+  | 'legendTop'
   | 'cwlAllAttacks'
+  | 'perfectWar'
+  | 'chiefHunter'
+  | 'fortress'
   | 'champion'
   | 'perfect'
   | 'giantSlayer'
@@ -11,19 +15,40 @@ export type CommendationType =
   | 'tireless'
   | 'present';
 
-/**
- * Most commendations have three tiers with increasing requirements; a one-off commendation of
- * the highest merit has the single `legendary` tier.
- */
-export type CommendationTier = 'bronze' | 'silver' | 'gold' | 'legendary';
+/** Commendations with a single medal of their own colour ({@link MedalStyle}), without tiers. */
+export type SingleCommendationType = 'legendTop' | 'cwlAllAttacks' | 'perfectWar' | 'chiefHunter' | 'fortress';
+/** Commendations with three tiers of increasing requirements. */
+export type GradedCommendationType = Exclude<CommendationType, SingleCommendationType>;
 
-/** Name of a medal image: `public/commendations/<type>-<tier>.svg`. */
-export type CommendationEmblem = `${CommendationType}-${CommendationTier}`;
+/** Rank of a graded commendation; one-off commendations have none (`null`). */
+export type CommendationTier = 'bronze' | 'silver' | 'gold';
+
+/**
+ * Look of a medal (flat colours, 3D metal, panels): the metal of its tier, or the colour of a one-off
+ * commendation. A new colour needs its palette tokens (`--cn-medal-<style>`, `-light`, `-dark`,
+ * `--cn-commendation-<style>-panel`), its 3D finish (`MEDAL_FINISHES`) and `$single-medal-styles`.
+ */
+export type MedalStyle = CommendationTier | 'crimson' | 'sapphire' | 'emerald' | 'pearl' | 'obsidian';
+
+/**
+ * Name of a medal image, `public/commendations/<name>.svg`: `<type>-<tier>`, or the type alone for a
+ * one-off commendation.
+ */
+export type CommendationEmblem = `${GradedCommendationType}-${CommendationTier}` | SingleCommendationType;
 
 /** A commendation earned in a month: only the highest tier reached is kept. */
 export interface Commendation {
   type: CommendationType;
-  tier: CommendationTier;
+  /** `null` for a one-off commendation. */
+  tier: CommendationTier | null;
+}
+
+/** The last processed Legend League season with the members among the first 10,000 of the world (`legendTop`). */
+export interface LatestLegendSeason {
+  /** As the Clash of Clans API names it (its end), e.g. `v2-2026-10-26T05:00:00Z`. */
+  seasonId: string;
+  endTime: string;
+  results: { tag: string; name: string; clanTag: string; rank: number }[];
 }
 
 /** Periods the commendations refer to: each kind has its own. */
@@ -36,9 +61,16 @@ export interface CommendationPeriods {
   cwlSeason?: string;
   /** Game season in progress, `YYYY-MM` (`donor`, awarded as soon as a tier is reached). */
   donationSeason?: string;
+  /** Last processed Legend League season (`legendTop`). */
+  legendSeason?: { seasonId: string; endTime: string };
 }
 
 /** Commendations earned by a player. */
 export interface PlayerCommendations extends CommendationPeriods {
   items: Commendation[];
+  /**
+   * The one-off war commendations come from the last completed month and the one in progress: the
+   * month (`YYYY-MM`) each one was last earned in.
+   */
+  warMonths?: Partial<Record<CommendationType, string>>;
 }

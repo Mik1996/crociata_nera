@@ -6,7 +6,9 @@ import { AnnouncementModel } from '@/modules/announcements/announcement.model';
 import { PlayerModel } from '@/modules/commendations/player.model';
 import { LegendSeasonModel } from '@/modules/legends/legend-season.model';
 import { countryRank, syncLegendSeason } from '@/modules/legends/legend-season.service';
+import { GET as latestSeason } from '@/app/api/v1/legends/seasons/latest/route';
 import { mockCocApi } from './coc-mock';
+import { call, memberToken } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -28,10 +30,11 @@ async function member(tag: string, name: string, league: { id: number; name: str
 const STARTED = Date.parse('2026-10-26T05:00:00Z') / 1000;
 
 /** Fake API: the list of ended seasons (with or without the next one), rankings, the clan and a profile. */
-function api(options: { nextListed?: boolean; started?: number } = {}) {
+function api(options: { nextListed?: boolean; started?: number; lastEnded?: { tag: string; name: string; rank: number; trophies: number }[] } = {}) {
   const seasons = [{ id: '2026-04' }, { id: 'v2-2026-09-28T05:00:00Z' }, { id: LAST_ENDED }, ...(options.nextListed ? [{ id: NEXT }] : [])];
   return mockCocApi({
     '/leagues/29000022/seasons': { body: { items: seasons, paging: { cursors: {} } } },
+    ...(options.lastEnded ? { [`/seasons/${encodeURIComponent(LAST_ENDED)}`]: { body: { items: options.lastEnded } } } : {}),
     [`/seasons/${encodeURIComponent(NEXT)}`]: {
       body: {
         items: [
@@ -64,6 +67,20 @@ describe('Legend League seasons', () => {
     expect(report).toMatchObject({ processed: null, error: null, nextCheckAt: '2026-11-23T04:57:00.000Z' });
     expect(await LegendSeasonModel.findOne({ seasonId: LAST_ENDED }).lean()).toMatchObject({ results: [] });
     expect((await LegendSeasonModel.findOne({ seasonId: LAST_ENDED }).lean())!.processedAt).not.toBeNull();
+  });
+
+  it('reads afterwards the results of the season it started from, once, without country positions', async () => {
+    await member('#MIK', 'Mik', LEGEND_ONE);
+    await member('#OUT', 'Below', LEGEND_ONE);
+    api({ lastEnded: [{ tag: '#MIK', name: 'Mik', rank: 812, trophies: 5400 }, { tag: '#OUT', name: 'Below', rank: 10_001, trophies: 5000 }] });
+    await syncLegendSeason(NOW);
+    const season = await LegendSeasonModel.findOne({ seasonId: LAST_ENDED }).lean();
+    expect(season!.results).toEqual([{ tag: '#MIK', name: 'Mik', clanTag: '#2J8JVVCLC', rank: 812, trophies: 5400, countryRank: null }]);
+    expect(season!.resultsReadLateAt).toEqual(NOW);
+
+    // Read once: a later sync leaves it as it is.
+    await syncLegendSeason(new Date(NOW.getTime() + 60_000));
+    expect((await LegendSeasonModel.findOne({ seasonId: LAST_ENDED }).lean())!.resultsReadLateAt).toEqual(NOW);
   });
 
   it('reads the country ranking before the end, then the members in Legend League I among the first 10,000', async () => {
@@ -143,6 +160,25 @@ describe('Legend League seasons', () => {
     expect(await LegendSeasonModel.countDocuments({ seasonId: NEXT })).toBe(1);
     await syncLegendSeason(new Date('2026-12-01T06:00:00Z'));
     expect(await LegendSeasonModel.countDocuments({ seasonId: NEXT })).toBe(0);
+  });
+
+  it('GET /legends/seasons/latest: the last processed season with its members among the first 10,000', async () => {
+    const token = await memberToken('legend');
+    expect((await call(latestSeason, { token })).body.result).toBeNull();
+    expect((await call(latestSeason)).status).toBe(401);
+
+    const result = { tag: '#MIK', name: 'Mik', clanTag: '#2J8JVVCLC', rank: 812, trophies: 5400, countryRank: 3 };
+    await LegendSeasonModel.create({ seasonId: LAST_ENDED, endTime: new Date('2026-10-26T05:00:00Z'), results: [result], processedAt: NOW });
+    // The season in progress is not processed yet: not the latest.
+    await LegendSeasonModel.create({ seasonId: NEXT, endTime: new Date('2026-11-23T05:00:00Z'), processedAt: null });
+
+    const response = await call(latestSeason, { token });
+    expect(response.status).toBe(200);
+    expect(response.body.result).toEqual({
+      seasonId: LAST_ENDED,
+      endTime: '2026-10-26T05:00:00.000Z',
+      results: [{ tag: '#MIK', name: 'Mik', clanTag: '#2J8JVVCLC', rank: 812 }],
+    });
   });
 
   it('country position: unknown without a reading, or beyond the top 200', () => {

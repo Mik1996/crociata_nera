@@ -106,8 +106,9 @@ describe('generateMockData', () => {
       const history = data.wars.map(toHistoryWar).filter((w): w is HistoryWar => w !== null);
       for (const month of ['2026-10', '2026-09', '2026-06']) {
         const awards = awardCommendations(historyPeriod(month, history, '')!).get(leader.tag);
-        // Raid, CWL and donation commendations come from their own seasons (see mock-cwl.spec.ts).
-        const seasonal = new Set(['capitalRaider', 'cwlStriker', 'cwlAllAttacks', 'donor']);
+        // Raid, CWL and donation commendations come from their own seasons (see mock-cwl.spec.ts),
+        // the one-off war medals from each war, legendTop from the Legend League (backend only).
+        const seasonal = new Set(['capitalRaider', 'cwlStriker', 'cwlAllAttacks', 'donor', 'chiefHunter', 'fortress', 'perfectWar', 'legendTop']);
         const monthly = COMMENDATION_TYPES.filter((type) => !seasonal.has(type));
         expect(awards, month).toEqual(monthly.map((type) => ({ type, tier: 'gold' })));
       }

@@ -20,7 +20,9 @@ Values change: when this file and the code disagree, the code wins — fix this 
 
 ## Commendations (`modules/commendations/commendation-rules.ts`)
 
-Tiers checked in order `legendary, gold, silver, bronze`; `LOWER_IS_BETTER = {champion, wall}`.
+Graded commendations: tiers checked in order `gold, silver, bronze`; `LOWER_IS_BETTER = {champion, wall}`.
+One-off commendations (`SINGLE_COMMENDATIONS`): one medal, `tier: null`, their own colour (frontend `style`), no tier label;
+sorted before every gold medal. Saved `legendary` tiers are moved to `null` at startup (`migrateSingleCommendations`).
 Minimums: `MIN_WARS = 3`, `PERFECT_MIN_ATTACKS = 4`, `CWL_MIN_ATTACKS = 3`.
 
 | Type | Period | Value | bronze / silver / gold | Ids |
@@ -34,12 +36,21 @@ Minimums: `MIN_WARS = 3`, `PERFECT_MIN_ATTACKS = 4`, `CWL_MIN_ATTACKS = 3`.
 | `tireless` | month | wars without missed attacks (no miss in the month) | 3 / 5 / 8 | 95000019–21 |
 | `present` | month (≥ 3 clan wars) | % of clan wars with ≥ 1 attack | 50 / 75 / 100 | 95000022–24 |
 | `donor` | Gold Pass season | troops donated | 5 000 / 7 500 / 10 000 | 95000025–27 |
-| `cwlAllAttacks` | CWL season | every attack used, ≥ 3 days | legendary only | 95000028 |
+| `cwlAllAttacks` | CWL season | every attack used, ≥ 3 days | one-off, crimson | 95000028 |
+| `chiefHunter` | each ended regular war | 3★ on the enemy map position 1 (`CHIEF_POSITION`): the first one, or a repeat when the clan already had `teamSize × 3` stars before it (attacks replayed by `order`); one per player and war | one-off, sapphire | 95000029 |
+| `fortress` | each ended regular war | attacked ≥ 2 times, best attack received < 3★ | one-off, emerald | 95000030 |
+| `perfectWar` | each ended regular war | ≥ 1 attack and every attack made three-star, in a war won (`victory`) with `teamSize × 3` stars | one-off, pearl | 95000031 |
+| `legendTop` | processed Legend League season (whole Crusade) | final world rank ≤ 10 000 (`LegendSeasons.results`; the season the tracking started from gets its results read late from the final ranking, `resultsReadLateAt`, and its period is checked again); backend only, the frontend has no Legend results | one-off, obsidian | 95000032 |
 
-Period keys: `month:YYYY-MM`, `raid:<startTime ISO>`, `cwl:YYYY-MM`, `donations:YYYY-MM`, plus
+Period keys: `war:<warKey>`, `legends:<seasonId>` (no clan suffix), `month:YYYY-MM`, `raid:<startTime ISO>`, `cwl:YYYY-MM`, `donations:YYYY-MM`, plus
 `@<clanTag>` for sister clans. A month closes ≥ 3 h after its end (`MONTH_CLOSE_GRACE_MS`) and only when
 no war ending in it is still open; raids when ended with members saved; CWL when the season is ended.
-`donor` is awarded live during the season, tiers only go up, frozen at season end.
+`donor` is awarded live during the season, tiers only go up, frozen at season end. A war closes as soon
+as it is saved as ended (a war saved without members closes with no awards). A war period keeps the `kinds` it was
+checked for (`WAR_COMMENDATION_TYPES`; none saved = `chiefHunter` only): a war kind added later is checked on every
+saved war, adding only its own awards (unique index, earlier awards untouched). The month announcement lists
+the honours of the month, its wars and its Raid Weekends; the frontend banner shows `chiefHunter` once per
+month (`awardMonthWarCommendations`).
 
 ## Clan records (`modules/records/clan-records.service.ts`)
 

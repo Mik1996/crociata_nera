@@ -28,8 +28,9 @@ const resultSchema = new Schema(
 /**
  * A Legend League season (four weeks, ending on Monday at 05:00 UTC). A few minutes before its end the
  * country ranking is read (it is reset when the season ends); once the API lists the season as ended,
- * its final world ranking gives the results of the members, then the season is processed. Seasons
- * ended before the backend tracked them are saved as processed, without results.
+ * its final world ranking gives the results of the members, then the season is processed. The season
+ * ended before the backend tracked them is saved as processed without results, read once afterwards
+ * from its final ranking (`resultsReadLateAt`).
  */
 const legendSeasonSchema = new Schema(
   {
@@ -46,6 +47,11 @@ const legendSeasonSchema = new Schema(
     legendOneTags: { type: [String], default: null },
     results: { type: [resultSchema], default: [] },
     processedAt: { type: Date, default: null },
+    /**
+     * When the results of a season processed without them (it ended before the backend tracked Legend
+     * League) were read from its final ranking; `null` otherwise.
+     */
+    resultsReadLateAt: { type: Date, default: null },
   },
   { collection: 'LegendSeasons', versionKey: false },
 );

@@ -42,7 +42,7 @@
 
 .medals {
   display: grid;
-  // `--medals`: how many tiers the commendation has (3, or 1 for a legendary one).
+  // `--medals`: how many medals the commendation has (3, or 1 for a one-off one).
   grid-template-columns: repeat(var(--medals, 3), minmax(0, 1fr));
   gap: $space-s;
   margin: 0;
@@ -115,23 +115,28 @@
   }
 }
 
-// A one-off commendation of the highest merit: crimson panel with a golden frame and a glow.
-.commendation-row--legendary {
+// A one-off commendation: a panel in its own colour (`--row-*`, set per colour below) with a golden
+// frame and a glow.
+.commendation-row--single {
   border-color: var(--cn-game-gold);
   background:
-    radial-gradient(
-      circle at 50% 35%,
-      palette.alpha(var(--cn-medal-legendary-light), 35%),
-      transparent 65%
-    ),
-    var(--cn-commendation-legendary-panel);
+    radial-gradient(circle at 50% 35%, palette.alpha(var(--row-medal-light), 35%), transparent 65%),
+    var(--row-panel);
   box-shadow:
     inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 30%),
-    0 0 1.125rem palette.alpha(var(--cn-medal-legendary), 35%);
+    0 0 1.125rem palette.alpha(var(--row-medal), 35%);
 
   .medal__name {
     font-size: var(--cn-fs-sm);
     color: var(--cn-game-gold);
+  }
+}
+
+@each $style in $single-medal-styles {
+  .commendation-row--#{"" + $style} {
+    --row-medal: var(--cn-medal-#{$style});
+    --row-medal-light: var(--cn-medal-#{$style}-light);
+    --row-panel: var(--cn-commendation-#{$style}-panel);
   }
 }
 
