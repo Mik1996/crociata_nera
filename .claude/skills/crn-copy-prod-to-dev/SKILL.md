@@ -1,5 +1,5 @@
 ---
-name: copy-prod-to-dev
+name: crn-copy-prod-to-dev
 description: Bring the development database (`dev`) back to the current state of production (`Prod`) by copying every collection except the base arsenal, Telegram chats/posts, users and sessions. Use when the user asks to realign, reset or refresh dev with production data, or after tests that altered dev (e.g. "time travel" on announcements).
 ---
 
