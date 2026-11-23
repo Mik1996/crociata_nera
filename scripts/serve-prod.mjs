@@ -14,8 +14,10 @@ import { extname, join, normalize } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname;
 const DIST = join(ROOT, 'dist/crociata_nera/browser');
 const PORT = Number(process.env.PORT ?? 4400);
+// API_TARGET (e.g. http://127.0.0.1:3110) replaces the targets of proxy.conf.json: the e2e stack
+// (e2e/stack) runs its own backend, never the development one on :3001.
 const PROXY = Object.entries(JSON.parse(readFileSync(join(ROOT, 'proxy.conf.json'), 'utf8'))).map(
-  ([prefix, { target }]) => ({ prefix, target: new URL(target) }),
+  ([prefix, { target }]) => ({ prefix, target: new URL(process.env.API_TARGET ?? target) }),
 );
 
 const TYPES = {

@@ -3,7 +3,7 @@
 Crociata Nera: website of the Clash of Clans clan #2J8JVVCLC (https://crociatanera.it). Wars, CWL,
 Raid Weekend, players, statistics and commendations, plus user accounts linked to game accounts.
 
-Talk to the user in **Italian**. Code, identifiers, comments, tests and i18n keys are in **English**;
+Talk to the user in **English**. Code, identifiers, comments, tests and i18n keys are in **English**;
 Italian only in the UI translations (`public/i18n/it-IT.json`).
 
 ## Repository
@@ -34,10 +34,16 @@ npx tsc -p tsconfig.app.json --noEmit              # frontend type check
 npm run lint:colors                                # colours only from the palette
 npm run lint:units                                 # sizes in rem, no hard-coded pixels
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
+
+npm run typecheck:e2e                              # e2e type check (tests, support, stack scripts)
+npm run e2e:build && npm run test:e2e              # end-to-end (Playwright) on an isolated stack: production
+                                                   # builds, MongoDB in memory, fake CoC API, SMTP sink, no
+                                                   # outbound network (e2e/README.md)
+npm run test:e2e:cross                             # the @cross journeys on Firefox and WebKit (local only)
 ```
 
-CI (`.github/workflows/deploy.yml`) runs all of the above on every pull request and every push to `master`;
-a push to `master` that passes is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which
+CI (`.github/workflows/deploy.yml`) runs all of the above but `test:e2e:cross` (end-to-end: Chromium desktop
+and phone, job `E2E`) on every pull request and every push to `master`; a push to `master` that passes is **deployed automatically** to the VPS (`deploy/deploy.sh <tested sha>`), which
 restarts the backend and rolls back to the previous images if the containers do not become healthy (manual:
 `deploy/rollback.sh`).
 
@@ -54,6 +60,31 @@ need. Security updates are on too (PRs as soon as an advisory is published, outs
 rules as any PR: merge only when the user asks, after the checks pass. A Dependabot PR behind `master`:
 comment `@dependabot rebase` (not `gh pr update-branch`, which stops its automatic rebases). Its base
 cannot be moved to `develop`: a rebase resets it to `master`.
+
+## Skills
+
+Project procedures live in `.claude/skills/` (this file keeps the general rules; the skills the
+step-by-step work). Load the matching one before starting:
+
+| Task | Skill |
+|---|---|
+| New feature or extension, end to end | `crn-feature-development` |
+| Something broken or wrong | `crn-bug-investigation` |
+| Review a diff, branch or PR | `crn-code-review` |
+| Which tests to write, how to run them | `crn-testing-strategy` |
+| Add/change an `/api/v1` route | `crn-backend-endpoint` |
+| Table filtered/sorted/paged by the backend | `crn-server-table` |
+| Pages, components, styles, texts | `crn-frontend-ui` |
+| Who may see/do what, security | `crn-access-control` |
+| Models, indexes, migrations, data repairs | `crn-mongo-data` |
+| CoC API reads, scheduler steps | `crn-game-data-sync` |
+| Rankings, commendations, records, CWL selection score | `crn-clan-statistics` |
+| Bases, proposals, base posts on Telegram | `crn-base-arsenal` |
+| Telegram announcements | `crn-announcements` |
+| PR to master, deploy, rollback, Dependabot | `crn-release` |
+| Realign `dev` with `Prod` | `crn-copy-prod-to-dev` |
+
+When a skill and the code disagree, the code wins: fix the skill in the same change.
 
 ## Conventions
 
@@ -245,7 +276,7 @@ cannot be moved to `develop`: a rebase resets it to `master`.
 - MongoDB Atlas cluster `crociata-nera-prod`: database **`Prod`** (VPS) and **`dev`** (local,
   `backend/.env.local`). Always keep the database name in `DATABASE_URL`, otherwise MongoDB silently
   uses `test`. To bring `dev` back to the state of `Prod` (all but the arsenal, Telegram, users and
-  sessions): `backend/scripts/copy-prod-to-dev.mjs` (skill `copy-prod-to-dev`, plan first, `--apply`).
+  sessions): `backend/scripts/copy-prod-to-dev.mjs` (skill `crn-copy-prod-to-dev`, plan first, `--apply`).
 - Production VPS: `ssh -i ~/.ssh/crociata_vps root@217.61.63.44`, app in `~/crociata_nera/deploy`.
   Claude cannot SSH into it: give the user the commands to run there.
 

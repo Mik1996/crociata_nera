@@ -1,0 +1,11 @@
+{
+  // The stack's JavaScript (e2e/stack/*.mjs, *.cjs), checked by `npm run typecheck:e2e` too: strict,
+  // except for parameter types (plain JavaScript, no annotations).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "checkJs": true,
+    "noImplicitAny": false
+  },
+  "include": ["./stack/**/*.mjs", "./stack/**/*.cjs"],
+  "exclude": []
+}

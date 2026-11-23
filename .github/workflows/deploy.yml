@@ -1,6 +1,6 @@
-# Tests every push and pull request (frontend and backend in parallel); a push to master that passes
-# both is published on the VPS (https://crociatanera.it) by running deploy/deploy.sh over SSH with
-# the tested commit.
+# Tests every push and pull request (frontend, backend and end-to-end in parallel); a push to master
+# that passes all three is published on the VPS (https://crociatanera.it) by running deploy/deploy.sh
+# over SSH with the tested commit.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
 #   VPS_HOST         public IP of the VPS
@@ -94,9 +94,66 @@ jobs:
         working-directory: backend
         run: npm test
 
+  # End-to-end tests (e2e/README.md): production builds of both apps against an isolated stack
+  # (MongoDB in memory, fake Clash of Clans API, SMTP sink; its servers can open no outbound
+  # connection), started by Playwright. No secret is needed: the stack makes its own. Chromium
+  # (desktop + phone); Firefox/WebKit run locally with `npm run test:e2e:cross`.
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci --no-audit --no-fund
+          npm --prefix backend ci --no-audit --no-fund
+      # Playwright runs the tests without checking their types: done here, before the slow builds.
+      - name: Type check (e2e code and stack)
+        run: npm run typecheck:e2e
+
+      - name: Enable the Angular build cache
+        run: npx ng config cli.cache.environment all
+      - uses: actions/cache@v6
+        with:
+          path: .angular/cache
+          key: angular-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: angular-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      # MongoDB binary of mongodb-memory-server (also used by the backend tests).
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Production builds
+        run: npm run e2e:build
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      # Report, traces, screenshots and videos of failed tests, logs of the stack's servers.
+      - name: Keep the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: e2e/.artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
   deploy:
     name: Deploy to crociatanera.it
-    needs: [frontend, backend]
+    needs: [frontend, backend, e2e]
     if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 45
