@@ -203,7 +203,9 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
   `REFRESH_REUSE_GRACE_MS` (30 s) of a rotation whose successor is still alive, or when the successor
   was never used, at any age (refresh response lost, e.g. a phone suspended mid-refresh: the successor
   is `retired`, a new session is issued, logged as `[auth] lost refresh … recovered`). Only once: a
-  retired token, or the old token again after its recovery, counts as reuse. Routes with `roles` read the roles from the
+  retired token, or the old token again after its recovery, counts as reuse. A session closed on purpose
+  (signed out, or closed by a password change, a reset or a role change: reason `signedOut`/`revoked`)
+  is simply refused (401) and never revokes the others. Routes with `roles` read the roles from the
   database at every request, not from the token. The
   frontend signs out only on a 401 from refresh; the startup restore keeps retrying while the backend
   is unreachable (guards wait), then retries in the background.

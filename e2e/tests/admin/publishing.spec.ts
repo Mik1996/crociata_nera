@@ -2,7 +2,6 @@ import type { Page } from '@playwright/test';
 import type { ApiClient } from '../../support/api';
 import { expect, test } from '../../support/fixtures';
 import { t } from '../../support/i18n';
-import { knownBug } from '../../support/known-bugs';
 
 /** Kind switched in the test: no sync runs while the suite runs, so no draft depends on it. */
 const KIND = 'donations';
@@ -36,10 +35,10 @@ test.describe('Publications', () => {
     try {
       await page.goto('/admin/publishing?tab=announcements');
       const form = settingsForm(page);
-      const toggle = form
-        .getByRole('listitem')
-        .filter({ hasText: t(`announcementsAdmin.kind.${KIND}`) })
-        .getByRole('switch');
+      const toggle = form.getByRole('switch', {
+        name: t(`announcementsAdmin.kind.${KIND}`),
+        exact: true,
+      });
       const save = form.getByRole('button', { name: t('announcementsAdmin.settings.save') });
       await expect(toggle).toBeChecked({ checked: initial });
 
@@ -63,33 +62,18 @@ test.describe('Publications', () => {
     }
   });
 
-  test('the draft switches have no accessible name (BUG-02) @P2 @known-bug', async ({
+  test('each draft switch is announced with its kind and described by when it is prepared @P2', async ({
     page,
     users,
     signIn,
   }) => {
-    const bug = knownBug(
-      'BUG-02',
-      'announcement-settings-form.html binds [attr.aria-labelledby] and [attr.aria-describedby] on <mat-slide-toggle>: Material removes the first from the host and the second stays on the host, so the role="switch" button gets neither name nor description',
-    );
     await signIn(await users.create({ admin: true }));
     await page.goto('/admin/publishing?tab=announcements');
     const kindName = t(`announcementsAdmin.kind.${KIND}`);
-    const row = settingsForm(page).getByRole('listitem').filter({ hasText: kindName });
-    const toggle = row.getByRole('switch');
+    // The focusable switch itself carries the name and the description (BUG-02, fixed).
+    const toggle = settingsForm(page).getByRole('switch', { name: kindName, exact: true });
     await expect(toggle).toHaveCount(1);
-
-    // The kind's name and its "when" text are on the page, next to the switch.
-    await expect(row.getByText(kindName, { exact: true })).toBeVisible();
-
-    // Correct behaviour: the switch is announced with the kind's name and described by its "when"
-    // text. Today (BUG-02) it gets neither:
-    await expect(toggle, bug('the switch has no accessible name')).toHaveAccessibleName('');
-    await expect(toggle, bug('the switch has no description')).toHaveAccessibleDescription('');
-    await expect(
-      page.getByRole('switch', { name: kindName, exact: true }),
-      bug('no switch carries the kind’s name'),
-    ).toHaveCount(0);
+    await expect(toggle).toHaveAccessibleDescription(t(`announcementsAdmin.settings.when.${KIND}`));
   });
 
   test('the publications page tells that Telegram is not configured, without failing @P3', async ({

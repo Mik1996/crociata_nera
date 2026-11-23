@@ -273,6 +273,19 @@ describe('sign-in, me, refresh, sign-out', () => {
     expect((await call(refresh, { body: {}, cookie: first.refreshCookie })).status).toBe(401);
   });
 
+  it('refuses a signed-out session presented again without touching the other sessions of the user', async () => {
+    const laptop = await call(signUp, { body: account });
+    const phone = await call(signIn, { body: { identifier: 'alice', password: 'secret123' } });
+    await call(signOut, { body: {}, cookie: laptop.refreshCookie });
+
+    // The laptop's old cookie (another tab, a copy) comes back: simply invalid, not theft…
+    const replay = await call(refresh, { body: {}, cookie: laptop.refreshCookie });
+    expect(replay.status).toBe(401);
+    expect(replay.body.messages).toEqual([{ key: 'ERROR.INVALID_REFRESH_TOKEN' }]);
+    // …so the phone stays signed in.
+    expect((await call(refresh, { body: {}, cookie: phone.refreshCookie })).status).toBe(200);
+  });
+
   it('rejects refresh without a cookie', async () => {
     const res = await call(refresh, { body: {} });
     expect(res.status).toBe(401);

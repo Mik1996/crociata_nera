@@ -96,7 +96,7 @@
               [checked]="u.roles.includes('ADMIN')"
               [disabled]="busy() === u.id || u.id === myId()"
               (change)="toggleAdmin(u, $event.checked)"
-              [attr.aria-label]="'admin.adminToggle' | translate: { name: u.username }"
+              [aria-label]="'admin.adminToggle' | translate: { name: u.username }"
               [matTooltip]="u.id === myId() ? ('ERROR.CANNOT_REMOVE_OWN_ADMIN' | translate) : ''"
             />
           </td>
