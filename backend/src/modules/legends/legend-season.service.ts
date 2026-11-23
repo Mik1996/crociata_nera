@@ -94,7 +94,7 @@ export async function syncLegendSeason(now = new Date()): Promise<LegendSeasonRe
   try {
     let last = await LegendSeasonModel.findOne({ processedAt: { $ne: null } }).sort({ endTime: -1 }).lean();
     if (!last) {
-      // First run: the last ended season is the starting point (no results for the past).
+      // First run: the last ended season is the starting point (its results are read just below).
       const ended = (await listedSeasons()).map(endOf).filter((end): end is Date => end !== null);
       const latest = ended.at(-1);
       if (!latest) return report;
@@ -106,6 +106,8 @@ export async function syncLegendSeason(now = new Date()): Promise<LegendSeasonRe
       last = await LegendSeasonModel.findOne({ seasonId: legendSeasonId(latest) }).lean();
       if (!last) return report;
     }
+
+    await readLateResults(now);
 
     // The season in progress: known already, or learned from a member in Legend League I.
     let season = await LegendSeasonModel.findOne({ processedAt: null, endTime: { $gt: last.endTime } }).sort({ endTime: 1 }).lean();
@@ -182,6 +184,46 @@ async function readCountryRanking(seasonId: string, end: Date, now: Date): Promi
 
 /** The results of the members from the final world ranking; then the season is processed. */
 async function processSeason(seasonId: string, end: Date, now: Date): Promise<void> {
+  const results = await seasonResults(seasonId);
+  await LegendSeasonModel.updateOne(
+    { seasonId },
+    { $set: { results, processedAt: now }, $setOnInsert: { seasonId, endTime: end } },
+    { upsert: true },
+  );
+}
+
+/**
+ * Seasons processed without results, because they ended before the backend tracked Legend League (the
+ * starting season of the first run): their results are read once afterwards from the final world
+ * ranking, which the API keeps for the ended seasons. Nothing was read before their end, so country
+ * positions stay unknown and Legend League I is the league saved for the current members. A season
+ * whose ranking cannot be read is tried again at the next sync.
+ */
+async function readLateResults(now: Date): Promise<void> {
+  const late = await LegendSeasonModel.find({
+    processedAt: { $ne: null },
+    countryRankingAt: null,
+    resultsReadLateAt: null,
+    'results.0': { $exists: false },
+  })
+    .select('seasonId')
+    .lean();
+  if (!late.length) return;
+  const listed = new Set(await listedSeasons());
+  for (const { seasonId } of late) {
+    if (!listed.has(seasonId)) continue;
+    try {
+      await LegendSeasonModel.updateOne({ seasonId }, { $set: { results: await seasonResults(seasonId), resultsReadLateAt: now } });
+    } catch (error) {
+      // Never blocks the season in progress: tried again at the next sync.
+      if (!(error instanceof CocApiError)) throw error;
+      console.warn(`[legends] results of ${seasonId} not read: ${error.message}`);
+    }
+  }
+}
+
+/** The members who ended a season among the first 10,000 of the world in Legend League I, best first. */
+async function seasonResults(seasonId: string): Promise<LegendSeasonResult[]> {
   const final = rankingSchema.parse(await fetchLegendSeasonRankings(seasonId, LEGEND_ONE_PLACES)).items;
   const finalByTag = new Map(final.map((item) => [item.tag, item]));
   const season = await LegendSeasonModel.findOne({ seasonId }).lean();
@@ -204,11 +246,7 @@ async function processSeason(seasonId: string, end: Date, now: Date): Promise<vo
       countryRank: countryRank(member.tag, placed.rank, season?.countryRanking ?? null, finalByTag),
     });
   }
-  await LegendSeasonModel.updateOne(
-    { seasonId },
-    { $set: { results: results.sort((a, b) => a.rank - b.rank), processedAt: now }, $setOnInsert: { seasonId, endTime: end } },
-    { upsert: true },
-  );
+  return results.sort((a, b) => a.rank - b.rank);
 }
 
 /**
@@ -228,4 +266,25 @@ export function countryRank(
   const inRanking = others.length < countryRanking.length;
   if (!inRanking && ahead === countryRanking.length) return null;
   return ahead + 1;
+}
+
+/** The last processed Legend League season with the members who ended it among the first 10,000 of the world. */
+export interface LatestLegendSeason {
+  seasonId: string;
+  endTime: string;
+  results: { tag: string; name: string; clanTag: string; rank: number }[];
+}
+
+/**
+ * The last processed Legend League season (`null` before the first one), with its members among the
+ * first 10,000 of the world, best first: the site shows their `legendTop` commendation.
+ */
+export async function latestLegendSeason(): Promise<LatestLegendSeason | null> {
+  const season = await LegendSeasonModel.findOne({ processedAt: { $ne: null } }).sort({ endTime: -1 }).lean();
+  if (!season) return null;
+  return {
+    seasonId: season.seasonId,
+    endTime: season.endTime.toISOString(),
+    results: season.results.map(({ tag, name, clanTag, rank }) => ({ tag, name, clanTag, rank })),
+  };
 }

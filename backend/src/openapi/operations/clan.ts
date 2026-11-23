@@ -5,7 +5,7 @@ import { listCwlSeasonsQuerySchema } from '@/modules/cwl/cwl.schemas';
 import { listDonationSeasonsQuerySchema } from '@/modules/donations/donations.schemas';
 import { listRaidSeasonsQuerySchema } from '@/modules/raids/raids.schemas';
 import { ClanRecords, PlayerRecord } from '../models/players';
-import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, RaidSeason } from '../models/seasons';
+import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, LatestLegendSeason, RaidSeason } from '../models/seasons';
 import { excludePlayerSchema, selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
 import { CwlExclusionResult, CwlSelection } from '../models/selection';
 import { ApiOperation, requestPart } from '../operation';
@@ -149,6 +149,18 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     rateLimit: ApiName.WARS_READ,
     query: requestPart(listDonationSeasonsQuerySchema, { limit: 'Most seasons returned, 1–36 (default 12).' }),
     responses: { 200: { description: 'Seasons with their donations.', result: z.array(DonationSeason) } },
+  },
+  {
+    method: 'GET',
+    path: '/legends/seasons/latest',
+    operationId: 'getLatestLegendSeason',
+    tag: 'Players',
+    summary: 'Get the last Legend League season',
+    description:
+      'The last processed Legend League season with the members of the Crusade who ended it among the first 10,000 of the world (the `legendTop` commendation); `null` before the first one.',
+    access: 'clan',
+    rateLimit: ApiName.WARS_READ,
+    responses: { 200: { description: 'The season, or `null`.', result: LatestLegendSeason.nullable() } },
   },
   {
     method: 'GET',

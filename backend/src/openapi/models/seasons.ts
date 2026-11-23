@@ -108,6 +108,29 @@ export const RaidSeason = model(
   }),
 );
 
+// ——— Legend League ———
+
+export const LatestLegendSeason = model(
+  'LatestLegendSeason',
+  'The last processed Legend League season with the members of the Crusade who ended it among the first 10,000 of the world.',
+  z.strictObject({
+    seasonId: z.string().describe('Season, as the Clash of Clans API names it (its end), e.g. `v2-2026-10-26T05:00:00Z`.'),
+    endTime: dateTime('End of the season.'),
+    results: z
+      .array(
+        z
+          .strictObject({
+            tag: tag('Player.'),
+            name: z.string().describe('In-game name.'),
+            clanTag: tag('Clan of the Crusade the player was in.'),
+            rank: z.number().int().min(1).max(10_000).describe('Final world position.'),
+          })
+          .describe('A member among the first 10,000.'),
+      )
+      .describe('Members among the first 10,000, best first.'),
+  }),
+);
+
 // ——— Donations ———
 
 export const DonationSeason = model(
