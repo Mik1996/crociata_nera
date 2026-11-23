@@ -63,6 +63,22 @@ describe('AnnouncementSettingsForm', () => {
     expect(saveButton(el).disabled).toBe(true);
   });
 
+  it('names and describes each switch with its kind, on the focusable switch itself', async () => {
+    const { el } = await render();
+    // The references must reach the button screen readers focus, not stay on <mat-slide-toggle>.
+    for (const toggle of toggles(el)) {
+      const name = el.querySelector(`[id="${toggle.getAttribute('aria-labelledby')}"]`);
+      const when = el.querySelector(`[id="${toggle.getAttribute('aria-describedby')}"]`);
+      expect(name?.classList).toContain('kind__name');
+      expect(when?.classList).toContain('kind__when');
+    }
+    expect(toggles(el).map((t) => t.getAttribute('aria-labelledby'))).toEqual([
+      'draft-kind-month',
+      'draft-kind-war',
+      'draft-kind-raid',
+    ]);
+  });
+
   it('saves only the kinds changed', async () => {
     const { fixture, el } = await render();
     toggles(el)[1]!.click();

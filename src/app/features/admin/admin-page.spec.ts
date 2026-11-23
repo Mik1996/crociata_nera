@@ -86,6 +86,16 @@ describe('AdminPage', () => {
     expect(el.querySelector('th.mat-column-actions')!.textContent).toContain('Azioni');
   });
 
+  it('names each admin switch after its user, on the focusable switch itself', async () => {
+    const { el } = await render();
+    const switches = Array.from(el.querySelectorAll('tr.mat-mdc-row button[role="switch"]'));
+    // The name must reach the button screen readers focus, not stay on <mat-slide-toggle>.
+    expect(switches.map((s) => s.getAttribute('aria-label'))).toEqual([
+      'Amministratore: Boss',
+      'Amministratore: Member',
+    ]);
+  });
+
   it('asks the backend for the users matching the filters, sorted and a page at a time', async () => {
     const { fixture, el } = await render();
     // A request in flight keeps `whenStable` waiting, so wait for the request itself instead: a

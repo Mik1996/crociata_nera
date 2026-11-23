@@ -41,6 +41,17 @@ describe('TelegramBot', () => {
     expect(chats[2].querySelector('crn-select')!.textContent).toContain('Annunci');
   });
 
+  it('names each lock switch after its channel, on the focusable switch itself', async () => {
+    const { el } = await render();
+    // The name must reach the button screen readers focus, not stay on <mat-slide-toggle>.
+    const switches = Array.from(el.querySelectorAll('.chat button[role="switch"]'));
+    expect(switches.map((s) => s.getAttribute('aria-label'))).toEqual([
+      'Blocca Arsenale basi TH18',
+      'Blocca Arsenale basi TH19',
+      'Blocca Crociata annunci',
+    ]);
+  });
+
   it('binds a channel to a town hall and shows the answer', async () => {
     const { fixture, el, bot } = await render();
     bot.setContent(th19, 19);

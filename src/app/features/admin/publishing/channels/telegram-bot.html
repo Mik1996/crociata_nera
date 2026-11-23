@@ -83,7 +83,7 @@
               [checked]="c.locked"
               [disabled]="state.busy() !== null"
               [matTooltip]="'telegramAdmin.chats.lockHint' | translate"
-              [attr.aria-label]="'telegramAdmin.chats.lockOf' | translate: { name: c.title }"
+              [aria-label]="'telegramAdmin.chats.lockOf' | translate: { name: c.title }"
               (change)="state.setLocked(c, $event.checked)"
               >{{ 'telegramAdmin.chats.lock' | translate }}</mat-slide-toggle
             >

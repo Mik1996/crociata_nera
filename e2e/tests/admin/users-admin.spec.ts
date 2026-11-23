@@ -1,7 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '../../support/fixtures';
 import { t } from '../../support/i18n';
-import { knownBug } from '../../support/known-bugs';
 import { stack } from '../../support/stack';
 import type { TestUser } from '../../support/users';
 
@@ -41,8 +40,11 @@ test.describe('Administration of users', () => {
     await signIn(admin);
 
     const row = await userRow(page, target);
-    // One switch per row (unnamed: BUG-02, see below).
-    const toggle = row.getByRole('switch');
+    // The row's switch, found by the name screen readers announce.
+    const toggle = row.getByRole('switch', {
+      name: t('admin.adminToggle', { name: target.username }),
+      exact: true,
+    });
     await expect(toggle).not.toBeChecked();
     await toggle.click();
     await expect(toggle).toBeChecked();
@@ -126,30 +128,19 @@ test.describe('Administration of users', () => {
     ).toBe(401);
   });
 
-  test('the ADMIN switch of each row has no accessible name (BUG-02) @P2 @known-bug', async ({
+  test('the ADMIN switch of each row is announced with the user’s name @P2', async ({
     page,
     users,
     signIn,
   }) => {
-    const bug = knownBug(
-      'BUG-02',
-      'admin-page.html binds [attr.aria-label] on <mat-slide-toggle>, whose own host binding removes it: the label is lost and the role="switch" button is named by the toggle’s empty <label>',
-    );
     const admin = await users.create({ admin: true });
     const target = await users.create();
     await signIn(admin);
     const row = await userRow(page, target);
-    const intended = t('admin.adminToggle', { name: target.username });
-    const toggle = row.getByRole('switch');
-    await expect(toggle).toHaveCount(1);
-
-    // Correct behaviour: the switch itself is announced as `intended`. Today (BUG-02) the label
-    // is dropped (Material removes the host's aria-label) and the switch has no name at all:
-    await expect(toggle, bug('the switch has no accessible name')).toHaveAccessibleName('');
-    await expect(
-      row.getByLabel(intended, { exact: true }),
-      bug('the intended label is nowhere in the row'),
-    ).toHaveCount(0);
+    // The focusable switch itself carries the name (BUG-02, fixed).
+    await expect(row.getByRole('switch')).toHaveAccessibleName(
+      t('admin.adminToggle', { name: target.username }),
+    );
   });
 
   test('the administrator’s own row cannot be demoted or deleted from the page @P2', async ({
