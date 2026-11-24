@@ -3,7 +3,7 @@
 Crociata Nera: website of the Clash of Clans clan #2J8JVVCLC (https://crociatanera.it). Wars, CWL,
 Raid Weekend, players, statistics and commendations, plus user accounts linked to game accounts.
 
-Talk to the user in **English**. Code, identifiers, comments, tests and i18n keys are in **English**;
+Talk to the user in **Italian**. Code, identifiers, comments, tests and i18n keys are in **English**;
 Italian only in the UI translations (`public/i18n/it-IT.json`).
 
 ## Repository
