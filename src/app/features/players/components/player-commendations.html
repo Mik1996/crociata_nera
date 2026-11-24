@@ -39,6 +39,9 @@
             </li>
           }
         </ul>
+        @if (!row.style) {
+          <p class="commendation-row__summary">{{ 'commendations.' + row.type + '.summary' | translate }}</p>
+        }
       </li>
     }
   </ul>

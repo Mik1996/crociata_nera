@@ -990,55 +990,64 @@
       "bronze": "Valiant",
       "silver": "Commander",
       "gold": "Warlord",
-      "description": "Position {{n}} in the monthly ranking by average stars per war (at least 3 wars)."
+      "description": "Position {{n}} in the monthly ranking by average stars per war (at least 3 wars).",
+      "summary": "Podium of the monthly ranking by average stars per war (at least 3 wars): the higher the place, the finer the metal."
     },
     "perfect": {
       "bronze": "Steady Hand",
       "silver": "Relentless Sword",
       "gold": "Unerring Blade",
-      "description": "At least {{n}} stars per attack on average during the month (at least 4 attacks)."
+      "description": "At least {{n}} stars per attack on average during the month (at least 4 attacks).",
+      "summary": "Accuracy in attack: average stars per attack during the month (at least 4 attacks)."
     },
     "giantSlayer": {
       "bronze": "Daring",
       "silver": "Giant Hunter",
       "gold": "Bane of Titans",
-      "description": "At least {{n}} three-star attacks in the month against higher Town Halls."
+      "description": "At least {{n}} three-star attacks in the month against higher Town Halls.",
+      "summary": "Three-star attacks in the month against higher Town Halls."
     },
     "cwlStriker": {
       "bronze": "League Warrior",
       "silver": "League Champion",
       "gold": "League Legend",
-      "description": "At least {{n}} stars per attack on average in the last CWL (at least 3 attacks)."
+      "description": "At least {{n}} stars per attack on average in the last CWL (at least 3 attacks).",
+      "summary": "Accuracy in CWL: average stars per attack in the last CWL (at least 3 attacks)."
     },
     "capitalRaider": {
       "bronze": "Raider",
       "silver": "Capital Predator",
       "gold": "Conqueror of Capitals",
-      "description": "More than {{n}} Capital Gold looted in the last Raid Weekend."
+      "description": "More than {{n}} Capital Gold looted in the last Raid Weekend.",
+      "summary": "Capital Gold looted in the last Raid Weekend."
     },
     "donor": {
       "bronze": "Bearer of Reinforcements",
       "silver": "Lord of Legions",
       "gold": "Father of Armies",
-      "description": "At least {{n}} troops donated in the season: awarded as soon as they are reached."
+      "description": "At least {{n}} troops donated in the season: awarded as soon as they are reached.",
+      "summary": "Troops donated in the season: each medal arrives as soon as its threshold is reached."
     },
     "wall": {
       "bronze": "Steady Shield",
       "silver": "Steel Bastion",
       "gold": "Impassable Wall",
-      "description": "On defence, at most {{n}} stars conceded per war on average (at least 3 wars)."
+      "description": "On defence, at most {{n}} stars conceded per war on average (at least 3 wars).",
+      "summary": "Solid defence: few stars conceded per war on average (at least 3 wars)."
     },
     "tireless": {
       "bronze": "Loyal Soldier",
       "silver": "Tireless Veteran",
       "gold": "Indomitable Arm",
-      "description": "No attack missed in at least {{n}} wars of the month."
+      "description": "No attack missed in at least {{n}} wars of the month.",
+      "summary": "Wars of the month played without missing a single attack."
     },
     "present": {
       "bronze": "At Roll Call",
       "silver": "Pillar of the Clan",
       "gold": "Always on the Front Line",
-      "description": "Attacked in at least {{n}}% of the month's wars."
+      "description": "Attacked in at least {{n}}% of the month's wars.",
+      "summary": "War attendance: share of the month's wars in which the player attacked."
     },
     "history": {
       "earned": "commendations earned",

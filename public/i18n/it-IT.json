@@ -990,55 +990,64 @@
       "bronze": "Valoroso",
       "silver": "Condottiero",
       "gold": "Signore della Guerra",
-      "description": "{{n}}° posto nella classifica del mese per media stelle a guerra (almeno 3 guerre)."
+      "description": "{{n}}° posto nella classifica del mese per media stelle a guerra (almeno 3 guerre).",
+      "summary": "Podio della classifica del mese per media stelle a guerra (almeno 3 guerre): più alto il posto, più prezioso il metallo."
     },
     "perfect": {
       "bronze": "Mano Ferma",
       "silver": "Spada Implacabile",
       "gold": "Lama Infallibile",
-      "description": "Media di almeno {{n}} stelle per attacco nel mese (almeno 4 attacchi)."
+      "description": "Media di almeno {{n}} stelle per attacco nel mese (almeno 4 attacchi).",
+      "summary": "Precisione in attacco: media stelle per attacco nel mese (almeno 4 attacchi)."
     },
     "giantSlayer": {
       "bronze": "Temerario",
       "silver": "Cacciatore di Giganti",
       "gold": "Flagello dei Titani",
-      "description": "Almeno {{n}} attacchi a 3 stelle nel mese contro Municipi più alti del proprio."
+      "description": "Almeno {{n}} attacchi a 3 stelle nel mese contro Municipi più alti del proprio.",
+      "summary": "Attacchi a 3 stelle nel mese contro Municipi più alti del proprio."
     },
     "cwlStriker": {
       "bronze": "Guerriero di Lega",
       "silver": "Campione di Lega",
       "gold": "Leggenda della Lega",
-      "description": "Media di almeno {{n}} stelle per attacco nell'ultima CWL (almeno 3 attacchi)."
+      "description": "Media di almeno {{n}} stelle per attacco nell'ultima CWL (almeno 3 attacchi).",
+      "summary": "Precisione in CWL: media stelle per attacco nell'ultima CWL (almeno 3 attacchi)."
     },
     "capitalRaider": {
       "bronze": "Razziatore",
       "silver": "Predatore della Capitale",
       "gold": "Conquistatore di Capitali",
-      "description": "Più di {{n}} di oro della capitale saccheggiato nell'ultimo Raid Weekend."
+      "description": "Più di {{n}} di oro della capitale saccheggiato nell'ultimo Raid Weekend.",
+      "summary": "Oro della capitale saccheggiato nell'ultimo Raid Weekend."
     },
     "donor": {
       "bronze": "Portatore di Rinforzi",
       "silver": "Signore delle Legioni",
       "gold": "Padre degli Eserciti",
-      "description": "Almeno {{n}} truppe donate nella stagione: assegnato appena raggiunte."
+      "description": "Almeno {{n}} truppe donate nella stagione: assegnato appena raggiunte.",
+      "summary": "Truppe donate nella stagione: ogni medaglia arriva appena raggiunta la sua soglia."
     },
     "wall": {
       "bronze": "Scudo Saldo",
       "silver": "Bastione d'Acciaio",
       "gold": "Muro Invalicabile",
-      "description": "In difesa, al massimo {{n}} stelle concesse in media per guerra (almeno 3 guerre)."
+      "description": "In difesa, al massimo {{n}} stelle concesse in media per guerra (almeno 3 guerre).",
+      "summary": "Solidità in difesa: poche stelle concesse in media per guerra (almeno 3 guerre)."
     },
     "tireless": {
       "bronze": "Soldato Fedele",
       "silver": "Veterano Instancabile",
       "gold": "Braccio Indomito",
-      "description": "Nessun attacco saltato in almeno {{n}} guerre del mese."
+      "description": "Nessun attacco saltato in almeno {{n}} guerre del mese.",
+      "summary": "Guerre del mese giocate senza saltare nessun attacco."
     },
     "present": {
       "bronze": "Presente all'Appello",
       "silver": "Pilastro del Clan",
       "gold": "Sempre in Prima Linea",
-      "description": "Ha attaccato in almeno il {{n}}% delle guerre del mese."
+      "description": "Ha attaccato in almeno il {{n}}% delle guerre del mese.",
+      "summary": "Presenza in guerra: quota delle guerre del mese in cui ha attaccato."
     },
     "history": {
       "earned": "encomi conquistati",
