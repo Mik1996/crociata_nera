@@ -1,14 +1,23 @@
 import { QueryFilter, Types } from 'mongoose';
 import { UserRole } from '@/lib/auth/user-role';
 import { CocApiError, fetchPlayer } from '@/lib/coc/coc-client';
+import { livePlayer } from '@/lib/coc/live-coc';
 import { throwException } from '@/lib/http/api-error';
 import { MessageKey } from '@/lib/http/message-key';
 import { SessionModel } from '@/modules/auth/session.model';
 import { publicUser } from '@/modules/access/clan-access.service';
-import { MAX_LINKED_PLAYERS, PublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
+import { LinkedPlayer, MAX_LINKED_PLAYERS, PublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
+import { PlayerModel } from '@/modules/commendations/player.model';
 import { DeleteUserInput, LinkUserPlayersInput, ListUsersQuery, UpdateUserInput, UserSortField } from './admin.schemas';
 
-export interface AdminUser extends PublicUser {
+/** A linked account as listed to administrators: with its in-game name, to recognise who signed up. */
+export interface AdminLinkedPlayer extends LinkedPlayer {
+  /** In-game name: saved player, otherwise the live profile; `null` when neither can be read. */
+  name: string | null;
+}
+
+export interface AdminUser extends Omit<PublicUser, 'players'> {
+  players: AdminLinkedPlayer[];
   updatedAt: string;
 }
 
@@ -40,6 +49,11 @@ export function usersFilter(query: ListUsersQuery): QueryFilter<UserDocument> {
   if (query.search) conditions.push(containsAny(['email', 'username', 'playerTags', 'pendingPlayerTag'], query.search));
   if (query.user) conditions.push(containsAny(['email', 'username'], query.user));
   if (query.playerTag) conditions.push(containsAny(['playerTags', 'pendingPlayerTag'], query.playerTag));
+  if (query.playerTagsNamed) {
+    conditions.push({
+      $or: [{ playerTags: { $in: query.playerTagsNamed } }, { pendingPlayerTag: { $in: query.playerTagsNamed } }],
+    });
+  }
   if (query.admin !== undefined) {
     conditions.push({ roles: query.admin ? UserRole.ADMIN : { $ne: UserRole.ADMIN } });
   }
@@ -56,7 +70,13 @@ export function usersFilter(query: ListUsersQuery): QueryFilter<UserDocument> {
 }
 
 export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
-  const filter = usersFilter(query);
+  // The player filter matches the names of the saved players (the live profiles cannot be searched).
+  const playerTagsNamed = query.player
+    ? (await PlayerModel.find({ name: { $regex: escapeRegex(query.player), $options: 'i' } }).select('tag').lean()).map(
+        (player) => player.tag,
+      )
+    : undefined;
+  const filter = usersFilter({ ...query, playerTagsNamed });
   const direction = query.order === 'asc' ? 1 : -1;
   const [users, total] = await Promise.all([
     UserModel.find(filter)
@@ -67,7 +87,7 @@ export async function listUsers(query: ListUsersQuery): Promise<UserPage> {
     UserModel.countDocuments(filter),
   ]);
   return {
-    items: await Promise.all(users.map(toAdminUser)),
+    items: await toAdminUsers(users),
     total,
     page: query.page,
     limit: query.limit,
@@ -203,5 +223,42 @@ export async function unlinkUserPlayer(userId: string, tag: string): Promise<Adm
 }
 
 async function toAdminUser(user: UserDocument): Promise<AdminUser> {
-  return { ...(await publicUser(user)), updatedAt: user.updatedAt.toISOString() };
+  return (await toAdminUsers([user]))[0]!;
+}
+
+async function toAdminUsers(users: UserDocument[]): Promise<AdminUser[]> {
+  const [publicUsers, names] = await Promise.all([
+    Promise.all(users.map(publicUser)),
+    playerNames(users.flatMap((user) => [...user.playerTags, ...(user.pendingPlayerTag ? [user.pendingPlayerTag] : [])])),
+  ]);
+  return publicUsers.map((user, i) => ({
+    ...user,
+    players: user.players.map((player) => ({ ...player, name: names.get(player.tag) ?? null })),
+    updatedAt: users[i]!.updatedAt.toISOString(),
+  }));
+}
+
+/**
+ * In-game names of the accounts: from the saved players (current and former members), the others
+ * from their live profile (kept in memory for a while). An account that cannot be read has no name.
+ */
+async function playerNames(tags: string[]): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  if (!tags.length) return names;
+  for (const player of await PlayerModel.find({ tag: { $in: tags } }).select('tag name').lean()) {
+    names.set(player.tag, player.name);
+  }
+  await Promise.all(
+    [...new Set(tags)]
+      .filter((tag) => !names.has(tag))
+      .map(async (tag) => {
+        try {
+          const name = (await livePlayer(tag))?.['name'];
+          if (typeof name === 'string' && name) names.set(tag, name);
+        } catch (error) {
+          if (!(error instanceof CocApiError)) throw error;
+        }
+      }),
+  );
+  return names;
 }

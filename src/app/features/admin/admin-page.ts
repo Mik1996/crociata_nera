@@ -58,6 +58,7 @@ export function userQuery(query: TableQuery): AdminUserQuery {
     limit: query.pageSize || PAGE_SIZE,
     user: text('user'),
     playerTag: text('playerTag'),
+    player: text('player'),
     admin: flag('admin'),
     verified: flag('verified'),
     createdFrom: created.from,
@@ -113,11 +114,12 @@ export class AdminPage {
   protected readonly pending = inject(PendingPublications);
   protected readonly myId = computed(() => this.auth.user()?.id ?? null);
 
-  protected readonly columns = ['user', 'playerTag', 'admin', 'verified', 'createdAt', 'actions'];
+  protected readonly columns = ['user', 'player', 'playerTag', 'admin', 'verified', 'createdAt', 'actions'];
 
   /** Filters by column: the backend applies them (as the sort and the pages). */
   protected readonly filters: TableFilters<AdminUser> = {
     user: { type: 'text', placeholder: 'admin.userPlaceholder' },
+    player: { type: 'text' },
     playerTag: { type: 'text' },
     admin: { type: 'boolean' },
     verified: { type: 'boolean' },
@@ -146,6 +148,14 @@ export class AdminPage {
     kind: 'success' | 'error';
     messages: BackendMessage[];
   } | null>(null);
+
+  /** In-game names of the linked accounts, comma separated (those the backend could not read left out). */
+  protected playerNames(user: AdminUser): string {
+    return user.players
+      .map((p) => p.name)
+      .filter((name): name is string => !!name)
+      .join(', ');
+  }
 
   /** "Link": Clash of Clans accounts linked by hand, without the in-game token. */
   protected openLink(user: AdminUser): void {

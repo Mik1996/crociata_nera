@@ -43,6 +43,7 @@ export const ADMIN_OPERATIONS: ApiOperation[] = [
       search: 'Text contained in the email, username or a linked player tag (case-insensitive).',
       user: { description: 'Text contained in the username or the email (case-insensitive).', example: 'mario' },
       playerTag: { description: 'Text contained in a linked player tag (case-insensitive).', example: '#9PRC' },
+      player: { description: 'Text contained in the in-game name of a linked account, among the saved players (case-insensitive).', example: 'mik' },
       admin: { description: '`true`: administrators only; `false`: everybody else.', example: 'true' },
       verified: { description: '`true`: verified emails only; `false`: emails not verified yet.', example: 'false' },
       createdFrom: { description: 'Signed up at or after this instant (ISO 8601 with offset).', example: '2026-11-01T00:00:00+01:00' },

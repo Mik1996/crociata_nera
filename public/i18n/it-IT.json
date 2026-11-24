@@ -780,6 +780,7 @@
     "adminToggle": "Amministratore: {{name}}",
     "columns": {
       "user": "Utente",
+      "player": "Giocatore",
       "playerTag": "Tag giocatore",
       "admin": "Admin",
       "verified": "Email",

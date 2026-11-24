@@ -87,6 +87,8 @@ test.describe('Administration of users', () => {
     await dialog.getByRole('button', { name: t('admin.actions.link'), exact: true }).click();
     await expect(dialog).toBeHidden();
     await expect(row).toContainText(account.tag);
+    // The "Player" column shows the in-game name, to recognise who signed up.
+    if (account.name) await expect(row).toContainText(account.name);
 
     const me = await target.api.me();
     expect(me.players).toEqual([{ tag: account.tag, verified: true }]);

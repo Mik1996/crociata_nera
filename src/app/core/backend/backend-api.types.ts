@@ -73,8 +73,15 @@ export interface ResetPasswordRequest {
   repeatPassword: string;
 }
 
+/** A linked account as listed in the administration page, with its in-game name. */
+export interface AdminLinkedPlayer extends LinkedPlayer {
+  /** In-game name; `null` when the backend could not read it. */
+  name: string | null;
+}
+
 /** User as listed in the administration page. */
-export interface AdminUser extends BackendUser {
+export interface AdminUser extends Omit<BackendUser, 'players'> {
+  players: AdminLinkedPlayer[];
   updatedAt: string;
 }
 
