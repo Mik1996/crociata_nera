@@ -25,7 +25,11 @@ import { LanguageService } from '../../../../core/i18n/language.service';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { LoadState } from '../../../../shared/components/load-state/load-state';
 import { BaseArsenal } from '../../../bases/base-arsenal';
-import { BaseImageDialog, BaseImageDialogData } from '../../../bases/components/base-image-dialog';
+import {
+  BASE_IMAGE_DIALOG,
+  BaseImageDialog,
+  BaseImageDialogData,
+} from '../../../bases/components/base-image-dialog';
 import { BaseProposalCard } from '../../../bases/components/base-proposal-card';
 import {
   ProposalDecision,
@@ -119,10 +123,15 @@ export class BaseModeration {
 
   protected openImage(proposal: BaseProposal): void {
     this.dialog.open<BaseImageDialog, BaseImageDialogData>(BaseImageDialog, {
-      width: '75rem',
-      maxWidth: 'calc(100vw - 2rem)',
-      autoFocus: 'dialog',
-      data: { base: proposal, imageUrl: this.service.imageUrl(proposal, 'full') },
+      ...BASE_IMAGE_DIALOG,
+      data: {
+        bases: this.items,
+        index: Math.max(
+          0,
+          this.items().findIndex((p) => p.id === proposal.id),
+        ),
+        imageUrl: (base) => this.service.imageUrl(base, 'full'),
+      },
     });
   }
 

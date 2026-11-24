@@ -865,7 +865,10 @@
       "intro": "La base del municipio {{n}} verrà eliminata dall'arsenale insieme alla sua immagine. L'operazione non si può annullare."
     },
     "imageDialog": {
-      "title": "Base del municipio {{n}}"
+      "title": "Base del municipio {{n}}",
+      "noDetails": "Nessuna nota né truppe del castello per questa base.",
+      "previous": "Base precedente",
+      "next": "Base successiva"
     },
     "castle": {
       "title": "Rinforzi del castello del clan",

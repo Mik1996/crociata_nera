@@ -35,7 +35,11 @@ import { ScrollFade } from '../../shared/directives/scroll-fade';
 import { BaseArsenal } from './base-arsenal';
 import { BaseDeleteDialog, BaseDeleteDialogData } from './components/base-delete-dialog';
 import { BaseFormDialog, BaseFormDialogData } from './components/base-form-dialog';
-import { BaseImageDialog, BaseImageDialogData } from './components/base-image-dialog';
+import {
+  BASE_IMAGE_DIALOG,
+  BaseImageDialog,
+  BaseImageDialogData,
+} from './components/base-image-dialog';
 import { BasesPdfEditor } from './components/bases-pdf-editor';
 import { ClanCastleTroops } from './components/clan-castle-troops';
 import { MyProposals } from './components/my-proposals';
@@ -281,12 +285,28 @@ export class BasesPage {
     });
   }
 
+  /**
+   * The enlarged screenshot; the arrows browse the bases of the list (reading its next pages), or
+   * show this one only when it is not in the list (a proposal).
+   */
   protected openImage(base: DefenseBase): void {
+    const feed = this.feed();
+    const index = this.items().findIndex((b) => b.id === base.id);
     this.dialog.open<BaseImageDialog, BaseImageDialogData>(BaseImageDialog, {
-      width: '75rem',
-      maxWidth: 'calc(100vw - 2rem)',
-      autoFocus: 'dialog',
-      data: { base, imageUrl: this.imageUrl(base, 'full') },
+      ...BASE_IMAGE_DIALOG,
+      data:
+        index < 0
+          ? { bases: signal([base]), index: 0, imageUrl: (b) => this.imageUrl(b, 'full') }
+          : {
+              bases: feed.items,
+              index,
+              imageUrl: (b) => this.imageUrl(b, 'full'),
+              loadMore: () => {
+                if (!feed.loading() && !feed.complete() && feed.error() === undefined) {
+                  feed.loadMore();
+                }
+              },
+            },
     });
   }
 

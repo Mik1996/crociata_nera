@@ -865,7 +865,10 @@
       "intro": "La base del ayuntamiento {{n}} se eliminará del arsenal junto con su imagen. No se puede deshacer."
     },
     "imageDialog": {
-      "title": "Base del ayuntamiento {{n}}"
+      "title": "Base del ayuntamiento {{n}}",
+      "noDetails": "Sin notas ni tropas del castillo para esta base.",
+      "previous": "Base anterior",
+      "next": "Base siguiente"
     },
     "castle": {
       "title": "Refuerzos del castillo del clan",

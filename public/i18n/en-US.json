@@ -865,7 +865,10 @@
       "intro": "The Town Hall {{n}} base will be removed from the arsenal together with its image. This cannot be undone."
     },
     "imageDialog": {
-      "title": "Town Hall {{n}} base"
+      "title": "Town Hall {{n}} base",
+      "noDetails": "No notes or clan castle troops for this base.",
+      "previous": "Previous base",
+      "next": "Next base"
     },
     "castle": {
       "title": "Clan castle reinforcements",

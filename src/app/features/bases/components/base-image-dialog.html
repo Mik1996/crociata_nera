@@ -1,31 +1,86 @@
-<h2 mat-dialog-title>
-  {{ 'bases.imageDialog.title' | translate: { n: data.base.townHallLevel } }}
-</h2>
+@if (base(); as base) {
+  <h2 mat-dialog-title>
+    {{ 'bases.imageDialog.title' | translate: { n: base.townHallLevel } }}
+  </h2>
 
-<mat-dialog-content>
-  <img
-    class="image"
-    [src]="data.imageUrl"
-    [width]="data.base.image.width"
-    [height]="data.base.image.height"
-    [alt]="'bases.imageDialog.title' | translate: { n: data.base.townHallLevel }"
-  />
-  @if (data.base.clanCastleTroops.length) {
-    <crn-clan-castle-troops
-      class="troops"
-      [troops]="data.base.clanCastleTroops"
-      [townHallLevel]="data.base.townHallLevel"
-    />
-  }
-  @if (data.base.description) {
-    <p class="description">{{ data.base.description }}</p>
-  }
-</mat-dialog-content>
+  <mat-dialog-content>
+    <div
+      #stage
+      class="stage"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel()"
+    >
+      <div
+        class="track"
+        [class.track--sliding]="sliding()"
+        [style.transform]="'translateX(' + offset() + 'px)'"
+        (transitionend)="onTransitionEnd($event)"
+      >
+        @if (previousBase(); as previous) {
+          <img class="image image--previous" draggable="false" alt="" [src]="imageOf(previous)" />
+        }
+        <img
+          class="image"
+          draggable="false"
+          [src]="imageOf(base)"
+          [width]="base.image.width"
+          [height]="base.image.height"
+          [alt]="'bases.imageDialog.title' | translate: { n: base.townHallLevel }"
+        />
+        @if (nextBase(); as next) {
+          <img class="image image--next" draggable="false" alt="" [src]="imageOf(next)" />
+        }
+      </div>
+      @if (hasPrevious()) {
+        <button
+          mat-icon-button
+          type="button"
+          class="nav nav--previous"
+          (click)="previous()"
+          [attr.aria-label]="'bases.imageDialog.previous' | translate"
+          [matTooltip]="'bases.imageDialog.previous' | translate"
+        >
+          <crn-icon name="chevron_left" />
+        </button>
+      }
+      @if (hasNext()) {
+        <button
+          mat-icon-button
+          type="button"
+          class="nav nav--next"
+          (click)="next()"
+          [attr.aria-label]="'bases.imageDialog.next' | translate"
+          [matTooltip]="'bases.imageDialog.next' | translate"
+        >
+          <crn-icon name="chevron_right" />
+        </button>
+      }
+    </div>
+    <!-- Always as tall: the dialog keeps its size from one base to the next. -->
+    <div class="details" crnScrollFade>
+      @if (base.clanCastleTroops.length) {
+        <crn-clan-castle-troops
+          class="troops"
+          [troops]="base.clanCastleTroops"
+          [townHallLevel]="base.townHallLevel"
+        />
+      }
+      @if (base.description) {
+        <p class="description">{{ base.description }}</p>
+      }
+      @if (!base.clanCastleTroops.length && !base.description) {
+        <p class="empty cn-muted">{{ 'bases.imageDialog.noDetails' | translate }}</p>
+      }
+    </div>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
-  <a mat-flat-button [href]="data.base.layoutUrl" target="_blank" rel="noopener noreferrer">
-    <crn-icon matButtonIcon name="download" />
-    {{ 'bases.copy' | translate }}
-  </a>
-</mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
+    <a mat-flat-button [href]="base.layoutUrl" target="_blank" rel="noopener noreferrer">
+      <crn-icon matButtonIcon name="download" />
+      {{ 'bases.copy' | translate }}
+    </a>
+  </mat-dialog-actions>
+}

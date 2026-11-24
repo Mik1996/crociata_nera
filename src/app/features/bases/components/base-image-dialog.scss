@@ -1,24 +1,105 @@
+@use 'color-palette' as palette;
 @use 'variables' as *;
 
-.image {
-  display: block;
+// The picture and the arrows beside it; a horizontal swipe changes base, a vertical one scrolls.
+// The neighbours wait outside, left and right, and slide in while the finger drags the track.
+// On touch screens they peek at the edges instead of the arrows: there is more to swipe to.
+.stage {
+  --peek: 0rem;
+
+  position: relative;
+  // Same box for every base (screenshots are landscape): the dialog keeps its size.
+  aspect-ratio: 16 / 10;
   width: 100%;
-  height: auto;
-  // Leaves room for the title, the description and the buttons.
-  max-height: calc(100dvh - 14rem);
+  // Leaves room for the title, the details and the buttons.
+  max-height: calc(100dvh - 22rem);
+  min-height: 10rem;
+  overflow: hidden;
+  border-radius: $radius-m;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+
+  @media (hover: none) and (pointer: coarse) {
+    --peek: #{$space-l};
+  }
+}
+
+.track {
+  position: absolute;
+  inset: 0 var(--peek);
+
+  &--sliding {
+    transition: transform 0.25s ease-out;
+  }
+}
+
+.image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   border-radius: $radius-m;
   background: var(--cn-surface-3);
   object-fit: contain;
+  -webkit-user-drag: none;
+
+  &--previous {
+    left: calc(-100% - #{$space-s});
+  }
+
+  &--next {
+    left: calc(100% + #{$space-s});
+  }
 }
 
-.troops {
+.nav {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--cn-gold-light);
+  background: palette.alpha(var(--cn-surface), 70%);
+  // A ring drawn inside, not a border: a border would push the chevron off centre.
+  box-shadow: inset 0 0 0 1px palette.alpha(var(--cn-gold), 50%);
+
+  &:hover {
+    background: palette.alpha(var(--cn-surface), 90%);
+  }
+
+  &--previous {
+    left: $space-s;
+  }
+
+  &--next {
+    right: $space-s;
+  }
+
+  // Touch screens swipe, with the neighbours peeking at the edges.
+  @media (hover: none) and (pointer: coarse) {
+    display: none;
+  }
+}
+
+// Troops and notes in a box of fixed height, scrolled when longer.
+.details {
+  height: 7.5rem;
   margin-top: $space-m;
+  overflow-y: auto;
 }
 
 .description {
-  margin: $space-m 0 0;
+  margin: $space-s 0 0;
   white-space: pre-line;
   overflow-wrap: anywhere;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.empty {
+  margin: 0;
+  font-style: italic;
 }
 
 a crn-icon {
