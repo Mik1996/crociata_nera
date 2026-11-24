@@ -61,6 +61,17 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="player">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.player' | translate }}</th>
+          <td mat-cell *matCellDef="let u">
+            @if (playerNames(u); as names) {
+              <span>{{ names }}</span>
+            } @else {
+              <span class="cn-muted">—</span>
+            }
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="playerTag">
           <th mat-header-cell *matHeaderCellDef>{{ 'admin.columns.playerTag' | translate }}</th>
           <td mat-cell *matCellDef="let u">

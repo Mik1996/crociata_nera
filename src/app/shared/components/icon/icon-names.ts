@@ -20,6 +20,8 @@ export const ICON_NAMES = [
   'check',
   'check_circle',
   'checklist',
+  'chevron_left',
+  'chevron_right',
   'clear',
   'construction',
   'dashboard',

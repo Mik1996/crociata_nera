@@ -12,6 +12,8 @@ export interface AdminUserQuery {
   search?: string;
   user?: string;
   playerTag?: string;
+  /** Text in the in-game name of a linked account. */
+  player?: string;
   admin?: boolean;
   verified?: boolean;
   createdFrom?: string;

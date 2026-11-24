@@ -9,6 +9,7 @@ import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
 import { resetEnvCache } from '@/lib/config/env';
 import { SessionModel } from '@/modules/auth/session.model';
 import { UserModel } from '@/modules/auth/user.model';
+import { PlayerModel } from '@/modules/commendations/player.model';
 import { mockCocApi } from './coc-mock';
 import { call } from './helpers';
 
@@ -73,6 +74,37 @@ describe('administration', () => {
     const invalid = await list('sort=password');
     expect(invalid.status).toBe(400);
     expect(invalid.body.messages).toEqual([{ key: 'ERROR.INVALID_FIELD', field: 'sort' }]);
+  });
+
+  it('lists the in-game names of the linked accounts and filters by them', async () => {
+    const boss = await registerAdmin();
+    const mik = await register('Mik', '10.0.1.4');
+    await register('nobody', '10.0.1.5');
+    await UserModel.updateOne(
+      { _id: mik.user.id },
+      { $set: { playerTags: ['#NAMED1', '#NAMED2', '#NAMED3'], pendingPlayerTag: '#NAMED4' } },
+    );
+    // A saved player, an account read live, one the API does not know, an old unverified link.
+    await PlayerModel.create({ tag: '#NAMED1', name: 'Ixion' });
+    const fetchMock = mockCocApi({
+      '/players/%23NAMED2': { body: { tag: '#NAMED2', name: 'DoubleC' } },
+      '/players/%23NAMED4': { body: { tag: '#NAMED4', name: 'Pending' } },
+    });
+    const list = (query: string) => call(listUsers, { token: boss.token, path: `/api/v1/admin/users?${query}` });
+
+    const res = await list('user=mik');
+    expect(res.body.result.items[0].players).toEqual([
+      { tag: '#NAMED1', verified: true, name: 'Ixion' },
+      { tag: '#NAMED2', verified: true, name: 'DoubleC' },
+      { tag: '#NAMED3', verified: true, name: null },
+      { tag: '#NAMED4', verified: false, name: 'Pending' },
+    ]);
+    // Saved players are not read from the API.
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('NAMED1'))).toBe(false);
+
+    const names = (r: Awaited<ReturnType<typeof list>>) => (r.body.result.items as { username: string }[]).map((u) => u.username);
+    expect(names(await list('player=ixi'))).toEqual(['Mik']);
+    expect(names(await list('player=nessuno'))).toEqual([]);
   });
 
   it('is reserved to administrators', async () => {
@@ -165,7 +197,7 @@ describe('administration', () => {
       params: { id: member.user.id, tag: 'MEM123' },
     });
     expect(unlinked.status).toBe(200);
-    expect(unlinked.body.result.players).toEqual([{ tag: '#MEM456', verified: true }]);
+    expect(unlinked.body.result.players).toEqual([{ tag: '#MEM456', verified: true, name: null }]);
     // The new roles apply at once, even with the token issued before the promotion.
     const promotedToken = await call(listUsers, { token: member.token });
     expect(promotedToken.status).toBe(200);
@@ -209,8 +241,8 @@ describe('administration', () => {
     await UserModel.updateOne({ _id: other.user.id }, { $set: { playerTags: ['#TAKEN1'], pendingPlayerTag: '#MEM456' } });
     // #MEM123 and #MEM456 exist in the game; every other tag is unknown (404).
     const coc = mockCocApi({
-      '%23MEM123': { body: { tag: '#MEM123' } },
-      '%23MEM456': { body: { tag: '#MEM456' } },
+      '%23MEM123': { body: { tag: '#MEM123', name: 'Mem One' } },
+      '%23MEM456': { body: { tag: '#MEM456', name: 'Mem Two' } },
     });
     const link = (playerTags: unknown, token = boss.token) =>
       call(linkUserPlayers, { body: { playerTags }, token, params: { id: member.user.id } });
@@ -240,8 +272,8 @@ describe('administration', () => {
     const linked = await link([' #mem123 ', '#MEM456', '#MEM123']);
     expect(linked.status).toBe(200);
     expect(linked.body.result.players).toEqual([
-      { tag: '#MEM123', verified: true },
-      { tag: '#MEM456', verified: true },
+      { tag: '#MEM123', verified: true, name: 'Mem One' },
+      { tag: '#MEM456', verified: true, name: 'Mem Two' },
     ]);
     // The unverified copy of #MEM456 held by another user gives way.
     expect((await UserModel.findById(other.user.id))!.pendingPlayerTag).toBeNull();

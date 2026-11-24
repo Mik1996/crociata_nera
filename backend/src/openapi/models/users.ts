@@ -57,10 +57,25 @@ export const AuthResult = model(
   }),
 );
 
+export const AdminLinkedPlayer = model(
+  'AdminLinkedPlayer',
+  'A Clash of Clans account linked to the user, with its in-game name.',
+  LinkedPlayer.extend({
+    name: z
+      .string()
+      .nullable()
+      .describe('In-game name: from the saved players, otherwise the live profile; `null` when neither can be read.'),
+  }),
+);
+
 export const AdminUser = model(
   'AdminUser',
   'A user as listed to administrators.',
-  z.strictObject({ ...userShape, updatedAt: dateTime('Last change to the account.') }),
+  z.strictObject({
+    ...userShape,
+    players: z.array(AdminLinkedPlayer).describe('Linked Clash of Clans accounts (at most 10 verified), with their names.'),
+    updatedAt: dateTime('Last change to the account.'),
+  }),
 );
 
 export const UserPage = model(

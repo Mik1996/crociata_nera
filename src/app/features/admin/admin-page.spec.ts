@@ -40,7 +40,7 @@ const ok = <T>(result: T) => ({
 describe('AdminPage', () => {
   let httpMock: HttpTestingController;
 
-  async function render() {
+  async function render(users: object[] = [me, member]) {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -58,7 +58,7 @@ describe('AdminPage', () => {
       .flush(ok({ accessToken: 'tok', accessTokenExpiresAt: '', user: me }));
     const fixture = TestBed.createComponent(AdminPage);
     fixture.detectChanges();
-    httpMock.expectOne(USERS_URL).flush(ok({ items: [me, member], total: 2, page: 1, limit: 25 }));
+    httpMock.expectOne(USERS_URL).flush(ok({ items: users, total: users.length, page: 1, limit: 25 }));
     await fixture.whenStable();
     return { fixture, el: fixture.nativeElement as HTMLElement };
   }
@@ -84,6 +84,25 @@ describe('AdminPage', () => {
     // Nothing to unlink yet.
     expect(rows[1].querySelector('.action-unlink')!.hasAttribute('disabled')).toBe(true);
     expect(el.querySelector('th.mat-column-actions')!.textContent).toContain('Azioni');
+  });
+
+  it('shows the in-game names of the linked accounts, comma separated', async () => {
+    const { el } = await render([
+      me,
+      {
+        ...member,
+        players: [
+          { tag: '#AAA', verified: true, name: 'Mik' },
+          { tag: '#BBB', verified: true, name: null },
+          { tag: '#CCC', verified: true, name: 'Ixion' },
+          { tag: '#DDD', verified: false, name: 'DoubleC' },
+        ],
+      },
+    ]);
+    expect(el.querySelector('th.mat-column-player')!.textContent).toContain('Giocatore');
+    const cells = Array.from(el.querySelectorAll('td.mat-column-player'), (c) => c.textContent!.trim());
+    // A name the backend could not read is left out; no account at all shows a dash.
+    expect(cells).toEqual(['—', 'Mik, Ixion, DoubleC']);
   });
 
   it('names each admin switch after its user, on the focusable switch itself', async () => {

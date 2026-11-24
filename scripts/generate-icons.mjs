@@ -28,6 +28,8 @@ const NAMES = [
   'check',
   'check_circle',
   'checklist',
+  'chevron_left',
+  'chevron_right',
   'clear',
   'construction',
   'dashboard',

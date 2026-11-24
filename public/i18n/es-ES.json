@@ -780,6 +780,7 @@
     "adminToggle": "Administrador: {{name}}",
     "columns": {
       "user": "Usuario",
+      "player": "Jugador",
       "playerTag": "Tag de jugador",
       "admin": "Admin",
       "verified": "Email",
@@ -865,7 +866,10 @@
       "intro": "La base del ayuntamiento {{n}} se eliminará del arsenal junto con su imagen. No se puede deshacer."
     },
     "imageDialog": {
-      "title": "Base del ayuntamiento {{n}}"
+      "title": "Base del ayuntamiento {{n}}",
+      "noDetails": "Sin notas ni tropas del castillo para esta base.",
+      "previous": "Base anterior",
+      "next": "Base siguiente"
     },
     "castle": {
       "title": "Refuerzos del castillo del clan",
@@ -990,55 +994,64 @@
       "bronze": "Valeroso",
       "silver": "Caudillo",
       "gold": "Señor de la Guerra",
-      "description": "Puesto {{n}} en la clasificación del mes por media de estrellas por guerra (al menos 3 guerras)."
+      "description": "Puesto {{n}} en la clasificación del mes por media de estrellas por guerra (al menos 3 guerras).",
+      "summary": "Podio de la clasificación del mes por media de estrellas por guerra (al menos 3 guerras): cuanto más alto el puesto, más valioso el metal."
     },
     "perfect": {
       "bronze": "Mano Firme",
       "silver": "Espada Implacable",
       "gold": "Hoja Infalible",
-      "description": "Media de al menos {{n}} estrellas por ataque en el mes (al menos 4 ataques)."
+      "description": "Media de al menos {{n}} estrellas por ataque en el mes (al menos 4 ataques).",
+      "summary": "Precisión en ataque: media de estrellas por ataque en el mes (al menos 4 ataques)."
     },
     "giantSlayer": {
       "bronze": "Temerario",
       "silver": "Cazador de Gigantes",
       "gold": "Azote de Titanes",
-      "description": "Al menos {{n}} ataques de 3 estrellas en el mes contra Ayuntamientos superiores."
+      "description": "Al menos {{n}} ataques de 3 estrellas en el mes contra Ayuntamientos superiores.",
+      "summary": "Ataques de 3 estrellas en el mes contra Ayuntamientos superiores."
     },
     "cwlStriker": {
       "bronze": "Guerrero de Liga",
       "silver": "Campeón de Liga",
       "gold": "Leyenda de la Liga",
-      "description": "Media de al menos {{n}} estrellas por ataque en la última CWL (al menos 3 ataques)."
+      "description": "Media de al menos {{n}} estrellas por ataque en la última CWL (al menos 3 ataques).",
+      "summary": "Precisión en CWL: media de estrellas por ataque en la última CWL (al menos 3 ataques)."
     },
     "capitalRaider": {
       "bronze": "Saqueador",
       "silver": "Depredador de la Capital",
       "gold": "Conquistador de Capitales",
-      "description": "Más de {{n}} de oro de la capital saqueado en el último Raid Weekend."
+      "description": "Más de {{n}} de oro de la capital saqueado en el último Raid Weekend.",
+      "summary": "Oro de la capital saqueado en el último Raid Weekend."
     },
     "donor": {
       "bronze": "Portador de Refuerzos",
       "silver": "Señor de las Legiones",
       "gold": "Padre de los Ejércitos",
-      "description": "Al menos {{n}} tropas donadas en la temporada: se otorga en cuanto se alcanzan."
+      "description": "Al menos {{n}} tropas donadas en la temporada: se otorga en cuanto se alcanzan.",
+      "summary": "Tropas donadas en la temporada: cada medalla llega en cuanto se alcanza su umbral."
     },
     "wall": {
       "bronze": "Escudo Firme",
       "silver": "Bastión de Acero",
       "gold": "Muro Infranqueable",
-      "description": "En defensa, como máximo {{n}} estrellas concedidas de media por guerra (al menos 3 guerras)."
+      "description": "En defensa, como máximo {{n}} estrellas concedidas de media por guerra (al menos 3 guerras).",
+      "summary": "Solidez en defensa: pocas estrellas concedidas de media por guerra (al menos 3 guerras)."
     },
     "tireless": {
       "bronze": "Soldado Fiel",
       "silver": "Veterano Incansable",
       "gold": "Brazo Indómito",
-      "description": "Ningún ataque perdido en al menos {{n}} guerras del mes."
+      "description": "Ningún ataque perdido en al menos {{n}} guerras del mes.",
+      "summary": "Guerras del mes jugadas sin perder ningún ataque."
     },
     "present": {
       "bronze": "Presente en la Llamada",
       "silver": "Pilar del Clan",
       "gold": "Siempre en Primera Línea",
-      "description": "Atacó en al menos el {{n}}% de las guerras del mes."
+      "description": "Atacó en al menos el {{n}}% de las guerras del mes.",
+      "summary": "Presencia en guerra: proporción de las guerras del mes en las que atacó."
     },
     "history": {
       "earned": "distinciones conseguidas",

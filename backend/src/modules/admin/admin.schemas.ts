@@ -26,6 +26,8 @@ export const listUsersQuerySchema = z.object({
   /** Filters by column (all together). */
   user: textQuery,
   playerTag: textQuery,
+  /** Text contained in the in-game name of a linked account (saved players). */
+  player: textQuery,
   admin: booleanQuery.optional(),
   verified: booleanQuery.optional(),
   createdFrom: z.iso.datetime({ offset: true }).optional(),
@@ -60,7 +62,10 @@ export const deleteUserSchema = z.object({
     .max(64, { error: MessageKey.USERNAME_CONFIRMATION_MISMATCH }),
 });
 
-export type ListUsersQuery = z.output<typeof listUsersQuerySchema>;
+export type ListUsersQuery = z.output<typeof listUsersQuerySchema> & {
+  /** Tags of the saved players whose name matches `player` (worked out by `listUsers`). */
+  playerTagsNamed?: string[];
+};
 export type UpdateUserInput = z.output<typeof updateUserSchema>;
 export type LinkUserPlayersInput = z.output<typeof linkUserPlayersSchema>;
 export type DeleteUserInput = z.output<typeof deleteUserSchema>;

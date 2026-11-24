@@ -28,6 +28,14 @@ describe('PlayerCommendations', () => {
     expect(champion.classList).not.toContain('medal--none');
     expect(el.querySelectorAll('li.medal--none')).toHaveLength(30);
     expect(el.querySelector('.summary__total')!.textContent).toContain('4');
+
+    // One description per graded commendation, under its three medals; none on the one-off rows.
+    const summaries = el.querySelectorAll('.commendation-row__summary');
+    expect(summaries).toHaveLength(9);
+    expect(champion.closest('.commendation-row')!.querySelector('.commendation-row__summary')!.textContent).toContain(
+      'Podio della classifica del mese',
+    );
+    expect(el.querySelector('.commendation-row--single .commendation-row__summary')).toBeNull();
   });
 
   it('shows a one-off commendation as a single medal on a panel of its colour, with its requirement', async () => {
