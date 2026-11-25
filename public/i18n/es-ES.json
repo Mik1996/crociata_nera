@@ -1081,6 +1081,9 @@
       "copy": "Copiar texto",
       "copied": "Texto copiado",
       "copyError": "No se ha podido copiar el texto.",
+      "copyImage": "Copiar imagen",
+      "imageCopied": "Imagen copiada",
+      "copyImageError": "No se ha podido copiar la imagen.",
       "shareError": "No se ha podido compartir la imagen.",
       "kicker": "Encomio conseguido",
       "caption": "🏅 ¡He conseguido el encomio «{{medal}}» con el clan {{clan}}! ⚔️"

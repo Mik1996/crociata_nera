@@ -1081,6 +1081,9 @@
       "copy": "Copy text",
       "copied": "Text copied",
       "copyError": "The text could not be copied.",
+      "copyImage": "Copy image",
+      "imageCopied": "Image copied",
+      "copyImageError": "The image could not be copied.",
       "shareError": "The picture could not be shared.",
       "kicker": "Commendation earned",
       "caption": "🏅 I earned the «{{medal}}» commendation with clan {{clan}}! ⚔️"

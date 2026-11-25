@@ -63,6 +63,7 @@ export class CommendationShareDialog {
   protected readonly formats: readonly ShareCardFormat[] = ['square', 'story'];
   protected readonly format = signal<ShareCardFormat>('square');
   protected readonly canShare = canSharePng();
+  protected readonly canCopyImage = canCopyPng();
   protected readonly busy = signal(false);
 
   /** Name of the medal with its tier, e.g. "Warlord – Gold". */
@@ -119,7 +120,9 @@ export class CommendationShareDialog {
     if (!card || this.busy()) return;
     this.busy.set(true);
     try {
-      await navigator.share({ files: [card.file], text: this.caption() });
+      // Only the picture: with a text too, apps like Telegram keep the text and drop the picture.
+      // The caption has its own "Copy text".
+      await navigator.share({ files: [card.file] });
     } catch (error) {
       const name = (error as DOMException | null)?.name;
       if (name !== 'AbortError') {
@@ -138,6 +141,22 @@ export class CommendationShareDialog {
     link.href = card.url;
     link.download = card.file.name;
     link.click();
+  }
+
+  /**
+   * Puts the picture alone on the clipboard, to paste it in a chat. The "Copy" of the macOS share
+   * sheet stores it both as image data and as a file, and apps like WhatsApp paste it twice.
+   */
+  protected async copyImage(): Promise<void> {
+    const card = this.card.hasValue() ? this.card.value() : null;
+    if (!card) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': card.file })]);
+      this.message('commendations.share.imageCopied');
+    } catch (error) {
+      console.error('[share] image copy failed', error);
+      this.message('commendations.share.copyImageError');
+    }
   }
 
   protected async copyCaption(): Promise<void> {
@@ -187,6 +206,14 @@ export class CommendationShareDialog {
     if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
     this.previewUrl = null;
   }
+}
+
+/** Whether the browser can put a PNG picture on the clipboard (async Clipboard API). */
+function canCopyPng(): boolean {
+  if (typeof navigator === 'undefined' || typeof navigator.clipboard?.write !== 'function') return false;
+  if (typeof ClipboardItem === 'undefined') return false;
+  // `supports` is recent: where it is missing, PNG is the one picture type every browser accepts.
+  return typeof ClipboardItem.supports !== 'function' || ClipboardItem.supports('image/png');
 }
 
 /** Whether the device can share a picture file (Web Share API level 2). */

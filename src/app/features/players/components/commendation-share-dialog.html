@@ -31,14 +31,25 @@
     }
   </div>
 
-  <p class="caption" [attr.aria-label]="'commendations.share.captionLabel' | translate">{{ caption() }}</p>
-</mat-dialog-content>
+  <p class="caption" [attr.aria-label]="'commendations.share.captionLabel' | translate">{{ caption() }}</p></mat-dialog-content>
 
 <mat-dialog-actions class="actions">
   <button mat-button type="button" class="copy" (click)="copyCaption()">
     <crn-icon matButtonIcon name="content_copy" />
     {{ 'commendations.share.copy' | translate }}
   </button>
+  @if (canCopyImage) {
+    <button
+      mat-button
+      type="button"
+      class="copy-image"
+      [disabled]="!card.hasValue() || card.isLoading()"
+      (click)="copyImage()"
+    >
+      <crn-icon matButtonIcon name="photo_library" />
+      {{ 'commendations.share.copyImage' | translate }}
+    </button>
+  }
   <button mat-button type="button" class="download" [disabled]="!card.hasValue() || card.isLoading()" (click)="download()">
     <crn-icon matButtonIcon name="download" />
     {{ 'pdf.download' | translate }}
