@@ -12,6 +12,8 @@
     "lint:colors": "node scripts/check-colors.mjs",
     "lint:units": "node scripts/check-units.mjs",
     "icons": "node scripts/generate-icons.mjs",
+    "medals": "node scripts/render-medal-stills.mjs",
+    "medals:check": "node scripts/render-medal-stills.mjs --check",
     "start:prod": "ng build && node scripts/serve-prod.mjs",
     "e2e:build": "ng build && npm --prefix backend run build",
     "e2e:stack": "node e2e/stack/start-stack.mjs",

@@ -26,9 +26,7 @@
               >
                 <crn-medal-3d-image
                   [svgUrl]="'commendations/' + m.emblem + '.svg'"
-                  [finish]="m.style"
                   [locked]="m.count === 0"
-                  [size]="medalSize"
                 />
                 <span class="medal__name" aria-hidden="true">{{ name }}</span>
                 <span class="medal__count cn-num" aria-hidden="true">× {{ m.count }}</span>

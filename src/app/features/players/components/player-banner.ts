@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../../../core/backend/auth.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import {
@@ -10,7 +11,6 @@ import {
   PlayerProfile,
 } from '../../../core/models';
 import { emblemOf, nameKeyOf, styleOf, thresholdOf } from '../../../core/utils/commendations';
-import { periodLabel } from '../../../core/utils/monthly-history';
 import { Icon } from '../../../shared/components/icon/icon';
 import { Tag } from '../../../shared/components/tag/tag';
 import { XpBadge } from '../../../shared/game/xp-badge';
@@ -34,56 +34,85 @@ export class PlayerBanner {
   /** Commendations; the row is hidden when there are none. */
   readonly commendations = input<PlayerCommendations | null>(null);
 
-  /** Width of a medal in CSS pixels (the 3D image is drawn for it). */
-  protected readonly medalSize = 80;
 
   private readonly language = inject(LanguageService);
   private readonly medalDialog = inject(CommendationDialogOpener);
+  private readonly auth = inject(AuthService);
   /** Medals with what the template needs to name and describe them. */
   protected readonly medals = computed(() => {
     const c = this.commendations();
     if (!c) return [];
     const locale = this.language.current();
-    const day = new Intl.DateTimeFormat(locale, {
+    // Day, month and year: these medals belong to one precise period (the last war, Raid Weekend,
+    // CWL…), so the dialog and the share card say exactly when.
+    const date = new Intl.DateTimeFormat(locale, {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
+      year: 'numeric',
       timeZone: 'Europe/Rome',
     });
-    // Period of each kind of commendation, shown in the tooltip.
+    const range = (dates: { startTime: string; endTime: string }) =>
+      dateRange(new Date(dates.startTime), new Date(dates.endTime), locale);
+    // Period of each kind of commendation, shown in the tooltip and the dialog.
     const periods: Partial<Record<CommendationType, string>> = {
-      capitalRaider: c.raidWeekend
-        ? `${day.format(new Date(c.raidWeekend.startTime))} – ${day.format(new Date(c.raidWeekend.endTime))}`
-        : undefined,
-      cwlStriker: c.cwlSeason ? `CWL ${periodLabel(c.cwlSeason, locale)}` : undefined,
-      cwlAllAttacks: c.cwlSeason ? `CWL ${periodLabel(c.cwlSeason, locale)}` : undefined,
+      capitalRaider: c.raidWeekend ? range(c.raidWeekend) : undefined,
+      cwlStriker: c.cwlDates ? `CWL ${range(c.cwlDates)}` : undefined,
+      cwlAllAttacks: c.cwlDates ? `CWL ${range(c.cwlDates)}` : undefined,
       legendTop: c.legendSeason
         ? this.language.t('commendations.legendSeasonPeriod', {
-            date: day.format(new Date(c.legendSeason.endTime)),
+            date: date.format(new Date(c.legendSeason.endTime)),
           })
         : undefined,
-      donor: c.donationSeason ? periodLabel(c.donationSeason, locale) : undefined,
+      donor: c.donationDates ? range(c.donationDates) : undefined,
     };
-    const month = periodLabel(c.month, locale);
+    const month = range(monthDates(c.month));
     return c.items.map((item) => ({
       ...item,
       emblem: emblemOf(item),
       nameKey: nameKeyOf(item),
       style: styleOf(item),
       threshold: thresholdOf(item),
-      // One-off war commendations: the month they were last earned in (last month or this one).
+      // One-off war commendations: the day of the war that earned them (last month or this one).
       period:
         periods[item.type] ??
-        (c.warMonths?.[item.type] ? periodLabel(c.warMonths[item.type]!, locale) : month),
+        (c.warEnds?.[item.type] ? date.format(new Date(c.warEnds[item.type]!)) : month),
     }));
   });
   protected readonly roleKey = roleKey;
 
-  /** Opens the medal in 3D, with the period it was earned in. */
+  /** Opens the medal in 3D, with the period it was earned in; the owner may share it. */
   protected open3d(medal: Commendation & { period: string }): Promise<void> {
+    const profile = this.profile();
     return this.medalDialog.open({
       type: medal.type,
       tier: medal.tier,
       period: medal.period,
+      share: this.auth.isMyPlayer(profile.tag) ? { player: profile.name } : undefined,
     });
   }
+}
+
+/** First and last day of a month (`YYYY-MM`), at noon UTC: the same days in every time zone. */
+function monthDates(month: string): { startTime: string; endTime: string } {
+  const [year, m] = month.split('-').map(Number) as [number, number];
+  return {
+    startTime: new Date(Date.UTC(year, m - 1, 1, 12)).toISOString(),
+    endTime: new Date(Date.UTC(year, m, 0, 12)).toISOString(),
+  };
+}
+
+/**
+ * A period with day, month and year in the order of the language ("3–11 novembre 2026", "November
+ * 3 – 11, 2026"), Rome time. The days lose their leading zero: Italian pads them ("03–11").
+ */
+function dateRange(start: Date, end: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Rome',
+  })
+    .formatRangeToParts(start, end)
+    .map((part) => (part.type === 'day' ? String(Number(part.value)) : part.value))
+    .join('');
 }

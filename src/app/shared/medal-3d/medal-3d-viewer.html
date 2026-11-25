@@ -1,10 +1,23 @@
-@if (unsupported()) {
-  <!-- No WebGL: the flat medal, greyed out when locked. -->
+@let showStill = !!still() && !stillFailed();
+@if (unsupported() && !showStill) {
+  <!-- No WebGL and no still picture: the flat medal, greyed out when locked. -->
   <img class="fallback" [class.fallback--locked]="locked()" [src]="svgUrl()" alt="" />
 }
 <canvas
   #canvas
   [hidden]="unsupported()"
+  [class.canvas--waiting]="showStill && !ready()"
   role="img"
   [attr.aria-label]="label() || null"
 ></canvas>
+@if (showStill) {
+  <!-- The medal at once, while the 3D one is built (for good without WebGL). -->
+  <img
+    class="still"
+    [class.still--gone]="ready() && !unsupported()"
+    [style.transform]="unsupported() ? null : 'scale(' + stillScale() + ')'"
+    [src]="still()"
+    alt=""
+    (error)="stillFailed.set(true)"
+  />
+}

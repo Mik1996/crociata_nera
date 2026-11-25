@@ -61,6 +61,8 @@ jobs:
         run: npm run lint:colors
       - name: Sizes in rem, no hard-coded pixels
         run: npm run lint:units
+      - name: Pre-rendered 3D medals up to date
+        run: npm run medals:check
       - name: Unit tests
         run: npx ng test --watch=false
       - name: Production build

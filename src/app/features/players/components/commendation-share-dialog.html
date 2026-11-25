@@ -1,0 +1,59 @@
+<h2 mat-dialog-title>{{ 'commendations.share.title' | translate }}</h2>
+
+<mat-dialog-content class="content">
+  <div class="formats" role="group" [attr.aria-label]="'commendations.share.format' | translate">
+    @for (f of formats; track f) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="format"
+        [class.format--active]="format() === f"
+        [attr.aria-pressed]="format() === f"
+        (click)="format.set(f)"
+      >
+        {{ 'commendations.share.formats.' + f | translate }}
+      </button>
+    }
+  </div>
+
+  <div class="preview" [style.aspect-ratio]="ratio()" [class.preview--story]="format() === 'story'">
+    @if (card.hasValue()) {
+      <img
+        class="preview__image"
+        [src]="card.value().url"
+        [alt]="'commendations.share.preview' | translate"
+      />
+    }
+    @if (card.isLoading()) {
+      <mat-spinner class="preview__spinner" diameter="40" />
+    } @else if (card.error()) {
+      <p class="preview__error">{{ 'commendations.share.error' | translate }}</p>
+    }
+  </div>
+
+  <p class="caption" [attr.aria-label]="'commendations.share.captionLabel' | translate">{{ caption() }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions class="actions">
+  <button mat-button type="button" class="copy" (click)="copyCaption()">
+    <crn-icon matButtonIcon name="content_copy" />
+    {{ 'commendations.share.copy' | translate }}
+  </button>
+  <button mat-button type="button" class="download" [disabled]="!card.hasValue() || card.isLoading()" (click)="download()">
+    <crn-icon matButtonIcon name="download" />
+    {{ 'pdf.download' | translate }}
+  </button>
+  @if (canShare) {
+    <button
+      mat-flat-button
+      type="button"
+      class="share"
+      [disabled]="!card.hasValue() || card.isLoading() || busy()"
+      (click)="share()"
+    >
+      <crn-icon matButtonIcon name="share" />
+      {{ 'pdf.share' | translate }}
+    </button>
+  }
+  <button mat-button mat-dialog-close type="button">{{ 'common.close' | translate }}</button>
+</mat-dialog-actions>

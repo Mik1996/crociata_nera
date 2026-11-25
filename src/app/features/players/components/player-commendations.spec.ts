@@ -1,12 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
+import { AuthService } from '../../../core/backend/auth.service';
 import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
 import { CommendationDialog } from './commendation-dialog';
 import { PlayerCommendations } from './player-commendations';
 
 describe('PlayerCommendations', () => {
+  // The signed-in user owns the account #ME.
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: AuthService, useValue: { isMyPlayer: (tag: string) => tag === '#ME' } }],
+    });
+  });
+
   it('shows every medal with its name and count, greyscale when never earned', async () => {
     const counts: EarnedCommendation[] = [
       { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 3 },
@@ -22,7 +30,7 @@ describe('PlayerCommendations', () => {
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
     expect(medals).toHaveLength(32);
-    const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
+    const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/3d/champion-gold.webp')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
@@ -63,11 +71,11 @@ describe('PlayerCommendations', () => {
     const hunter = single[3].querySelectorAll('li.medal');
     expect(hunter).toHaveLength(1);
     expect(hunter[0].classList).toContain('medal--none');
-    expect(hunter[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/chiefHunter.svg');
+    expect(hunter[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/3d/chiefHunter-locked.webp');
     expect(hunter[0].querySelector('.medal__name')!.textContent).toContain('Cacciatore di Capi');
     const medals = single[1].querySelectorAll('li.medal');
     expect(medals).toHaveLength(1);
-    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks.svg');
+    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/3d/cwlAllAttacks.webp');
     // No tier for a one-off commendation.
     expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toMatch(/^Certezza di Lega: /);
     expect(medals[0].querySelector('.medal__name')!.textContent).toContain('Certezza di Lega');
@@ -112,7 +120,7 @@ describe('PlayerCommendations', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     const button = Array.from(el.querySelectorAll<HTMLButtonElement>('.medal__button')).find(
-      (b) => b.querySelector('img')?.getAttribute('src') === 'commendations/champion-gold.svg',
+      (b) => b.querySelector('img')?.getAttribute('src') === 'commendations/3d/champion-gold.webp',
     )!;
     expect(button.getAttribute('aria-label')).toContain('Guarda la medaglia in 3D');
     button.click();
@@ -121,6 +129,34 @@ describe('PlayerCommendations', () => {
     expect(dialog.open).toHaveBeenCalledWith(
       CommendationDialog,
       expect.objectContaining({ data: { type: 'champion', tier: 'gold', count: 3 } }),
+    );
+  });
+
+  it("offers to share the medals of the user's own account, with its name", async () => {
+    const counts: EarnedCommendation[] = [
+      { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 1 },
+    ];
+    const dialog = { open: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } },
+        { provide: MatDialog, useValue: dialog },
+      ],
+    });
+    const fixture = TestBed.createComponent(PlayerCommendations);
+    fixture.componentRef.setInput('tag', '#ME');
+    fixture.componentRef.setInput('playerName', 'Arciere Nero');
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    el.querySelector<HTMLButtonElement>('.medal__button')!.click();
+    await vi.waitFor(() => expect(dialog.open).toHaveBeenCalled());
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      CommendationDialog,
+      expect.objectContaining({
+        data: expect.objectContaining({ share: { player: 'Arciere Nero' } }),
+      }),
     );
   });
 });

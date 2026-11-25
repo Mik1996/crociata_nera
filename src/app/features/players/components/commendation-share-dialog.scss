@@ -1,0 +1,77 @@
+@use 'color-palette' as palette;
+@use 'variables' as *;
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-m;
+}
+
+.formats {
+  display: flex;
+  gap: $space-s;
+}
+
+.format:not(.format--active) {
+  opacity: 0.6;
+}
+
+.format--active {
+  border-color: var(--cn-gold);
+  color: var(--cn-gold-light);
+  background: palette.alpha(var(--cn-gold), 12%);
+}
+
+// The card at its own proportions, as large as the dialog allows (a story stays within the screen).
+.preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 22rem;
+  border-radius: $radius-m;
+  background: var(--cn-surface-2);
+  overflow: hidden;
+}
+
+.preview--story {
+  width: auto;
+  height: min(32rem, 55vh);
+}
+
+.preview__image {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.preview__spinner,
+.preview__error {
+  grid-area: 1 / 1;
+}
+
+.preview__error {
+  margin: 0;
+  padding: $space-m;
+  text-align: center;
+  color: var(--cn-text-muted);
+}
+
+.caption {
+  width: 100%;
+  margin: 0;
+  padding: $space-s $space-m;
+  border-radius: $radius-s;
+  background: var(--cn-surface-2);
+  font-size: var(--cn-fs-sm);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $space-xs;
+}

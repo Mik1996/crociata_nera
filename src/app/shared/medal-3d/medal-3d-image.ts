@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, resource } from '@angular/core';
-import { MedalFinish } from './medal-finish';
-import { MedalSnapshots } from './medal-snapshots.service';
+import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
+import { medalStillUrl } from './medal-still';
 
 /**
- * A 3D medal at rest (no rotation, no interaction), as a still image: cheap enough for a whole
- * grid of medals. Shows the flat SVG until the 3D image is ready, or for good without WebGL.
- * Decorative: the accessible name is given by the parent.
+ * A 3D medal at rest, as a picture pre-rendered at build time (`npm run medals`): cheap enough for
+ * a whole grid of medals, with no Three.js nor drawing in the browser. Shows the flat SVG when the
+ * picture cannot be loaded. Decorative: the accessible name is given by the parent.
  */
 @Component({
   selector: 'crn-medal-3d-image',
@@ -14,20 +13,12 @@ import { MedalSnapshots } from './medal-snapshots.service';
   styleUrl: './medal-3d-image.scss',
 })
 export class Medal3dImage {
-  /** Flat medal SVG: source of the 3D medal and placeholder. */
+  /** Flat medal SVG (`commendations/<emblem>.svg`): names the still and is its fallback. */
   readonly svgUrl = input.required<string>();
-  readonly finish = input<MedalFinish>('gold');
+  /** Not earned yet: the dark matte still. */
   readonly locked = input(false);
-  /** Displayed width in CSS pixels (the image is drawn for it). */
-  readonly size = input(104);
 
-  private readonly snapshots = inject(MedalSnapshots);
-
-  private readonly snapshot = resource({
-    params: () => ({ url: this.svgUrl(), finish: this.finish(), locked: this.locked(), size: this.size() }),
-    loader: ({ params }) => this.snapshots.snapshot(params.url, params.finish, params.locked, params.size),
-  });
-
-  /** The 3D image once drawn. */
-  protected readonly image = computed(() => (this.snapshot.hasValue() ? this.snapshot.value() : null));
+  protected readonly still = computed(() => medalStillUrl(this.svgUrl(), this.locked()));
+  /** The still could not be loaded (reset when the medal changes). */
+  protected readonly failed = linkedSignal({ source: this.still, computation: () => false });
 }

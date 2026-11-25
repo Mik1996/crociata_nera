@@ -4,6 +4,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalNumberPipe } from '../../../core/i18n/locale-pipes';
 import { CommendationTier, CommendationType } from '../../../core/models';
+import { AuthService } from '../../../core/backend/auth.service';
 import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
 import {
@@ -33,12 +34,13 @@ import { CommendationDialogOpener } from './open-commendation-dialog';
 })
 export class PlayerCommendations {
   readonly tag = input.required<string>();
+  /** In-game name of the player, printed on the share card of their own medals. */
+  readonly playerName = input('');
 
-  /** Width of a medal in CSS pixels (the 3D image is drawn for it). */
-  protected readonly medalSize = 104;
 
   private readonly commendations = inject(CommendationService);
   private readonly medalDialog = inject(CommendationDialogOpener);
+  private readonly auth = inject(AuthService);
 
   protected readonly history = rxResource({
     params: () => this.tag(),
@@ -83,9 +85,10 @@ export class PlayerCommendations {
 
   protected readonly total = computed(() => this.earned().reduce((sum, c) => sum + c.quantity, 0));
 
-  /** Opens the medal in 3D. */
+  /** Opens the medal in 3D; the owner may share it. */
   protected open3d(type: CommendationType, tier: CommendationTier | null, count: number): Promise<void> {
-    return this.medalDialog.open({ type, tier, count });
+    const share = this.auth.isMyPlayer(this.tag()) ? { player: this.playerName() } : undefined;
+    return this.medalDialog.open({ type, tier, count, share });
   }
 }
 

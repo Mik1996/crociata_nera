@@ -851,7 +851,6 @@
       "imagePreparing": "Preparando la imagen…",
       "imageTooLarge": "Archivo demasiado grande (máximo {{max}} MB).",
       "description": "Descripción",
-      "descriptionHint": "Opcional: por ejemplo cómo defender o cuándo usar la base",
       "create": "Añadir",
       "save": "Guardar",
       "proposeTitle": "Proponer una base",
@@ -1066,8 +1065,25 @@
       "earned": "Conseguida {{n}} veces",
       "earnedOne": "Conseguida 1 vez",
       "notEarned": "Aún no conseguida",
-      "label": "Medalla {{name}} en 3D",
-      "period": "Periodo: {{period}}"
+      "label": "Medalla {{name}} en 3D"
+    },
+    "share": {
+      "open": "Compartir",
+      "title": "Comparte tu logro",
+      "format": "Formato",
+      "formats": {
+        "square": "Publicación",
+        "story": "Historia"
+      },
+      "preview": "Vista previa de la imagen para compartir",
+      "error": "No se ha podido crear la imagen.",
+      "captionLabel": "Texto para publicar con la imagen",
+      "copy": "Copiar texto",
+      "copied": "Texto copiado",
+      "copyError": "No se ha podido copiar el texto.",
+      "shareError": "No se ha podido compartir la imagen.",
+      "kicker": "Encomio conseguido",
+      "caption": "🏅 ¡He conseguido el encomio «{{medal}}» con el clan {{clan}}! ⚔️"
     }
   },
   "join": {

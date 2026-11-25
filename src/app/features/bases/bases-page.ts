@@ -44,8 +44,9 @@ import { BasesPdfEditor } from './components/bases-pdf-editor';
 import { ClanCastleTroops } from './components/clan-castle-troops';
 import { MyProposals } from './components/my-proposals';
 
+// Wide enough for the form's two columns (one column below 40rem of content, on phones).
 const FORM_DIALOG = {
-  width: '36rem',
+  width: '60rem',
   maxWidth: 'calc(100vw - 2rem)',
   autoFocus: 'first-tabbable',
 } as const;

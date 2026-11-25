@@ -3,7 +3,7 @@
 Crociata Nera: website of the Clash of Clans clan #2J8JVVCLC (https://crociatanera.it). Wars, CWL,
 Raid Weekend, players, statistics and commendations, plus user accounts linked to game accounts.
 
-Talk to the user in **English**. Code, identifiers, comments, tests and i18n keys are in **English**;
+Talk to the user in **Italian**. Code, identifiers, comments, tests and i18n keys are in **English**;
 Italian only in the UI translations (`public/i18n/it-IT.json`).
 
 ## Repository
@@ -33,6 +33,8 @@ npx ng test --watch=false --include <spec path>    # a single spec
 npx tsc -p tsconfig.app.json --noEmit              # frontend type check
 npm run lint:colors                                # colours only from the palette
 npm run lint:units                                 # sizes in rem, no hard-coded pixels
+npm run medals                                     # re-render the still 3D medals (public/commendations/3d/)
+npm run medals:check                               # fail when they are out of date (in CI)
 cd backend && npm run typecheck && npm test        # backend type check + tests (Vitest, in-memory MongoDB)
 
 npm run typecheck:e2e                              # e2e type check (tests, support, stack scripts)
@@ -157,6 +159,16 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
   administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
+- 3D medals (`shared/medal-3d/`): lists show **pre-rendered stills** (`<crn-medal-3d-image>`,
+  `public/commendations/3d/<emblem>[-locked].webp`, 256 px, `medalStillUrl`), drawn at build time by
+  `npm run medals` with the site's own Three.js code in headless Chromium. Re-run it after changing medal
+  SVGs, finishes, lights or 3D code: `medals:check` (CI) compares a fingerprint of the bundled 3D code, the
+  SVGs and the medal colours (`scripts/medal-stills/manifest.json`). The dialog's `<crn-medal-3d-viewer
+  [still]>` shows the still until the interactive medal has its relief, then fades to it.
+- Share cards (`shared/share-card/`): `ShareCardRenderer` draws a PNG on a canvas in the same iron look
+  (`paintIronPlate`, PDF fonts, 3D medal from `MedalSnapshots.still`), square 1080 or story 1080×1920. Used by
+  "Share" in the commendation dialog, only for the signed-in user's own earned medals
+  (`CommendationShareDialog`: Web Share API with caption, download, copy caption).
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).

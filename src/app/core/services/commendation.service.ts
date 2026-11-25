@@ -40,8 +40,8 @@ const HISTORY_DONATION_SEASONS = 36;
 export interface ClanCommendations extends CommendationPeriods {
   /** Commendations per player tag (players without any are missing). */
   byTag: ReadonlyMap<string, Commendation[]>;
-  /** Per player tag, the month each one-off war commendation was last earned in. */
-  warMonthsByTag: ReadonlyMap<string, Partial<Record<CommendationType, string>>>;
+  /** Per player tag, the end of the war each one-off war commendation was last earned in. */
+  warEndsByTag: ReadonlyMap<string, Partial<Record<CommendationType, string>>>;
 }
 
 /**
@@ -90,7 +90,11 @@ export class CommendationService {
           month,
           raidWeekend: raid ? { startTime: raid.startTime, endTime: raid.endTime } : undefined,
           cwlSeason: cwl?.season,
+          cwlDates: cwl ? cwlDates(cwl) : undefined,
           donationSeason: donations?.season,
+          donationDates: donations
+            ? { startTime: donations.startTime, endTime: donations.endTime }
+            : undefined,
           byTag: mergeCommendations(
             period ? awardCommendations(period) : new Map(),
             recent.awards,
@@ -99,7 +103,7 @@ export class CommendationService {
             cwl ? awardCwlCommendations(cwl) : new Map(),
             donations ? awardDonationCommendations(donations) : new Map(),
           ),
-          warMonthsByTag: recent.months,
+          warEndsByTag: recent.wars,
           legendSeason: legends
             ? { seasonId: legends.seasonId, endTime: legends.endTime }
             : undefined,
@@ -111,10 +115,10 @@ export class CommendationService {
   /** Commendations of a player (empty list when none). */
   forPlayer(tag: string, now = new Date()): Observable<PlayerCommendations> {
     return this.forClan(now).pipe(
-      map(({ byTag, warMonthsByTag, ...periods }) => ({
+      map(({ byTag, warEndsByTag, ...periods }) => ({
         ...periods,
         items: byTag.get(tag) ?? [],
-        warMonths: warMonthsByTag.get(tag) ?? {},
+        warEnds: warEndsByTag.get(tag) ?? {},
       })),
     );
   }
@@ -193,4 +197,13 @@ export class CommendationService {
       catchError(() => of(null)),
     );
   }
+}
+
+/** First battle day and end of the last war of a CWL season; `undefined` without wars. */
+function cwlDates(season: CwlSeason): { startTime: string; endTime: string } | undefined {
+  const wars = season.rounds.flatMap((r) => (r.war ? [r.war] : []));
+  if (!wars.length) return undefined;
+  const starts = wars.map((w) => w.startTime).sort();
+  const ends = wars.map((w) => w.endTime).sort();
+  return { startTime: starts[0]!, endTime: ends[ends.length - 1]! };
 }

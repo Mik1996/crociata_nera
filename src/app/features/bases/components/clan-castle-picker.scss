@@ -2,8 +2,15 @@
 @use 'variables' as *;
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   margin: 0 0 $space-l;
+}
+
+// Only the catalogue gives up height when the host is short: the chosen troops (any number of rows),
+// the bar and the messages keep theirs.
+:host > :not(.catalogue) {
+  flex: none;
 }
 
 .head {
@@ -54,8 +61,11 @@
   margin-inline-start: auto;
 }
 
+// Fills the height the host is given (flex), up to `--crn-castle-catalogue-max-height`.
 .catalogue {
-  max-height: 16rem;
+  flex: 1 1 auto;
+  min-height: 8rem;
+  max-height: var(--crn-castle-catalogue-max-height, 16rem);
   overflow-y: auto;
   padding: $space-s;
   border: 1px solid var(--cn-border);

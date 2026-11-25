@@ -32,6 +32,7 @@ const NAMES = [
   'chevron_right',
   'clear',
   'construction',
+  'content_copy',
   'dashboard',
   'delete',
   'download',
