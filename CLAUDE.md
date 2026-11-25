@@ -157,6 +157,10 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
   The browser side (pdfmake, fonts, pictures, emoji texts, frame) is `PdfToolkit` (`shared/pdf/pdf-toolkit.ts`),
   shared with other documents: the bases PDF (`features/bases/pdf/`, editor `BasesPdfEditor`, for
   administrators only) has a cover (picture picked on the device, darkened on a canvas) and a page per base.
+- Share cards (`shared/share-card/`): `ShareCardRenderer` draws a PNG on a canvas in the same iron look
+  (`paintIronPlate`, PDF fonts, 3D medal from `MedalSnapshots.still`), square 1080 or story 1080×1920. Used by
+  "Share" in the commendation dialog, only for the signed-in user's own earned medals
+  (`CommendationShareDialog`: Web Share API with caption, download, copy caption).
 - Pages filling the viewport use `host: { class: 'page--fill' }` and a `.page__scroll` area with
   `crnScrollFade` (scrollbars are hidden site-wide; the fade bands hint at more content).
 - Empty/loading/error states: `<crn-load-state>` (shows the clan badge in empty states, `ClanBadge`).

@@ -231,35 +231,36 @@ export function awardWarCommendations(war: HistoryWar): Map<string, Commendation
   return awards;
 }
 
-/** The one-off commendations of some months of wars, with the month each one was last earned in. */
+/** The one-off commendations of some months of wars, with the war each one was last earned in. */
 export interface RecentWarCommendations {
   /** Per player, each kind once. */
   awards: Map<string, Commendation[]>;
-  /** Per player, the month (`YYYY-MM`) of the last war that earned each kind. */
-  months: Map<string, Partial<Record<CommendationType, string>>>;
+  /** Per player, the end (ISO time) of the last war that earned each kind. */
+  wars: Map<string, Partial<Record<CommendationType, string>>>;
 }
 
 /**
  * The one-off commendations of the wars of some months (the last completed one and the one in
- * progress), once per player and kind, with the most recent month each one was earned in
+ * progress), once per player and kind, with the end of the most recent war that earned each one
  * ({@link awardWarCommendations} counts every war). Months missing (`null`) are skipped.
  */
 export function recentWarCommendations(periods: readonly (HistoryPeriod | null)[]): RecentWarCommendations {
   const awards = new Map<string, Commendation[]>();
-  const months = new Map<string, Partial<Record<CommendationType, string>>>();
-  const ordered = periods.filter((p): p is HistoryPeriod => p !== null).sort((a, b) => a.period.localeCompare(b.period));
-  for (const period of ordered) {
-    for (const war of period.wars) {
-      for (const [tag, items] of awardWarCommendations(war)) {
-        const known = awards.get(tag) ?? [];
-        awards.set(tag, [...known, ...items.filter((c) => !known.some((k) => k.type === c.type))]);
-        const earned = months.get(tag) ?? {};
-        for (const c of items) earned[c.type] = period.period;
-        months.set(tag, earned);
-      }
+  const wars = new Map<string, Partial<Record<CommendationType, string>>>();
+  const ordered = periods
+    .filter((p): p is HistoryPeriod => p !== null)
+    .flatMap((p) => p.wars)
+    .sort((a, b) => a.endTime.localeCompare(b.endTime));
+  for (const war of ordered) {
+    for (const [tag, items] of awardWarCommendations(war)) {
+      const known = awards.get(tag) ?? [];
+      awards.set(tag, [...known, ...items.filter((c) => !known.some((k) => k.type === c.type))]);
+      const earned = wars.get(tag) ?? {};
+      for (const c of items) earned[c.type] = war.endTime;
+      wars.set(tag, earned);
     }
   }
-  return { awards, months };
+  return { awards, wars };
 }
 
 /** `legendTop` of the last Legend League season: its members among the first 10,000 of the world. */

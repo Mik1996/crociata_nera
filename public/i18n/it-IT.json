@@ -964,7 +964,7 @@
     "title": "Encomi",
     "short": "Encomi del mese scorso",
     "dialogUnavailable": "Impossibile aprire la medaglia: controlla la connessione e riprova.",
-    "legendSeasonPeriod": "Lega Leggenda, {{date}}",
+    "legendSeasonPeriod": "Lega Leggende, {{date}}",
     "tiers": {
       "gold": "Oro",
       "silver": "Argento",
@@ -988,7 +988,7 @@
     },
     "legendTop": {
       "name": "Tra i Diecimila",
-      "description": "Stagione della Lega Leggenda conclusa tra i primi {{n}} del mondo."
+      "description": "Stagione della Lega Leggende conclusa tra i primi {{n}} del mondo."
     },
     "champion": {
       "bronze": "Valoroso",
@@ -1066,8 +1066,25 @@
       "earned": "Conquistato {{n}} volte",
       "earnedOne": "Conquistato 1 volta",
       "notEarned": "Non ancora conquistato",
-      "label": "Medaglia {{name}} in 3D",
-      "period": "Periodo: {{period}}"
+      "label": "Medaglia {{name}} in 3D"
+    },
+    "share": {
+      "open": "Condividi",
+      "title": "Condividi il tuo successo",
+      "format": "Formato",
+      "formats": {
+        "square": "Post",
+        "story": "Storia"
+      },
+      "preview": "Anteprima dell'immagine da condividere",
+      "error": "Non è stato possibile creare l'immagine.",
+      "captionLabel": "Testo da pubblicare con l'immagine",
+      "copy": "Copia testo",
+      "copied": "Testo copiato",
+      "copyError": "Non è stato possibile copiare il testo.",
+      "shareError": "Non è stato possibile condividere l'immagine.",
+      "kicker": "Encomio conquistato",
+      "caption": "🏅 Ho conquistato l'encomio «{{medal}}» con il clan {{clan}}! ⚔️"
     }
   },
   "join": {

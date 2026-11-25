@@ -19,6 +19,23 @@ export class MedalSnapshots {
   /** `size` in CSS pixels: the image is drawn for the screen's pixel density. */
   snapshot(svgUrl: string, finish: MedalFinish, locked: boolean, size: number): Promise<string | null> {
     const pixels = Math.round(size * Math.min(this.window?.devicePixelRatio || 1, 2));
+    return this.snapshotPixels(svgUrl, finish, locked, pixels);
+  }
+
+  /**
+   * A medal earned, `pixels` wide whatever the screen (pictures made for other devices, such as the
+   * share cards).
+   */
+  still(svgUrl: string, finish: MedalFinish, pixels: number): Promise<string | null> {
+    return this.snapshotPixels(svgUrl, finish, false, Math.round(pixels));
+  }
+
+  private snapshotPixels(
+    svgUrl: string,
+    finish: MedalFinish,
+    locked: boolean,
+    pixels: number,
+  ): Promise<string | null> {
     const key = JSON.stringify([svgUrl, finish, locked, pixels]);
     let url = this.cache.get(key);
     if (!url) {

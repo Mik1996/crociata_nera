@@ -1066,8 +1066,25 @@
       "earned": "Earned {{n}} times",
       "earnedOne": "Earned once",
       "notEarned": "Not earned yet",
-      "label": "3D medal {{name}}",
-      "period": "Period: {{period}}"
+      "label": "3D medal {{name}}"
+    },
+    "share": {
+      "open": "Share",
+      "title": "Share your achievement",
+      "format": "Format",
+      "formats": {
+        "square": "Post",
+        "story": "Story"
+      },
+      "preview": "Preview of the picture to share",
+      "error": "The picture could not be created.",
+      "captionLabel": "Text to post with the picture",
+      "copy": "Copy text",
+      "copied": "Text copied",
+      "copyError": "The text could not be copied.",
+      "shareError": "The picture could not be shared.",
+      "kicker": "Commendation earned",
+      "caption": "🏅 I earned the «{{medal}}» commendation with clan {{clan}}! ⚔️"
     }
   },
   "join": {

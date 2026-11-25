@@ -1,12 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
+import { AuthService } from '../../../core/backend/auth.service';
 import { EarnedCommendation } from '../../../core/backend/backend-api.types';
 import { CommendationService } from '../../../core/services/commendation.service';
 import { CommendationDialog } from './commendation-dialog';
 import { PlayerCommendations } from './player-commendations';
 
 describe('PlayerCommendations', () => {
+  // The signed-in user owns the account #ME.
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: AuthService, useValue: { isMyPlayer: (tag: string) => tag === '#ME' } }],
+    });
+  });
+
   it('shows every medal with its name and count, greyscale when never earned', async () => {
     const counts: EarnedCommendation[] = [
       { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 3 },
@@ -121,6 +129,34 @@ describe('PlayerCommendations', () => {
     expect(dialog.open).toHaveBeenCalledWith(
       CommendationDialog,
       expect.objectContaining({ data: { type: 'champion', tier: 'gold', count: 3 } }),
+    );
+  });
+
+  it("offers to share the medals of the user's own account, with its name", async () => {
+    const counts: EarnedCommendation[] = [
+      { id: '95000003', name: 'champion-gold', type: 'champion', tier: 'gold', quantity: 1 },
+    ];
+    const dialog = { open: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CommendationService, useValue: { historyForPlayer: () => of(counts) } },
+        { provide: MatDialog, useValue: dialog },
+      ],
+    });
+    const fixture = TestBed.createComponent(PlayerCommendations);
+    fixture.componentRef.setInput('tag', '#ME');
+    fixture.componentRef.setInput('playerName', 'Arciere Nero');
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    el.querySelector<HTMLButtonElement>('.medal__button')!.click();
+    await vi.waitFor(() => expect(dialog.open).toHaveBeenCalled());
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      CommendationDialog,
+      expect.objectContaining({
+        data: expect.objectContaining({ share: { player: 'Arciere Nero' } }),
+      }),
     );
   });
 });

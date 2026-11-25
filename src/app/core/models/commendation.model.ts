@@ -59,8 +59,12 @@ export interface CommendationPeriods {
   raidWeekend?: { startTime: string; endTime: string };
   /** Last ended Clan War League season, `YYYY-MM` (`cwlStriker`, `cwlAllAttacks`). */
   cwlSeason?: string;
+  /** First battle day and end of the last war of that season. */
+  cwlDates?: { startTime: string; endTime: string };
   /** Game season in progress, `YYYY-MM` (`donor`, awarded as soon as a tier is reached). */
   donationSeason?: string;
+  /** Start and end of that season. */
+  donationDates?: { startTime: string; endTime: string };
   /** Last processed Legend League season (`legendTop`). */
   legendSeason?: { seasonId: string; endTime: string };
 }
@@ -70,7 +74,7 @@ export interface PlayerCommendations extends CommendationPeriods {
   items: Commendation[];
   /**
    * The one-off war commendations come from the last completed month and the one in progress: the
-   * month (`YYYY-MM`) each one was last earned in.
+   * end (ISO time) of the war each one was last earned in.
    */
-  warMonths?: Partial<Record<CommendationType, string>>;
+  warEnds?: Partial<Record<CommendationType, string>>;
 }

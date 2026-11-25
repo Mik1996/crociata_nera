@@ -68,9 +68,12 @@ describe('CommendationService history', () => {
     // The mock leader ended the last Legend League season (Monday 16 November) among the first 10,000.
     expect(medals.items).toContainEqual({ type: 'legendTop', tier: null });
     expect(medals.legendSeason?.endTime).toBe('2026-11-16T05:00:00.000Z');
-    // The leader holds the enemy number 1 every month: the medal is dated with the month in progress.
+    // The leader holds the enemy number 1 every month: the medal is dated with a war of this month.
     expect(medals.items).toContainEqual({ type: 'chiefHunter', tier: null });
-    expect(medals.warMonths?.chiefHunter).toBe('2026-11');
+    expect(medals.warEnds?.chiefHunter).toMatch(/^2026-11-/);
+    // Ranges of the CWL and of the donation season, for the dates of their medals.
+    expect(medals.cwlDates!.startTime < medals.cwlDates!.endTime).toBe(true);
+    expect(medals.donationDates?.startTime).toBeTruthy();
   });
 
   it('with the backend, reads the commendations saved for the player (frozen when awarded)', async () => {

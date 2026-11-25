@@ -336,15 +336,16 @@ describe('fortress and perfectWar (one-off medals of a war)', () => {
     expect(kinds(recentWarCommendations([month]).awards.get('#A')!)).toEqual(['fortress', 'perfectWar']);
   });
 
-  it('the last completed month and the one in progress, each kind with the last month it was earned in', () => {
+  it('the last completed month and the one in progress, each kind with the last war it was earned in', () => {
     const fortress = war(4, [{ tag: '#A', opponentAttacks: 2, starsConceded: 1 }]);
+    const later = { ...fortress, id: 'later', endTime: '2026-11-03T20:00:00.000Z' };
     const october = period([fortress]);
-    const november = { ...period([fortress]), period: '2026-11' };
+    const november = { ...period([later]), period: '2026-11' };
     // Given in any order; a month without wars (null) is skipped.
     const recent = recentWarCommendations([november, null, october]);
     expect(kinds(recent.awards.get('#A')!)).toEqual(['fortress']);
-    expect(recent.months.get('#A')!.fortress).toBe('2026-11');
-    expect(recentWarCommendations([october]).months.get('#A')!.fortress).toBe('2026-10');
+    expect(recent.wars.get('#A')!.fortress).toBe('2026-11-03T20:00:00.000Z');
+    expect(recentWarCommendations([october]).wars.get('#A')!.fortress).toBe('2026-10-04T20:00:00.000Z');
   });
 
   it('legendTop: the members of the last Legend League season among the first 10,000', () => {

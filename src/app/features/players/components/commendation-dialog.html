@@ -19,7 +19,7 @@
   @if (hasCount) {
     <p class="count" [class.count--none]="locked">{{ countKey() | translate: { n: data.count } }}</p>
   } @else if (data.period) {
-    <p class="count">{{ 'commendations.viewer.period' | translate: { period: data.period } }}</p>
+    <p class="count">{{ data.period }}</p>
   }
   <p class="description">
     {{ 'commendations.' + data.type + '.description' | translate: { n: (threshold | localNumber) } }}
@@ -27,5 +27,11 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  @if (shareable) {
+    <button mat-button type="button" class="share" (click)="share()">
+      <crn-icon matButtonIcon name="share" />
+      {{ 'commendations.share.open' | translate }}
+    </button>
+  }
   <button mat-button mat-dialog-close cdkFocusInitial>{{ 'common.close' | translate }}</button>
 </mat-dialog-actions>
