@@ -15,10 +15,9 @@ img {
 
 .medal {
   filter: drop-shadow(0 0.25rem 0.25rem palette.alpha(var(--cn-shadow), 40%));
-  animation: medal-in 0.25s ease-out;
 }
 
-// Placeholder: the flat medal at the size of the coin inside the 3D framing.
+// Fallback: the flat medal at the size of the coin inside the 3D framing.
 .flat {
   padding: 13%;
   box-sizing: border-box;
@@ -27,16 +26,4 @@ img {
 
 .flat--locked {
   filter: grayscale(1) brightness(0.45);
-}
-
-@keyframes medal-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .medal {
-    animation: none;
-  }
 }

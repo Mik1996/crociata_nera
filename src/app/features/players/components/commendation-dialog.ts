@@ -8,6 +8,7 @@ import { CommendationTier, CommendationType } from '../../../core/models';
 import { emblemOf, nameKeyOf, styleOf, thresholdOf } from '../../../core/utils/commendations';
 import { Icon } from '../../../shared/components/icon/icon';
 import { Medal3dViewer } from '../../../shared/medal-3d/medal-3d-viewer';
+import { medalStillUrl } from '../../../shared/medal-3d/medal-still';
 import { CommendationShareDialog, CommendationShareData } from './commendation-share-dialog';
 
 export interface CommendationDialogData {
@@ -45,6 +46,8 @@ export class CommendationDialog {
   /** Metal of the tier, or the colour of a one-off commendation. */
   protected readonly finish = styleOf(this.data);
   protected readonly locked = this.data.count === 0;
+  /** The pre-rendered medal, shown at once while the 3D one is built. */
+  protected readonly stillUrl = medalStillUrl(this.svgUrl, this.locked);
   protected readonly hasCount = this.data.count !== undefined;
   /** Only the owner shares, and only a medal earned. */
   protected readonly shareable = !!this.data.share && !this.locked;

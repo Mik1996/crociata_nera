@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../core/backend/auth.service';
 import { PlayerCommendations, PlayerProfile } from '../../../core/models';
-import { MedalSnapshots } from '../../../shared/medal-3d/medal-snapshots.service';
 import { CommendationDialog } from './commendation-dialog';
 import { PlayerBanner } from './player-banner';
 
@@ -27,11 +26,9 @@ const COMMENDATIONS: PlayerCommendations = {
 };
 
 async function render(myTag = '#ME', commendations: PlayerCommendations = COMMENDATIONS) {
-  const snapshot = vi.fn(async (url: string) => `blob:${url}`);
   const dialog = { open: vi.fn() };
   TestBed.configureTestingModule({
     providers: [
-      { provide: MedalSnapshots, useValue: { snapshot } },
       { provide: MatDialog, useValue: dialog },
       { provide: AuthService, useValue: { isMyPlayer: (tag: string) => tag === myTag } },
     ],
@@ -40,19 +37,21 @@ async function render(myTag = '#ME', commendations: PlayerCommendations = COMMEN
   fixture.componentRef.setInput('profile', PROFILE);
   fixture.componentRef.setInput('commendations', commendations);
   await fixture.whenStable();
-  return { el: fixture.nativeElement as HTMLElement, snapshot, dialog };
+  return { el: fixture.nativeElement as HTMLElement, dialog };
 }
 
 describe('PlayerBanner', () => {
   it('shows the commendations as still 3D medals in one row, without title or names', async () => {
-    const { el, snapshot } = await render();
+    const { el } = await render();
 
     const medals = el.querySelectorAll('.banner__medals > li.banner__medal');
     expect(medals).toHaveLength(2);
     expect(medals[0].querySelector('crn-medal-3d-image img')!.getAttribute('src')).toBe(
-      'blob:commendations/wall-silver.svg',
+      'commendations/3d/wall-silver.webp',
     );
-    expect(snapshot).toHaveBeenCalledWith('commendations/present-bronze.svg', 'bronze', false, 80);
+    expect(medals[1].querySelector('crn-medal-3d-image img')!.getAttribute('src')).toBe(
+      'commendations/3d/present-bronze.webp',
+    );
     // Named for screen readers and in the tooltip only.
     expect(medals[0].textContent!.trim()).toBe('');
     expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toContain(

@@ -30,7 +30,7 @@ describe('PlayerCommendations', () => {
 
     const medals = Array.from(el.querySelectorAll<HTMLElement>('li.medal'));
     expect(medals).toHaveLength(32);
-    const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/champion-gold.svg')!;
+    const champion = medals.find((m) => m.querySelector('crn-medal-3d-image img')?.getAttribute('src') === 'commendations/3d/champion-gold.webp')!;
     expect(champion.querySelector('.medal__name')!.textContent).toContain('Signore della Guerra');
     expect(champion.querySelector('.medal__count')!.textContent).toContain('3');
     expect(champion.classList).not.toContain('medal--none');
@@ -71,11 +71,11 @@ describe('PlayerCommendations', () => {
     const hunter = single[3].querySelectorAll('li.medal');
     expect(hunter).toHaveLength(1);
     expect(hunter[0].classList).toContain('medal--none');
-    expect(hunter[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/chiefHunter.svg');
+    expect(hunter[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/3d/chiefHunter-locked.webp');
     expect(hunter[0].querySelector('.medal__name')!.textContent).toContain('Cacciatore di Capi');
     const medals = single[1].querySelectorAll('li.medal');
     expect(medals).toHaveLength(1);
-    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/cwlAllAttacks.svg');
+    expect(medals[0].querySelector('crn-medal-3d-image img')?.getAttribute('src')).toBe('commendations/3d/cwlAllAttacks.webp');
     // No tier for a one-off commendation.
     expect(medals[0].querySelector('button')!.getAttribute('aria-label')).toMatch(/^Certezza di Lega: /);
     expect(medals[0].querySelector('.medal__name')!.textContent).toContain('Certezza di Lega');
@@ -120,7 +120,7 @@ describe('PlayerCommendations', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     const button = Array.from(el.querySelectorAll<HTMLButtonElement>('.medal__button')).find(
-      (b) => b.querySelector('img')?.getAttribute('src') === 'commendations/champion-gold.svg',
+      (b) => b.querySelector('img')?.getAttribute('src') === 'commendations/3d/champion-gold.webp',
     )!;
     expect(button.getAttribute('aria-label')).toContain('Guarda la medaglia in 3D');
     button.click();

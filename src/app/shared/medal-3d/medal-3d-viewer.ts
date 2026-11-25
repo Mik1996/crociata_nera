@@ -15,6 +15,7 @@ import { MedalFinish, resolveFinish } from './medal-finish';
 import { parseMedalDecorations } from './medal-decorations';
 import { createReliefMaps } from './medal-relief';
 import { MedalScene } from './medal-scene';
+import { STILL_EXTENT } from './medal-still';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -45,12 +46,24 @@ export class Medal3dViewer {
   readonly autoRotate = input(true);
   /** Accessible name of the canvas. */
   readonly label = input('');
+  /**
+   * Pre-rendered still of the medal (`medalStillUrl`): shown at once, in place of the canvas, until
+   * the relief and the decorations are on the 3D medal (they take a moment to build); also shown
+   * instead of the flat SVG without WebGL.
+   */
+  readonly still = input<string | null>(null);
 
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly window = inject(DOCUMENT).defaultView;
   /** Set once the WebGL scene exists, after the first render. */
   private readonly scene = signal<MedalScene | null>(null);
   protected readonly unsupported = signal(false);
+  /** The 3D medal is complete (relief and decorations, or their failure) and drawn. */
+  protected readonly ready = signal(false);
+  /** The still picture could not be loaded: the canvas (or the flat SVG) is shown right away. */
+  protected readonly stillFailed = signal(false);
+  /** Scale of the still so that it matches the framing of the 3D medal. */
+  protected readonly stillScale = signal(1);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -99,13 +112,22 @@ export class Medal3dViewer {
         return response.text();
       });
       // A plain medal is still a medal: relief and decorations are details.
-      svg
+      const decorations = svg
         .then((text) => current && scene.setDecorations(parseMedalDecorations(text)))
-        .catch(() => current && scene.setDecorations(null));
-      svg
+        .catch(() => current && scene.setDecorations(null))
+        .then(() => current && this.stillScale.set(scene.stillScale(STILL_EXTENT)));
+      const relief = svg
         .then((text) => createReliefMaps(text))
         .then((maps) => current && scene.setRelief(maps))
         .catch(() => current && scene.setRelief(null));
+      // Shown once complete, at rest in front, where the still was; two frames so it is drawn.
+      void Promise.all([decorations, relief]).then(() => {
+        if (!current) return;
+        scene.snapHome();
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => current && this.ready.set(true)),
+        );
+      });
     });
   }
 

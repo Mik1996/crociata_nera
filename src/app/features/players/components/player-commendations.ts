@@ -37,8 +37,6 @@ export class PlayerCommendations {
   /** In-game name of the player, printed on the share card of their own medals. */
   readonly playerName = input('');
 
-  /** Width of a medal in CSS pixels (the 3D image is drawn for it). */
-  protected readonly medalSize = 104;
 
   private readonly commendations = inject(CommendationService);
   private readonly medalDialog = inject(CommendationDialogOpener);

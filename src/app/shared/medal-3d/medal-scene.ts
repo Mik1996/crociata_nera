@@ -105,6 +105,24 @@ export class MedalScene {
     this.controls.autoRotate = enabled && !this.returning;
   }
 
+  /**
+   * Puts the camera in front of the medal at once, framing it, with no easing: used before the
+   * canvas is shown, so the medal appears at rest exactly where its still picture was.
+   */
+  snapHome(): void {
+    clearTimeout(this.returnTimer);
+    this.spherical.set(this.homeDistance, Math.PI / 2, 0);
+    this.camera.position.setFromSpherical(this.spherical).add(this.controls.target);
+    this.returning = false;
+    this.controls.autoRotate = this.autoRotate;
+    this.controls.update();
+  }
+
+  /** How large this medal is on the canvas compared with a still picture framed for `extent`. */
+  stillScale(extent: number): number {
+    return framingDistance(extent) / this.homeDistance;
+  }
+
   /** Canvas size in CSS pixels. */
   resize(width: number, height: number): void {
     if (!width || !height) return;

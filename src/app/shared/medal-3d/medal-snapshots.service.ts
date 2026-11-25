@@ -1,12 +1,11 @@
 import { DOCUMENT, inject, Injectable } from '@angular/core';
 import { MedalFinish, resolveFinish } from './medal-finish';
-
-/** Framing shared by all the still medals: room for rays and laurel, coins of equal size. */
-const SNAPSHOT_EXTENT = 1.32;
+import { STILL_EXTENT } from './medal-still';
 
 /**
- * Still 3D medals as image URLs, for lists of medals that do not move. Three.js is downloaded
- * with the first request; every image is drawn once and cached for the session.
+ * Still 3D medals drawn in the browser at any size, as image URLs: for pictures larger than the
+ * pre-rendered stills (`medal-still.ts`), such as the share cards. Three.js is downloaded with the
+ * first request; every image is drawn once and cached for the session.
  * Resolves to `null` without WebGL (the caller keeps the flat medal).
  */
 @Injectable({ providedIn: 'root' })
@@ -15,12 +14,6 @@ export class MedalSnapshots {
   private readonly cache = new Map<string, Promise<string | null>>();
   /** One drawing at a time: the renderer is shared. */
   private queue: Promise<unknown> = Promise.resolve();
-
-  /** `size` in CSS pixels: the image is drawn for the screen's pixel density. */
-  snapshot(svgUrl: string, finish: MedalFinish, locked: boolean, size: number): Promise<string | null> {
-    const pixels = Math.round(size * Math.min(this.window?.devicePixelRatio || 1, 2));
-    return this.snapshotPixels(svgUrl, finish, locked, pixels);
-  }
 
   /**
    * A medal earned, `pixels` wide whatever the screen (pictures made for other devices, such as the
@@ -63,7 +56,7 @@ export class MedalSnapshots {
         finish: resolveFinish(finish, locked),
         locked,
         size,
-        extent: SNAPSHOT_EXTENT,
+        extent: STILL_EXTENT,
       });
       return URL.createObjectURL(blob);
     });

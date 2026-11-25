@@ -34,8 +34,6 @@ export class PlayerBanner {
   /** Commendations; the row is hidden when there are none. */
   readonly commendations = input<PlayerCommendations | null>(null);
 
-  /** Width of a medal in CSS pixels (the 3D image is drawn for it). */
-  protected readonly medalSize = 80;
 
   private readonly language = inject(LanguageService);
   private readonly medalDialog = inject(CommendationDialogOpener);
