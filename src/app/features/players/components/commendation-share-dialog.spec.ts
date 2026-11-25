@@ -102,6 +102,32 @@ describe('CommendationShareDialog', () => {
     expect(snackBar.open).toHaveBeenCalledWith('Testo copiato', undefined, expect.anything());
   });
 
+  it('copies the picture alone, as one PNG', async () => {
+    const write = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { write }, configurable: true });
+    class FakeClipboardItem {
+      constructor(readonly items: Record<string, Blob>) {}
+    }
+    vi.stubGlobal('ClipboardItem', FakeClipboardItem);
+    const { el, snackBar } = await render();
+
+    el.querySelector<HTMLButtonElement>('button.copy-image')!.click();
+    await vi.waitFor(() => expect(snackBar.open).toHaveBeenCalled());
+
+    const [[item]] = write.mock.calls[0] as unknown as [[FakeClipboardItem]];
+    expect(Object.keys(item!.items)).toEqual(['image/png']);
+    expect((item!.items['image/png'] as File).name).toBe('crociata-nera-champion-gold-square.png');
+    expect(snackBar.open).toHaveBeenCalledWith('Immagine copiata', undefined, expect.anything());
+    vi.unstubAllGlobals();
+  });
+
+  it('hides "Copy image" where the browser cannot put pictures on the clipboard', async () => {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn() }, configurable: true });
+    const { el } = await render();
+
+    expect(el.querySelector('button.copy-image')).toBeNull();
+  });
+
   it('hides "Share" where the device cannot share files', async () => {
     const { el } = await render();
 
@@ -109,7 +135,7 @@ describe('CommendationShareDialog', () => {
     expect(el.querySelector('button.download')).not.toBeNull();
   });
 
-  it('shares the picture with its caption through the share sheet', async () => {
+  it('shares the picture alone through the share sheet', async () => {
     const share = vi.fn(async () => undefined);
     Object.defineProperty(navigator, 'canShare', { value: () => true, configurable: true });
     Object.defineProperty(navigator, 'share', { value: share, configurable: true });
@@ -118,10 +144,11 @@ describe('CommendationShareDialog', () => {
     el.querySelector<HTMLButtonElement>('button.share')!.click();
     await vi.waitFor(() => expect(share).toHaveBeenCalled());
 
-    const [{ files, text }] = share.mock.calls[0] as unknown as [{ files: File[]; text: string }];
-    expect(files).toHaveLength(1);
-    expect(files[0]!.name).toBe('crociata-nera-champion-gold-square.png');
-    expect(files[0]!.type).toBe('image/png');
-    expect(text).toContain('Signore della Guerra');
+    // A text next to the file makes apps like Telegram drop the picture.
+    const [data] = share.mock.calls[0] as unknown as [ShareData];
+    expect(Object.keys(data)).toEqual(['files']);
+    expect(data.files).toHaveLength(1);
+    expect(data.files![0]!.name).toBe('crociata-nera-champion-gold-square.png');
+    expect(data.files![0]!.type).toBe('image/png');
   });
 });
