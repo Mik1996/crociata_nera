@@ -5,6 +5,21 @@
   width: 100%;
 }
 
+.description {
+  margin-bottom: $space-l;
+}
+
+// Two columns where there is room (tablet and desktop), so the whole form fits without scrolling:
+// link, picture and description on the left, clan castle on the right. A container query
+// never applies to the container itself, hence the grid on `.layout`.
+.content {
+  container-type: inline-size;
+}
+
+.layout {
+  display: block;
+}
+
 .moderation-note {
   display: flex;
   align-items: flex-start;
@@ -123,4 +138,37 @@
   justify-content: center;
   border-radius: $radius-l;
   background: palette.alpha(var(--cn-surface), 70%);
+}
+
+// Last: same specificity as the base rules above, so it must come after them.
+@container (min-width: 40rem) {
+  .layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-xl;
+  }
+
+  .description {
+    margin-bottom: 0;
+  }
+
+  // The castle column is as tall as the left one (`contain: size`: its content does not grow the
+  // row) and its catalogue fills what is left, scrolling inside: its bottom lines up with the
+  // description box, above the line of the counter.
+  .column--castle {
+    contain: size;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(
+      --mat-form-field-subscript-text-line-height,
+      var(--mat-sys-body-small-line-height)
+    );
+  }
+
+  .castle {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+    --crn-castle-catalogue-max-height: none;
+  }
 }

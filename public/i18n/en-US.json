@@ -851,7 +851,6 @@
       "imagePreparing": "Preparing the image…",
       "imageTooLarge": "File too large (at most {{max}} MB).",
       "description": "Description",
-      "descriptionHint": "Optional: e.g. how to defend or when to use the base",
       "create": "Add",
       "save": "Save",
       "proposeTitle": "Propose a base",
