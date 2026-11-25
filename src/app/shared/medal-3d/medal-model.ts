@@ -13,8 +13,10 @@ import {
   Material,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   MeshPhysicalMaterial,
   NoColorSpace,
+  Object3D,
   OctahedronGeometry,
   PMREMGenerator,
   RGBAFormat,
@@ -45,6 +47,12 @@ const GEM_DEPTH = 0.15;
 const GEM_LIFT = 0.1;
 const GEM_SCALE = 1.2;
 const GEM_OUTSET = 0.4;
+/**
+ * How much of its light the panel of the studio room in front of the medal keeps: the domed face
+ * mirrors it as a white blot at the top of the medal. The other panels still give the metal its sheen.
+ */
+const FRONT_PANEL_LIGHT = 0.15;
+
 /** Palette token of the sunburst and the glints, as in the flat medals. */
 const GLINT_COLOR = '--cn-medal-glint';
 const LOCKED_GEM = '--cn-medal-locked-gem';
@@ -87,6 +95,7 @@ export class MedalModel {
     // Reflections: a procedural studio room, prefiltered for every roughness (no HDRI to download).
     const pmrem = new PMREMGenerator(renderer);
     const room = new RoomEnvironment();
+    dimFrontPanel(room);
     this.environment = pmrem.fromScene(room, 0.04).texture;
     room.dispose();
     pmrem.dispose();
@@ -415,4 +424,16 @@ function sparkleTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/**
+ * Dims the light panel of the studio room in front of the medal (see {@link FRONT_PANEL_LIGHT}): the
+ * emissive mesh on the camera's side.
+ */
+function dimFrontPanel(room: Object3D): void {
+  room.traverse((object) => {
+    if (!(object instanceof Mesh) || object.position.z <= 10) return;
+    const material = object.material as MeshLambertMaterial;
+    if (material.emissiveIntensity > 1) material.emissiveIntensity *= FRONT_PANEL_LIGHT;
+  });
 }
