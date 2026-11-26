@@ -68,6 +68,8 @@
   // Display font for numbers and game values (Clash of Clans style).
   --cn-font-display: 'Clash', 'Trebuchet MS', sans-serif;
   --cn-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  // Height of the game controls: filled/outlined buttons and form fields, so they line up side by side.
+  --cn-control-height: 2.75rem;
   // Engraved capitals of the Crusade: page titles and the clan name.
   --cn-font-engraved: 'Cinzel Decorative', 'Cinzel', 'Times New Roman', serif;
 
@@ -304,6 +306,8 @@ crn-alert p {
   --mat-button-outlined-outline-width: var(--cn-button-border-width);
   --mat-button-filled-container-shape: var(--cn-control-radius);
   --mat-button-outlined-container-shape: var(--cn-control-radius);
+  --mat-button-filled-container-height: var(--cn-control-height);
+  --mat-button-outlined-container-height: var(--cn-control-height);
   background: var(--cn-button-bg);
   border: var(--cn-button-border-width) solid var(--cn-button-border);
   box-shadow:
@@ -396,6 +400,80 @@ crn-alert p {
   font-family: var(--cn-font-heading);
   font-weight: var(--cn-heading-weight);
   box-shadow: 0 2px 0 var(--cn-panel-border);
+}
+
+// Form fields (outlined: text fields, selects, date pickers): a recessed well with the edge, corners,
+// height and depth of the game buttons beside them. The label keeps the body font (the heading
+// capitals are too wide for the notch of narrow fields). Compact fields (table filters) thin the
+// edge and drop the depth with `--cn-field-edge` and `--cn-field-depth-size`.
+.mat-mdc-form-field.mat-form-field-appearance-outline {
+  --mat-form-field-outlined-outline-color: var(--cn-field-border);
+  --mat-form-field-outlined-hover-outline-color: var(--cn-field-border-hover);
+  --mat-form-field-outlined-focus-outline-color: var(--cn-field-border-focus);
+  --mat-form-field-outlined-disabled-outline-color: var(--cn-field-border);
+  --mat-form-field-outlined-outline-width: var(--cn-field-edge, var(--cn-button-border-width));
+  --mat-form-field-outlined-focus-outline-width: var(--cn-field-edge, var(--cn-button-border-width));
+  --mat-form-field-outlined-container-shape: var(--cn-control-radius);
+  --mat-form-field-outlined-label-text-color: var(--cn-field-label);
+  --mat-form-field-outlined-hover-label-text-color: var(--cn-field-border-hover);
+  --mat-form-field-outlined-focus-label-text-color: var(--cn-field-border-focus);
+  --mat-form-field-outlined-label-text-weight: 600;
+  --mat-form-field-outlined-input-text-color: var(--cn-text);
+  --mat-form-field-outlined-caret-color: var(--cn-field-border-focus);
+  --mat-form-field-leading-icon-color: var(--cn-field-accent);
+  --mat-form-field-trailing-icon-color: var(--cn-field-accent);
+  --mat-select-enabled-arrow-color: var(--cn-field-accent);
+  --mat-select-focused-arrow-color: var(--cn-field-border-focus);
+  --mat-select-enabled-trigger-text-color: var(--cn-text);
+
+  .mat-mdc-text-field-wrapper {
+    background: var(--cn-field-bg);
+    border-radius: var(--cn-control-radius);
+    box-shadow:
+      inset 0 0.1875rem 0.375rem palette.alpha(var(--cn-shadow), 45%),
+      0 var(--cn-field-depth-size, var(--cn-button-depth-size)) 0 var(--cn-field-depth);
+  }
+
+  // Prefix icons (`crn-icon matPrefix`, the picture of `crn-select`) follow the field's accent.
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-icon-suffix {
+    color: var(--cn-field-accent);
+  }
+
+  &.mat-form-field-disabled {
+    filter: grayscale(0.7);
+    opacity: 0.7;
+  }
+}
+
+// Panels that open from controls (select options, menus, calendars, dialogs): the iron plate of the
+// panels, with their edge. The 3D medal dialog keeps its own display case (`.cn-medal-dialog`).
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-datepicker-content,
+.cdk-overlay-pane:not(.cn-medal-dialog) .mat-mdc-dialog-surface {
+  background: var(--cn-card-bg);
+  border: var(--cn-card-border-width) solid var(--cn-card-border-color);
+  box-shadow: var(--cn-card-elevation);
+}
+
+html {
+  // Form fields as tall as the game buttons (on the html: compact fields set their own on a parent).
+  --mat-form-field-container-height: var(--cn-control-height);
+  // Centres the 1.5rem line of text.
+  --mat-form-field-container-vertical-padding: calc((var(--cn-control-height) - 1.5rem) / 2);
+  --mat-select-container-elevation-shadow: none;
+  --mat-select-panel-background-color: transparent;
+  --mat-menu-container-color: transparent;
+  --mat-menu-container-shape: var(--cn-control-radius);
+  --mat-datepicker-calendar-container-background-color: transparent;
+  --mat-datepicker-calendar-container-shape: var(--cn-card-radius);
+  --mat-dialog-container-color: transparent;
+  --mat-dialog-container-shape: var(--cn-card-radius);
+  --mat-dialog-subhead-font: var(--cn-font-heading);
+  --mat-dialog-subhead-weight: var(--cn-heading-weight);
+  --mat-dialog-subhead-tracking: var(--cn-heading-tracking);
+  --mat-dialog-subhead-color: var(--cn-heading);
 }
 
 /*
