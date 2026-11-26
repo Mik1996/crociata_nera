@@ -20,7 +20,7 @@ application and in the suite itself.
   confirmation and password reset by emailed one-time links. First administrators via
   `ADMIN_EMAILS` once the address is confirmed.
 - **Access levels** — anonymous · signed-in · member of a clan of the Crusade (verified game account
-  in Nera, Rossa or d'Oro) · leader/co-leader · administrator.
+  in Nera, Rossa or d'Oro) · leader/co-leader · leader of Crociata Nera · administrator.
 - **Data** — MongoDB (Atlas `Prod` / `dev`). Game data synced by a scheduler from the Clash of Clans
   API (wars, CWL, raids, members, records, commendations, legends, announcement drafts).
 - **External services** — Clash of Clans API (read + `verifytoken`) and its picture CDN
@@ -105,7 +105,7 @@ experience 5, bases 4. 11 of them also run on Firefox and WebKit (`@cross`), 1 o
 | Password reset | ✔ email link → new password, every device signed out | ✔ single use, same answer for unknown addresses and no email sent | — | ✔ old password refused, new accepted | `auth/account-recovery` |
 | Password change | ✔ this device kept, others signed out | ✔ wrong current password; another device coming back does not sign this one out (BUG-01, fixed) | — | ✔ live sessions counted | `auth/account-recovery` |
 | Game accounts | ✔ link with token from the profile opens the clans' pages at once; unlink closes them | ✔ wrong token, unknown tag, invalid tag, game API unavailable, account outside the Crusade, account verified by another user | ✔ nobody unlinks someone else's account | ✔ | `account/linked-accounts` |
-| Authorization (API) | ✔ every operation, for each allowed caller: exact answer of a probe that changes nothing | ✔ all 80 operations × 6 callers (anonymous, outsider, member, sister clan member, leader, administrator): exact 401/403 with the level's message key and no data | ✔ against `access-spec.ts`; the API's operations and documented levels must equal it | — | `security/authorization-matrix` |
+| Authorization (API) | ✔ every operation, for each allowed caller: exact answer of a probe that changes nothing | ✔ all 80 operations × 7 callers (anonymous, outsider, member, sister clan member, leader, leader of Crociata Nera, administrator): exact 401/403 with the level's message key and no data | ✔ against `access-spec.ts`; the API's operations and documented levels must equal it | — | `security/authorization-matrix` |
 | Authorization (pages) | ✔ each level reaches its pages | ✔ redirects of signed-out users (with `returnUrl`), outsiders, members, leaders | ✔ sister clans | — | `security/route-guards` |
 | Tokens | ✔ | ✔ other secret, `alg: none`, tampered payload, wrong audience, malformed | ✔ demoted admin loses access with a live token; deleted user locked out | ✔ | `security/api-hardening` |
 | CSRF / CORS | ✔ | ✔ foreign `Origin` refused on cookie routes (session untouched); preflight only for the site | — | ✔ | `security/api-hardening` |
@@ -118,7 +118,7 @@ experience 5, bases 4. 11 of them also run on Firefox and WebKit (`@cross`), 1 o
 | Players | ✔ all members, backend filter (request checked), sorting (first rows in order), player page | — | — | — | `clan/clan-data` |
 | Raid Weekend / statistics | ✔ totals equal to the game's | — | — | — | `clan/clan-data` |
 | Welcome / Join | ✔ live data of the three clans, full motion, Fan Content notice | — | ✔ public | — | `clan/clan-data` |
-| CWL selections | ✔ leader sees the ranking | — | ✔ (route guards, matrix) | — | `clan/clan-data` |
+| CWL selections | ✔ member reads the ranking read-only, co-leader also downloads | — | ✔ (route guards, matrix) | — | `clan/clan-data` |
 | Base proposals | ✔ propose with a real screenshot → approve → visible with its copy link | ✔ empty rejection reason, invalid/builder link, missing or broken picture, duplicate layout (each with its message key) | ✔ other members cannot edit/withdraw (404) or moderate (403) | ✔ | `bases/base-proposals` |
 | Rejection | ✔ reason shown to the author, withdraw | — | — | ✔ | `bases/base-proposals` |
 | Users administration | ✔ grant/remove ADMIN (applies at once, sessions closed), link accounts without token, delete with typed confirmation | ✔ wrong confirmation, own row protected (UI and API); switch named after its user (BUG-02, fixed) | ✔ | ✔ user and sessions gone | `admin/users-admin`, `security/api-hardening` |

@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { UserRole } from '@/lib/auth/user-role';
 import { fetchClan } from '@/lib/coc/coc-client';
-import { crusadeClanTags } from '@/lib/coc/crusade-clans';
+import { crusadeClanTags, primaryClanTag } from '@/lib/coc/crusade-clans';
 import { PublicUser, toPublicUser, UserDocument, UserModel } from '@/modules/auth/user.model';
 import { ClanRosterModel } from './clan-roster.model';
 
@@ -21,14 +21,18 @@ interface Members {
   tags: Set<string>;
   /** Leaders and co-leaders of the clans of the Crusade (upper case). */
   leaderTags: Set<string>;
+  /** The leader (role `leader`, not co-leaders) of the main clan, Crociata Nera (upper case). */
+  chiefTags: Set<string>;
 }
 
 interface MemberCache extends Members {
   expiresAt: number;
 }
 
-/** In-game roles that lead a clan: they reach the leaders' pages (CWL line-up). */
+/** In-game roles that lead a clan: they export the CWL line-up. */
 export const LEADER_ROLES: readonly string[] = ['leader', 'coLeader'];
+/** In-game role of the head of a clan (one per clan). */
+const CHIEF_ROLE = 'leader';
 
 let cache: MemberCache | null = null;
 let loading: Promise<Members> | null = null;
@@ -47,6 +51,11 @@ export async function crusadeLeaderTags(): Promise<Set<string>> {
   return (await crusadeMembers()).leaderTags;
 }
 
+/** Tag (upper case) of the leader of the main clan, in a set (empty while unknown); same cache as {@link crusadeMemberTags}. */
+export async function crusadeChiefTags(): Promise<Set<string>> {
+  return (await crusadeMembers()).chiefTags;
+}
+
 function crusadeMembers(): Promise<Members> {
   if (cache && Date.now() < cache.expiresAt) return Promise.resolve(cache);
   loading ??= loadMembers().finally(() => (loading = null));
@@ -62,7 +71,7 @@ export async function hasClanAccess(user: { roles: readonly string[]; playerTags
 }
 
 /**
- * Signed-in user who reaches the leaders' pages (CWL line-up): administrator, or owner of a verified
+ * Signed-in user who leads a clan (exports the CWL line-up): administrator, or owner of a verified
  * account that is leader or co-leader of a clan of the Crusade.
  */
 export async function hasLeaderAccess(user: { roles: readonly string[]; playerTags: readonly string[] }): Promise<boolean> {
@@ -70,6 +79,18 @@ export async function hasLeaderAccess(user: { roles: readonly string[]; playerTa
   if (!user.playerTags.length) return false;
   const leaders = await crusadeLeaderTags();
   return user.playerTags.some((tag) => leaders.has(tag.toUpperCase()));
+}
+
+/**
+ * Signed-in user who decides the CWL line-up (closes and reopens the selections, excludes players):
+ * administrator, or owner of the verified account that is the leader of the main clan, Crociata Nera
+ * (co-leaders and the leaders of the sister clans do not).
+ */
+export async function hasChiefAccess(user: { roles: readonly string[]; playerTags: readonly string[] }): Promise<boolean> {
+  if (user.roles.includes(UserRole.ADMIN)) return true;
+  if (!user.playerTags.length) return false;
+  const chiefs = await crusadeChiefTags();
+  return user.playerTags.some((tag) => chiefs.has(tag.toUpperCase()));
 }
 
 /** {@link hasClanAccess} for a user id (from the access token); unknown users have no access. */
@@ -82,6 +103,12 @@ export async function userHasClanAccess(userId: string): Promise<boolean> {
 export async function userHasLeaderAccess(userId: string): Promise<boolean> {
   const user = await findAccessUser(userId);
   return !!user && hasLeaderAccess(user);
+}
+
+/** {@link hasChiefAccess} for a user id (from the access token, roles read from the database); unknown users have no access. */
+export async function userHasChiefAccess(userId: string): Promise<boolean> {
+  const user = await findAccessUser(userId);
+  return !!user && hasChiefAccess(user);
 }
 
 async function findAccessUser(userId: string) {
@@ -110,8 +137,14 @@ async function loadMembers(): Promise<Members> {
   const lists = await Promise.all(
     clanTags.map(async (clanTag) => {
       const roster = saved.get(clanTag);
-      const savedLists = { memberTags: roster?.memberTags ?? [], leaderTags: roster?.leaderTags ?? [] };
-      if (roster && Date.now() - roster.syncedAt.getTime() < ROSTER_TTL_MS) return savedLists;
+      const savedLists = {
+        memberTags: roster?.memberTags ?? [],
+        leaderTags: roster?.leaderTags ?? [],
+        chiefTags: roster?.chiefTags ?? [],
+      };
+      // A roster saved before `chiefTags` existed is read again, so the leader is known at once.
+      const fresh = roster?.chiefTags !== undefined && Date.now() - roster.syncedAt.getTime() < ROSTER_TTL_MS;
+      if (fresh) return savedLists;
       try {
         const lists = parseMembers(await fetchClan(clanTag));
         await ClanRosterModel.updateOne(
@@ -131,13 +164,14 @@ async function loadMembers(): Promise<Members> {
   const members: Members = {
     tags: upper(lists.flatMap((l) => l.memberTags)),
     leaderTags: upper(lists.flatMap((l) => l.leaderTags)),
+    chiefTags: upper(lists.flatMap((l, i) => (clanTags[i] === primaryClanTag() ? l.chiefTags : []))),
   };
   cache = { ...members, expiresAt: Date.now() + (failed ? RETRY_AFTER_FAILURE_MS : ROSTER_TTL_MS) };
   return members;
 }
 
-/** Tags of `memberList[]` of a `GET /clans/{tag}` response, and those of its leaders and co-leaders. */
-function parseMembers(clan: unknown): { memberTags: string[]; leaderTags: string[] } {
+/** Tags of `memberList[]` of a `GET /clans/{tag}` response, those of its leaders and co-leaders, and its leader's. */
+function parseMembers(clan: unknown): { memberTags: string[]; leaderTags: string[]; chiefTags: string[] } {
   const memberList = (clan as { memberList?: unknown } | null)?.memberList;
   if (!Array.isArray(memberList)) throw new Error('unexpected clan response: no memberList');
   const members = memberList
@@ -147,5 +181,6 @@ function parseMembers(clan: unknown): { memberTags: string[]; leaderTags: string
   return {
     memberTags: members.map((m) => m.tag),
     leaderTags: members.filter((m) => typeof m.role === 'string' && LEADER_ROLES.includes(m.role)).map((m) => m.tag),
+    chiefTags: members.filter((m) => m.role === CHIEF_ROLE).map((m) => m.tag),
   };
 }

@@ -32,6 +32,8 @@ const ACCESS: Record<Access, string> = {
   clan: 'administrators, and members of the clans of the Crusade with a verified linked account (`clanAccess` of the user).',
   leader:
     'administrators, and leaders and co-leaders of the clans of the Crusade with a verified linked account (`leaderAccess` of the user).',
+  chief:
+    'administrators, and the leader (not the co-leaders) of the main clan, Crociata Nera, with a verified linked account.',
   admin: 'administrators (role `ADMIN`).',
   cron: 'the external scheduler, with `Authorization: Bearer <CRON_SECRET>`.',
   telegram: 'Telegram\'s servers, with `X-Telegram-Bot-Api-Secret-Token: <TELEGRAM_WEBHOOK_SECRET>`.',
@@ -80,7 +82,8 @@ Each operation lists the keys it may answer with.
 3. Before it expires, \`POST /auth/refresh\` returns a new one and rotates the cookie.
 
 Access levels: public, signed-in user, clan members (administrators and members of the clans of
-the Crusade with a verified linked account) and administrators.
+the Crusade with a verified linked account), clan leaders (leaders and co-leaders of those clans),
+the leader of Crociata Nera (who decides the CWL line-up) and administrators.
 
 ## Limits
 
@@ -159,16 +162,17 @@ export function operationErrors(op: ApiOperation): Map<number, MessageKey[]> {
   for (const [status, keys] of Object.entries(op.errors ?? {})) add(Number(status), ...(keys ?? []));
 
   if (op.rateLimit) add(429, MessageKey.TOO_MANY_REQUESTS);
-  if (op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'admin') {
+  if (op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'chief' || op.access === 'admin') {
     add(401, MessageKey.UNAUTHORIZED, MessageKey.INVALID_TOKEN);
   }
   if (op.access === 'admin') add(403, MessageKey.FORBIDDEN);
   if (op.access === 'clan') add(403, MessageKey.CLAN_ACCESS_REQUIRED);
   if (op.access === 'leader') add(403, MessageKey.LEADER_ACCESS_REQUIRED);
+  if (op.access === 'chief') add(403, MessageKey.CHIEF_ACCESS_REQUIRED);
   if (op.checkOrigin) add(403, MessageKey.ORIGIN_NOT_ALLOWED);
   if (op.query || op.body) add(400, MessageKey.INVALID_FIELD);
   if (op.body && op.body.contentType !== 'multipart/form-data') add(400, MessageKey.INVALID_JSON);
-  if (op.database !== false || op.access === 'clan' || op.access === 'leader') add(503, MessageKey.SERVICE_UNAVAILABLE);
+  if (op.database !== false || op.access === 'clan' || op.access === 'leader' || op.access === 'chief') add(503, MessageKey.SERVICE_UNAVAILABLE);
   add(500, MessageKey.UNHANDLED_ERROR);
 
   for (const status of Object.keys(op.responses)) errors.delete(Number(status));
@@ -232,7 +236,7 @@ function fullDescription(op: ApiOperation): string {
 }
 
 function security(op: ApiOperation): JsonSchema[] {
-  const bearer = op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'admin';
+  const bearer = op.access === 'user' || op.access === 'clan' || op.access === 'leader' || op.access === 'chief' || op.access === 'admin';
   if (op.access === 'cron') return [{ cronSecret: [] }];
   if (op.access === 'telegram') return [{ telegramSecret: [] }];
   if (op.access === 'adminInProduction') return [{ adminLogin: [] }, { bearerAuth: [] }, {}];

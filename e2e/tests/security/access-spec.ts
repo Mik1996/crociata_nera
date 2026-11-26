@@ -14,6 +14,7 @@
  *   user      any signed-in user
  *   clan      verified game account in a clan of the Crusade (Nera, Rossa, d'Oro) — or administrator
  *   leader    leader/co-leader of a clan of the Crusade — or administrator
+ *   chief     the leader of Crociata Nera (decides the CWL line-up) — or administrator
  *   admin     ADMIN role (the API documentation: administrators only in production)
  *   cron      nobody with a user token: only the scheduler's secret (`CRON_SECRET`)
  *   telegram  nobody: only Telegram, with the webhook secret (not configured in the stack)
@@ -24,7 +25,7 @@
  * Path parameters in `{}` are filled by the matrix with real values of the stack (see `PARAMS`).
  */
 
-export type Access = 'public' | 'user' | 'clan' | 'leader' | 'admin' | 'cron' | 'telegram';
+export type Access = 'public' | 'user' | 'clan' | 'leader' | 'chief' | 'admin' | 'cron' | 'telegram';
 
 export interface Probe {
   /** Path to call instead of the operation's (e.g. an id that does not exist). */
@@ -125,24 +126,24 @@ export const ACCESS_SPEC: Record<string, Rule> = {
     probe: { path: `/base-proposals/${NO_ID}`, status: 404 },
   },
 
-  // CWL line-up selection: leaders read it, administrators decide.
-  'GET /cwl/selection': { access: 'leader', probe: ok },
-  'GET /cwl/selection/players': { access: 'leader', probe: ok },
+  // CWL line-up selection: every member reads it, the leader of Crociata Nera and administrators decide.
+  'GET /cwl/selection': { access: 'clan', probe: ok },
+  'GET /cwl/selection/players': { access: 'clan', probe: ok },
   'POST /cwl/selection/{season}/close': {
-    access: 'admin',
+    access: 'chief',
     probe: { path: '/cwl/selection/2000-01/close', status: 404 },
   },
   'POST /cwl/selection/{season}/reopen': {
-    access: 'admin',
+    access: 'chief',
     probe: { path: '/cwl/selection/2000-01/reopen', status: 404 },
   },
   'PUT /cwl/selection/exclusions/{tag}': {
-    access: 'admin',
+    access: 'chief',
     probe: { path: `/cwl/selection/exclusions/${NO_TAG}`, body: INVALID_BODY, status: 400 },
   },
   // Idempotent: readmitting a player who was never excluded changes nothing.
   'DELETE /cwl/selection/exclusions/{tag}': {
-    access: 'admin',
+    access: 'chief',
     probe: { path: `/cwl/selection/exclusions/${NO_TAG}`, status: 200 },
   },
 

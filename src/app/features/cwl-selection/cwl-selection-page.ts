@@ -97,11 +97,12 @@ const PART_MAX_POINTS: Partial<Record<keyof CwlScoreBreakdown, number>> = {
 
 /**
  * Ranking of the members of the clans of the Crusade (Crociata Nera, Rossa and d'Oro) for the CWL
- * line-up (administrators, leaders and co-leaders): always
+ * line-up, read by every member of the clans (their own accounts highlighted): always
  * sorted from the best, the 15 starters glow blue and the 3 reserves green. The backend computes
- * the scores; the page explains the rules. Administrators can exclude players, who stay in the
- * ranking marked as excluded. One selection per CWL season: the open one counts down to the
- * sign-ups (first day of its month) until an administrator closes it (or its CWL starts), then its
+ * the scores; the page explains the rules. Administrators and the leader of Crociata Nera can exclude
+ * players, who stay in the ranking marked as excluded; leaders and co-leaders also export the line-up.
+ * One selection per CWL season: the open one counts down to the sign-ups (first day of its month)
+ * until an administrator or the leader of Crociata Nera closes it (or its CWL starts), then its
  * ranking is frozen and the next season opens; the selector shows the closed ones.
  */
 /** Colour of the line-up status tags (excluded players get their own, with the reason). */
@@ -149,11 +150,9 @@ export class CwlSelectionPage {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly language = inject(LanguageService);
-  private readonly auth = inject(AuthService);
-  /** Only administrators exclude players (always with mock data, for the demo). */
   private readonly config = inject(APP_CONFIG);
-  private readonly useMock = this.config.useMockApi;
-  protected readonly isAdmin = computed(() => this.useMock || this.auth.isAdmin());
+  /** The signed-in user's own accounts, highlighted in the ranking. */
+  protected readonly isMine = inject(AuthService).isMyPlayer;
 
   /** Season picked in the selector; `null`: the open one. */
   private readonly chosenSeason = signal<string | null>(null);
@@ -165,8 +164,15 @@ export class CwlSelectionPage {
     this.resource.hasValue() ? this.resource.value() : null,
   );
   protected readonly isOpen = computed(() => this.selection()?.state === 'open');
+  /**
+   * Every member reads the page; the backend says who may do more (and refuses the others anyway):
+   * close, reopen and exclude (administrators and the leader of Crociata Nera), download and share
+   * the line-up (administrators, leaders and co-leaders). Everything with mock data (demo).
+   */
+  protected readonly canManage = computed(() => this.selection()?.permissions.manage ?? false);
+  protected readonly canExport = computed(() => this.selection()?.permissions.export ?? false);
   /** Exclusions only in the open selection (a closed one is frozen). */
-  protected readonly canExclude = computed(() => this.isAdmin() && this.isOpen());
+  protected readonly canExclude = computed(() => this.canManage() && this.isOpen());
 
   protected readonly seasonLabel = (season: string) =>
     periodLabel(season, this.language.current());
@@ -316,7 +322,7 @@ export class CwlSelectionPage {
     this.chosenSeason.set(season);
   }
 
-  /** Closes the open selection, or opens a closed one again (administrators), after a confirmation. */
+  /** Closes the open selection, or opens a closed one again (`canManage`), after a confirmation. */
   protected decide(selection: CwlSelection, action: SelectionDecisionData['action']): void {
     this.dialog
       .open<SelectionDecisionDialog, SelectionDecisionData, CwlSelection>(SelectionDecisionDialog, {

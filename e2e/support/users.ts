@@ -16,9 +16,11 @@ import {
  * - `outside`: a verified game account that is not in a clan of the Crusade (same as `none`);
  * - `member`: elder/member of Crociata Nera (the clans' pages);
  * - `sister`: member of Crociata Rossa or Crociata d'Oro (the clans' pages too);
- * - `leader`: co-leader of a clan of the Crusade (also the CWL selections).
+ * - `leader`: co-leader of a clan of the Crusade (also exports the CWL line-up);
+ * - `chief`: the leader of Crociata Nera (also decides the CWL line-up). One account only: one test
+ *   at a time can use it.
  */
-export type Access = 'none' | 'outside' | 'member' | 'sister' | 'leader';
+export type Access = 'none' | 'outside' | 'member' | 'sister' | 'leader' | 'chief';
 
 export interface UserOptions {
   access?: Access;

@@ -502,6 +502,7 @@
     "FORBIDDEN": "You don't have permission for this action.",
     "CLAN_ACCESS_REQUIRED": "This section is reserved to the members of Crociata Nera, Crociata Rossa and Crociata d'Oro: link one of your game accounts from your profile.",
     "LEADER_ACCESS_REQUIRED": "This section is reserved to the administrators and to the leaders and co-leaders of the clans of the Crusade.",
+    "CHIEF_ACCESS_REQUIRED": "This action is reserved to the administrators and to the leader of Crociata Nera.",
     "EXCLUSION_REASON_IS_TOO_LONG": "The reason can be at most 200 characters long.",
     "INVALID_TOKEN": "Invalid session: please sign in again.",
     "INVALID_CREDENTIALS": "Incorrect email, username or password.",
@@ -1219,7 +1220,7 @@
     },
     "rules": {
       "title": "How the ranking is computed",
-      "eligibility": "Eligible: the players of Crociata Nera, Crociata Rossa and Crociata d'Oro with the highest town hall of the three clans and those one level below, not excluded by an administrator. The others stay at the bottom of the ranking.",
+      "eligibility": "Eligible: the players of Crociata Nera, Crociata Rossa and Crociata d'Oro with the highest town hall of the three clans and those one level below, not excluded. The others stay at the bottom of the ranking.",
       "cwl": "Last CWL, fought in Crociata Nera, Rossa or d'Oro (up to 25 points): commendations up to 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) and stars per attack and destruction up to 13; with fewer than 3 attacks the performance is reduced in proportion.",
       "war": "Regular wars of the last 90 days, in every clan of the Crusade (up to 40 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
       "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are the starters (blue), the next 3 are the reserves (green).",
@@ -1227,7 +1228,7 @@
       "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
       "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
       "penalties": "Penalties: 3 points for each attack missed in the last CWL (at most 15); 5 points for recruits (member role) who joined the clans of the Crusade less than 14 days ago: elders, co-leaders and leaders coming back are not penalised.",
-      "exclusions": "Administrators can exclude a player (for example for an announced absence): they keep their place in the ranking, marked as excluded, and their slot in the team goes to the next one. An exclusion lasts for the current season only, unless it is \"until revoked\".",
+      "exclusions": "Administrators and the leader of Crociata Nera can exclude a player (for example for an announced absence): they keep their place in the ranking, marked as excluded, and their slot in the team goes to the next one. An exclusion lasts for the current season only, unless it is \"until revoked\".",
       "noCwl": "Who was not in the line-up of the last CWL keeps its 25 points: they move to the regular wars, worth up to 65. So 100 can be reached without the CWL too."
     },
     "generatedAt": "Computed on {{date}}",
@@ -1280,7 +1281,7 @@
       "confirm": "Exclude",
       "untilRevoked": "Exclude until revoked",
       "seasonHint": "Only for this season's selection: from next month the player is back in the ranking by themselves.",
-      "untilRevokedHint": "Also for the following seasons, until an administrator takes the player back."
+      "untilRevokedHint": "Also for the following seasons, until the player is taken back."
     },
     "cwlCommendations": "Commendations of the last CWL",
     "noCwlHint": "Not in the line-up of the last CWL: the 25 CWL points move to the regular wars",

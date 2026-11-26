@@ -41,7 +41,7 @@ describe('ExcludePlayerDialog', () => {
     await fixture.whenStable();
     el.querySelector<HTMLInputElement>('.until-revoked input[type="checkbox"]')!.click();
     fixture.detectChanges();
-    expect(el.textContent).toContain('finché un amministratore');
+    expect(el.textContent).toContain('finché non viene riammesso');
     el.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
     expect(exclude).toHaveBeenCalledWith('#AAA', null, true);
   });

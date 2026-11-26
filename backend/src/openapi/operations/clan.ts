@@ -7,7 +7,7 @@ import { listRaidSeasonsQuerySchema } from '@/modules/raids/raids.schemas';
 import { ClanRecords, PlayerRecord } from '../models/players';
 import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, LatestLegendSeason, RaidSeason } from '../models/seasons';
 import { excludePlayerSchema, selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
-import { CwlExclusionResult, CwlSelection } from '../models/selection';
+import { CwlExclusionResult, CwlSelection, CwlSelectionView } from '../models/selection';
 import { ApiOperation, requestPart } from '../operation';
 
 const seasonPath = requestPart(z.object({ season: z.string() }), {
@@ -26,11 +26,11 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Get the selection of the Clan War League line-up',
     description:
-      'The selection of a season (the open one by default): one per CWL season, open (live ranking, administrators exclude players) until an administrator closes it or the CWL of its season starts, then frozen; closing it opens the next season. Current members of every clan of the Crusade (Crociata Nera, Rossa and d\'Oro) ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher league, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clans, not excluded by an administrator). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 20); highest town hall (10); home village league (up to 5: Electro League 31 = 1 … Legend II and I = 5). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals with the `member` role (-5). Excluded players keep their place and take no slot.',
-    access: 'leader',
+      'The selection of a season (the open one by default): one per CWL season, open (live ranking, administrators and the leader of Crociata Nera exclude players) until one of them closes it or the CWL of its season starts, then frozen; closing it opens the next season. Current members of every clan of the Crusade (Crociata Nera, Rossa and d\'Oro) ranked to pick the Clan War League line-up (on equal score: higher town hall, then higher league, then higher role): 15 starters and 3 reserves among the eligible players (town hall at most one level below the highest of the clans, not excluded). Score out of 100: last CWL, fought in any clan of the Crusade (commendations up to 12, stars and destruction up to 13); regular wars of the last 90 days in any clan of the Crusade (up to 40, or 65 for who was not in the last CWL); hero levels and equipment (up to 20); highest town hall (10); home village league (up to 5: Electro League 31 = 1 … Legend II and I = 5). Penalties for league attacks missed in the last CWL (up to -15) and new arrivals with the `member` role (-5). Excluded players keep their place and take no slot.',
+    access: 'clan',
     rateLimit: ApiName.WARS_READ,
     query: requestPart(selectionQuerySchema, { season: { description: 'Season of the selection, `YYYY-MM` (default: the open one).', example: '2026-12' } }),
-    responses: { 200: { description: 'The selection.', result: CwlSelection } },
+    responses: { 200: { description: 'The selection.', result: CwlSelectionView } },
     errors: { 400: [K.PERIOD_IS_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND] },
   },
   {
@@ -41,7 +41,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     summary: 'Close the selection of the CWL line-up',
     description:
       'Closes the open selection: its ranking is frozen as it is now, a draft of the line-up announcement is prepared (when that kind is on) and the selection of the next season opens. The backend closes it by itself when the CWL of the season starts.',
-    access: 'admin',
+    access: 'chief',
     rateLimit: ApiName.ADMIN,
     params: seasonPath,
     responses: { 200: { description: 'The closed selection.', result: CwlSelection, messages: [K.CWL_SELECTION_CLOSED] } },
@@ -55,7 +55,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     summary: 'Open a closed selection of the CWL line-up again',
     description:
       'Opens a closed selection again while its CWL has not started and no later season was closed: the frozen ranking goes, the selection of the next season waits (its exclusions are kept), the line-up drafts not published yet are dropped.',
-    access: 'admin',
+    access: 'chief',
     rateLimit: ApiName.ADMIN,
     params: seasonPath,
     responses: { 200: { description: 'The selection, open again.', result: CwlSelection, messages: [K.CWL_SELECTION_REOPENED] } },
@@ -73,7 +73,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     summary: 'Exclude a player from the CWL line-up',
     description:
       'Excludes a current member of a clan of the Crusade from the line-up of the open selection, or of every season until revoked, with an optional reason (excluding again replaces reason and duration). The player stays in the ranking, marked as excluded, and takes no slot.',
-    access: 'admin',
+    access: 'chief',
     rateLimit: ApiName.ADMIN,
     params: exclusionPath,
     body: requestPart(excludePlayerSchema, {
@@ -90,7 +90,7 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Take a player back into the CWL line-up',
     description: 'Removes the exclusion of a player from the open selection (and the one until revoked); nothing changes if the player was not excluded.',
-    access: 'admin',
+    access: 'chief',
     rateLimit: ApiName.ADMIN,
     params: exclusionPath,
     responses: { 200: { description: 'The player is no longer excluded.', result: null, messages: [K.PLAYER_READMITTED] } },

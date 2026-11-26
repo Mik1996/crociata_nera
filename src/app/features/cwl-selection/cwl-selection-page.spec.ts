@@ -1,8 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../../core/backend/auth.service';
-import { CwlSelection, CwlSelectionPlayer } from '../../core/backend/backend-api.types';
+import {
+  CwlSelectionPermissions,
+  CwlSelectionPlayer,
+  CwlSelectionView,
+} from '../../core/backend/backend-api.types';
 import { CwlSelectionService } from '../../core/backend/cwl-selection.service';
 import { PdfCell, TablePdf } from '../../shared/pdf/table-pdf';
 import { TablePdfExporter } from '../../shared/pdf/table-pdf-exporter';
@@ -73,7 +79,7 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
   };
 }
 
-const SELECTION: CwlSelection = {
+const SELECTION: CwlSelectionView = {
   season: '2026-12',
   state: 'open',
   signupStart: '2026-12-01T00:00:00.000Z',
@@ -99,6 +105,7 @@ const SELECTION: CwlSelection = {
     player(20, 'bench'),
     player(21, 'ineligible'),
   ],
+  permissions: { manage: true, export: true },
 };
 
 /** The ranking as the backend pages it (one page with every player). */
@@ -109,7 +116,7 @@ const PLAYERS_PAGE = {
   limit: null,
 };
 
-const CLOSED: CwlSelection = {
+const CLOSED: CwlSelectionView = {
   ...SELECTION,
   season: '2026-11',
   state: 'closed',
@@ -122,7 +129,7 @@ const CLOSED: CwlSelection = {
 describe('CwlSelectionPage', () => {
   afterEach(() => vi.useRealTimers());
 
-  /** With mock data (the default of the tests) the actions are shown, as for administrators. */
+  /** The actions are shown, as for administrators and the leader of Crociata Nera. */
   async function render() {
     const exporter = { download: vi.fn((_pdf: TablePdf<unknown>) => Promise.resolve()) };
     const service = {
@@ -263,24 +270,71 @@ describe('CwlSelectionPage', () => {
     expect(el.querySelector('td.actions')).toBeNull();
   });
 
-  it('hides the actions from leaders who are not administrators', async () => {
+  /** The page as a member who may do no more than `permissions` (read from the backend). */
+  async function renderWith(permissions: CwlSelectionPermissions) {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         provideCocApiTest({ useMockApi: false }),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: CwlSelectionService,
-          useValue: { get: () => of(SELECTION), getPlayersTable: () => of(PLAYERS_PAGE) }
+          useValue: {
+            get: () => of({ ...SELECTION, permissions }),
+            getPlayersTable: () => of(PLAYERS_PAGE),
+          },
         },
       ],
     });
     const fixture = TestBed.createComponent(CwlSelectionPage);
     await fixture.whenStable();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(TestBed.inject(AuthService).isAdmin()).toBe(false);
+    return { el: fixture.nativeElement as HTMLElement, fixture };
+  }
+
+  it('shows the ranking read-only to the members: no exclusions, closing, download nor share', async () => {
+    const { el } = await renderWith({ manage: false, export: false });
     expect(el.querySelector('tr.mat-mdc-row')).not.toBeNull();
     expect(el.querySelector('td.actions')).toBeNull();
     expect(el.querySelector('.season__action')).toBeNull();
+    expect(el.querySelector('crn-pdf-button')).toBeNull();
+  });
+
+  it('lets leaders and co-leaders download and share the line-up, not change it', async () => {
+    const { el } = await renderWith({ manage: false, export: true });
+    expect(el.querySelector('crn-pdf-button')).not.toBeNull();
+    expect(el.querySelector('td.actions')).toBeNull();
+    expect(el.querySelector('.season__action')).toBeNull();
+  });
+
+  it("highlights the signed-in user's own accounts in the ranking", async () => {
+    const { el, fixture } = await renderWith({ manage: false, export: false });
+    expect(el.querySelector('tr.cn-row-me')).toBeNull();
+    TestBed.inject(AuthService).restoreSession();
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/v1/auth/refresh')
+      .flush({
+        result: {
+          accessToken: 't',
+          accessTokenExpiresAt: '',
+          user: {
+            username: 'b',
+            players: [
+              { tag: '#P3', verified: true },
+              { tag: '#P20', verified: true },
+              // Old unverified link: not the user's.
+              { tag: '#P4', verified: false },
+            ],
+          },
+        },
+        messages: [],
+        status: { code: 200, name: 'HTTP_STATUS.OK' },
+      });
+    await fixture.whenStable();
+    const mine = [...el.querySelectorAll('tr.cn-row-me')].map(
+      (row) => row.querySelector('td.rank')!.textContent!.trim(),
+    );
+    expect(mine).toEqual(['3', '20']);
   });
 
   it('downloads the 15 starters, the 3 reserves on page 2 and the rules on page 3 as a PDF', async () => {

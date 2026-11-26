@@ -246,13 +246,13 @@ test.describe('Public pages', () => {
   });
 });
 
-test.describe('Leaders’ pages', () => {
-  test('a leader sees the CWL line-up ranking of the three clans @P1', async ({
+test.describe('CWL line-up', () => {
+  test('a member reads the ranking of the three clans, without the leaders’ actions @P1', async ({
     page,
     users,
     signIn,
   }) => {
-    await signIn(await users.create({ access: 'leader' }));
+    await signIn(await users.create({ access: 'member' }));
     await page.goto('/cwl-selection');
     await expect(
       page.getByRole('heading', { name: t('nav.cwlSelection'), level: 1 }),
@@ -260,5 +260,23 @@ test.describe('Leaders’ pages', () => {
     const table = page.getByRole('table').first();
     await expect(table.getByRole('rowgroup').nth(1).getByRole('row').first()).toBeVisible();
     await expect(page.getByRole('region', { name: t('cwlSelection.summary') })).toBeVisible();
+    // Read-only: no closing, no exclusions, no download or share.
+    await expect(page.getByRole('button', { name: t('cwlSelection.state.close') })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: t('cwlSelection.excludeAction') })).toHaveCount(0);
+    await expect(page.locator('crn-pdf-button')).toHaveCount(0);
+  });
+
+  test('a co-leader also downloads the line-up, but does not close it nor exclude players @P1', async ({
+    page,
+    users,
+    signIn,
+  }) => {
+    await signIn(await users.create({ access: 'leader' }));
+    await page.goto('/cwl-selection');
+    const table = page.getByRole('table').first();
+    await expect(table.getByRole('rowgroup').nth(1).getByRole('row').first()).toBeVisible();
+    await expect(page.locator('crn-pdf-button')).toBeVisible();
+    await expect(page.getByRole('button', { name: t('cwlSelection.state.close') })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: t('cwlSelection.excludeAction') })).toHaveCount(0);
   });
 });

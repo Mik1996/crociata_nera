@@ -10,6 +10,11 @@ const clanRosterSchema = new Schema(
     memberTags: { type: [String], default: [] },
     /** Members with the role `leader` or `coLeader` (subset of `memberTags`). */
     leaderTags: { type: [String], default: [] },
+    /**
+     * Members with the role `leader` (the head of the clan, one in the game; subset of `leaderTags`).
+     * Missing in rosters saved before it was added: such a roster is read again from the API.
+     */
+    chiefTags: { type: [String], default: undefined },
     syncedAt: { type: Date, required: true },
   },
   { collection: 'ClanRosters', versionKey: false },

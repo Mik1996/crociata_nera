@@ -5,7 +5,6 @@ import {
   authGuard,
   clanGuard,
   guestGuard,
-  leaderGuard,
 } from './core/backend/auth.guards';
 
 /**
@@ -96,10 +95,9 @@ export const routes: Routes = [
             loadComponent: () => import('./features/cwl/cwl-page').then((m) => m.CwlPage),
           },
           {
-            // Leaders only: administrators, leaders and co-leaders of the clans of the Crusade.
+            // Every member reads it; what each may do besides reading comes from the backend.
             path: 'cwl-selection',
             title: 'nav.cwlSelection',
-            canActivate: [leaderGuard],
             loadComponent: () =>
               import('./features/cwl-selection/cwl-selection-page').then((m) => m.CwlSelectionPage),
           },

@@ -17,7 +17,9 @@
         (valueChange)="changeSeason($event!)"
       />
     }
-    <crn-pdf-button [pdf]="lineupPdf()" />
+    @if (canExport()) {
+      <crn-pdf-button [pdf]="lineupPdf()" />
+    }
   </crn-page-header>
 
   <div class="page__body">
@@ -79,7 +81,7 @@
               <p class="cn-muted season__note">{{ 'cwlSelection.state.closedNote' | translate }}</p>
             }
           </div>
-          @if (isAdmin()) {
+          @if (canManage()) {
             @if (s.state === 'open') {
               <button mat-flat-button type="button" class="season__action" (click)="decide(s, 'close')">
                 <crn-icon name="lock" matButtonIcon />
@@ -452,6 +454,7 @@
               mat-row
               *matRowDef="let p; columns: columns()"
               class="cn-row-link"
+              [class.cn-row-me]="isMine(p.tag)"
               [class.row--starter]="p.status === 'starter'"
               [class.row--reserve]="p.status === 'reserve'"
               [class.row--ineligible]="p.status === 'ineligible'"

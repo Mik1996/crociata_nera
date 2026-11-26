@@ -20,7 +20,8 @@ most every 5 min, last saved list used during API outages) in `modules/access/cl
 | public | anybody | none | `public` | none / `guestGuard` (signed-out only) |
 | user | signed in | `auth: true` | `user` | `authGuard` |
 | clan | ADMIN, or a verified tag in any Crusade clan (any clan role) | `clanAccess: true` | `clan` | `clanGuard` (else → `/profile`) |
-| leader | ADMIN, or a verified tag that is `leader`/`coLeader` of a Crusade clan | `leaderAccess: true` | `leader` | `leaderGuard` (else → `/`) |
+| leader | ADMIN, or a verified tag that is `leader`/`coLeader` of a Crusade clan | `leaderAccess: true` | `leader` | `leaderGuard` (else → `/`); no page uses it now |
+| chief | ADMIN, or the verified tag that is `leader` of the main clan (Crociata Nera, `CLAN_TAG`; `ClanRosters.chiefTags`) | `chiefAccess: true` | `chief` | — (actions only) |
 | admin | ADMIN | `roles: [UserRole.ADMIN]` | `admin` | `adminGuard` (else → `/`) |
 | cron / telegram | shared secret (`CRON_SECRET`, `TELEGRAM_WEBHOOK_SECRET`); 404 while unset | checked in the route | `cron` / `telegram` | — |
 | API docs | dev: anybody; prod: admins (Basic or Bearer) | in the route | `adminInProduction` | — |
@@ -29,6 +30,10 @@ most every 5 min, last saved list used during API outages) in `modules/access/cl
 penalty). Roles on `roles` routes are re-read from the database at every request; on other routes the
 token's roles (≤ 15 min old) are used — so never gate admin power on `user.roles` inside a non-`roles`
 route.
+
+Actions on a page every member reads can depend on the caller: the backend then returns them in the
+GET (e.g. `GET /cwl/selection` → `permissions: { manage, export }`: CWL line-up read by every member,
+closed/reopened and exclusions by `chief`, PDF/pictures exported by `leader`), and the page shows only those.
 
 Frontend: `AuthService` (`src/app/core/backend/auth.service.ts`) exposes `isAdmin`, `hasClanAccess`,
 `hasLeaderAccess`, `isMyPlayer`; the route tree in `src/app/app.routes.ts` groups pages under the guards.
@@ -52,7 +57,7 @@ on `playerTags`), max 10, proven with the in-game API token (`POST /players/{tag
 3. Ownership/state checks in the service, returning 404 for "not yours" when existence should not leak.
 4. Frontend: put the page under the right guard group; hide actions with `isAdmin()`/`hasLeaderAccess()`
    — but the backend must refuse them anyway.
-5. Tests: 401 without token, 403 with the wrong level (`CLAN_ACCESS_REQUIRED`, `LEADER_ACCESS_REQUIRED`,
+5. Tests: 401 without token, 403 with the wrong level (`CLAN_ACCESS_REQUIRED`, `LEADER_ACCESS_REQUIRED`, `CHIEF_ACCESS_REQUIRED`,
    `FORBIDDEN`), success with the right one; for ADMIN, a demoted admin loses access immediately.
    Write the level in `e2e/tests/security/access-spec.ts` too (with a probe that changes nothing): it is
    the committed security requirement, and the end-to-end authorization matrix fails while the API, its

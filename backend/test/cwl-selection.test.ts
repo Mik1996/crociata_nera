@@ -20,7 +20,8 @@ import {
 } from '@/modules/cwl/cwl-selection.service';
 import { signAccessToken } from '@/lib/auth/tokens';
 import { UserRole } from '@/lib/auth/user-role';
-import { crusadeLeaderTags, resetClanAccessCache } from '@/modules/access/clan-access.service';
+import { crusadeChiefTags, crusadeLeaderTags, resetClanAccessCache } from '@/modules/access/clan-access.service';
+import { ClanRosterModel } from '@/modules/access/clan-roster.model';
 import { UserModel } from '@/modules/auth/user.model';
 import { CommendationAwardModel } from '@/modules/commendations/commendation-award.model';
 import { syncMembers } from '@/modules/commendations/commendation-sync.service';
@@ -276,17 +277,27 @@ describe('CWL line-up scores', () => {
 });
 
 describe('GET /cwl/selection', () => {
-  it('is for administrators, leaders and co-leaders of the clans of the Crusade', async () => {
-    await seedCrusadeRosters(['#MEMBER'], ['#LEADER']);
+  it('is read by every member of the clans of the Crusade, with what each may do besides reading', async () => {
+    await seedCrusadeRosters(['#MEMBER'], ['#LEADER'], ['#CHIEF']);
+    const outsider = await register('outsider', ['#ELSEWHERE']);
     const member = await register('member', ['#MEMBER']);
     const leader = await register('leader', ['#LEADER']);
+    const chief = await register('chief', ['#CHIEF']);
 
     expect((await call(getSelection)).status).toBe(401);
-    const denied = await call(getSelection, { token: member });
+    const denied = await call(getSelection, { token: outsider });
     expect(denied.status).toBe(403);
-    expect(denied.body.messages).toEqual([{ key: 'ERROR.LEADER_ACCESS_REQUIRED' }]);
-    expect((await call(getSelection, { token: leader })).status).toBe(200);
-    expect((await call(getSelection, { token: await admin() })).status).toBe(200);
+    expect(denied.body.messages).toEqual([{ key: 'ERROR.CLAN_ACCESS_REQUIRED' }]);
+    const permissions = async (token: string) => {
+      const reply = await call(getSelection, { token });
+      expect(reply.status).toBe(200);
+      return reply.body.result.permissions;
+    };
+    // Members read only; leaders and co-leaders also export; the leader of Crociata Nera decides.
+    expect(await permissions(member)).toEqual({ manage: false, export: false });
+    expect(await permissions(leader)).toEqual({ manage: false, export: true });
+    expect(await permissions(chief)).toEqual({ manage: true, export: true });
+    expect(await permissions(await admin())).toEqual({ manage: true, export: true });
 
     expect((await call(me, { token: member })).body.result.leaderAccess).toBe(false);
     expect((await call(me, { token: leader })).body.result.leaderAccess).toBe(true);
@@ -305,10 +316,33 @@ describe('GET /cwl/selection', () => {
           ],
         },
       },
-      '/clans/%232JU8RPR2G': { body: { memberList: [{ tag: '#R1', role: 'coLeader' }] } },
+      '/clans/%232JU8RPR2G': {
+        body: {
+          memberList: [
+            { tag: '#R0', role: 'leader' },
+            { tag: '#R1', role: 'coLeader' },
+          ],
+        },
+      },
       '/clans/%232RRYUGQYJ': { body: { memberList: [] } },
     });
-    expect(await crusadeLeaderTags()).toEqual(new Set(['#L1', '#C2', '#R1']));
+    expect(await crusadeLeaderTags()).toEqual(new Set(['#L1', '#C2', '#R0', '#R1']));
+    // Only the leader of Crociata Nera decides the line-up (not its co-leaders, nor the other clans' leaders).
+    expect(await crusadeChiefTags()).toEqual(new Set(['#L1']));
+    expect(await ClanRosterModel.findOne({ clanTag: NERA }).lean()).toMatchObject({ chiefTags: ['#L1'] });
+  });
+
+  it('reads the member list again when the saved one does not know the leader yet', async () => {
+    resetClanAccessCache();
+    // Saved before the leader was kept: fresh, but without `chiefTags`.
+    await ClanRosterModel.collection.insertOne({ clanTag: NERA, memberTags: ['#L1'], leaderTags: ['#L1'], syncedAt: new Date() });
+    const coc = mockCocApi({
+      '/clans/%232J8JVVCLC': { body: { memberList: [{ tag: '#L1', role: 'leader' }] } },
+      '/clans/%232JU8RPR2G': { body: { memberList: [] } },
+      '/clans/%232RRYUGQYJ': { body: { memberList: [] } },
+    });
+    expect(await crusadeChiefTags()).toEqual(new Set(['#L1']));
+    expect(coc).toHaveBeenCalledTimes(3);
   });
 
 
@@ -453,10 +487,10 @@ describe('GET /cwl/selection', () => {
 });
 
 describe('exclusions from the CWL line-up', () => {
-  it('are for administrators only, and show in the ranking', async () => {
-    await seedCrusadeRosters([], ['#LEADER']);
+  it('are for administrators and the leader of Crociata Nera, and show in the ranking', async () => {
+    await seedCrusadeRosters([], ['#LEADER'], ['#CHIEF']);
     const leader = await register('leader', ['#LEADER']);
-    const token = await admin();
+    const token = await register('chief', ['#CHIEF']);
     await PlayerModel.create([
       { tag: '#AAA111', name: 'Alice', clanTag: NERA, townHallLevel: 17, inClan: true },
       { tag: '#BBB222', name: 'Bob', townHallLevel: 17, inClan: true },
@@ -464,17 +498,19 @@ describe('exclusions from the CWL line-up', () => {
     ]);
 
     const body = { reason: '  Away all month  ' };
-    expect((await call(exclude, { token: leader, params: { tag: 'AAA111' }, body })).status).toBe(403);
+    const denied = await call(exclude, { token: leader, params: { tag: 'AAA111' }, body });
+    expect(denied.status).toBe(403);
+    expect(denied.body.messages).toEqual([{ key: 'ERROR.CHIEF_ACCESS_REQUIRED' }]);
     expect((await call(readmit, { token: leader, params: { tag: 'AAA111' } })).status).toBe(403);
 
     const excluded = await call(exclude, { token, params: { tag: 'aaa111' }, body });
     expect(excluded.status).toBe(200);
-    expect(excluded.body.result).toMatchObject({ tag: '#AAA111', reason: 'Away all month', untilRevoked: false, excludedBy: 'boss' });
+    expect(excluded.body.result).toMatchObject({ tag: '#AAA111', reason: 'Away all month', untilRevoked: false, excludedBy: 'chief' });
     expect(excluded.body.messages).toEqual([{ key: 'SUCCESS.PLAYER_EXCLUDED' }]);
 
     let ranking = (await call(getSelection, { token: leader })).body.result.players;
     const alice = ranking.find((p: { tag: string }) => p.tag === '#AAA111');
-    expect(alice).toMatchObject({ status: 'excluded', eligible: false, exclusion: { reason: 'Away all month', excludedBy: 'boss' } });
+    expect(alice).toMatchObject({ status: 'excluded', eligible: false, exclusion: { reason: 'Away all month', excludedBy: 'chief' } });
     expect(ranking.find((p: { tag: string }) => p.tag === '#BBB222').status).toBe('starter');
 
     // Excluding again replaces the reason; no reason is fine.
@@ -564,21 +600,26 @@ describe('selections by season', () => {
     expect((await CwlSelectionModel.find().lean()).map((s) => s.season)).toEqual(['2027-01']);
   });
 
-  it('closes by an administrator: the ranking is frozen, the line-up drafted, the next season opened', async () => {
-    await seedCrusadeRosters([], ['#LEADER']);
+  it('closes by the leader of Crociata Nera: the ranking is frozen, the line-up drafted, the next season opened', async () => {
+    await seedCrusadeRosters(['#MEMBER'], ['#LEADER'], ['#CHIEF']);
+    const member = await register('member', ['#MEMBER']);
     const leader = await register('leader', ['#LEADER']);
-    const token = await admin();
+    const token = await register('chief', ['#CHIEF']);
     await seedPlayers();
-    const season = (await call(getSelection, { token: leader })).body.result.season as string;
+    const season = (await call(getSelection, { token: member })).body.result.season as string;
 
-    expect((await call(closeRoute, { token: leader, params: { season } })).status).toBe(403);
+    for (const denied of [member, leader]) {
+      const reply = await call(closeRoute, { token: denied, params: { season } });
+      expect(reply.status).toBe(403);
+      expect(reply.body.messages).toEqual([{ key: 'ERROR.CHIEF_ACCESS_REQUIRED' }]);
+    }
     expect((await call(closeRoute, { token, params: { season: 'nope' } })).status).toBe(400);
     expect((await call(closeRoute, { token, params: { season: '2020-01' } })).status).toBe(404);
 
     const closed = await call(closeRoute, { token, params: { season } });
     expect(closed.status).toBe(200);
     expect(closed.body.messages).toEqual([{ key: 'SUCCESS.CWL_SELECTION_CLOSED' }]);
-    expect(closed.body.result).toMatchObject({ season, state: 'closed', closedBy: 'boss', closedAutomatically: false, canReopen: true });
+    expect(closed.body.result).toMatchObject({ season, state: 'closed', closedBy: 'chief', closedAutomatically: false, canReopen: true });
     expect(closed.body.result.players).toHaveLength(19);
     const again = await call(closeRoute, { token, params: { season } });
     expect(again.status).toBe(409);
@@ -592,7 +633,8 @@ describe('selections by season', () => {
     const frozen = await call(getSelection, { token: leader, path: `/api/v1/cwl/selection?season=${season}` });
     expect(frozen.body.result).toMatchObject({ season, state: 'closed' });
     expect(frozen.body.result.players).toHaveLength(19);
-    const reserves = await call(selectionPlayers, { token: leader, path: `/api/v1/cwl/selection/players?season=${season}&status=reserve` });
+    // Every member reads the closed ones too.
+    const reserves = await call(selectionPlayers, { token: member, path: `/api/v1/cwl/selection/players?season=${season}&status=reserve` });
     expect(reserves.status).toBe(200);
     expect(reserves.body.result.items).toHaveLength(3);
     expect((await call(getSelection, { token: leader, path: '/api/v1/cwl/selection?season=2020-01' })).status).toBe(404);
@@ -608,7 +650,8 @@ describe('selections by season', () => {
   });
 
   it('opens a closed selection again until its CWL starts', async () => {
-    await seedCrusadeRosters([], []);
+    await seedCrusadeRosters([], ['#LEADER']);
+    const leader = await register('leader', ['#LEADER']);
     const token = await admin();
     await seedPlayers();
     const now = new Date();
@@ -616,6 +659,7 @@ describe('selections by season', () => {
     await closeSelection(season, null, now);
     expect(await AnnouncementModel.countDocuments({ kind: 'lineup', state: 'draft' })).toBe(1);
 
+    expect((await call(reopenRoute, { token: leader, params: { season } })).status).toBe(403);
     const back = await call(reopenRoute, { token, params: { season } });
     expect(back.status).toBe(200);
     expect(back.body.messages).toEqual([{ key: 'SUCCESS.CWL_SELECTION_REOPENED' }]);

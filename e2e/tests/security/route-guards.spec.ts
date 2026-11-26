@@ -13,8 +13,9 @@ const CLAN_PAGES = [
   '/players',
   '/bases',
   '/statistics',
+  // Read-only for members; closing and exclusions are for the leader of Crociata Nera.
+  '/cwl-selection',
 ];
-const LEADER_PAGES = ['/cwl-selection'];
 const ADMIN_PAGES = ['/admin', '/admin/publishing'];
 
 /**
@@ -41,7 +42,7 @@ test.describe('Page access by kind of visitor', () => {
   test('signed-out visitors are sent to the welcome page, which keeps the page asked for @cross @P0', async ({
     page,
   }) => {
-    for (const path of [...CLAN_PAGES, ...LEADER_PAGES, '/profile', ...ADMIN_PAGES]) {
+    for (const path of [...CLAN_PAGES, '/profile', ...ADMIN_PAGES]) {
       await expectLanding(page, path, `/?returnUrl=${encodeURIComponent(path)}`);
     }
     // Public pages stay open.
@@ -57,9 +58,7 @@ test.describe('Page access by kind of visitor', () => {
   }) => {
     const outsider = await users.create({ access: 'outside' });
     await signIn(outsider);
-    for (const path of [...CLAN_PAGES, ...LEADER_PAGES]) {
-      await expectLanding(page, path, '/profile');
-    }
+    for (const path of CLAN_PAGES) await expectLanding(page, path, '/profile');
     for (const path of ADMIN_PAGES) await expectLanding(page, path, '/');
     // The profile explains why, and their linked account is shown as outside the clans.
     await page.goto('/profile');
@@ -67,7 +66,7 @@ test.describe('Page access by kind of visitor', () => {
     await expect(page.getByText(t('profile.player.notInClan'))).toBeVisible();
   });
 
-  test('clan members reach the clans’ pages, not the leaders’ nor the administration @P0', async ({
+  test('clan members reach the clans’ pages, not the administration @P0', async ({
     page,
     users,
     signIn,
@@ -75,12 +74,12 @@ test.describe('Page access by kind of visitor', () => {
     const member = await users.create({ access: 'member' });
     await signIn(member);
     for (const path of CLAN_PAGES) await expectLanding(page, path, path);
-    for (const path of [...LEADER_PAGES, ...ADMIN_PAGES]) await expectLanding(page, path, '/');
-    // The navigation does not offer what they cannot open.
+    for (const path of ADMIN_PAGES) await expectLanding(page, path, '/');
+    // The navigation offers the CWL line-up too (read-only for them).
     await page.goto('/dashboard');
     const nav = new Shell(page).nav();
     await expect(nav.getByRole('link', { name: t('nav.players') })).toBeVisible();
-    await expect(nav.getByRole('link', { name: t('nav.cwlSelection') })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: t('nav.cwlSelection') })).toBeVisible();
   });
 
   test('members of a sister clan have the same access as the main clan’s @P1', async ({
@@ -91,10 +90,10 @@ test.describe('Page access by kind of visitor', () => {
     const sister = await users.create({ access: 'sister' });
     await signIn(sister);
     await expectLanding(page, '/players', '/players');
-    await expectLanding(page, '/cwl-selection', '/');
+    await expectLanding(page, '/cwl-selection', '/cwl-selection');
   });
 
-  test('leaders reach the CWL selections, not the administration @P0', async ({
+  test('leaders reach the clans’ pages, not the administration @P0', async ({
     page,
     users,
     signIn,
@@ -112,7 +111,7 @@ test.describe('Page access by kind of visitor', () => {
   }) => {
     const admin = await users.create({ admin: true });
     await signIn(admin);
-    for (const path of [...CLAN_PAGES, ...LEADER_PAGES, ...ADMIN_PAGES, '/profile']) {
+    for (const path of [...CLAN_PAGES, ...ADMIN_PAGES, '/profile']) {
       await expectLanding(page, path, path);
     }
   });

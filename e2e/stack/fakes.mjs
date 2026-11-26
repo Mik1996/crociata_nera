@@ -49,6 +49,8 @@ function buildPools(data) {
     member: tags(nera.filter((m) => m.role === 'admin' || m.role === 'member')),
     // Co-leaders of Crociata Nera and Crociata Rossa: also the leaders' pages (CWL selections).
     leader: tags([...nera, ...rossa].filter((m) => m.role === 'coLeader')),
+    // The leader of Crociata Nera (one account): also decides the CWL line-up (close, exclude).
+    chief: tags(nera.filter((m) => m.role === 'leader')),
     // Members of the sister clans: full access too.
     sister: tags([...rossa, ...oro].filter((m) => m.role === 'member')),
     // Real game accounts outside the Crusade: no access to the clans' pages.
