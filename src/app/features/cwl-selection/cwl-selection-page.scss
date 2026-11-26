@@ -35,7 +35,9 @@
 .season__title {
   margin: 0;
   color: var(--cn-gold-light);
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
   font-size: var(--cn-fs-lg);
 }
 
@@ -74,15 +76,17 @@
   @include layout.actions-centred-below(44rem);
 }
 
-// Two sizes side by side, the chosen one filled with gold.
+// Two sizes side by side, the chosen one filled with gold: the look of the segmented filters
+// (`.mat-button-toggle-group` in styles.scss).
 .size-switch {
   display: inline-flex;
-  border: 1px solid var(--cn-gold-dark);
-  border-radius: $radius-pill;
+  border: 2px solid var(--cn-panel-border);
+  border-radius: var(--cn-control-radius);
+  box-shadow: 0 2px 0 var(--cn-panel-border);
   overflow: hidden;
   // As tall as the button also when they wrap on two lines (phones), border included.
   box-sizing: border-box;
-  min-height: 2.5rem;
+  min-height: var(--cn-control-height);
 }
 
 .size {
@@ -93,17 +97,19 @@
   padding: $space-xs $space-m;
   border: 0;
   background: transparent;
-  color: var(--cn-gold-light);
-  font-family: var(--cn-font-display);
+  color: var(--cn-text);
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
   font-size: var(--cn-fs-sm);
   cursor: pointer;
 
   & + & {
-    border-left: 1px solid var(--cn-gold-dark);
+    border-left: 2px solid var(--cn-panel-border);
   }
 
   &:hover:not(:disabled) {
-    background: palette.alpha(var(--cn-gold), 16%);
+    background: var(--cn-hover);
   }
 
   &:focus-visible {
@@ -118,9 +124,8 @@
 
 .size--on,
 .size--on:hover:not(:disabled) {
-  background: var(--cn-game-gold);
+  background: var(--cn-gold-toggle);
   color: var(--cn-on-gold);
-  font-weight: 700;
 }
 
 .season__action {
@@ -146,7 +151,9 @@
 }
 
 .legend {
-  font-family: var(--cn-font-display);
+  font-family: var(--cn-font-heading);
+  font-weight: var(--cn-heading-weight);
+  letter-spacing: var(--cn-heading-tracking);
 }
 
 .facts {
@@ -174,7 +181,9 @@
     gap: $space-s;
     cursor: pointer;
     color: var(--cn-gold-light);
-    font-family: var(--cn-font-display);
+    font-family: var(--cn-font-heading);
+    font-weight: var(--cn-heading-weight);
+    letter-spacing: var(--cn-heading-tracking);
 
     crn-icon {
       width: 1.25rem;

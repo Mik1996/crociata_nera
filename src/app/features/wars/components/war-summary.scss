@@ -3,7 +3,7 @@
 
 :host {
   // Container of the scoreboard: its layout follows the width it gets.
-  container-type: inline-size;
+  container: war-summary / inline-size;
   display: block;
 }
 
@@ -248,6 +248,34 @@
   }
 }
 
+// The badge above the name, not beside it: the name gets the whole width of its side and its words
+// do not break (e.g. "Crociata"). At the bottom of the row the sides share: the names stay level
+// also when only one side has a badge.
+@mixin badge-above-name {
+  .side__head,
+  .side--opponent .side__head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    align-self: end;
+    gap: $space-xs;
+  }
+
+  .side--opponent .side__head {
+    align-items: flex-end;
+  }
+}
+
+// Narrow scoreboard (the sides are not containers there). Named: inside a side, which is a container
+// on wider scoreboards, an unnamed query would ask the side.
+@container war-summary (max-width: 34rem) {
+  @include badge-above-name;
+}
+
+// Wide scoreboard in little room (tablets): each side is its own container.
+@container (max-width: 16rem) {
+  @include badge-above-name;
+}
+
 // ---------------------------------------------------------------------------
 // Scenic scoreboard (inside a scenic page header): banners over the scene
 // ---------------------------------------------------------------------------
@@ -387,10 +415,6 @@
 
     .side__name {
       font-size: max(var(--cn-fs-md), min(var(--cn-fs-2xl), 4.6cqi));
-    }
-
-    .side__head {
-      gap: $space-s;
     }
 
     .side__badge {

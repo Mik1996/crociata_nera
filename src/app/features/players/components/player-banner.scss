@@ -93,8 +93,10 @@
 
 .banner__name {
   margin: 0;
-  font-family: var(--cn-font-display);
+  // The heading font of the theme (Cinzel in Ferro, the game font in Acciaio), like the other titles.
+  font-family: var(--cn-font-heading);
   font-weight: 700;
+  letter-spacing: var(--cn-heading-tracking);
   // Full size when there is room, smaller for long names in narrow banners; below the minimum
   // the name wraps as a last resort.
   font-size: max(var(--cn-fs-lg), min(var(--cn-fs-2xl), 8cqi));

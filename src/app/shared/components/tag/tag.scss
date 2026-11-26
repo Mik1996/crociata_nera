@@ -15,8 +15,10 @@
 
 :host(.tag--s) {
   padding: 0.05rem $space-s;
-  font-family: var(--cn-font-display);
+  // The body font like the other sizes: one look for every tag.
+  font-family: var(--cn-font-body);
   font-size: var(--cn-fs-2xs);
+  font-weight: 700;
   letter-spacing: 0.03em;
 }
 

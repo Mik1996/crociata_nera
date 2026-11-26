@@ -210,10 +210,17 @@ export class BasesPage {
     return this.service.imageUrl(base, variant);
   }
 
+  /**
+   * Value of the "All" chip: the chip list marks no option whose value is `null`, so "All" would
+   * never show as chosen.
+   */
+  protected readonly allTownHalls = 0;
+
   protected selectTownHall(level: number | null | undefined): void {
     void this.router
       .navigate([], {
-        queryParams: { th: level ?? null },
+        // `allTownHalls` (0) and no value both mean every town hall.
+        queryParams: { th: level || null },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       })

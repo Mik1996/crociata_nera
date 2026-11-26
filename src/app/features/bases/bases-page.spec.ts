@@ -258,6 +258,12 @@ describe('BasesPage', () => {
       const { fixture, el } = await render(['USER'], page([base('a', 18), base('b', 17)], 'c1'));
       const chips = el.querySelectorAll('mat-chip-option');
       expect([...chips].map((c) => c.textContent!.trim())).toEqual(['Tutte', 'TH 18', 'TH 17']);
+      // No filter: "All" shows as chosen.
+      expect([...chips].map((c) => c.classList.contains('mat-mdc-chip-selected'))).toEqual([
+        true,
+        false,
+        false,
+      ]);
 
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
       chips[2].querySelector<HTMLElement>('[role="option"]')!.click();
@@ -274,6 +280,16 @@ describe('BasesPage', () => {
       expect(el.querySelectorAll('.base')).toHaveLength(1);
       // One level only: no town hall headings.
       expect(el.querySelector('.group__title')).toBeNull();
+
+      // "All" drops the filter from the address.
+      el.querySelectorAll('mat-chip-option')[0]
+        .querySelector<HTMLElement>('[role="option"]')!
+        .click();
+      await fixture.whenStable();
+      expect(navigate).toHaveBeenLastCalledWith(
+        [],
+        expect.objectContaining({ queryParams: { th: null } }),
+      );
 
       // Back to every town hall: the pages already read are shown again, without asking for them.
       fixture.componentRef.setInput('th', undefined);
