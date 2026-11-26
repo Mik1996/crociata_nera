@@ -137,6 +137,11 @@ export const ACCESS_SPEC: Record<string, Rule> = {
     access: 'chief',
     probe: { path: '/cwl/selection/2000-01/reopen', status: 404 },
   },
+  // Invalid body: refused before the size of the line-up changes.
+  'PUT /cwl/selection/{season}/lineup-size': {
+    access: 'chief',
+    probe: { path: '/cwl/selection/2000-01/lineup-size', body: INVALID_BODY, status: 400 },
+  },
   'PUT /cwl/selection/exclusions/{tag}': {
     access: 'chief',
     probe: { path: `/cwl/selection/exclusions/${NO_TAG}`, body: INVALID_BODY, status: 400 },
