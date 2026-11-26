@@ -495,7 +495,8 @@
     "ANNOUNCEMENT_DISCARDED": "Anuncio descartado.",
     "ANNOUNCEMENT_SETTINGS_UPDATED": "Ajustes de los borradores guardados.",
     "CWL_SELECTION_CLOSED": "Selección cerrada: el borrador del anuncio está listo.",
-    "CWL_SELECTION_REOPENED": "Selección reabierta."
+    "CWL_SELECTION_REOPENED": "Selección reabierta.",
+    "CWL_LINEUP_SIZE_CHANGED": "Alineación configurada: {{starters}} titulares y {{reserves}} reservas."
   },
   "ERROR": {
     "UNAUTHORIZED": "Debes iniciar sesión para continuar.",
@@ -585,7 +586,9 @@
     "CWL_SELECTION_NOT_FOUND": "No se encontró la selección de esta temporada.",
     "CWL_SELECTION_NOT_OPEN": "La selección de esta temporada ya está cerrada.",
     "CWL_SELECTION_NOT_CLOSED": "La selección de esta temporada ya está abierta.",
-    "CWL_SELECTION_CANNOT_REOPEN": "Ya no se puede reabrir: la liga ya empezó o se cerró una temporada posterior."
+    "CWL_SELECTION_CANNOT_REOPEN": "Ya no se puede reabrir: la liga ya empezó o se cerró una temporada posterior.",
+    "CWL_LINEUP_NOT_VALID": "La alineación no es válida: revisa titulares y reservas (como máximo 15 y 3, solo jugadores elegibles) e inténtalo de nuevo.",
+    "CWL_LINEUP_SIZE_NOT_VALID": "La alineación solo puede tener 15 o 30 titulares."
   },
   "welcome": {
     "clanLevel": "Nivel {{n}}",
@@ -1202,7 +1205,7 @@
     "loading": "Cargando…"
   },
   "cwlSelection": {
-    "subtitle": "Clasificación de los jugadores de los tres clanes de la Cruzada para elegir los 15 que alinear en la Liga y los 3 reservas.",
+    "subtitle": "Clasificación de los jugadores de los tres clanes de la Cruzada para elegir los {{starters}} que alinear en la Liga y las {{reserves}} reservas.",
     "empty": "Aún no hay jugadores del clan guardados: la clasificación aparecerá tras la próxima sincronización.",
     "summary": "Resumen",
     "legend": {
@@ -1223,7 +1226,7 @@
       "eligibility": "Elegibles: los jugadores de Crociata Nera, Crociata Rossa y Crociata d'Oro con el ayuntamiento más alto de los tres clanes y los de un nivel por debajo, no excluidos. Los demás quedan al final de la clasificación.",
       "cwl": "Última CWL, jugada en Crociata Nera, Rossa o d'Oro (hasta 25 puntos): encomios hasta 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) y estrellas por ataque y destrucción hasta 13; con menos de 3 ataques el rendimiento se reduce en proporción.",
       "war": "Guerras normales de los últimos 90 días, en todos los clanes de la Cruzada (hasta 40 puntos): estrellas por ataque y destrucción (75%) y ataques usados (25%); con menos de 8 ataques la puntuación se reduce en proporción.",
-      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles son los titulares (azul), los 3 siguientes son las reservas (verde).",
+      "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros {{starters}} elegibles son los titulares (azul), las {{reserves}} siguientes son las reservas (verde).",
       "heroes": "Héroes (hasta 20 puntos): niveles de los héroes (dos tercios) y del equipamiento que llevan (un tercio) respecto a los niveles máximos del juego; un héroe aún no desbloqueado cuenta cero. El perfil de cada jugador se vuelve a leer cada 6 horas aproximadamente.",
       "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto de los tres clanes.",
       "league": "Liga (hasta 5 puntos): 1 punto en Liga Electro 31, 2 en Electro 32, 3 en Electro 33, 4 en Leyenda III, 5 en Leyenda II y I; ningún punto en las ligas más bajas.",
@@ -1298,7 +1301,8 @@
       "lineupValue": "{{starters}} titulares + {{reserves}} reservas",
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} ataques en {{wars}} guerras",
-      "war": "Media de guerras"
+      "war": "Media de guerras",
+      "subtitleNoReserves": "Los {{starters}} jugadores para alinear en la Liga, de la clasificación de los tres clanes de la Cruzada."
     },
     "season": "Temporada",
     "state": {
@@ -1315,12 +1319,13 @@
       "closedAuto": "Cerrada automáticamente al empezar la liga, el {{date}}.",
       "closedNote": "Esta es la clasificación tal como estaba al cerrarla: ya no cambia.",
       "close": "Cerrar selección",
-      "reopen": "Reabrir"
+      "reopen": "Reabrir",
+      "movedByHand": "Alineación retocada a mano al cerrar · jugadores movidos: {{n}}."
     },
     "decision": {
       "close": {
         "title": "¿Cerrar la selección de {{season}}?",
-        "intro": "La clasificación actual pasa a ser la alineación de la CWL de {{season}}: titulares y reservas ya no cambiarán. Se preparará el borrador del anuncio (para publicar desde la página Publicaciones) y se abrirá la selección del mes siguiente.",
+        "intro": "La alineación de la CWL de {{season}} será la de abajo: titulares y reservas ya no cambiarán. Se preparará el borrador del anuncio (para publicar desde la página Publicaciones) y se abrirá la selección del mes siguiente.",
         "confirm": "Cerrar selección"
       },
       "reopen": {
@@ -1330,7 +1335,23 @@
       }
     },
     "untilRevoked": "Hasta revocación",
-    "thisSeason": "Solo esta temporada"
+    "thisSeason": "Solo esta temporada",
+    "lineupEditor": {
+      "title": "Alineación",
+      "hint": "Es la clasificación actual: puedes mover jugadores entre titulares, reservas y fuera antes de cerrar. Los titulares deben ser {{starters}}, como se eligió en la alineación; las reservas las que quieras (también ninguna). Los cambios valen solo para este cierre: si reabres la selección, vuelve la clasificación.",
+      "reset": "Restaurar clasificación",
+      "was": "era: {{place}}",
+      "starters": "Titulares: {{n}}",
+      "reserves": "Reservas: {{n}}",
+      "wrongStarters": "Has seleccionado {{n}} titulares: deben ser {{required}}."
+    },
+    "movedByHand": "Movido a mano al cerrar (en la clasificación: {{place}}).",
+    "byHand": "A mano",
+    "size": {
+      "label": "Alineación",
+      "option": "{{starters}} + {{reserves}}",
+      "tooltip": "{{starters}} titulares y {{reserves}} reservas"
+    }
   },
   "publishing": {
     "title": "Publicaciones",

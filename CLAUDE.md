@@ -177,6 +177,9 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
   must come before the `@container` block (same specificity, later wins). Text that must fit its box
   uses `font-size: min(<normal size>, Ncqi)`; for names add a `max(<minimum>, ...)` so they wrap
   below it.
+- A group of actions beside texts that goes under them on phones takes a line of its own, centred:
+  `@use 'layout';` + `@include layout.actions-centred-below(<width>)` (`src/styles/_layout.scss`, needs a query
+  container; used by the page header and the CWL selection banner).
 - Material tooltips set `touch-action: none`; a global rule in `styles.scss` restores scrolling.
 - Signed-in user: `AuthService` (`accessToken` in memory, refresh cookie httpOnly). "Your" rows in
   tables: `isMine = inject(AuthService).isMyPlayer` and `[class.cn-row-me]="isMine(row.tag)"`.
@@ -271,7 +274,10 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
 - CWL line-up selections (`backend/src/modules/cwl/cwl-selection.*`): one per season (`CwlSelections`), the open
   one live (first month from now whose CWL has not started), closed by an administrator or the leader of Crociata Nera (`chiefAccess`) or by the scheduler when
   the main clan's group of its season is saved: the ranking is frozen, a `lineup` announcement draft is prepared
-  and the next season opens; reopened while its CWL has not started. Exclusions are for one season or
+  and the next season opens; reopened while its CWL has not started. Its line-up is 15 starters + 3 reserves or 30 + 5 (`lineupSize`,
+  `PUT /cwl/selection/{season}/lineup-size`, open selection only, kept by the next seasons). Whoever closes it may move eligible players
+  between starters, reserves and bench (`applyLineup`: as many starters as `lineupSize`, any number of reserves; `automaticStatus`
+  keeps the ranking's place); reopening drops those changes with the frozen ranking. Exclusions are for one season or
   `untilRevoked` (`season: null`). Every member reads the page; close, reopen and exclusions are for
   administrators and the leader of Crociata Nera (`chiefAccess`), the PDF for leaders and co-leaders:
   `GET /cwl/selection` returns `permissions: { manage, export }` for the page.

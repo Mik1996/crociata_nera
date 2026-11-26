@@ -8,6 +8,8 @@ import { noCache } from '../http/http-cache';
 import {
   BaseResult,
   CwlExclusion,
+  CwlLineup,
+  CwlLineupSize,
   CwlSelection,
   CwlSelectionPlayer,
   CwlSelectionView,
@@ -39,10 +41,19 @@ export abstract class CwlSelectionService {
   ): Observable<CwlExclusion>;
   /** Takes an excluded player back into the line-up (`permissions.manage`). */
   abstract readmit(tag: string): Observable<void>;
-  /** Closes the open selection: its ranking is frozen, the next season opens (`permissions.manage`). */
-  abstract close(season: string): Observable<CwlSelection>;
+  /**
+   * Closes the open selection: its ranking is frozen, the next season opens (`permissions.manage`).
+   * `lineup`: starters and reserves picked by hand (the other eligible players go to the bench);
+   * `null`: the ranking's. Reopening the selection drops them.
+   */
+  abstract close(season: string, lineup?: CwlLineup | null): Observable<CwlSelection>;
   /** Opens a closed selection again, while its CWL has not started (`permissions.manage`). */
   abstract reopen(season: string): Observable<CwlSelection>;
+  /**
+   * Picks the size of the line-up of the open selection: 15 starters and 3 reserves, or 30 and 5
+   * (`permissions.manage`); the next seasons start with the same size.
+   */
+  abstract setLineupSize(season: string, starters: CwlLineupSize): Observable<CwlSelection>;
 }
 
 /** Most characters of the reason of an exclusion (same limit as the backend). */
@@ -79,15 +90,23 @@ export class HttpCwlSelectionService extends CwlSelectionService {
       .pipe(map((response) => response.result!));
   }
 
-  close(season: string): Observable<CwlSelection> {
+  close(season: string, lineup: CwlLineup | null = null): Observable<CwlSelection> {
     return this.http
-      .post<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/close`, {})
+      .post<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/close`, { lineup })
       .pipe(map((response) => response.result!));
   }
 
   reopen(season: string): Observable<CwlSelection> {
     return this.http
       .post<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/reopen`, {})
+      .pipe(map((response) => response.result!));
+  }
+
+  setLineupSize(season: string, starters: CwlLineupSize): Observable<CwlSelection> {
+    return this.http
+      .put<BaseResult<CwlSelection>>(`${this.url}/${encodeURIComponent(season)}/lineup-size`, {
+        starters,
+      })
       .pipe(map((response) => response.result!));
   }
 

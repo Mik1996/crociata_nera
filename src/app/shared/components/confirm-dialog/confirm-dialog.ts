@@ -4,6 +4,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BackendMessage } from '../../../core/backend/backend-api.types';
 import { GameButton } from '../../directives/button';
+import { Icon } from '../icon/icon';
 import { FormErrors } from '../form-errors/form-errors';
 
 /**
@@ -21,7 +22,7 @@ import { FormErrors } from '../form-errors/form-errors';
  */
 @Component({
   selector: 'crn-confirm-dialog',
-  imports: [FormErrors, GameButton, MatButtonModule, MatDialogModule, TranslatePipe],
+  imports: [FormErrors, GameButton, Icon, MatButtonModule, MatDialogModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.scss',
@@ -33,6 +34,8 @@ export class ConfirmDialog {
   readonly busy = input(false);
   /** The action cannot be confirmed yet (e.g. a required field is empty). */
   readonly disabled = input(false);
+  /** Why the action cannot be confirmed yet: shown in red next to the buttons while `disabled`. */
+  readonly disabledReason = input<string | null>(null);
   readonly errors = input<readonly BackendMessage[]>([]);
   /** Destructive action (delete): red confirm button. */
   readonly danger = input(false, { transform: booleanAttribute });

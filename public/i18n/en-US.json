@@ -495,7 +495,8 @@
     "ANNOUNCEMENT_DISCARDED": "Announcement discarded.",
     "ANNOUNCEMENT_SETTINGS_UPDATED": "Draft settings saved.",
     "CWL_SELECTION_CLOSED": "Selection closed: the announcement draft is ready.",
-    "CWL_SELECTION_REOPENED": "Selection reopened."
+    "CWL_SELECTION_REOPENED": "Selection reopened.",
+    "CWL_LINEUP_SIZE_CHANGED": "Line-up set: {{starters}} starters and {{reserves}} reserves."
   },
   "ERROR": {
     "UNAUTHORIZED": "You need to sign in to continue.",
@@ -585,7 +586,9 @@
     "CWL_SELECTION_NOT_FOUND": "No selection found for this season.",
     "CWL_SELECTION_NOT_OPEN": "The selection of this season is already closed.",
     "CWL_SELECTION_NOT_CLOSED": "The selection of this season is already open.",
-    "CWL_SELECTION_CANNOT_REOPEN": "It can no longer be reopened: the league has started or a later season was closed."
+    "CWL_SELECTION_CANNOT_REOPEN": "It can no longer be reopened: the league has started or a later season was closed.",
+    "CWL_LINEUP_NOT_VALID": "The line-up is not valid: check starters and reserves (at most 15 and 3, eligible players only) and try again.",
+    "CWL_LINEUP_SIZE_NOT_VALID": "The line-up can only have 15 or 30 starters."
   },
   "welcome": {
     "clanLevel": "Level {{n}}",
@@ -1202,7 +1205,7 @@
     "loading": "Loading…"
   },
   "cwlSelection": {
-    "subtitle": "Ranking of the players of the three clans of the Crusade to pick the 15 to field in the League and the 3 reserves.",
+    "subtitle": "Ranking of the players of the three clans of the Crusade to pick the {{starters}} to field in the League and the {{reserves}} reserves.",
     "empty": "No clan player saved yet: the ranking will appear after the next synchronisation.",
     "summary": "Summary",
     "legend": {
@@ -1223,7 +1226,7 @@
       "eligibility": "Eligible: the players of Crociata Nera, Crociata Rossa and Crociata d'Oro with the highest town hall of the three clans and those one level below, not excluded. The others stay at the bottom of the ranking.",
       "cwl": "Last CWL, fought in Crociata Nera, Rossa or d'Oro (up to 25 points): commendations up to 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) and stars per attack and destruction up to 13; with fewer than 3 attacks the performance is reduced in proportion.",
       "war": "Regular wars of the last 90 days, in every clan of the Crusade (up to 40 points): stars per attack and destruction (75%) and attacks used (25%); with fewer than 8 attacks the score is reduced in proportion.",
-      "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first 15 eligible players are the starters (blue), the next 3 are the reserves (green).",
+      "order": "On equal scores the higher town hall goes first, then whoever is in a higher league, then the higher role (leader, co-leader, elder, member). The first {{starters}} eligible players are the starters (blue), the next {{reserves}} are the reserves (green).",
       "heroes": "Heroes (up to 20 points): hero levels (two thirds) and equipment worn (one third) against the highest levels of the game; a hero not unlocked yet counts zero. Each player's profile is read again about every 6 hours.",
       "townHall": "Town hall: 10 points to those with the highest town hall of the three clans.",
       "league": "League (up to 5 points): 1 point in Electro League 31, 2 in Electro 32, 3 in Electro 33, 4 in Legend III, 5 in Legend II and I; no points in the lower leagues.",
@@ -1298,7 +1301,8 @@
       "lineupValue": "{{starters}} starters + {{reserves}} reserves",
       "cwl": "CWL average",
       "cwlAttacks": "{{attacks}} attacks in {{wars}} wars",
-      "war": "War average"
+      "war": "War average",
+      "subtitleNoReserves": "The {{starters}} players to field in the League, from the ranking of the three clans of the Crusade."
     },
     "season": "Season",
     "state": {
@@ -1315,12 +1319,13 @@
       "closedAuto": "Closed automatically when the league started, on {{date}}.",
       "closedNote": "This is the ranking as it was when closed: it no longer changes.",
       "close": "Close selection",
-      "reopen": "Reopen"
+      "reopen": "Reopen",
+      "movedByHand": "Line-up adjusted by hand at the closing · players moved: {{n}}."
     },
     "decision": {
       "close": {
         "title": "Close the {{season}} selection?",
-        "intro": "The ranking as it is now becomes the line-up of the {{season}} CWL: starters and reserves will no longer change. A draft of the announcement will be prepared (to publish from the Publishing page) and the selection of the next month will open.",
+        "intro": "The line-up of the {{season}} CWL will be the one below: starters and reserves will no longer change. A draft of the announcement will be prepared (to publish from the Publishing page) and the selection of the next month will open.",
         "confirm": "Close selection"
       },
       "reopen": {
@@ -1330,7 +1335,23 @@
       }
     },
     "untilRevoked": "Until revoked",
-    "thisSeason": "This season only"
+    "thisSeason": "This season only",
+    "lineupEditor": {
+      "title": "Line-up",
+      "hint": "This is the ranking as it is now: you can move players between starters, reserves and out before closing. Starters must be {{starters}}, as picked for the line-up; reserves as many as you like (none too). The changes hold for this closing only: if you reopen the selection, the ranking comes back.",
+      "reset": "Restore ranking",
+      "was": "was: {{place}}",
+      "starters": "Starters: {{n}}",
+      "reserves": "Reserves: {{n}}",
+      "wrongStarters": "You selected {{n}} starters: they must be {{required}}."
+    },
+    "movedByHand": "Moved by hand at the closing (in the ranking: {{place}}).",
+    "byHand": "By hand",
+    "size": {
+      "label": "Line-up",
+      "option": "{{starters}} + {{reserves}}",
+      "tooltip": "{{starters}} starters and {{reserves}} reserves"
+    }
   },
   "publishing": {
     "title": "Publications",

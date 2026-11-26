@@ -7,6 +7,12 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
+    @if (disabled() && disabledReason()) {
+      <p class="disabled-reason" role="alert">
+        <crn-icon name="error" />
+        <span>{{ disabledReason() }}</span>
+      </p>
+    }
     <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
     <button
       mat-flat-button

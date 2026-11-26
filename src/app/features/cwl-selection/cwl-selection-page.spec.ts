@@ -14,6 +14,7 @@ import { PdfCell, TablePdf } from '../../shared/pdf/table-pdf';
 import { TablePdfExporter } from '../../shared/pdf/table-pdf-exporter';
 import { provideCocApiTest } from '../../testing/fixtures';
 import { CwlSelectionPage } from './cwl-selection-page';
+import { cwlLineupPdf } from './cwl-lineup-pdf';
 
 function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectionPlayer {
   return {
@@ -76,6 +77,7 @@ function player(rank: number, status: CwlSelectionPlayer['status']): CwlSelectio
             excludedAt: '2026-11-13T10:00:00.000Z',
           }
         : null,
+    automaticStatus: null,
   };
 }
 
@@ -139,6 +141,7 @@ describe('CwlSelectionPage', () => {
       readmit: vi.fn(() => of(undefined)),
       close: vi.fn(() => of(CLOSED)),
       reopen: vi.fn(() => of(SELECTION)),
+      setLineupSize: vi.fn(() => of(SELECTION)),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -251,7 +254,9 @@ describe('CwlSelectionPage', () => {
   it('shows a closed selection frozen, without exclusions, and lets administrators reopen it', async () => {
     const { el, service, fixture } = await render();
     // The selector lists the seasons.
-    el.querySelector<HTMLElement>('crn-select .mat-mdc-select-trigger, crn-select mat-select')!.click();
+    el.querySelector<HTMLElement>(
+      'crn-select .mat-mdc-select-trigger, crn-select mat-select',
+    )!.click();
     await fixture.whenStable();
     const options = [...document.querySelectorAll<HTMLElement>('mat-option')];
     expect(options.map((o) => o.textContent!.trim())).toEqual([
@@ -267,7 +272,51 @@ describe('CwlSelectionPage', () => {
     expect(season.textContent).toContain('Chiuse il');
     expect(season.textContent).toContain('da boss');
     expect(season.querySelector('.season__action')!.textContent).toContain('Riapri');
+    // The size of a closed line-up no longer changes.
+    expect(el.querySelector('.size-switch')).toBeNull();
     expect(el.querySelector('td.actions')).toBeNull();
+  });
+
+  it('marks the players a closed selection moved by hand', async () => {
+    const moved = { ...player(20, 'starter'), automaticStatus: 'bench' as const };
+    const { el, service, fixture } = await render();
+    service.get.mockReturnValue(of({ ...CLOSED, players: [moved] }));
+    service.getPlayersTable.mockReturnValue(of({ ...PLAYERS_PAGE, items: [moved], total: 1 }));
+    el.querySelector<HTMLElement>(
+      'crn-select .mat-mdc-select-trigger, crn-select mat-select',
+    )!.click();
+    await fixture.whenStable();
+    document.querySelectorAll<HTMLElement>('mat-option')[1].click();
+    await fixture.whenStable();
+    expect(el.querySelector('.season__moved')!.textContent).toContain('giocatori spostati: 1');
+    expect(el.querySelector('td .moved')!.textContent).toContain('A mano');
+  });
+
+  it("opens the player's profile from the name, not from the row", async () => {
+    const { el } = await render();
+    const row = el.querySelectorAll<HTMLTableRowElement>('tr.mat-mdc-row')[1];
+    expect(row.classList).not.toContain('cn-row-link');
+    const link = row.querySelector<HTMLAnchorElement>('crn-player-cell a')!;
+    expect(link.getAttribute('href')).toBe('/players/%23P2');
+  });
+
+  it('lets administrators switch the line-up between 15 + 3 and 30 + 5', async () => {
+    const { el, service, fixture } = await render();
+    expect(el.textContent).toContain('scegliere i 15 da schierare in Lega e le 3 riserve');
+    const sizes = [...el.querySelectorAll<HTMLButtonElement>('.size-switch .size')];
+    expect(sizes.map((b) => b.textContent!.trim())).toEqual(['15 + 3', '30 + 5']);
+    expect(sizes[0].getAttribute('aria-checked')).toBe('true');
+    // The size already chosen: nothing to do.
+    sizes[0].click();
+    expect(service.setLineupSize).not.toHaveBeenCalled();
+
+    service.get.mockReturnValue(of({ ...SELECTION, starters: 30, reserves: 5 }));
+    sizes[1].click();
+    await fixture.whenStable();
+    expect(service.setLineupSize).toHaveBeenCalledWith('2026-12', 30);
+    expect(el.querySelector('.size--on')!.textContent).toContain('30 + 5');
+    expect(el.textContent).toContain('scegliere i 30 da schierare in Lega e le 5 riserve');
+    expect(el.querySelector('.legend')!.textContent).toContain('/30');
   });
 
   /** The page as a member who may do no more than `permissions` (read from the backend). */
@@ -297,6 +346,7 @@ describe('CwlSelectionPage', () => {
     expect(el.querySelector('tr.mat-mdc-row')).not.toBeNull();
     expect(el.querySelector('td.actions')).toBeNull();
     expect(el.querySelector('.season__action')).toBeNull();
+    expect(el.querySelector('.size-switch')).toBeNull();
     expect(el.querySelector('crn-pdf-button')).toBeNull();
   });
 
@@ -331,8 +381,8 @@ describe('CwlSelectionPage', () => {
         status: { code: 200, name: 'HTTP_STATUS.OK' },
       });
     await fixture.whenStable();
-    const mine = [...el.querySelectorAll('tr.cn-row-me')].map(
-      (row) => row.querySelector('td.rank')!.textContent!.trim(),
+    const mine = [...el.querySelectorAll('tr.cn-row-me')].map((row) =>
+      row.querySelector('td.rank')!.textContent!.trim(),
     );
     expect(mine).toEqual(['3', '20']);
   });
@@ -389,5 +439,27 @@ describe('CwlSelectionPage', () => {
     expect((score.cell(starters.rows[0]) as PdfCell).text).toBe('98,0');
     expect(cwl.cell(starters.rows[1])).toEqual({ text: 'Non schierato', emphasis: 'muted' });
     expect(pdf.facts!.map((f) => f.value)).toContain('Ottobre 2026');
+  });
+});
+
+describe('cwlLineupPdf', () => {
+  it('leaves out the page of the reserves of a line-up picked by hand without any', () => {
+    const players = SELECTION.players.map((p) =>
+      p.status === 'reserve'
+        ? { ...p, status: 'bench' as const, automaticStatus: 'reserve' as const }
+        : p,
+    );
+    const pdf = cwlLineupPdf(
+      { ...CLOSED, players, reserves: 0 },
+      {
+        t: (key) => key,
+        locale: 'it-IT',
+        clanName: (tag) => tag,
+        roleKey: () => null,
+        cwlSeason: null,
+      },
+    );
+    expect(pdf.subtitle).toBe('cwlSelection.pdf.subtitleNoReserves');
+    expect(pdf.groups.map((g) => g.accent)).toEqual(['starter']);
   });
 });

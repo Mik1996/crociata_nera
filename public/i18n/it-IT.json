@@ -495,7 +495,8 @@
     "ANNOUNCEMENT_DISCARDED": "Annuncio scartato.",
     "ANNOUNCEMENT_SETTINGS_UPDATED": "Impostazioni delle bozze salvate.",
     "CWL_SELECTION_CLOSED": "Selezioni chiuse: la bozza dell'annuncio è pronta.",
-    "CWL_SELECTION_REOPENED": "Selezioni riaperte."
+    "CWL_SELECTION_REOPENED": "Selezioni riaperte.",
+    "CWL_LINEUP_SIZE_CHANGED": "Formazione impostata: {{starters}} titolari e {{reserves}} riserve."
   },
   "ERROR": {
     "UNAUTHORIZED": "Devi accedere per continuare.",
@@ -585,7 +586,9 @@
     "CWL_SELECTION_NOT_FOUND": "Selezioni di questa stagione non trovate.",
     "CWL_SELECTION_NOT_OPEN": "Le selezioni di questa stagione sono già chiuse.",
     "CWL_SELECTION_NOT_CLOSED": "Le selezioni di questa stagione sono già aperte.",
-    "CWL_SELECTION_CANNOT_REOPEN": "Non si possono più riaprire: la lega è già iniziata o è stata chiusa una stagione successiva."
+    "CWL_SELECTION_CANNOT_REOPEN": "Non si possono più riaprire: la lega è già iniziata o è stata chiusa una stagione successiva.",
+    "CWL_LINEUP_NOT_VALID": "La formazione non è valida: controlla titolari e riserve (al massimo 15 e 3, solo giocatori idonei) e riprova.",
+    "CWL_LINEUP_SIZE_NOT_VALID": "La formazione può avere solo 15 o 30 titolari."
   },
   "welcome": {
     "clanLevel": "Livello {{n}}",
@@ -1202,7 +1205,7 @@
     "loading": "Caricamento…"
   },
   "cwlSelection": {
-    "subtitle": "Classifica dei giocatori dei tre clan della Crociata per scegliere i 15 da schierare in Lega e le 3 riserve.",
+    "subtitle": "Classifica dei giocatori dei tre clan della Crociata per scegliere i {{starters}} da schierare in Lega e le {{reserves}} riserve.",
     "empty": "Nessun giocatore del clan salvato: la classifica apparirà alla prossima sincronizzazione.",
     "summary": "Riepilogo",
     "legend": {
@@ -1223,7 +1226,7 @@
       "eligibility": "Idonei: i giocatori di Crociata Nera, Crociata Rossa e Crociata d'Oro con il municipio più alto tra i tre clan e quelli di un livello sotto, non esclusi. Gli altri restano in fondo alla classifica.",
       "cwl": "Ultima CWL, giocata in Crociata Nera, Rossa o d'Oro (fino a 25 punti): encomi fino a 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) e stelle per attacco e distruzione fino a 13; con meno di 3 attacchi il rendimento si riduce in proporzione.",
       "war": "Guerre normali degli ultimi 90 giorni, in tutti i clan della Crociata (fino a 40 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
-      "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono i titolari (blu), i 3 successivi sono le riserve (verde).",
+      "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi {{starters}} idonei sono i titolari (blu), i {{reserves}} successivi sono le riserve (verde).",
       "heroes": "Eroi (fino a 20 punti): livelli degli eroi (due terzi) e dell'equipaggiamento indossato (un terzo) rispetto ai livelli massimi del gioco; un eroe non ancora sbloccato conta zero. Il profilo di ogni giocatore viene riletto ogni 6 ore circa.",
       "townHall": "Municipio: 10 punti a chi ha il municipio più alto tra i tre clan.",
       "league": "Lega (fino a 5 punti): 1 punto in Lega Elettro 31, 2 in Elettro 32, 3 in Elettro 33, 4 in Leggende III, 5 in Leggende II e I; nessun punto nelle leghe più basse.",
@@ -1298,7 +1301,8 @@
       "lineupValue": "{{starters}} titolari + {{reserves}} riserve",
       "cwl": "Media CWL",
       "cwlAttacks": "{{attacks}} attacchi in {{wars}} guerre",
-      "war": "Media guerre"
+      "war": "Media guerre",
+      "subtitleNoReserves": "I {{starters}} giocatori da schierare in Lega, dalla classifica dei tre clan della Crociata."
     },
     "season": "Stagione",
     "state": {
@@ -1315,12 +1319,13 @@
       "closedAuto": "Chiuse automaticamente all'inizio della lega, il {{date}}.",
       "closedNote": "Questa è la classifica com'era alla chiusura: non cambia più.",
       "close": "Chiudi selezioni",
-      "reopen": "Riapri"
+      "reopen": "Riapri",
+      "movedByHand": "Formazione ritoccata a mano alla chiusura · giocatori spostati: {{n}}."
     },
     "decision": {
       "close": {
         "title": "Chiudere le selezioni di {{season}}?",
-        "intro": "La classifica di adesso diventa la formazione della CWL di {{season}}: titolari e riserve non cambieranno più. Verrà preparata la bozza dell'annuncio (da pubblicare dalla pagina Pubblicazioni) e si apriranno le selezioni del mese successivo.",
+        "intro": "La formazione della CWL di {{season}} sarà quella qui sotto: titolari e riserve non cambieranno più. Verrà preparata la bozza dell'annuncio (da pubblicare dalla pagina Pubblicazioni) e si apriranno le selezioni del mese successivo.",
         "confirm": "Chiudi selezioni"
       },
       "reopen": {
@@ -1330,7 +1335,23 @@
       }
     },
     "untilRevoked": "Fino a revoca",
-    "thisSeason": "Solo per questa stagione"
+    "thisSeason": "Solo per questa stagione",
+    "lineupEditor": {
+      "title": "Formazione",
+      "hint": "È la classifica di adesso: puoi spostare i giocatori tra titolari, riserve e fuori prima di chiudere. I titolari devono essere {{starters}}, come scelto nella formazione; le riserve quante vuoi (anche nessuna). Le modifiche valgono solo per questa chiusura: se riapri le selezioni torna la classifica.",
+      "reset": "Ripristina classifica",
+      "was": "era: {{place}}",
+      "starters": "Titolari: {{n}}",
+      "reserves": "Riserve: {{n}}",
+      "wrongStarters": "Hai selezionato {{n}} titolari: devono essere {{required}}."
+    },
+    "movedByHand": "Spostato a mano alla chiusura (in classifica: {{place}}).",
+    "byHand": "A mano",
+    "size": {
+      "label": "Formazione",
+      "option": "{{starters}} + {{reserves}}",
+      "tooltip": "{{starters}} titolari e {{reserves}} riserve"
+    }
   },
   "publishing": {
     "title": "Pubblicazioni",

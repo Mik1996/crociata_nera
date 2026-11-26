@@ -52,7 +52,7 @@ export const SelectionPlayer = model(
     status: z
       .enum(['starter', 'reserve', 'bench', 'ineligible', 'excluded'])
       .describe(
-        '`starter` (best 15 eligible), `reserve` (next 3), `bench` (other eligible), `ineligible` (town hall too low) or `excluded` (by an administrator; keeps its place in the ranking, takes no slot).',
+        '`starter` (best 15 or 30 eligible, as picked for the selection), `reserve` (next 3 or 5), `bench` (other eligible), `ineligible` (town hall too low) or `excluded` (by an administrator; keeps its place in the ranking, takes no slot).',
       ),
     score: z.number().min(0).max(100).describe('Total score, 0–100: the parts of `breakdown` added up, never below 0.'),
     breakdown: z
@@ -104,6 +104,10 @@ export const SelectionPlayer = model(
       })
       .describe('Activity.'),
     exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator or the leader of Crociata Nera; `null` when not excluded.'),
+    automaticStatus: z
+      .enum(['starter', 'reserve', 'bench'])
+      .nullable()
+      .describe('Closed selections: the place the ranking gave, when whoever closed it moved the player by hand (`status` is the place chosen); `null` otherwise.'),
   }),
 );
 
@@ -122,8 +126,8 @@ export const CwlSelection = model(
       .array(z.strictObject({ season: month('Season, `YYYY-MM`.'), state: z.enum(['open', 'closed']).describe('State of its selection.') }))
       .describe('Every selection, most recent first.'),
     generatedAt: dateTime('When the ranking was computed (closed: when it was closed).'),
-    starters: z.number().int().describe('Players in the line-up (15).'),
-    reserves: z.number().int().describe('Reserves (3).'),
+    starters: z.number().int().describe('Players in the line-up: 15 or 30, as picked for the selection.'),
+    reserves: z.number().int().describe('Reserves: 3 with 15 starters, 5 with 30, or as many as picked by hand at the closing.'),
     maxTownHall: z.number().int().nullable().describe('Highest town hall of the clans of the Crusade; `null` without members.'),
     minEligibleTownHall: z.number().int().nullable().describe('Lowest eligible town hall; `null` without members.'),
     cwlSeason: month('Season, `YYYY-MM`.').nullable().describe('Last ended CWL season of the clans of the Crusade; `null` if none was saved.'),

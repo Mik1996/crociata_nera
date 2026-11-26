@@ -12,6 +12,7 @@ import { ConfirmDialog } from './confirm-dialog';
       confirmLabel="Elimina"
       [busy]="busy()"
       [disabled]="disabled()"
+      [disabledReason]="reason()"
       [errors]="errors()"
       danger
       (confirm)="confirms = confirms + 1"
@@ -24,6 +25,7 @@ import { ConfirmDialog } from './confirm-dialog';
 class Host {
   busy = signal(false);
   disabled = signal(false);
+  reason = signal<string | null>(null);
   errors = signal<BackendMessage[]>([]);
   confirms = 0;
 }
@@ -77,5 +79,18 @@ describe('ConfirmDialog', () => {
     fixture.componentInstance.errors.set([{ key: 'ERROR.INVALID_CREDENTIALS' }]);
     await fixture.whenStable();
     expect(el.querySelectorAll('[role="alert"]').length).toBe(1);
+  });
+
+  it('says in red why the action cannot be confirmed, only while it is disabled', async () => {
+    const { fixture, el, confirm } = await create();
+    fixture.componentInstance.reason.set('Hai selezionato 17 titolari');
+    await fixture.whenStable();
+    expect(el.querySelector('.disabled-reason')).toBeNull();
+    fixture.componentInstance.disabled.set(true);
+    await fixture.whenStable();
+    expect(confirm.disabled).toBe(true);
+    expect(el.querySelector('.disabled-reason')!.textContent).toContain(
+      'Hai selezionato 17 titolari',
+    );
   });
 });

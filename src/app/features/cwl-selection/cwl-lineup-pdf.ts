@@ -46,7 +46,8 @@ export function lineupFileName(selection: CwlSelection): string {
 }
 
 /**
- * The CWL line-up as a PDF: the 15 starters on page 1 and the 3 reserves on page 2 (numbered in
+ * The CWL line-up as a PDF: the starters (15, or 30 picked by hand) first and the reserves on a page
+ * of their own (none: no page) (numbered in
  * line-up order, with league and town hall pictures, clan, score, wars and heroes), the rules of
  * the ranking on page 3, each page with its own title. Excluded, bench and ineligible players are left out.
  */
@@ -93,10 +94,10 @@ export function cwlLineupPdf(
   return {
     fileName: lineupFileName(selection),
     title: ctx.t('cwlSelection.pdf.title'),
-    subtitle: ctx.t('cwlSelection.pdf.subtitle', {
-      starters: selection.starters,
-      reserves: selection.reserves,
-    }),
+    subtitle: ctx.t(
+      selection.reserves ? 'cwlSelection.pdf.subtitle' : 'cwlSelection.pdf.subtitleNoReserves',
+      { starters: selection.starters, reserves: selection.reserves },
+    ),
     facts,
     columns: [
       { header: '#', width: 18, align: 'right', cell: (p) => position.get(p.tag) ?? '' },
@@ -187,21 +188,31 @@ export function cwlLineupPdf(
         rows: starters,
         pageTitle: ctx.t('cwlSelection.pdf.startersTitle'),
       },
-      {
-        title: ctx.t('cwlSelection.legend.reserve', {
-          n: reserves.length,
-          max: selection.reserves,
-        }),
-        accent: 'reserve',
-        rows: reserves,
-        pageBreakBefore: true,
-        pageTitle: ctx.t('cwlSelection.pdf.reservesTitle'),
-      },
+      // A line-up picked by hand may have no reserves: no page for them.
+      ...(reserves.length
+        ? [
+            {
+              title: ctx.t('cwlSelection.legend.reserve', {
+                n: reserves.length,
+                max: selection.reserves,
+              }),
+              accent: 'reserve' as const,
+              rows: reserves,
+              pageBreakBefore: true,
+              pageTitle: ctx.t('cwlSelection.pdf.reservesTitle'),
+            },
+          ]
+        : []),
     ],
     emptyText: ctx.t('cwlSelection.empty'),
     notes: {
       title: ctx.t('cwlSelection.rules.title'),
-      items: RULES.map((rule) => ctx.t(`cwlSelection.rules.${rule}`)),
+      items: RULES.map((rule) =>
+        ctx.t(`cwlSelection.rules.${rule}`, {
+          starters: selection.starters,
+          reserves: selection.reserves,
+        }),
+      ),
       pageBreakBefore: true,
       pageTitle: ctx.t('cwlSelection.pdf.rankingTitle'),
     },
