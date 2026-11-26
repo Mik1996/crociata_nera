@@ -458,7 +458,7 @@ describe('GET /raids/seasons/{startTime}/members', () => {
 });
 
 describe('GET /cwl/selection/players', () => {
-  it('pages the ranking of the line-up for the leaders', async () => {
+  it('pages the ranking of the line-up for every member of the clans', async () => {
     const user = await UserModel.create({
       email: 'boss@x.io',
       username: 'boss',
@@ -485,6 +485,8 @@ describe('GET /cwl/selection/players', () => {
     expect(ineligible.body.result.items.map((p: { tag: string }) => p.tag)).toEqual(['#P2']);
 
     const member = await memberToken('member');
+    expect((await call(selectionPlayers, request('/cwl/selection/players', member))).status).toBe(200);
+    await UserModel.updateOne({ username: 'member' }, { $set: { playerTags: ['#ELSEWHERE'] } });
     expect((await call(selectionPlayers, request('/cwl/selection/players', member))).status).toBe(403);
     expect(await WarModel.countDocuments()).toBe(0);
   });

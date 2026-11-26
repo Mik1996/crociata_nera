@@ -4,7 +4,7 @@ import { FAKES_URL } from '../stack/config.mjs';
 export * from '../stack/config.mjs';
 
 /** Pools of game accounts handed out by the stack (see e2e/stack/fakes.mjs). */
-export type AccountPool = 'member' | 'leader' | 'sister' | 'outside' | 'admin';
+export type AccountPool = 'member' | 'leader' | 'chief' | 'sister' | 'outside' | 'admin';
 
 export interface Mail {
   to: string[];

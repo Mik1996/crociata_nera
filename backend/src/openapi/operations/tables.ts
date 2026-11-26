@@ -148,7 +148,7 @@ export const TABLE_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Ranking of the CWL line-up',
     description: `The players of \`GET /cwl/selection\` as a table (the open selection, or a closed one with \`season\`). Best first by default. ${TABLE_NOTE}`,
-    access: 'leader',
+    access: 'clan',
     rateLimit: ApiName.TABLES_READ,
     query: tableQueryPart(CWL_SELECTION_TABLE, 'Players', {
       schema: CWL_SELECTION_TABLE.schema.extend(selectionQuerySchema.shape),

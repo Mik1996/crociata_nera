@@ -8,10 +8,9 @@ import { CWL_SELECTION_TABLE, listSelectionPlayers } from '@/modules/cwl/cwl-sel
 
 /**
  * `GET /api/v1/cwl/selection/players?season=YYYY-MM`: the ranking of a selection (the open one by
- * default), filtered, sorted and paged. Administrators, leaders and co-leaders of the clans of the
- * Crusade only.
+ * default), filtered, sorted and paged. Members of the clans of the Crusade.
  */
-export const GET = apiHandler({ apiName: ApiName.TABLES_READ, leaderAccess: true }, async ({ request }) => {
+export const GET = apiHandler({ apiName: ApiName.TABLES_READ, clanAccess: true }, async ({ request }) => {
   const { season } = parseQuery(request, selectionQuerySchema);
   return { result: await listSelectionPlayers(parseTableQuery(request, CWL_SELECTION_TABLE), season) };
 });

@@ -10,6 +10,7 @@ import {
     CwlSelection,
     CwlSelectionPlayer,
     CwlSelectionStatus,
+    CwlSelectionView,
 } from '../backend/backend-api.types';
 import { CwlSelectionService } from '../backend/cwl-selection.service';
 import { APP_CONFIG } from '../config/app-config';
@@ -45,7 +46,7 @@ function nextSeason(season: string): string {
  * Demo selections for the CWL line-up, made up from the mock clan members, spread over the clans of
  * the Crusade (same ordering rules as the backend, random results). The open season is next month's
  * (this month's CWL has started); closing freezes it and opens the next one. Exclusions and closed
- * selections are kept in memory until the page is reloaded.
+ * selections are kept in memory until the page is reloaded. Every action is allowed (demo).
  */
 @Injectable()
 export class MockCwlSelectionService extends CwlSelectionService {
@@ -56,7 +57,7 @@ export class MockCwlSelectionService extends CwlSelectionService {
   private readonly closed = new Map<string, { ranking: CwlRanking; closedAt: string }>();
   private openSeason = nextSeason(seasonOf(new Date()));
 
-  get(season?: string): Observable<CwlSelection> {
+  get(season?: string): Observable<CwlSelectionView> {
     const wanted = season ?? this.openSeason;
     const frozen = this.closed.get(wanted);
     if (frozen) return of(this.view(wanted, frozen.ranking, frozen.closedAt));
@@ -118,7 +119,7 @@ export class MockCwlSelectionService extends CwlSelectionService {
     return this.get(season).pipe(delay(300));
   }
 
-  private view(season: string, ranking: CwlRanking, closedAt: string | null): CwlSelection {
+  private view(season: string, ranking: CwlRanking, closedAt: string | null): CwlSelectionView {
     const [year = 0, month = 1] = season.split('-').map(Number);
     const seasons = [
       { season: this.openSeason, state: 'open' as const },
@@ -134,6 +135,7 @@ export class MockCwlSelectionService extends CwlSelectionService {
       closedAutomatically: false,
       canReopen: !!closedAt && season === [...this.closed.keys()].sort().at(-1),
       seasons,
+      permissions: { manage: true, export: true },
     };
   }
 }

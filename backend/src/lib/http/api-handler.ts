@@ -1,5 +1,5 @@
 import mongoose, { Types } from 'mongoose';
-import { userHasClanAccess, userHasLeaderAccess } from '@/modules/access/clan-access.service';
+import { userHasChiefAccess, userHasClanAccess, userHasLeaderAccess } from '@/modules/access/clan-access.service';
 import { UserModel } from '@/modules/auth/user.model';
 import { verifyAccessToken } from '../auth/tokens';
 import { UserRole } from '../auth/user-role';
@@ -56,6 +56,11 @@ export interface ApiHandlerOptions<A extends boolean> {
    */
   leaderAccess?: boolean;
   /**
+   * Requires the power to decide the CWL line-up (implies `auth`): administrators, and the user with
+   * the verified account of the leader of the main clan, Crociata Nera.
+   */
+  chiefAccess?: boolean;
+  /**
    * Rejects requests whose `Origin` is not an allowed frontend. Use it on routes
    * authenticated by the refresh cookie, as a CSRF defence on top of `SameSite=Strict`.
    */
@@ -100,10 +105,14 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
 
       const user = await authenticate(
         request,
-        !!options.auth || !!options.roles?.length || !!options.clanAccess || !!options.leaderAccess,
+        !!options.auth ||
+          !!options.roles?.length ||
+          !!options.clanAccess ||
+          !!options.leaderAccess ||
+          !!options.chiefAccess,
       );
       const needsRoles = !!options.roles?.length;
-      if (options.database !== false || options.clanAccess || options.leaderAccess || needsRoles) {
+      if (options.database !== false || options.clanAccess || options.leaderAccess || options.chiefAccess || needsRoles) {
         await connectToDatabase();
       }
       if (needsRoles) {
@@ -117,6 +126,9 @@ export function apiHandler<P extends object = object, T = unknown, A extends boo
       }
       if (options.leaderAccess && !(await userHasLeaderAccess(user!.id))) {
         throwException(403, MessageKey.LEADER_ACCESS_REQUIRED);
+      }
+      if (options.chiefAccess && !(await userHasChiefAccess(user!.id))) {
+        throwException(403, MessageKey.CHIEF_ACCESS_REQUIRED);
       }
 
       const params = (await routeContext?.params) ?? ({} as P);

@@ -103,7 +103,7 @@ export const SelectionPlayer = model(
         newcomer: z.boolean().describe('A `member` (not an elder or above) in the clans of the Crusade for less than 14 days.'),
       })
       .describe('Activity.'),
-    exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator; `null` when not excluded.'),
+    exclusion: CwlExclusion.nullable().describe('Exclusion by an administrator or the leader of Crociata Nera; `null` when not excluded.'),
   }),
 );
 
@@ -112,12 +112,12 @@ export const CwlSelection = model(
   'The selection of a season for the Clan War League line-up: the ranking of the members of the clans of the Crusade, best first (players with an eligible town hall by score; ties: town hall, league, role; then the others), live while the selection is open, frozen once closed.',
   z.strictObject({
     season: month('Season of the CWL the selection is for, `YYYY-MM`.'),
-    state: z.enum(['open', 'closed']).describe('`open`: live ranking, administrators exclude players; `closed`: the ranking frozen when it was closed.'),
+    state: z.enum(['open', 'closed']).describe('`open`: live ranking, players can be excluded; `closed`: the ranking frozen when it was closed.'),
     signupStart: dateTime('First day of the season (UTC): the CWL sign-ups open then, the selection should be closed by it.'),
     closedAt: nullableDateTime('When it was closed; `null` while open.'),
-    closedBy: z.string().nullable().describe('Username of the administrator who closed it; `null` while open or when closed automatically.'),
+    closedBy: z.string().nullable().describe('Username of who closed it (administrator or leader of Crociata Nera); `null` while open or when closed automatically.'),
     closedAutomatically: z.boolean().describe('Closed by the backend when the CWL of the season started.'),
-    canReopen: z.boolean().describe('Closed, its CWL not started yet and no later season closed: an administrator can open it again.'),
+    canReopen: z.boolean().describe('Closed, its CWL not started yet and no later season closed: it can be opened again.'),
     seasons: z
       .array(z.strictObject({ season: month('Season, `YYYY-MM`.'), state: z.enum(['open', 'closed']).describe('State of its selection.') }))
       .describe('Every selection, most recent first.'),
@@ -135,5 +135,22 @@ export const CwlSelection = model(
       })
       .describe('Regular wars counted.'),
     players: z.array(SelectionPlayer).describe('Current members, best first.'),
+  }),
+);
+
+export const CwlSelectionView = model(
+  'CwlSelectionView',
+  'A selection as read by a member of the clans of the Crusade, with what the caller may do besides reading.',
+  CwlSelection.extend({
+    permissions: z
+      .strictObject({
+        manage: z
+          .boolean()
+          .describe('Closes and reopens the selections and excludes players: administrators and the leader of Crociata Nera.'),
+        export: z
+          .boolean()
+          .describe('Downloads and shares the line-up (PDF, pictures): administrators, leaders and co-leaders of the clans of the Crusade.'),
+      })
+      .describe('What the caller may do besides reading.'),
   }),
 );

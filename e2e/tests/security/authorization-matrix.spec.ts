@@ -20,6 +20,7 @@ type Caller =
   | 'clan member'
   | 'sister clan member'
   | 'clan leader'
+  | 'leader of Crociata Nera'
   | 'administrator';
 
 const RANK: Record<Caller, number> = {
@@ -28,7 +29,8 @@ const RANK: Record<Caller, number> = {
   'clan member': 2,
   'sister clan member': 2,
   'clan leader': 3,
-  administrator: 4,
+  'leader of Crociata Nera': 4,
+  administrator: 5,
 };
 
 /** Lowest rank a level lets in, and the message key of a signed-in caller below it. */
@@ -37,7 +39,8 @@ const LEVELS: Record<Exclude<Access, 'cron' | 'telegram'>, { rank: number; key?:
   user: { rank: 1 },
   clan: { rank: 2, key: 'ERROR.CLAN_ACCESS_REQUIRED' },
   leader: { rank: 3, key: 'ERROR.LEADER_ACCESS_REQUIRED' },
-  admin: { rank: 4, key: 'ERROR.FORBIDDEN' },
+  chief: { rank: 4, key: 'ERROR.CHIEF_ACCESS_REQUIRED' },
+  admin: { rank: 5, key: 'ERROR.FORBIDDEN' },
 };
 
 type Expectation =
@@ -101,6 +104,8 @@ async function callerFor(caller: Caller, users: UserFactory, anonymous: ApiClien
       return (await users.create({ access: 'sister' })).api;
     case 'clan leader':
       return (await users.create({ access: 'leader' })).api;
+    case 'leader of Crociata Nera':
+      return (await users.create({ access: 'chief' })).api;
     case 'administrator':
       return (await users.create({ admin: true })).api;
   }

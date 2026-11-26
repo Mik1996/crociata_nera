@@ -294,7 +294,7 @@ export interface CwlSelectionPlayer {
   exclusion: CwlExclusion | null;
 }
 
-/** `open`: live ranking, administrators exclude players; `closed`: frozen when it was closed. */
+/** `open`: live ranking, players can be excluded; `closed`: frozen when it was closed. */
 export type CwlSelectionState = 'open' | 'closed';
 
 /**
@@ -308,10 +308,10 @@ export interface CwlSelection {
   /** First day of the season: the CWL sign-ups open then. */
   signupStart: string;
   closedAt: string | null;
-  /** Administrator who closed it; `null` while open or when closed automatically. */
+  /** Who closed it (administrator or leader of Crociata Nera); `null` while open or when closed automatically. */
   closedBy: string | null;
   closedAutomatically: boolean;
-  /** An administrator can open it again (its CWL has not started). */
+  /** It can be opened again (its CWL has not started). */
   canReopen: boolean;
   /** Every selection, most recent first. */
   seasons: { season: string; state: CwlSelectionState }[];
@@ -324,6 +324,19 @@ export interface CwlSelection {
   cwlSeason: string | null;
   warWindow: { from: string; days: number; wars: number };
   players: CwlSelectionPlayer[];
+}
+
+/** What the caller may do on the CWL line-up besides reading it (worked out by the backend). */
+export interface CwlSelectionPermissions {
+  /** Close and reopen the selections, exclude players: administrators and the leader of Crociata Nera. */
+  manage: boolean;
+  /** Download and share the line-up (PDF, pictures): administrators, leaders and co-leaders. */
+  export: boolean;
+}
+
+/** A selection as `GET /cwl/selection` returns it to a member of the clans: with the caller's permissions. */
+export interface CwlSelectionView extends CwlSelection {
+  permissions: CwlSelectionPermissions;
 }
 
 /** A Telegram channel or group the bot was seen in (`GET /admin/telegram`). */

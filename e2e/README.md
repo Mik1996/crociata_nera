@@ -153,7 +153,8 @@ test('a member sees the players @P1', async ({ page, users, signIn }) => {
 
 - **`users.create({ access, admin, verified })`** — a new user through the real API: sign-up,
   optional email confirmation through the link of the received email, game account linked with the
-  in-game token check. `access`: `none` (default), `outside`, `member`, `sister`, `leader`.
+  in-game token check. `access`: `none` (default), `outside`, `member`, `sister`, `leader`, `chief` (the leader of
+  Crociata Nera: one account, so one test at a time).
   `admin: true` uses an address of `ADMIN_EMAILS` (see "Administrators" below). Returns
   `{ id, email, username, password, tag, playerName, api }`; `api` is signed in as the user.
   After the test, whatever happened in it, the clean-up deletes every base the test's users created

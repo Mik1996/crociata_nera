@@ -502,6 +502,7 @@
     "FORBIDDEN": "No tienes permiso para esta operación.",
     "CLAN_ACCESS_REQUIRED": "Esta sección está reservada a los miembros de Crociata Nera, Crociata Rossa y Crociata d'Oro: vincula una de tus cuentas de juego desde tu perfil.",
     "LEADER_ACCESS_REQUIRED": "Esta sección está reservada a los administradores y a los líderes y colíderes de los clanes de la Cruzada.",
+    "CHIEF_ACCESS_REQUIRED": "Esta acción está reservada a los administradores y al líder de Crociata Nera.",
     "EXCLUSION_REASON_IS_TOO_LONG": "El motivo puede tener como máximo 200 caracteres.",
     "INVALID_TOKEN": "Sesión no válida: inicia sesión de nuevo.",
     "INVALID_CREDENTIALS": "Email, nombre de usuario o contraseña incorrectos.",
@@ -1219,7 +1220,7 @@
     },
     "rules": {
       "title": "Cómo se calcula la clasificación",
-      "eligibility": "Elegibles: los jugadores de Crociata Nera, Crociata Rossa y Crociata d'Oro con el ayuntamiento más alto de los tres clanes y los de un nivel por debajo, no excluidos por un administrador. Los demás quedan al final de la clasificación.",
+      "eligibility": "Elegibles: los jugadores de Crociata Nera, Crociata Rossa y Crociata d'Oro con el ayuntamiento más alto de los tres clanes y los de un nivel por debajo, no excluidos. Los demás quedan al final de la clasificación.",
       "cwl": "Última CWL, jugada en Crociata Nera, Rossa o d'Oro (hasta 25 puntos): encomios hasta 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) y estrellas por ataque y destrucción hasta 13; con menos de 3 ataques el rendimiento se reduce en proporción.",
       "war": "Guerras normales de los últimos 90 días, en todos los clanes de la Cruzada (hasta 40 puntos): estrellas por ataque y destrucción (75%) y ataques usados (25%); con menos de 8 ataques la puntuación se reduce en proporción.",
       "order": "A igual puntuación pasa delante el ayuntamiento más alto, luego quien está en una liga más alta, luego el rango más alto (líder, colíder, veterano, miembro). Los primeros 15 elegibles son los titulares (azul), los 3 siguientes son las reservas (verde).",
@@ -1227,7 +1228,7 @@
       "townHall": "Ayuntamiento: 10 puntos a quien tiene el ayuntamiento más alto de los tres clanes.",
       "league": "Liga (hasta 5 puntos): 1 punto en Liga Electro 31, 2 en Electro 32, 3 en Electro 33, 4 en Leyenda III, 5 en Leyenda II y I; ningún punto en las ligas más bajas.",
       "penalties": "Penalizaciones: 3 puntos por cada ataque perdido en la última CWL (como máximo 15); 5 puntos a los reclutas (rol miembro) que entraron en los clanes de la Cruzada hace menos de 14 días: veteranos, colíderes y líderes que vuelven no se penalizan.",
-      "exclusions": "Los administradores pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza en el equipo pasa al siguiente. La exclusión vale solo para la temporada en curso, salvo que sea «hasta revocación».",
+      "exclusions": "Los administradores y el líder de Crociata Nera pueden excluir a un jugador (por ejemplo por una ausencia anunciada): mantiene su puesto en la clasificación, marcado como excluido, y su plaza en el equipo pasa al siguiente. La exclusión vale solo para la temporada en curso, salvo que sea «hasta revocación».",
       "noCwl": "Quien no estaba en la alineación de la última CWL no pierde sus 25 puntos: pasan a las guerras normales, que valen hasta 65. Así también sin CWL se puede llegar a 100."
     },
     "generatedAt": "Calculada el {{date}}",
@@ -1280,7 +1281,7 @@
       "confirm": "Excluir",
       "untilRevoked": "Excluir hasta revocación",
       "seasonHint": "Solo para la selección de esta temporada: desde el mes siguiente el jugador vuelve solo a la clasificación.",
-      "untilRevokedHint": "También para las temporadas siguientes, hasta que un administrador lo readmita."
+      "untilRevokedHint": "También para las temporadas siguientes, hasta que sea readmitido."
     },
     "cwlCommendations": "Encomios de la última CWL",
     "noCwlHint": "No estaba en la alineación de la última CWL: los 25 puntos de la CWL pasan a las guerras normales",

@@ -106,7 +106,9 @@ describe('OpenAPI document', () => {
       const options = (await handlerOf(op)).apiOptions;
       const access = options.roles?.includes(UserRole.ADMIN)
         ? 'admin'
-        : options.leaderAccess
+        : options.chiefAccess
+          ? 'chief'
+          : options.leaderAccess
           ? 'leader'
           : options.clanAccess
           ? 'clan'

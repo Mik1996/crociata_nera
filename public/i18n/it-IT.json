@@ -502,6 +502,7 @@
     "FORBIDDEN": "Non hai i permessi per questa operazione.",
     "CLAN_ACCESS_REQUIRED": "Questa sezione è riservata ai membri di Crociata Nera, Crociata Rossa e Crociata d'Oro: collega un tuo account di gioco dal profilo.",
     "LEADER_ACCESS_REQUIRED": "Questa sezione è riservata agli amministratori e ai capi e co-capi dei clan della Crociata.",
+    "CHIEF_ACCESS_REQUIRED": "Questa azione è riservata agli amministratori e al capo di Crociata Nera.",
     "EXCLUSION_REASON_IS_TOO_LONG": "Il motivo può essere lungo al massimo 200 caratteri.",
     "INVALID_TOKEN": "Sessione non valida: accedi di nuovo.",
     "INVALID_CREDENTIALS": "Email, username o password non corretti.",
@@ -1219,7 +1220,7 @@
     },
     "rules": {
       "title": "Come si calcola la classifica",
-      "eligibility": "Idonei: i giocatori di Crociata Nera, Crociata Rossa e Crociata d'Oro con il municipio più alto tra i tre clan e quelli di un livello sotto, non esclusi da un amministratore. Gli altri restano in fondo alla classifica.",
+      "eligibility": "Idonei: i giocatori di Crociata Nera, Crociata Rossa e Crociata d'Oro con il municipio più alto tra i tre clan e quelli di un livello sotto, non esclusi. Gli altri restano in fondo alla classifica.",
       "cwl": "Ultima CWL, giocata in Crociata Nera, Rossa o d'Oro (fino a 25 punti): encomi fino a 12 (Certezza di Lega 5, Guerriero di Lega 3, Campione di Lega 5, Leggenda della Lega 7) e stelle per attacco e distruzione fino a 13; con meno di 3 attacchi il rendimento si riduce in proporzione.",
       "war": "Guerre normali degli ultimi 90 giorni, in tutti i clan della Crociata (fino a 40 punti): stelle per attacco e distruzione (75%) e attacchi usati (25%); con meno di 8 attacchi il punteggio si riduce in proporzione.",
       "order": "A parità di punteggio passa avanti il municipio più alto, poi chi appartiene a una lega più alta, poi il ruolo più alto (capo, co-capo, anziano, membro). I primi 15 idonei sono i titolari (blu), i 3 successivi sono le riserve (verde).",
@@ -1227,7 +1228,7 @@
       "townHall": "Municipio: 10 punti a chi ha il municipio più alto tra i tre clan.",
       "league": "Lega (fino a 5 punti): 1 punto in Lega Elettro 31, 2 in Elettro 32, 3 in Elettro 33, 4 in Leggende III, 5 in Leggende II e I; nessun punto nelle leghe più basse.",
       "penalties": "Penalità: 3 punti per ogni attacco saltato nell'ultima CWL (al massimo 15); 5 punti alle reclute entrate nei clan della Crociata da meno di 14 giorni: anziani, co-capi e capi che rientrano non sono penalizzati.",
-      "exclusions": "Gli amministratori possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo. L'esclusione vale solo per la stagione in corso, a meno che non sia «fino a revoca».",
+      "exclusions": "Gli amministratori e il capo di Crociata Nera possono escludere un giocatore (ad esempio per un'assenza annunciata): resta al suo posto in classifica, segnato come escluso, e il suo posto in squadra passa al successivo. L'esclusione vale solo per la stagione in corso, a meno che non sia «fino a revoca».",
       "noCwl": "Chi non era nello schieramento dell'ultima CWL non perde i suoi 25 punti: passano alle guerre normali, che valgono fino a 65. Così anche senza CWL si può arrivare a 100."
     },
     "generatedAt": "Calcolata il {{date}}",
@@ -1280,7 +1281,7 @@
       "confirm": "Escludi",
       "untilRevoked": "Escludi fino a revoca",
       "seasonHint": "Vale solo per le selezioni di questa stagione: dal mese dopo il giocatore torna in classifica da solo.",
-      "untilRevokedHint": "Vale anche per le stagioni successive, finché un amministratore non lo riammette."
+      "untilRevokedHint": "Vale anche per le stagioni successive, finché non viene riammesso."
     },
     "cwlCommendations": "Encomi dell'ultima CWL",
     "noCwlHint": "Non era nello schieramento dell'ultima CWL: i 25 punti della CWL passano alle guerre normali",

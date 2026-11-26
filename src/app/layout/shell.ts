@@ -220,7 +220,7 @@ export class Shell {
         { path: '/dashboard', label: 'nav.dashboard', icon: 'dashboard' },
         { path: '/current-war', label: 'nav.currentWar', icon: 'local_fire_department' },
         { path: '/cwl', label: 'nav.cwl', icon: 'emoji_events' },
-        { path: '/cwl-selection', label: 'nav.cwlSelection', icon: 'checklist', leader: true },
+        { path: '/cwl-selection', label: 'nav.cwlSelection', icon: 'checklist' },
         { path: '/raids', label: 'nav.raids', icon: 'castle' },
         { path: '/wars', label: 'nav.history', icon: 'history_edu' },
       ],

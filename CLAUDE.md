@@ -269,10 +269,12 @@ When a skill and the code disagree, the code wins: fix the skill in the same cha
   `TELEGRAM_WEBHOOK_SECRET` (production), `getUpdates` without it (dev, own dev bot: a bot has one
   webhook). The Bot API cannot create channels: a town hall without one waits. Tests: `mockTelegramApi`.
 - CWL line-up selections (`backend/src/modules/cwl/cwl-selection.*`): one per season (`CwlSelections`), the open
-  one live (first month from now whose CWL has not started), closed by an administrator or by the scheduler when
+  one live (first month from now whose CWL has not started), closed by an administrator or the leader of Crociata Nera (`chiefAccess`) or by the scheduler when
   the main clan's group of its season is saved: the ranking is frozen, a `lineup` announcement draft is prepared
   and the next season opens; reopened while its CWL has not started. Exclusions are for one season or
-  `untilRevoked` (`season: null`).
+  `untilRevoked` (`season: null`). Every member reads the page; close, reopen and exclusions are for
+  administrators and the leader of Crociata Nera (`chiefAccess`), the PDF for leaders and co-leaders:
+  `GET /cwl/selection` returns `permissions: { manage, export }` for the page.
 - Data migrations run at startup from `backend/src/instrumentation.ts` and must be idempotent.
 - Legend League seasons (`backend/src/modules/legends/`): tournaments of four weeks, ending on Monday at
   05:00 UTC, sometimes followed by a week of break. The one in progress starts at `currentLeagueSeasonId`
