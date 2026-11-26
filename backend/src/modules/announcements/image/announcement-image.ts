@@ -200,7 +200,9 @@ export async function announcementSvgs(data: AnnouncementData, language?: Announ
       ].slice(0, MAX_PAGES);
     }
     case 'lineup':
-      return [page({ kicker: data.clanName, title: t.image.lineup.title, subtitle: t.month(data.season) }, await lineupBody(text, t, data))];
+      return (await lineupBodies(text, t, data))
+        .map((body, i) => page({ kicker: data.clanName, title: t.image.lineup.title, subtitle: pageSubtitle(t.month(data.season), i + 1) }, body))
+        .slice(0, MAX_PAGES);
   }
 }
 
@@ -557,14 +559,19 @@ function raidBody(text: SvgText, t: AnnouncementTexts, data: RaidData): string {
 /** Height of a row of a line-up (with its gap) and the gap between columns. */
 const LINEUP_ROW = 64;
 const LINEUP_GAP = 24;
+/** Starters drawn together in two columns (numbered down each column): 30 starters take two blocks. */
+const LINEUP_STARTERS_BLOCK = 15;
+/** Reserves side by side in a row. */
+const LINEUP_RESERVES_ROW = 3;
 
 /**
- * A CWL line-up: the starters in two columns (numbered down each column), the reserves in a row
- * below. Each player with the town hall, and the crest of the clan when it is not the CWL's.
+ * A CWL line-up, on as many pages as it needs: the starters in two columns (by blocks of 15), the
+ * reserves below in rows of three. Each player with the town hall, and the crest of the clan when
+ * it is not the CWL's. A block that does not fit above the footer goes to the next page.
  */
-async function lineupBody(text: SvgText, t: AnnouncementTexts, data: LineupData): Promise<string> {
+async function lineupBodies(text: SvgText, t: AnnouncementTexts, data: LineupData): Promise<string[]> {
   const l = t.image.lineup;
-  if (!data.starters.length && !data.reserves.length) return emptyNote(text, l.empty);
+  if (!data.starters.length && !data.reserves.length) return [emptyNote(text, l.empty)];
   const crests = new Map<string, string | null>();
   for (const p of [...data.starters, ...data.reserves]) {
     if (p.clanTag !== data.clanTag && !crests.has(p.clanTag)) crests.set(p.clanTag, await picture(CREST_OF[p.clanTag] ?? DEFAULT_CREST, 80));
@@ -586,30 +593,59 @@ async function lineupBody(text: SvgText, t: AnnouncementTexts, data: LineupData)
     ].join('');
   };
 
-  let svg = '';
-  let y = CONTENT_TOP + 44;
-  if (data.starters.length) {
-    svg += text.draw(l.starters.toUpperCase(), { font: 'title', size: 26, x: W / 2, y, fill: T.gold, anchor: 'middle' });
-    y += 22;
-    const rows = Math.ceil(data.starters.length / 2);
+  // Blocks of rows under a label: starters by 15 (two columns), reserves by rows of three.
+  type Block = { label: string; rows: number; draw: (y: number) => string };
+  const blocks: Block[] = [];
+  for (let first = 0; first < data.starters.length; first += LINEUP_STARTERS_BLOCK) {
+    const players = data.starters.slice(first, first + LINEUP_STARTERS_BLOCK);
+    const rows = Math.ceil(players.length / 2);
     const width = (RIGHT - LEFT - LINEUP_GAP) / 2;
-    data.starters.forEach((p, i) => {
-      const column = Math.floor(i / rows);
-      svg += cell(p, i + 1, LEFT + column * (width + LINEUP_GAP), y + (i % rows) * LINEUP_ROW, width);
-    });
-    y += rows * LINEUP_ROW + 30;
-  }
-  if (data.reserves.length) {
-    svg += text.draw(l.reserves.toUpperCase(), { font: 'title', size: 26, x: W / 2, y, fill: T.gold, anchor: 'middle' });
-    y += 22;
-    const columns = Math.max(3, data.reserves.length);
-    const width = (RIGHT - LEFT - (columns - 1) * LINEUP_GAP) / columns;
-    const first = LEFT + ((columns - data.reserves.length) * (width + LINEUP_GAP)) / 2;
-    data.reserves.forEach((p, i) => {
-      svg += cell(p, data.starters.length + i + 1, first + i * (width + LINEUP_GAP), y, width);
+    blocks.push({
+      label: l.starters,
+      rows,
+      draw: (y) =>
+        players
+          .map((p, i) => cell(p, first + i + 1, LEFT + Math.floor(i / rows) * (width + LINEUP_GAP), y + (i % rows) * LINEUP_ROW, width))
+          .join(''),
     });
   }
-  return svg;
+  for (let first = 0; first < data.reserves.length; first += LINEUP_RESERVES_ROW) {
+    const players = data.reserves.slice(first, first + LINEUP_RESERVES_ROW);
+    const width = (RIGHT - LEFT - (LINEUP_RESERVES_ROW - 1) * LINEUP_GAP) / LINEUP_RESERVES_ROW;
+    const start = LEFT + ((LINEUP_RESERVES_ROW - players.length) * (width + LINEUP_GAP)) / 2;
+    blocks.push({
+      label: l.reserves,
+      rows: 1,
+      draw: (y) =>
+        players.map((p, i) => cell(p, data.starters.length + first + i + 1, start + i * (width + LINEUP_GAP), y, width)).join(''),
+    });
+  }
+
+  const pages: string[] = [''];
+  const top = CONTENT_TOP + 44;
+  let y = top;
+  let label: string | null = null;
+  for (const block of blocks) {
+    // A block keeps to the label of the one before when it is the same (rows of reserves).
+    const titled = block.label !== label;
+    const height = (titled ? 22 : 0) + block.rows * LINEUP_ROW;
+    if (y > top && y + height - 14 > CONTENT_BOTTOM) {
+      pages.push('');
+      y = top;
+      label = null;
+    }
+    let svg = '';
+    if (block.label !== label) {
+      if (y > top) y += 30;
+      svg += text.draw(block.label.toUpperCase(), { font: 'title', size: 26, x: W / 2, y, fill: T.gold, anchor: 'middle' });
+      y += 22;
+      label = block.label;
+    }
+    svg += block.draw(y);
+    y += block.rows * LINEUP_ROW;
+    pages[pages.length - 1] += svg;
+  }
+  return pages;
 }
 
 /**

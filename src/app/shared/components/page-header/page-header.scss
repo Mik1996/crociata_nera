@@ -3,6 +3,7 @@
 
 @use 'color-palette' as palette;
 @use 'variables' as *;
+@use 'layout';
 
 :host {
   // Container of the title and of the Crusader: they follow the width of the header.
@@ -401,6 +402,8 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
+  // Under the title (phones): centred.
+  @include layout.actions-centred-below(36rem);
 
   &:empty {
     display: none;

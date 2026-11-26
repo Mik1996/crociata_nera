@@ -1,3 +1,196 @@
+@use 'color-palette' as palette;
+@use 'variables' as *;
+
 .intro {
   margin: 0;
+}
+
+// --- Line-up picked by hand (closing only) ---
+.lineup {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: $space-s;
+  margin-top: $space-l;
+}
+
+.lineup__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-s;
+}
+
+.lineup__heading {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.lineup__title {
+  margin: 0;
+  color: var(--cn-gold-light);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-md);
+}
+
+.lineup__hint {
+  margin: $space-xs 0 0;
+  font-size: var(--cn-fs-xs);
+}
+
+.lineup__reset {
+  flex: none;
+}
+
+.lineup__counts {
+  font-family: var(--cn-font-display);
+}
+
+.count--wrong {
+  color: var(--cn-red-text);
+}
+
+.lineup__list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pick {
+  --lineup: transparent;
+  display: grid;
+  grid-template-columns: 1.75rem 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-s;
+  padding: $space-xs $space-s;
+  border-radius: $radius-s;
+  background: var(--cn-surface-2);
+  box-shadow: inset 0.2rem 0 0 var(--lineup);
+}
+
+.pick--starter {
+  --lineup: var(--cn-lineup-starter);
+  background: palette.alpha(var(--cn-lineup-starter), 14%);
+}
+
+.pick--reserve {
+  --lineup: var(--cn-lineup-reserve);
+  background: palette.alpha(var(--cn-lineup-reserve), 14%);
+}
+
+.pick__rank {
+  color: var(--cn-text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.pick__th {
+  width: 2rem;
+  height: 2rem;
+  text-align: center;
+}
+
+.pick__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pick__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pick__meta {
+  font-size: var(--cn-fs-xs);
+}
+
+.pick__was {
+  color: var(--cn-gold-light);
+  font-weight: 600;
+}
+
+// Three places side by side, the chosen one filled with its colour.
+.pick__places {
+  display: inline-flex;
+  border: 1px solid var(--cn-border);
+  border-radius: $radius-pill;
+  overflow: hidden;
+}
+
+.place {
+  --place: var(--cn-text-muted);
+  --on-place: var(--cn-bg);
+  min-width: 4.5rem;
+  padding: $space-xs $space-s;
+  border: 0;
+  background: transparent;
+  color: var(--cn-text-muted);
+  font-family: var(--cn-font-display);
+  font-size: var(--cn-fs-2xs);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+
+  & + & {
+    border-left: 1px solid var(--cn-border);
+  }
+
+  &:hover:not(:disabled) {
+    background: palette.alpha(var(--place), 18%);
+    color: var(--cn-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cn-gold);
+    outline-offset: -2px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.place--starter {
+  --place: var(--cn-lineup-starter);
+  --on-place: var(--cn-on-lineup);
+}
+
+.place--reserve {
+  --place: var(--cn-lineup-reserve);
+  --on-place: var(--cn-on-lineup);
+}
+
+.place--bench {
+  --place: var(--cn-text-muted);
+  --on-place: var(--cn-bg);
+}
+
+.place--on,
+.place--on:hover:not(:disabled) {
+  background: var(--place);
+  color: var(--on-place);
+  font-weight: 700;
+}
+
+// Narrow dialog (phones): the places go under the name, as wide as the row.
+@container (max-width: 30rem) {
+  .pick {
+    grid-template-columns: 1.75rem 2rem minmax(0, 1fr);
+  }
+
+  .pick__places {
+    grid-column: 1 / -1;
+    display: flex;
+
+    .place {
+      flex: 1;
+      min-width: 0;
+    }
+  }
 }

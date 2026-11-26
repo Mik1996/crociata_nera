@@ -11,13 +11,16 @@ import { createLineupDraft, dropLineupDrafts } from '@/modules/announcements/ann
 import { CwlExclusionModel } from './cwl-exclusion.model';
 import { CwlSelectionModel, SelectionState } from './cwl-selection.model';
 import {
+  applyLineup,
+  DEFAULT_LINEUP_SIZE,
   Exclusion,
   LastCwl,
+  LINEUP_SIZES,
+  LineupSize,
+  ManualLineup,
   rankCandidates,
-  RESERVES,
   SelectionCandidate,
   SelectionRow,
-  STARTERS,
   TOWN_HALL_GAP,
   WAR_WINDOW_DAYS,
   WarTotals,
@@ -73,13 +76,14 @@ export async function computeRanking(season: string, now = new Date()): Promise<
   const from = new Date(now.getTime() - WAR_WINDOW_DAYS * DAY_MS);
   // The main clan comes first.
   const primary = crusadeClanTags()[0]!;
-  const [members, lastCwl, wars, exclusions] = await Promise.all([
+  const [members, lastCwl, wars, exclusions, size] = await Promise.all([
     PlayerModel.find(crusadeMemberFilter())
       .select('tag name clanTag role league townHallLevel joinedAt heroes equipment')
       .lean(),
     lastCwlSeason(),
     regularWarStats(from),
     CwlExclusionModel.find({ season: { $in: [season, null] } }).lean(),
+    lineupSizeOf(season),
   ]);
   const excluded = new Map(exclusions.map((e) => [e.playerTag, e]));
 
@@ -106,11 +110,11 @@ export async function computeRanking(season: string, now = new Date()): Promise<
       exclusion: exclusion ? toExclusion(exclusion) : null,
     };
   });
-  const { maxTownHall, rows } = rankCandidates(candidates, { now, heroMaxLevels });
+  const { maxTownHall, rows } = rankCandidates(candidates, { now, heroMaxLevels }, size);
   return {
     generatedAt: now.toISOString(),
-    starters: STARTERS,
-    reserves: RESERVES,
+    starters: size,
+    reserves: LINEUP_SIZES[size],
     maxTownHall,
     minEligibleTownHall: maxTownHall === null ? null : maxTownHall - TOWN_HALL_GAP,
     cwlSeason: lastCwl.season,
@@ -187,7 +191,15 @@ export async function ensureOpenSelection(now = new Date()): Promise<string> {
     if (!doc && !(await cwlStarted(season))) break;
     season = nextSeason(season);
   }
-  await CwlSelectionModel.updateOne({ season }, { $setOnInsert: { season, state: SelectionState.OPEN } }, { upsert: true });
+  if (!(await CwlSelectionModel.exists({ season }))) {
+    // A new season keeps the size of the line-up of the one before.
+    const previous = await CwlSelectionModel.findOne({ season: { $lt: season } }).sort({ season: -1 }).select('lineupSize').lean();
+    await CwlSelectionModel.updateOne(
+      { season },
+      { $setOnInsert: { season, state: SelectionState.OPEN, lineupSize: previous?.lineupSize ?? DEFAULT_LINEUP_SIZE } },
+      { upsert: true },
+    );
+  }
   await CwlSelectionModel.deleteMany({ state: SelectionState.OPEN, season: { $lt: season } });
   return season;
 }
@@ -195,14 +207,29 @@ export async function ensureOpenSelection(now = new Date()): Promise<string> {
 /**
  * Closes the open selection of `season`: the ranking of now is frozen, the draft of the line-up
  * announcement is prepared and the next season opens. `adminId` `null`: closed by the scheduler.
- * 404 for an unknown season, 409 when it is not open.
+ * `lineup`: starters (as many as the size of the selection) and reserves picked by hand by whoever
+ * closes it ({@link applyLineup}), kept only
+ * in the frozen ranking (reopening drops them with it). 404 for an unknown season, 409 when it is not
+ * open, 400 for a line-up that does not fit the ranking of now.
  */
-export async function closeSelection(season: string, adminId: string | null, now = new Date()): Promise<CwlSelection> {
+export async function closeSelection(
+  season: string,
+  adminId: string | null,
+  now = new Date(),
+  lineup: ManualLineup | null = null,
+): Promise<CwlSelection> {
   await ensureOpenSelection(now);
   const doc = await CwlSelectionModel.findOne({ season }).select('state').lean();
   if (!doc) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
   if (doc.state !== SelectionState.OPEN) throwException(409, MessageKey.CWL_SELECTION_NOT_OPEN);
   const ranking = await computeRanking(season, now);
+  if (lineup) {
+    // As many starters as the size picked for the selection (`ranking.starters`), reserves free.
+    const players = applyLineup(ranking.players, lineup, ranking.starters as LineupSize);
+    if (!players) throwException(400, MessageKey.CWL_LINEUP_NOT_VALID);
+    ranking.players = players;
+    ranking.reserves = lineup.reserves.length;
+  }
   const admin = adminId ? await UserModel.findById(adminId).select('username').lean() : null;
   const closed = await CwlSelectionModel.findOneAndUpdate(
     { season, state: SelectionState.OPEN },
@@ -247,6 +274,27 @@ export async function reopenSelection(season: string, now = new Date()): Promise
   return getCwlSelection(season, now);
 }
 
+/** Starters of the line-up of a season's selection (15 when it has none, or an older document). */
+async function lineupSizeOf(season: string): Promise<LineupSize> {
+  const doc = await CwlSelectionModel.findOne({ season }).select('lineupSize').lean();
+  return doc?.lineupSize === 30 ? 30 : DEFAULT_LINEUP_SIZE;
+}
+
+/**
+ * Picks the size of the line-up of the open selection of `season` (administrators and the leader
+ * of Crociata Nera): 15 starters and 3 reserves, or 30 and 5. The ranking follows at once; the next
+ * seasons start with the same size. 404 for an unknown season, 409 when it is not open.
+ */
+export async function setLineupSize(season: string, size: LineupSize, now = new Date()): Promise<CwlSelection> {
+  await ensureOpenSelection(now);
+  const updated = await CwlSelectionModel.updateOne({ season, state: SelectionState.OPEN }, { $set: { lineupSize: size } });
+  if (!updated.matchedCount) {
+    if (!(await CwlSelectionModel.exists({ season }))) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
+    throwException(409, MessageKey.CWL_SELECTION_NOT_OPEN);
+  }
+  return getCwlSelection(season, now);
+}
+
 async function canReopen(season: string): Promise<boolean> {
   if (await cwlStarted(season)) return false;
   return !(await CwlSelectionModel.exists({ state: SelectionState.CLOSED, season: { $gt: season } }));
@@ -282,7 +330,7 @@ export async function getCwlSelection(season?: string, now = new Date()): Promis
   const doc = await CwlSelectionModel.findOne({ season: wanted }).lean();
   if (!doc) throwException(404, MessageKey.CWL_SELECTION_NOT_FOUND);
   const closed = doc.state === SelectionState.CLOSED && doc.ranking;
-  const ranking = closed ? (doc.ranking as CwlRanking) : await computeRanking(wanted, now);
+  const ranking = closed ? frozenRanking(doc.ranking as CwlRanking) : await computeRanking(wanted, now);
   const seasons = await CwlSelectionModel.find().select('season state').sort({ season: -1 }).lean();
   const [year = 0, month = 1] = wanted.split('-').map(Number);
   return {
@@ -296,6 +344,11 @@ export async function getCwlSelection(season?: string, now = new Date()): Promis
     canReopen: closed ? await canReopen(wanted) : false,
     seasons: seasons.map((s) => ({ season: s.season, state: s.state as SelectionState })),
   };
+}
+
+/** A ranking frozen before manual line-ups existed has no `automaticStatus`: nothing was moved. */
+function frozenRanking(ranking: CwlRanking): CwlRanking {
+  return { ...ranking, players: ranking.players.map((p) => ({ ...p, automaticStatus: p.automaticStatus ?? null })) };
 }
 
 interface LeagueWarMember {

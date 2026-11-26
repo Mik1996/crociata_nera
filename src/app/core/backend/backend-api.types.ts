@@ -292,6 +292,26 @@ export interface CwlSelectionPlayer {
   heroes: { levels: number; equipment: number } | null;
   activity: { joinedAt: string | null; newcomer: boolean };
   exclusion: CwlExclusion | null;
+  /**
+   * Closed selections: the place the ranking gave, when whoever closed it moved the player by hand
+   * (`status` is the place chosen); `null` otherwise.
+   */
+  automaticStatus: CwlLineupStatus | null;
+}
+
+/** Starters of the line-up of a selection: 15 (with 3 reserves) or 30 (with 5). */
+export type CwlLineupSize = 15 | 30;
+
+/** Reserves that come with each size of the line-up (same as the backend's `LINEUP_SIZES`). */
+export const CWL_LINEUP_SIZES: Readonly<Record<CwlLineupSize, number>> = { 15: 3, 30: 5 };
+
+/** The places a line-up picked by hand moves eligible players between. */
+export type CwlLineupStatus = 'starter' | 'reserve' | 'bench';
+
+/** Starters and reserves picked by hand when closing a selection (player tags). */
+export interface CwlLineup {
+  starters: string[];
+  reserves: string[];
 }
 
 /** `open`: live ranking, players can be excluded; `closed`: frozen when it was closed. */

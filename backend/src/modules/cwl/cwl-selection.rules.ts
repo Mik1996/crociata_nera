@@ -27,6 +27,13 @@ import { CommendationTier } from '@/modules/commendations/commendation-rules';
 
 export const STARTERS = 15;
 export const RESERVES = 3;
+/**
+ * Sizes of the line-up an administrator or the leader of Crociata Nera picks for a selection: the
+ * starters (a CWL war of 15 or 30 a side) and the reserves that come with them.
+ */
+export const LINEUP_SIZES = { 15: 3, 30: 5 } as const;
+export type LineupSize = keyof typeof LINEUP_SIZES;
+export const DEFAULT_LINEUP_SIZE: LineupSize = STARTERS;
 /** Town hall levels below the highest of the clan that are still eligible. */
 export const TOWN_HALL_GAP = 1;
 
@@ -192,6 +199,11 @@ export interface SelectionRow {
   heroes: { levels: number; equipment: number } | null;
   activity: { joinedAt: string | null; newcomer: boolean };
   exclusion: Exclusion | null;
+  /**
+   * The place the ranking gave, when whoever closed the selection changed it by hand
+   * ({@link applyLineup}); `null` otherwise.
+   */
+  automaticStatus: SelectionStatus | null;
 }
 
 const DAY_MS = 86_400_000;
@@ -312,13 +324,16 @@ function roleRank(role: string | null): number {
 
 /**
  * Ranks the candidates: players with an eligible town hall first, by score, then town hall, then
- * league, then role (leader, co-leader, elder, member), then name; the first {@link STARTERS} not
- * excluded are starters, the next {@link RESERVES} reserves.
+ * league, then role (leader, co-leader, elder, member), then name; the first `size` not excluded
+ * are starters ({@link STARTERS} by default, or 30), the next ones reserves ({@link LINEUP_SIZES}).
  */
 export function rankCandidates(
   candidates: SelectionCandidate[],
   context: SelectionContext,
+  size: LineupSize = DEFAULT_LINEUP_SIZE,
 ): { maxTownHall: number | null; rows: SelectionRow[] } {
+  const starters = size;
+  const reserves = LINEUP_SIZES[size];
   const levels = candidates.map((c) => c.townHallLevel).filter((l): l is number => l !== null);
   const maxTownHall = levels.length ? Math.max(...levels) : null;
   const scored = candidates.map((c) => {
@@ -347,7 +362,7 @@ export function rankCandidates(
     else if (!townHallOk) status = 'ineligible';
     else {
       slotsTaken += 1;
-      status = slotsTaken <= STARTERS ? 'starter' : slotsTaken <= STARTERS + RESERVES ? 'reserve' : 'bench';
+      status = slotsTaken <= starters ? 'starter' : slotsTaken <= starters + reserves ? 'reserve' : 'bench';
     }
     const ratios = heroRatios(c.heroes, c.equipment, context.heroMaxLevels);
     return {
@@ -394,7 +409,42 @@ export function rankCandidates(
       heroes: ratios ? { levels: round(ratios.levels * 100), equipment: round(ratios.equipment * 100) } : null,
       activity: { joinedAt: c.joinedAt?.toISOString() ?? null, newcomer: isNewcomer(c, context.now) },
       exclusion: c.exclusion,
+      automaticStatus: null,
     };
   });
   return { maxTownHall, rows };
+}
+
+/** Starters and reserves picked by hand at the closing of a selection (player tags). */
+export interface ManualLineup {
+  starters: string[];
+  reserves: string[];
+}
+
+/** Statuses that take or may take a slot: the only ones a manual line-up moves between. */
+const SLOT_STATUSES: readonly SelectionStatus[] = ['starter', 'reserve', 'bench'];
+
+/**
+ * The ranking with the line-up picked by hand: the given players become starters and reserves, the
+ * other eligible players go to the bench; ranks and scores do not change, and every moved row keeps
+ * the place the ranking gave it in `automaticStatus`. `null` when the line-up is not valid: starters
+ * not as many as the size picked for the selection (`size`: 15 or 30, {@link LINEUP_SIZES}), a player
+ * listed twice, or a player who is not in the ranking or not eligible (town hall too low, excluded).
+ * Reserves are as many as wanted, none too.
+ */
+export function applyLineup(rows: SelectionRow[], lineup: ManualLineup, size: LineupSize = DEFAULT_LINEUP_SIZE): SelectionRow[] | null {
+  const { starters, reserves } = lineup;
+  if (starters.length !== size) return null;
+  const picked = new Map<string, SelectionStatus>([
+    ...starters.map((tag) => [tag, 'starter'] as const),
+    ...reserves.map((tag) => [tag, 'reserve'] as const),
+  ]);
+  if (picked.size !== starters.length + reserves.length) return null;
+  const eligible = new Set(rows.filter((r) => SLOT_STATUSES.includes(r.status)).map((r) => r.tag));
+  if ([...picked.keys()].some((tag) => !eligible.has(tag))) return null;
+  return rows.map((row) => {
+    if (!eligible.has(row.tag)) return row;
+    const status = picked.get(row.tag) ?? 'bench';
+    return status === row.status ? row : { ...row, status, automaticStatus: row.status };
+  });
 }

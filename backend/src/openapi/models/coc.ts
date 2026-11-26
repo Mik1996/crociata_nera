@@ -40,7 +40,7 @@ const clanShape = {
   clanCapitalPoints: z.number().int().optional().describe('Clan Capital trophies.'),
   capitalLeague: named('Clan Capital league.').optional(),
   requiredTrophies: z.number().int().optional().describe('Trophies needed to join.'),
-  requiredTownHall: z.number().int().optional().describe('Town hall needed to join.'),
+  requiredTownhallLevel: z.number().int().optional().describe('Town hall needed to join.'),
   requiredLeagueTier: named('League needed to join, with `iconUrls`.').optional(),
   warWinStreak: z.number().int().optional().describe('Wars won in a row.'),
   warWins: z.number().int().optional().describe('Wars won.'),

@@ -2,10 +2,96 @@
   [title]="'cwlSelection.decision.' + data.action + '.title' | translate: { season: data.label }"
   [confirmLabel]="'cwlSelection.decision.' + data.action + '.confirm' | translate"
   [busy]="busy()"
+  [disabled]="!complete()"
+  [disabledReason]="
+    complete()
+      ? null
+      : ('cwlSelection.lineupEditor.wrongStarters'
+        | translate: { n: counts().starter, required: requiredStarters })
+  "
   [errors]="errors()"
   (confirm)="submit()"
 >
   <p class="intro">
     {{ 'cwlSelection.decision.' + data.action + '.intro' | translate: { season: data.label } }}
   </p>
+
+  @if (candidates.length) {
+    <section class="lineup" aria-labelledby="lineup-title">
+      <div class="lineup__head">
+        <div class="lineup__heading">
+          <h3 id="lineup-title" class="lineup__title">
+            {{ 'cwlSelection.lineupEditor.title' | translate }}
+          </h3>
+          <p class="cn-muted lineup__hint">
+            {{ 'cwlSelection.lineupEditor.hint' | translate: { starters: requiredStarters } }}
+          </p>
+        </div>
+        <button
+          mat-button
+          type="button"
+          class="lineup__reset"
+          [disabled]="!changed() || busy()"
+          (click)="reset()"
+        >
+          <crn-icon name="refresh" matButtonIcon />
+          {{ 'cwlSelection.lineupEditor.reset' | translate }}
+        </button>
+      </div>
+
+      <crn-legend class="lineup__counts" aria-live="polite">
+        <crn-legend-item color="var(--cn-lineup-starter)" glow [class.count--wrong]="!complete()">
+          {{ 'cwlSelection.lineupEditor.starters' | translate: { n: counts().starter } }}
+        </crn-legend-item>
+        <crn-legend-item color="var(--cn-lineup-reserve)" glow>
+          {{ 'cwlSelection.lineupEditor.reserves' | translate: { n: counts().reserve } }}
+        </crn-legend-item>
+      </crn-legend>
+
+      <ol class="lineup__list">
+        @for (p of candidates; track p.tag) {
+          @let place = picks().get(p.tag)!;
+          <li class="pick" [class]="'pick pick--' + place">
+            <span class="pick__rank cn-num">{{ p.rank }}</span>
+            @if (p.townHallLevel !== null) {
+              <crn-town-hall-icon class="pick__th" [level]="p.townHallLevel" />
+            } @else {
+              <span class="pick__th cn-muted" aria-hidden="true">—</span>
+            }
+            <span class="pick__who">
+              <span class="pick__name">{{ p.name }}</span>
+              <span class="cn-muted pick__meta">
+                {{ clanName(p.clanTag) }} · {{ p.score | localNumber: '1.1-1' }}
+                @if (place !== p.status) {
+                  <span class="pick__was">
+                    ·
+                    {{
+                      'cwlSelection.lineupEditor.was'
+                        | translate: { place: ('cwlSelection.statuses.' + p.status | translate) }
+                    }}
+                  </span>
+                }
+              </span>
+            </span>
+            <span class="pick__places" role="radiogroup" [attr.aria-label]="p.name">
+              @for (option of places; track option) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="place"
+                  [class]="'place place--' + option"
+                  [class.place--on]="place === option"
+                  [attr.aria-checked]="place === option"
+                  [disabled]="busy()"
+                  (click)="pick(p.tag, option)"
+                >
+                  {{ 'cwlSelection.statuses.' + option | translate }}
+                </button>
+              }
+            </span>
+          </li>
+        }
+      </ol>
+    </section>
+  }
 </crn-confirm-dialog>

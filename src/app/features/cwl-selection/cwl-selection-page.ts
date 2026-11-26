@@ -12,11 +12,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/backend/auth.service';
 import {
+  CWL_LINEUP_SIZES,
   CwlExclusion,
+  CwlLineupSize,
   CwlScoreBreakdown,
   CwlSelection,
   CwlSelectionPlayer,
@@ -146,7 +147,6 @@ const STATUS_TONES: Record<CwlSelectionStatus, TagTone> = {
 })
 export class CwlSelectionPage {
   private readonly service = inject(CwlSelectionService);
-  private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly language = inject(LanguageService);
@@ -174,8 +174,7 @@ export class CwlSelectionPage {
   /** Exclusions only in the open selection (a closed one is frozen). */
   protected readonly canExclude = computed(() => this.canManage() && this.isOpen());
 
-  protected readonly seasonLabel = (season: string) =>
-    periodLabel(season, this.language.current());
+  protected readonly seasonLabel = (season: string) => periodLabel(season, this.language.current());
   protected readonly seasonOptions = computed<SelectOption<string>[]>(() =>
     (this.selection()?.seasons ?? []).map((s) => ({
       value: s.season,
@@ -192,7 +191,11 @@ export class CwlSelectionPage {
     const left = new Date(selection.signupStart).getTime() - this.now();
     if (left <= 0) return null;
     const minutes = Math.floor(left / 60_000);
-    return { days: Math.floor(minutes / 1440), hours: Math.floor((minutes % 1440) / 60), minutes: minutes % 60 };
+    return {
+      days: Math.floor(minutes / 1440),
+      hours: Math.floor((minutes % 1440) / 60),
+      minutes: minutes % 60,
+    };
   });
 
   constructor() {
@@ -211,6 +214,20 @@ export class CwlSelectionPage {
     for (const row of this.rows()) counts[row.status] += 1;
     return counts;
   });
+  /** Players a closed selection's line-up moved by hand from the place the ranking gave them. */
+  protected readonly movedByHand = computed(
+    () => this.rows().filter((row) => row.automaticStatus).length,
+  );
+  /** The sizes of the line-up to switch between (`permissions.manage`, open selection only). */
+  protected readonly lineupSizes: readonly CwlLineupSize[] = [15, 30];
+  protected readonly reservesOf = CWL_LINEUP_SIZES;
+  /** The size of the line-up is being changed. */
+  protected readonly changingSize = signal(false);
+  /** Starters and reserves of the selection shown (15 and 3 until it loads), for the texts. */
+  protected readonly lineupSize = computed(() => ({
+    starters: this.selection()?.starters ?? 15,
+    reserves: this.selection()?.reserves ?? CWL_LINEUP_SIZES[15],
+  }));
   /** Tag of the player whose exclusion is being removed. */
   protected readonly readmitting = signal<string | null>(null);
 
@@ -326,9 +343,16 @@ export class CwlSelectionPage {
   protected decide(selection: CwlSelection, action: SelectionDecisionData['action']): void {
     this.dialog
       .open<SelectionDecisionDialog, SelectionDecisionData, CwlSelection>(SelectionDecisionDialog, {
-        width: '30rem',
+        // Closing shows the line-up to change by hand.
+        width: action === 'close' ? '46rem' : '30rem',
         maxWidth: 'calc(100vw - 2rem)',
-        data: { season: selection.season, label: this.seasonLabel(selection.season), action },
+        data: {
+          season: selection.season,
+          label: this.seasonLabel(selection.season),
+          action,
+          players: action === 'close' ? selection.players : undefined,
+          starters: selection.starters,
+        },
       })
       .afterClosed()
       .subscribe((result) => {
@@ -342,8 +366,28 @@ export class CwlSelectionPage {
       });
   }
 
-  protected open(row: CwlSelectionPlayer): void {
-    void this.router.navigate(['/players', row.tag]);
+  /** Switches the open selection between 15 starters + 3 reserves and 30 + 5 (`canManage`). */
+  protected setLineupSize(selection: CwlSelection, starters: CwlLineupSize): void {
+    if (this.changingSize() || selection.starters === starters) return;
+    this.changingSize.set(true);
+    this.service.setLineupSize(selection.season, starters).subscribe({
+      next: () => {
+        this.changingSize.set(false);
+        this.reload();
+        this.snackBar.open(
+          this.language.t('SUCCESS.CWL_LINEUP_SIZE_CHANGED', {
+            starters,
+            reserves: CWL_LINEUP_SIZES[starters],
+          }),
+          undefined,
+          { duration: 3000 },
+        );
+      },
+      error: (error: unknown) => {
+        this.changingSize.set(false);
+        this.showError(error);
+      },
+    });
   }
 
   protected exclude(row: CwlSelectionPlayer): void {
@@ -377,12 +421,7 @@ export class CwlSelectionPage {
       },
       error: (error: unknown) => {
         this.readmitting.set(null);
-        const { fields, general } = backendErrors(error);
-        const [first] = [...general, ...fields];
-        if (first)
-          this.snackBar.open(this.language.t(first.key, first.params), undefined, {
-            duration: 4000,
-          });
+        this.showError(error);
       },
     });
   }
@@ -393,8 +432,22 @@ export class CwlSelectionPage {
     this.players.reload();
   }
 
+  /** The first error of the backend, in a snack bar. */
+  private showError(error: unknown): void {
+    const { fields, general } = backendErrors(error);
+    const [first] = [...general, ...fields];
+    if (first)
+      this.snackBar.open(this.language.t(first.key, first.params), undefined, { duration: 4000 });
+  }
+
   private notify(messageKey: string): void {
     this.snackBar.open(this.language.t(messageKey), undefined, { duration: 3000 });
+  }
+
+  /** Tooltip of a player moved by hand at the closing: the place the ranking gave. */
+  protected movedText(row: CwlSelectionPlayer): string {
+    const place = this.language.t(`cwlSelection.statuses.${row.automaticStatus}`);
+    return this.language.t('cwlSelection.movedByHand', { place });
   }
 
   /** Colour of a line-up status tag. */

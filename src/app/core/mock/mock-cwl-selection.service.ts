@@ -5,20 +5,21 @@ import { TableQuery } from '../../shared/components/table/table-filters';
 import { applyTableQuery, TablePage } from '../../shared/components/table/table-page';
 import { CocApiService } from '../api/coc-api';
 import {
-    CwlExclusion,
-    CwlScoreBreakdown,
-    CwlSelection,
-    CwlSelectionPlayer,
-    CwlSelectionStatus,
-    CwlSelectionView,
+  CwlExclusion,
+  CwlLineup,
+  CwlLineupSize,
+  CWL_LINEUP_SIZES,
+  CwlScoreBreakdown,
+  CwlSelection,
+  CwlSelectionPlayer,
+  CwlSelectionStatus,
+  CwlSelectionView,
 } from '../backend/backend-api.types';
 import { CwlSelectionService } from '../backend/cwl-selection.service';
 import { APP_CONFIG } from '../config/app-config';
 import { ClanMember } from '../models';
 import { Random } from './random';
 
-const STARTERS = 15;
-const RESERVES = 3;
 const DAY = 86_400_000;
 /** Order of the roles on equal score, town hall and league (same as the backend). */
 const ROLE_ORDER: readonly ClanMember['role'][] = ['leader', 'coLeader', 'elder', 'member'];
@@ -32,7 +33,14 @@ const API_ROLES: Record<ClanMember['role'], string> = {
 /** The ranking alone, without the season and its state. */
 type CwlRanking = Omit<
   CwlSelection,
-  'season' | 'state' | 'signupStart' | 'closedAt' | 'closedBy' | 'closedAutomatically' | 'canReopen' | 'seasons'
+  | 'season'
+  | 'state'
+  | 'signupStart'
+  | 'closedAt'
+  | 'closedBy'
+  | 'closedAutomatically'
+  | 'canReopen'
+  | 'seasons'
 >;
 
 /** `2026-11` of a date (UTC) and the season after one. */
@@ -56,6 +64,8 @@ export class MockCwlSelectionService extends CwlSelectionService {
   /** Closed selections by season, with their frozen ranking. */
   private readonly closed = new Map<string, { ranking: CwlRanking; closedAt: string }>();
   private openSeason = nextSeason(seasonOf(new Date()));
+  /** Size of the line-up of the open selection; the next season keeps it. */
+  private lineupSize: CwlLineupSize = 15;
 
   get(season?: string): Observable<CwlSelectionView> {
     const wanted = season ?? this.openSeason;
@@ -65,7 +75,11 @@ export class MockCwlSelectionService extends CwlSelectionService {
       .getClan()
       .pipe(
         map((clan) =>
-          this.view(wanted, mockSelection(clan.members, new Date(), this.exclusions), null),
+          this.view(
+            wanted,
+            mockSelection(clan.members, new Date(), this.exclusions, this.lineupSize),
+            null,
+          ),
         ),
       );
   }
@@ -94,13 +108,25 @@ export class MockCwlSelectionService extends CwlSelectionService {
     return of(undefined).pipe(delay(200));
   }
 
-  close(season: string): Observable<CwlSelection> {
+  close(season: string, lineup: CwlLineup | null = null): Observable<CwlSelection> {
     return this.get(season).pipe(
       map((selection) => {
-        const { players, generatedAt, starters, reserves, maxTownHall, minEligibleTownHall } =
-          selection;
+        const players = lineup ? applyLineup(selection.players, lineup) : selection.players;
+        const { generatedAt, maxTownHall, minEligibleTownHall } = selection;
+        // A line-up picked by hand has its own size.
+        const starters = lineup?.starters.length ?? selection.starters;
+        const reserves = lineup?.reserves.length ?? selection.reserves;
         const { cwlSeason, warWindow } = selection;
-        const ranking = { players, generatedAt, starters, reserves, maxTownHall, minEligibleTownHall, cwlSeason, warWindow };
+        const ranking = {
+          players,
+          generatedAt,
+          starters,
+          reserves,
+          maxTownHall,
+          minEligibleTownHall,
+          cwlSeason,
+          warWindow,
+        };
         this.closed.set(season, { ranking, closedAt: new Date().toISOString() });
         // Exclusions for this season only end with it.
         for (const [tag, exclusion] of this.exclusions) {
@@ -117,6 +143,11 @@ export class MockCwlSelectionService extends CwlSelectionService {
     this.closed.delete(season);
     this.openSeason = season;
     return this.get(season).pipe(delay(300));
+  }
+
+  setLineupSize(season: string, starters: CwlLineupSize): Observable<CwlSelection> {
+    this.lineupSize = starters;
+    return this.get(season).pipe(delay(200));
   }
 
   private view(season: string, ranking: CwlRanking, closedAt: string | null): CwlSelectionView {
@@ -147,7 +178,9 @@ export function mockSelection(
   members: ClanMember[],
   now: Date,
   exclusions: ReadonlyMap<string, CwlExclusion> = new Map(),
+  starters: CwlLineupSize = 15,
 ): CwlRanking {
+  const reserves = CWL_LINEUP_SIZES[starters];
   const random = new Random(2026);
   const maxTownHall = Math.max(...members.map((m) => m.townHall));
   const scored = members.map((m) => {
@@ -255,9 +288,9 @@ export function mockSelection(
     else {
       slotsTaken += 1;
       status =
-        slotsTaken <= STARTERS
+        slotsTaken <= starters
           ? 'starter'
-          : slotsTaken <= STARTERS + RESERVES
+          : slotsTaken <= starters + reserves
             ? 'reserve'
             : 'bench';
     }
@@ -284,19 +317,33 @@ export function mockSelection(
       heroes: s.heroes,
       activity: s.activity,
       exclusion,
+      automaticStatus: null,
     };
   });
   const lastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
   return {
     generatedAt: now.toISOString(),
-    starters: STARTERS,
-    reserves: RESERVES,
+    starters,
+    reserves,
     maxTownHall,
     minEligibleTownHall: maxTownHall - 1,
     cwlSeason: lastMonth.toISOString().slice(0, 7),
     warWindow: { from: new Date(now.getTime() - 90 * DAY).toISOString(), days: 90, wars: 24 },
     players,
   };
+}
+
+/** The line-up picked by hand on the ranking (same rules as the backend's `applyLineup`). */
+function applyLineup(players: CwlSelectionPlayer[], lineup: CwlLineup): CwlSelectionPlayer[] {
+  const picked = new Map<string, CwlSelectionStatus>([
+    ...lineup.starters.map((tag) => [tag, 'starter'] as const),
+    ...lineup.reserves.map((tag) => [tag, 'reserve'] as const),
+  ]);
+  return players.map((p) => {
+    if (p.status !== 'starter' && p.status !== 'reserve' && p.status !== 'bench') return p;
+    const status = picked.get(p.tag) ?? 'bench';
+    return status === p.status ? p : { ...p, status, automaticStatus: p.status };
+  });
 }
 
 function round(value: number, decimals = 1): number {

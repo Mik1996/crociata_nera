@@ -31,6 +31,14 @@ describe('mockSelection', () => {
     expect(players.filter((p) => !p.eligible).every((p) => p.townHallLevel! < 17)).toBe(true);
   });
 
+  it('takes 30 starters and 5 reserves for a line-up of 30', () => {
+    const members = Array.from({ length: 40 }, (_, i) => ({ ...member(i), townHall: 18 }));
+    const selection = mockSelection(members, new Date('2026-11-14T00:00:00Z'), new Map(), 30);
+    expect(selection).toMatchObject({ starters: 30, reserves: 5 });
+    expect(selection.players.filter((p) => p.status === 'starter')).toHaveLength(30);
+    expect(selection.players.filter((p) => p.status === 'reserve')).toHaveLength(5);
+  });
+
   it('marks the excluded players, who keep their place and take no slot', () => {
     const members = Array.from({ length: 40 }, (_, i) => member(i));
     const now = new Date('2026-11-14T00:00:00Z');

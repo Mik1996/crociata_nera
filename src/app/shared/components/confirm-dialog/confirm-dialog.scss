@@ -1,5 +1,28 @@
+@use 'variables' as *;
+
 // Title, content and actions lay out as direct children of the dialog surface.
 :host,
 form {
   display: contents;
+}
+
+// Why the confirm button is disabled: in red, on the left of the buttons (above them when narrow).
+.disabled-reason {
+  display: flex;
+  flex: 1 1 20rem;
+  // Narrow dialogs: a line of its own above the buttons rather than squeezed next to them.
+  min-width: min(100%, 20rem);
+  align-items: center;
+  gap: $space-xs;
+  margin: 0 auto 0 0;
+  color: var(--cn-red-text);
+  font-size: var(--cn-fs-sm);
+  font-weight: 600;
+  text-align: start;
+
+  crn-icon {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
 }

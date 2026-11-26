@@ -6,7 +6,7 @@ import { listDonationSeasonsQuerySchema } from '@/modules/donations/donations.sc
 import { listRaidSeasonsQuerySchema } from '@/modules/raids/raids.schemas';
 import { ClanRecords, PlayerRecord } from '../models/players';
 import { CwlSeasonDetail, CwlSeasonSummary, DonationSeason, LatestLegendSeason, RaidSeason } from '../models/seasons';
-import { excludePlayerSchema, selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
+import { closeSelectionSchema, excludePlayerSchema, lineupSizeSchema, selectionQuerySchema } from '@/modules/cwl/cwl-selection.schemas';
 import { CwlExclusionResult, CwlSelection, CwlSelectionView } from '../models/selection';
 import { ApiOperation, requestPart } from '../operation';
 
@@ -40,12 +40,36 @@ export const CLAN_OPERATIONS: ApiOperation[] = [
     tag: 'CWL',
     summary: 'Close the selection of the CWL line-up',
     description:
-      'Closes the open selection: its ranking is frozen as it is now, a draft of the line-up announcement is prepared (when that kind is on) and the selection of the next season opens. The backend closes it by itself when the CWL of the season starts.',
+      'Closes the open selection: its ranking is frozen as it is now, a draft of the line-up announcement is prepared (when that kind is on) and the selection of the next season opens. The body is optional: with a `lineup`, the given players become the starters and reserves and the other eligible players go to the bench (ranks and scores do not change; each moved player keeps the ranking\'s place in `automaticStatus`); reopening the selection drops these changes with the frozen ranking. The backend closes it by itself when the CWL of the season starts.',
     access: 'chief',
     rateLimit: ApiName.ADMIN,
     params: seasonPath,
+    body: requestPart(closeSelectionSchema, {
+      lineup: {
+        description:
+          'The line-up picked by hand: `starters` (as many as the size picked for the selection, 15 or 30: see `lineup-size`) and `reserves` (any number, none too), player tags among the eligible players of the ranking (not excluded, town hall high enough), each once. The closed selection\'s `reserves` become the number picked. Left out or `null`: the ranking\'s.',
+        example: { starters: ['#2PP', '#8QJ0'], reserves: ['#9YL2'] },
+      },
+    }),
     responses: { 200: { description: 'The closed selection.', result: CwlSelection, messages: [K.CWL_SELECTION_CLOSED] } },
-    errors: { 400: [K.PERIOD_IS_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND], 409: [K.CWL_SELECTION_NOT_OPEN] },
+    errors: { 400: [K.PERIOD_IS_NOT_VALID, K.PLAYER_TAG_IS_NOT_VALID, K.CWL_LINEUP_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND], 409: [K.CWL_SELECTION_NOT_OPEN] },
+  },
+  {
+    method: 'PUT',
+    path: '/cwl/selection/{season}/lineup-size',
+    operationId: 'setCwlLineupSize',
+    tag: 'CWL',
+    summary: 'Pick the size of the CWL line-up',
+    description:
+      'Picks the size of the line-up of the open selection: 15 starters and 3 reserves, or 30 starters and 5 reserves (the sizes of a CWL war). The ranking follows at once (`starters`, `reserves` and each player\'s `status`); the selections of the next seasons start with the same size.',
+    access: 'chief',
+    rateLimit: ApiName.ADMIN,
+    params: seasonPath,
+    body: requestPart(lineupSizeSchema, {
+      starters: { description: 'Starters of the line-up: `15` (3 reserves) or `30` (5 reserves).', example: 30 },
+    }),
+    responses: { 200: { description: 'The selection with its new size.', result: CwlSelection, messages: [K.CWL_LINEUP_SIZE_CHANGED] } },
+    errors: { 400: [K.PERIOD_IS_NOT_VALID, K.CWL_LINEUP_SIZE_NOT_VALID], 404: [K.CWL_SELECTION_NOT_FOUND], 409: [K.CWL_SELECTION_NOT_OPEN] },
   },
   {
     method: 'POST',

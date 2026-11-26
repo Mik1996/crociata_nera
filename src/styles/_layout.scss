@@ -1,0 +1,18 @@
+// =================================================================================================
+// Crociata Nera layout helpers (mixins only: nothing is emitted until included).
+//
+// `@use 'layout';` and `@include layout.actions-centred-below(40rem);` inside the rule of a group of
+// actions (buttons, switches, selectors) that sits next to texts and goes under them when there is
+// no room.
+// =================================================================================================
+
+/// A group of actions that wraps under the content of its container on narrow widths (phones) takes
+/// a line of its own, with its items centred, instead of hanging on the left or right edge. Needs a
+/// query container (`container-type: inline-size`) around it; `$width` is the container width below
+/// which the group no longer fits beside the content.
+@mixin actions-centred-below($width) {
+  @container (max-width: #{$width}) {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

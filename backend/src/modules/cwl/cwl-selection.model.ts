@@ -18,6 +18,8 @@ const cwlSelectionSchema = new Schema(
     closedBy: { type: String, default: null },
     /** Closed by the scheduler, when the CWL of the season started. */
     closedAutomatically: { type: Boolean, default: false },
+    /** Starters of the line-up, 15 or 30 (`LINEUP_SIZES`: 3 or 5 reserves); missing in older documents: 15. */
+    lineupSize: { type: Number, enum: [15, 30], default: 15 },
     /** The ranking at the closing (`CwlRanking`); `null` while open. */
     ranking: { type: Schema.Types.Mixed, default: null },
   },

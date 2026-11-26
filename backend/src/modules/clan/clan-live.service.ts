@@ -118,7 +118,7 @@ const WELCOME_CLAN_FIELDS = [
   'clanCapitalPoints',
   'capitalLeague',
   'requiredTrophies',
-  'requiredTownHall',
+  'requiredTownhallLevel',
   'requiredLeagueTier',
   'warFrequency',
   'warWinStreak',

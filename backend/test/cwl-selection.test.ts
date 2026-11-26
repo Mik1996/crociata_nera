@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GET as me } from '@/app/api/v1/auth/me/route';
 import { POST as closeRoute } from '@/app/api/v1/cwl/selection/[season]/close/route';
+import { PUT as lineupSizeRoute } from '@/app/api/v1/cwl/selection/[season]/lineup-size/route';
 import { POST as reopenRoute } from '@/app/api/v1/cwl/selection/[season]/reopen/route';
 import { DELETE as readmit, PUT as exclude } from '@/app/api/v1/cwl/selection/exclusions/[tag]/route';
 import { GET as selectionPlayers } from '@/app/api/v1/cwl/selection/players/route';
@@ -29,6 +30,7 @@ import { COMMENDATION_IDS } from '@/modules/commendations/commendation-rules';
 import { PlayerModel } from '@/modules/commendations/player.model';
 import { PROFILE_RETRY_MS, PROFILE_TTL_MS, PROFILES_PER_RUN, syncPlayerProfiles } from '@/modules/commendations/player-profile-sync.service';
 import {
+  applyLineup,
   cwlCommendationScore,
   cwlPerformanceScore,
   heroRatios,
@@ -273,6 +275,72 @@ describe('CWL line-up scores', () => {
     ]);
     const scores = rows.slice(0, -2).map((r) => r.score);
     expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  });
+});
+
+describe('size of the line-up', () => {
+  it('takes 30 starters and 5 reserves when asked', () => {
+    const candidates = Array.from({ length: 40 }, (_, i) => candidate(`#S${String(i).padStart(2, '0')}`, 17));
+    const statuses = (size?: 15 | 30) => rankCandidates(candidates, CONTEXT, size).rows.map((r) => r.status);
+    const counts = (list: string[]) => [list.filter((s) => s === 'starter').length, list.filter((s) => s === 'reserve').length];
+    expect(counts(statuses())).toEqual([15, 3]);
+    expect(counts(statuses(30))).toEqual([30, 5]);
+  });
+});
+
+describe('line-up picked by hand', () => {
+  const { rows } = rankCandidates(
+    [
+      ...Array.from({ length: 19 }, (_, i) => candidate(`#P${String(i).padStart(2, '0')}`, 17, { war: { ...FLAWLESS_WAR, stars: 24 - i } })),
+      candidate('#LOW', 15),
+      candidate('#OUT', 17, { exclusion: { reason: null, untilRevoked: false, excludedBy: 'x', excludedAt: NOW.toISOString() } }),
+    ],
+    CONTEXT,
+  );
+  const tags = (status: string) => rows.filter((r) => r.status === status).map((r) => r.tag);
+
+  it('moves players between starters, reserves and bench, keeping ranks and the ranking\'s place', () => {
+    const starters = tags('starter');
+    const moved = applyLineup(rows, { starters: [...starters.slice(1), '#P18'], reserves: [starters[0]!] })!;
+    const row = (tag: string) => moved.find((r) => r.tag === tag)!;
+    expect(row('#P18')).toMatchObject({ status: 'starter', automaticStatus: 'bench' });
+    expect(row(starters[0]!)).toMatchObject({ status: 'reserve', automaticStatus: 'starter', rank: 1 });
+    // Reserves not listed go to the bench; the others stay as they were.
+    expect(tags('reserve').map((t) => row(t).status)).toEqual(['bench', 'bench', 'bench']);
+    expect(row('#LOW')).toMatchObject({ status: 'ineligible', automaticStatus: null });
+    expect(row('#OUT')).toMatchObject({ status: 'excluded', automaticStatus: null });
+    expect(moved.map((r) => r.rank)).toEqual(rows.map((r) => r.rank));
+  });
+
+  it('keeps the ranking as it is for its own line-up', () => {
+    expect(applyLineup(rows, { starters: tags('starter'), reserves: tags('reserve') })).toEqual(rows);
+  });
+
+  it('takes as many starters as the size of the selection and any number of reserves, none too', () => {
+    const many = rankCandidates(
+      Array.from({ length: 40 }, (_, i) => candidate(`#M${String(i).padStart(2, '0')}`, 17, { war: { ...FLAWLESS_WAR, stars: 40 - i } })),
+      CONTEXT,
+    ).rows;
+    const thirtyTags = { starters: many.slice(0, 30).map((r) => r.tag), reserves: [] };
+    // 30 starters only for a line-up of 30, 15 only for one of 15.
+    expect(applyLineup(many, thirtyTags)).toBeNull();
+    expect(applyLineup(many, { starters: many.slice(0, 15).map((r) => r.tag), reserves: [] }, 30)).toBeNull();
+    const thirty = applyLineup(many, thirtyTags, 30)!;
+    expect(thirty.filter((r) => r.status === 'starter')).toHaveLength(30);
+    expect(thirty.filter((r) => r.status === 'reserve')).toHaveLength(0);
+    const reserves = applyLineup(many, { starters: many.slice(0, 15).map((r) => r.tag), reserves: many.slice(15, 25).map((r) => r.tag) })!;
+    expect(reserves.filter((r) => r.status === 'reserve')).toHaveLength(10);
+    expect(applyLineup(rows, { starters: tags('starter'), reserves: [] })!.filter((r) => r.status === 'reserve')).toHaveLength(0);
+  });
+
+  it('refuses starters other than the size, duplicates and players without a slot', () => {
+    const starters = tags('starter');
+    expect(applyLineup(rows, { starters: [...starters, '#P18'], reserves: [] })).toBeNull();
+    expect(applyLineup(rows, { starters: starters.slice(1), reserves: [] })).toBeNull();
+    expect(applyLineup(rows, { starters, reserves: [starters[0]!] })).toBeNull();
+    expect(applyLineup(rows, { starters: [...starters.slice(1), '#LOW'], reserves: [] })).toBeNull();
+    expect(applyLineup(rows, { starters: [...starters.slice(1), '#OUT'], reserves: [] })).toBeNull();
+    expect(applyLineup(rows, { starters: [...starters.slice(1), '#NOBODY'], reserves: [] })).toBeNull();
   });
 });
 
@@ -647,6 +715,116 @@ describe('selections by season', () => {
     expect(data.starters).toHaveLength(15);
     expect(data.reserves).toHaveLength(3);
     expect(data.starters[0]).toEqual({ name: 'Red', townHallLevel: 17, clanTag: ROSSA });
+  });
+
+  it('closes with a line-up picked by hand, dropped when the selection is opened again', async () => {
+    await seedCrusadeRosters([], [], ['#CHIEF']);
+    const token = await register('chief', ['#CHIEF']);
+    await seedPlayers();
+    const now = new Date();
+    const season = await ensureOpenSelection(now);
+    const live = (await getCwlSelection(season, now)).players;
+    const tags = (status: string) => live.filter((p) => p.status === status).map((p) => p.tag);
+    const [starters, reserves, [bench]] = [tags('starter'), tags('reserve'), tags('bench')];
+    // The bench player becomes a starter, the last starter a reserve, the last reserve goes to the bench.
+    const lineup = { starters: [...starters.slice(0, 14), bench!], reserves: [starters[14]!, ...reserves.slice(0, 2)] };
+
+    const close = (body: unknown) => call(closeRoute, { token, params: { season }, body });
+    for (const wrong of [
+      { lineup: { starters: [...starters, bench], reserves: [] } },
+      { lineup: { starters: [starters[0], starters[0]], reserves: [] } },
+      { lineup: { starters: starters.slice(1), reserves: [] } },
+      { lineup: { starters, reserves: [starters[0]] } },
+      { lineup: { starters: ['#NOBODY'], reserves: [] } },
+    ]) {
+      const reply = await close(wrong);
+      expect(reply.status).toBe(400);
+      expect(reply.body.messages.map((m: { key: string }) => m.key)).toEqual(['ERROR.CWL_LINEUP_NOT_VALID']);
+    }
+    expect((await close({ lineup: { starters: ['nope'], reserves: [] } })).status).toBe(400);
+    expect(await CwlSelectionModel.exists({ season, state: 'open' })).not.toBeNull();
+
+    const closed = await close({ lineup });
+    expect(closed.status).toBe(200);
+    const byTag = new Map((closed.body.result.players as { tag: string; status: string; automaticStatus: string | null; rank: number }[]).map((p) => [p.tag, p]));
+    expect(byTag.get(bench!)).toMatchObject({ status: 'starter', automaticStatus: 'bench' });
+    expect(byTag.get(starters[14]!)).toMatchObject({ status: 'reserve', automaticStatus: 'starter' });
+    expect(byTag.get(reserves[2]!)).toMatchObject({ status: 'bench', automaticStatus: 'reserve' });
+    expect(byTag.get(starters[0]!)).toMatchObject({ status: 'starter', automaticStatus: null, rank: 1 });
+    expect(closed.body.result).toMatchObject({ starters: 15, reserves: 3 });
+    // The draft of the announcement follows the line-up picked by hand.
+    const draft = await AnnouncementModel.findOne({ kind: 'lineup' }).lean();
+    const data = draft!.data as { starters: { name: string }[]; reserves: { name: string }[] };
+    expect(data.starters.map((p) => p.name)).toContain(live.find((p) => p.tag === bench)!.name);
+    expect(data.reserves.map((p) => p.name)).toContain(live.find((p) => p.tag === starters[14])!.name);
+
+    // Opened again: the ranking's line-up is back.
+    await call(reopenRoute, { token, params: { season } });
+    const again = (await getCwlSelection(season)).players;
+    expect(again.find((p) => p.tag === bench)).toMatchObject({ status: 'bench', automaticStatus: null });
+    expect(again.every((p) => p.automaticStatus === null)).toBe(true);
+  });
+
+  it('reads a ranking frozen before manual line-ups as moved by nobody', async () => {
+    await seedPlayers();
+    const now = new Date();
+    const season = await ensureOpenSelection(now);
+    await closeSelection(season, null, now);
+    await CwlSelectionModel.collection.updateOne({ season }, { $unset: { 'ranking.players.$[].automaticStatus': '' } });
+    expect((await getCwlSelection(season)).players.every((p) => p.automaticStatus === null)).toBe(true);
+  });
+
+  it('switches the line-up between 15 + 3 and 30 + 5, kept by the next seasons', async () => {
+    await seedCrusadeRosters(['#MEMBER'], ['#LEADER'], ['#CHIEF']);
+    const member = await register('member', ['#MEMBER']);
+    const leader = await register('leader', ['#LEADER']);
+    const token = await register('chief', ['#CHIEF']);
+    await PlayerModel.create(
+      Array.from({ length: 40 }, (_, i) => ({ tag: `#Q${String(i).padStart(3, '0')}`, name: `Q ${i}`, clanTag: NERA, townHallLevel: 17, inClan: true })),
+    );
+    const now = new Date();
+    const season = await ensureOpenSelection(now);
+    const size = (starters: unknown, as = token, s = season) => call(lineupSizeRoute, { token: as, params: { season: s }, body: { starters } });
+    const count = (players: { status: string }[], status: string) => players.filter((p) => p.status === status).length;
+
+    for (const denied of [member, leader]) expect((await size(30, denied)).status).toBe(403);
+    const wrong = await size(20);
+    expect(wrong.status).toBe(400);
+    expect(wrong.body.messages).toEqual([{ key: 'ERROR.CWL_LINEUP_SIZE_NOT_VALID', field: 'starters' }]);
+    expect((await size(30, token, '2020-01')).status).toBe(404);
+
+    const thirty = await size(30);
+    expect(thirty.status).toBe(200);
+    expect(thirty.body.messages).toEqual([{ key: 'SUCCESS.CWL_LINEUP_SIZE_CHANGED' }]);
+    expect(thirty.body.result).toMatchObject({ starters: 30, reserves: 5 });
+    expect(count(thirty.body.result.players, 'starter')).toBe(30);
+    expect(count(thirty.body.result.players, 'reserve')).toBe(5);
+    // Every member reads it.
+    expect((await call(getSelection, { token: member })).body.result).toMatchObject({ starters: 30, reserves: 5 });
+
+    // Closing by hand takes as many starters as the size: 15 are refused, 30 go.
+    const starters = (n: number) => (thirty.body.result.players as { tag: string }[]).slice(0, n).map((p) => p.tag);
+    const byHand = (n: number) => call(closeRoute, { token, params: { season }, body: { lineup: { starters: starters(n), reserves: [] } } });
+    const refused = await byHand(15);
+    expect(refused.status).toBe(400);
+    expect(refused.body.messages).toEqual([{ key: 'ERROR.CWL_LINEUP_NOT_VALID' }]);
+    const closedByHand = await byHand(30);
+    expect(closedByHand.status).toBe(200);
+    expect(closedByHand.body.result).toMatchObject({ starters: 30, reserves: 0 });
+    await call(reopenRoute, { token, params: { season } });
+
+    // Closed with 30 and opened again: still 30. The next season starts with 30 too.
+    await closeSelection(season, null, now);
+    expect((await size(15)).status).toBe(409);
+    const next = (await getCwlSelection(undefined, now));
+    expect(next).toMatchObject({ season: nextSeason(season), starters: 30, reserves: 5 });
+    await call(reopenRoute, { token, params: { season } });
+    expect(await getCwlSelection(season, now)).toMatchObject({ state: 'open', starters: 30 });
+
+    const fifteen = (await size(15)).body.result;
+    expect(fifteen).toMatchObject({ starters: 15, reserves: 3 });
+    expect(count(fifteen.players, 'starter')).toBe(15);
+    expect(count(fifteen.players, 'reserve')).toBe(3);
   });
 
   it('opens a closed selection again until its CWL starts', async () => {

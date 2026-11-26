@@ -24,6 +24,8 @@ const clan = (tag: string, name: string, members: { tag: string; name: string; r
   location: { id: 32000120, name: 'Italy', isCountry: true, countryCode: 'IT' },
   badgeUrls: { large: 'https://x/b.png' },
   warWins: 300,
+  requiredTownhallLevel: 16,
+  requiredLeagueTier: { id: 105000032, name: 'Electro League 32', iconUrls: { large: 'https://x/l.png' } },
   memberList: members.map((m) => ({ ...m, townHallLevel: 17, trophies: 5000, donations: 1200 })),
 });
 
@@ -135,6 +137,11 @@ describe('Clash of Clans data through the backend', () => {
     const { clans, ranks } = res.body.result;
     expect(clans.map((c: { name: string }) => c.name)).toEqual(['Crociata Nera', 'Crociata Rossa']);
     expect(clans[0]).toMatchObject({ tag: NERA, clanLevel: 20, warWins: 300, location: { countryCode: 'IT' } });
+    // The requirements to join, as the "Join us" page shows them.
+    expect(clans[0]).toMatchObject({
+      requiredTownhallLevel: 16,
+      requiredLeagueTier: { name: 'Electro League 32', iconUrls: { large: 'https://x/l.png' } },
+    });
     expect(clans[0].memberList).toEqual([
       { name: 'Reader', role: 'admin' },
       { name: 'Alice', role: 'leader' },

@@ -5,7 +5,7 @@
     crusader="oath"
     [kicker]="'kicker.cwlSelection' | translate"
     [title]="'nav.cwlSelection' | translate"
-    [subtitle]="'cwlSelection.subtitle' | translate"
+    [subtitle]="'cwlSelection.subtitle' | translate: lineupSize()"
   >
     @if (seasonOptions().length > 1) {
       <crn-select
@@ -41,8 +41,7 @@
           <div class="season__text">
             <h2 id="season-title" class="season__title">
               {{
-                'cwlSelection.state.title.' + s.state
-                  | translate: { season: seasonLabel(s.season) }
+                'cwlSelection.state.title.' + s.state | translate: { season: seasonLabel(s.season) }
               }}
             </h2>
             @if (s.state === 'open') {
@@ -73,22 +72,66 @@
                 } @else {
                   {{
                     'cwlSelection.state.closedBy'
-                      | translate
-                        : { date: (s.closedAt | localDate: 'dateTime'), name: s.closedBy }
+                      | translate: { date: (s.closedAt | localDate: 'dateTime'), name: s.closedBy }
                   }}
                 }
               </p>
+              @if (movedByHand()) {
+                <p class="season__note season__moved">
+                  <crn-icon name="edit" />
+                  {{ 'cwlSelection.state.movedByHand' | translate: { n: movedByHand() } }}
+                </p>
+              }
               <p class="cn-muted season__note">{{ 'cwlSelection.state.closedNote' | translate }}</p>
             }
           </div>
           @if (canManage()) {
             @if (s.state === 'open') {
-              <button mat-flat-button type="button" class="season__action" (click)="decide(s, 'close')">
-                <crn-icon name="lock" matButtonIcon />
-                {{ 'cwlSelection.state.close' | translate }}
-              </button>
+              <!-- Size of the line-up (administrators and the leader of Crociata Nera), as tall as the button. -->
+              <div class="season__actions">
+                <span
+                  class="size-switch"
+                  role="radiogroup"
+                  [attr.aria-label]="'cwlSelection.size.label' | translate"
+                >
+                  @for (size of lineupSizes; track size) {
+                    <button
+                      type="button"
+                      role="radio"
+                      class="size"
+                      [class.size--on]="s.starters === size"
+                      [attr.aria-checked]="s.starters === size"
+                      [disabled]="changingSize()"
+                      [matTooltip]="
+                        'cwlSelection.size.tooltip'
+                          | translate: { starters: size, reserves: reservesOf[size] }
+                      "
+                      (click)="setLineupSize(s, size)"
+                    >
+                      {{
+                        'cwlSelection.size.option'
+                          | translate: { starters: size, reserves: reservesOf[size] }
+                      }}
+                    </button>
+                  }
+                </span>
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="season__action"
+                  (click)="decide(s, 'close')"
+                >
+                  <crn-icon name="lock" matButtonIcon />
+                  {{ 'cwlSelection.state.close' | translate }}
+                </button>
+              </div>
             } @else if (s.canReopen) {
-              <button mat-stroked-button type="button" class="season__action" (click)="decide(s, 'reopen')">
+              <button
+                mat-stroked-button
+                type="button"
+                class="season__action"
+                (click)="decide(s, 'reopen')"
+              >
                 <crn-icon name="lock_reset" matButtonIcon />
                 {{ 'cwlSelection.state.reopen' | translate }}
               </button>
@@ -167,7 +210,7 @@
               <li>{{ 'cwlSelection.rules.league' | translate }}</li>
               <li>{{ 'cwlSelection.rules.penalties' | translate }}</li>
               <li>{{ 'cwlSelection.rules.exclusions' | translate }}</li>
-              <li>{{ 'cwlSelection.rules.order' | translate }}</li>
+              <li>{{ 'cwlSelection.rules.order' | translate: lineupSize() }}</li>
             </ul>
           </details>
           <p class="cn-muted updated">
@@ -204,16 +247,10 @@
                         width="32"
                         height="32"
                         tabindex="0"
-                        (click)="$event.stopPropagation()"
                       />
                     }
                   </span>
-                  <crn-player-cell
-                    class="player__info"
-                    [tag]="p.tag"
-                    [name]="p.name"
-                    stopPropagation
-                  >
+                  <crn-player-cell class="player__info" [tag]="p.tag" [name]="p.name">
                     <div class="cn-muted meta">
                       <span>{{ clanName(p.clanTag) }}</span>
                       @if (roleLabel(p.role); as role) {
@@ -253,7 +290,9 @@
                     <div class="cn-muted meta reason">{{ exclusion.reason }}</div>
                   }
                   @if (exclusion.untilRevoked) {
-                    <div class="meta until-revoked">{{ 'cwlSelection.untilRevoked' | translate }}</div>
+                    <div class="meta until-revoked">
+                      {{ 'cwlSelection.untilRevoked' | translate }}
+                    </div>
                   }
                 } @else {
                   <crn-tag
@@ -261,6 +300,12 @@
                     [appearance]="p.status === 'ineligible' ? 'outline' : 'solid'"
                     >{{ 'cwlSelection.statuses.' + p.status | translate }}</crn-tag
                   >
+                  @if (p.automaticStatus) {
+                    <div class="meta moved" [matTooltip]="movedText(p)" tabindex="0">
+                      <crn-icon name="edit" />
+                      {{ 'cwlSelection.byHand' | translate }}
+                    </div>
+                  }
                 }
               </td>
             </ng-container>
@@ -433,17 +478,12 @@
                     mat-button
                     type="button"
                     [disabled]="readmitting() === p.tag"
-                    (click)="$event.stopPropagation(); readmit(p)"
+                    (click)="readmit(p)"
                   >
                     {{ 'cwlSelection.readmit' | translate }}
                   </button>
                 } @else {
-                  <button
-                    mat-button
-                    type="button"
-                    class="exclude"
-                    (click)="$event.stopPropagation(); exclude(p)"
-                  >
+                  <button mat-button type="button" class="exclude" (click)="exclude(p)">
                     {{ 'cwlSelection.excludeAction' | translate }}
                   </button>
                 }
@@ -453,13 +493,11 @@
             <tr
               mat-row
               *matRowDef="let p; columns: columns()"
-              class="cn-row-link"
               [class.cn-row-me]="isMine(p.tag)"
               [class.row--starter]="p.status === 'starter'"
               [class.row--reserve]="p.status === 'reserve'"
               [class.row--ineligible]="p.status === 'ineligible'"
               [class.row--excluded]="p.status === 'excluded'"
-              (click)="open(p)"
             ></tr>
           </crn-table>
         </section>
