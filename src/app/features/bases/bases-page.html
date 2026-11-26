@@ -43,10 +43,10 @@
         class="filter"
         hideSingleSelectionIndicator
         [attr.aria-label]="'bases.filterByTownHall' | translate"
-        [value]="townHall()"
+        [value]="townHall() ?? allTownHalls"
         (change)="selectTownHall($event.value)"
       >
-        <mat-chip-option [value]="null" [selectable]="townHall() !== null">
+        <mat-chip-option [value]="allTownHalls" [selectable]="townHall() !== null">
           {{ 'bases.all' | translate }}
         </mat-chip-option>
         @for (level of levels(); track level) {
