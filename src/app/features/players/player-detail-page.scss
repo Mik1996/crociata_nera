@@ -1,4 +1,3 @@
-@use 'color-palette' as palette;
 @use 'variables' as *;
 
 // The page fills the space below the header (see `.page--fill` in styles.scss): back link, banner and
@@ -48,11 +47,8 @@ h2 {
   column-gap: $space-m;
   align-items: center;
   padding: $space-s $space-m;
-  border-radius: $radius-l;
-  border: 2px solid var(--cn-game-panel-border);
-  background: var(--cn-game-panel);
+  // Plate, edge and corners from the panels (`cn-card cn-card--plain` in the template).
   color: var(--cn-game-panel-text);
-  box-shadow: inset 0 -0.1875rem 0 palette.alpha(var(--cn-shadow), 30%);
 
   > img,
   > .stat__icon {

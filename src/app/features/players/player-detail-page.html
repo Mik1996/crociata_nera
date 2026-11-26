@@ -28,38 +28,38 @@
         <mat-tab [label]="'player.tabProfile' | translate">
           <div class="tab" role="region" [attr.aria-label]="'player.tabProfile' | translate">
             <ul class="stat-grid" [attr.aria-label]="'player.tabProfile' | translate">
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <img [src]="icons.star" alt="" width="40" height="40" />
                 <span class="stat__value">{{ p.warStars | localNumber }}</span>
                 <span class="stat__label">{{ 'player.warStars' | translate }}</span>
               </li>
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <img [src]="icons['clan-war']" alt="" width="40" height="40" />
                 <span class="stat__value">{{ p.attackWins | localNumber }}</span>
                 <span class="stat__label">{{ 'player.attackWins' | translate }}</span>
               </li>
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <crn-icon class="stat__icon" name="shield" />
                 <span class="stat__value">{{ p.defenseWins | localNumber }}</span>
                 <span class="stat__label">{{ 'player.defenseWins' | translate }}</span>
               </li>
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <crn-icon class="stat__icon" name="volunteer_activism" />
                 <span class="stat__value">{{ p.donations | localNumber }}</span>
                 <span class="stat__label">{{ 'player.donations' | translate }}</span>
               </li>
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <crn-icon class="stat__icon" name="move_to_inbox" />
                 <span class="stat__value">{{ p.donationsReceived | localNumber }}</span>
                 <span class="stat__label">{{ 'player.donationsReceived' | translate }}</span>
               </li>
-              <li class="stat">
+              <li class="stat cn-card cn-card--plain">
                 <img [src]="icons['capital-gold']" alt="" width="40" height="40" />
                 <span class="stat__value">{{ p.capitalContributions | localNumber }}</span>
                 <span class="stat__label">{{ 'player.capitalContributions' | translate }}</span>
               </li>
               @if (p.legendTrophies !== undefined) {
-                <li class="stat">
+                <li class="stat cn-card cn-card--plain">
                   <crn-icon class="stat__icon" name="workspace_premium" />
                   <span class="stat__value">{{ p.legendTrophies | localNumber }}</span>
                   <span class="stat__label">
@@ -71,7 +71,7 @@
                 </li>
               }
               @if (p.builderHall) {
-                <li class="stat">
+                <li class="stat cn-card cn-card--plain">
                   <crn-icon class="stat__icon" name="construction" />
                   <span class="stat__value">{{ p.builderBaseTrophies ?? 0 | localNumber }}</span>
                   <span class="stat__label">
