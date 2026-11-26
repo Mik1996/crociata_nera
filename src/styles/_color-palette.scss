@@ -438,10 +438,11 @@
   --cn-scene-dusk-top: #0d0a14;
   --cn-scene-dusk-mid: #2a1420;
   --cn-scene-dusk-low: #6a2a1c;
-  // Banners of the two sides of a battle (scenic scoreboard).
-  --cn-flag-us: linear-gradient(180deg, #5a5c63 0%, #2a2b30 40%, #111114 100%);
+  // Banners of the two sides of a battle (scenic scoreboard): ours the crimson of the stat tiles with
+  // their gold edge, theirs a black-iron plate with a silver edge.
+  --cn-flag-us: linear-gradient(180deg, #{alpha(#6a1216, 96%)}, #{alpha(#2a080a, 97%)});
   --cn-flag-us-edge: #f4c542;
-  --cn-flag-them: linear-gradient(180deg, #4a4f57, #26292e);
+  --cn-flag-them: linear-gradient(180deg, #2a2526 0%, #1a1617 55%, #121011 100%);
   --cn-flag-them-edge: #c3ccd8;
   --cn-flag-text-muted: #d6ccc6;
   --cn-altar-plate: linear-gradient(180deg, #2a0d0b, #100506); // score plate over the fire
