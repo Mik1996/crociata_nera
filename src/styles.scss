@@ -402,6 +402,29 @@ crn-alert p {
   box-shadow: 0 2px 0 var(--cn-panel-border);
 }
 
+// Chips (filters, chosen options): the edge of the form fields; selected, the gold of the segmented
+// filters.
+.mat-mdc-standard-chip {
+  --mat-chip-container-shape-radius: var(--cn-control-radius);
+  --mat-chip-outline-color: var(--cn-field-border);
+  --mat-chip-outline-width: 2px;
+  --mat-chip-flat-selected-outline-width: 2px;
+  --mat-chip-elevated-container-color: var(--cn-surface);
+  --mat-chip-elevated-selected-container-color: var(--cn-gold-toggle);
+  --mat-chip-label-text-color: var(--cn-text);
+  --mat-chip-selected-label-text-color: var(--cn-on-gold);
+  --mat-chip-with-icon-selected-icon-color: var(--cn-on-gold);
+  --mat-chip-selected-trailing-icon-color: var(--cn-on-gold);
+  --mat-chip-label-text-font: var(--cn-font-heading);
+  --mat-chip-label-text-weight: var(--cn-heading-weight);
+  --mat-chip-label-text-tracking: var(--cn-heading-tracking);
+  --mat-chip-hover-state-layer-color: var(--cn-gold);
+
+  &.mat-mdc-chip-selected {
+    --mat-chip-outline-color: var(--cn-field-border);
+  }
+}
+
 // Form fields (outlined: text fields, selects, date pickers): a recessed well with the edge, corners,
 // height and depth of the game buttons beside them. The label keeps the body font (the heading
 // capitals are too wide for the notch of narrow fields). Compact fields (table filters) thin the
